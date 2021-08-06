@@ -11,9 +11,11 @@ jobs:
     env:
       API_KEY: "add web api key here" #${{ secrets.API_KEY}}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v2
-      - run: cd frontend
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'

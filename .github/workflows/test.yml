@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_KEY: ${{ secrets.API_KEY}}
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v2
-      - run: cd frontend
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
