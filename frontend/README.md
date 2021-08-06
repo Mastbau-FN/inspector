@@ -1,5 +1,5 @@
-# [DOKU](https://hannesgith.github.io/mastbau_inspector/doc/)
-# Try [here](https://hannesgith.github.io/mastbau_inspector/app/)
+# [DOKU](https://mastbau-fn.github.io/inspector/doc/)
+# Try [here](https://mastbau-fn.github.io/inspector/app/)
 
 # mastbau_inspector
 
