@@ -19,7 +19,7 @@ class Backend {
   static const _username_store = "user_name";
   static const _userpass_store = "user_pass";
 
-  final _baseurl = 'https://' + (dotenv.env['API_URL'] ?? '');
+  final _baseurl = dotenv.env['API_URL'];
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
 
   User? _user;
@@ -94,6 +94,6 @@ class Backend {
     // logout user
     await _storage.write(key: _username_store, value: null);
     await _storage.write(key: _userpass_store, value: null);
-    throw ResponseException(res);
+    throw ResponseException(res); //TODO parse res and log res.error
   }
 }

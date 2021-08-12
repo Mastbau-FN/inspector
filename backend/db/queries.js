@@ -6,9 +6,9 @@ const isValidUser = (user, onValid, onInvalid) => {
     if (error) {
       throw error
     }
-    if (bcrypt.compare(user.pass, results)){
-      onValid();
-    }
+    bcrypt.compare(user.pass, results.rows[0].pass)
+      .then(onValid)
+      .catch(onInvalid)
   })
 }
 
@@ -80,6 +80,7 @@ const deleteUser = (request, response) => {
 }
 
 module.exports = {
+  isValidUser,
   getUsers,
   getUserById,
   createUser,

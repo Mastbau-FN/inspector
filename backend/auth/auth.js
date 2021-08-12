@@ -14,7 +14,9 @@ const api_wall = (req, res, next) => {
 const login_wall = (req, res, next) => {
     const loginFreePaths = ['/api/secure/login'];
     if (loginFreePaths.includes(req.path)) return next();
-    isValidUser(user, next,()=>{return res.status(403).json({ error: 'user NOT AUTHORIZED' });})
+    db.isValidUser(req.body.user, next,()=>{
+        return res.status(403).json({ error: 'user NOT AUTHORIZED' });
+    })
 }
 
 module.exports = {
