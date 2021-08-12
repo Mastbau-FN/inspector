@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
 import 'package:provider/provider.dart';
 
@@ -10,17 +9,16 @@ import 'package:mastbau_inspector/widgets/error.dart';
 /// Wraps the whole app to provide login if no user is signed in, and provide the credentials for use by children
 ///
 /// {@category Login}
-/// receives a [DotEnv] to provide environment variables like the `API_KEY`.
 /// If no user is logged in (given by [LoginModel]) it shows the [LoginView].
 /// If someone is already logged in it directly forwards to the [HomeView]
 class LoginWrapper extends StatelessWidget {
   final String title;
-  const LoginWrapper(DotEnv dotenv, this.title, {Key? key}) : super(key: key);
+  const LoginWrapper(this.title, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => LoginModel(dotenv),
+      create: (context) => LoginModel(),
       child: Consumer<LoginModel>(
         builder: (context, login, child) {
           return login.isLoggedIn

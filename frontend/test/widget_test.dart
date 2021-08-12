@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mastbau_inspector/backend/api.dart';
 
 import 'package:mastbau_inspector/main.dart';
 import 'package:mastbau_inspector/widgets/error.dart';
@@ -61,5 +62,11 @@ Future main() async {
     //         widget.decoration!.labelText!.contains('name')),
     //     'testuser');
     // await tester.enterText(find.textContaining('pass'), 'testpassword');
+  });
+
+  ///test backend
+  test('backend', () {
+    var b = Backend();
+    // TODO
   });
 }

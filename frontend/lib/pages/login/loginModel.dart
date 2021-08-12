@@ -6,9 +6,7 @@ class LoginModel extends ChangeNotifier {
   String? username;
   String? password;
 
-  DotEnv dotenv;
-
-  LoginModel(this.dotenv);
+  LoginModel();
 
   bool get isLoggedIn => username != null && password != null;
   String get apikey =>
