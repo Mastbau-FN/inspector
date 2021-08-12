@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:mastbau_inspector/fragments/ErrorView.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
+import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
 import 'package:provider/provider.dart';
 
 import 'loginModel.dart';
@@ -26,15 +28,16 @@ class LoginWrapper extends StatelessWidget {
               builder: (context, AsyncSnapshot<bool> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasError)
-                    return Text(
-                        "this (${snapshot.error!.toString()}) was not supposed to happen");
+                    return ErrorView(snapshot.error as Exception);
                   return snapshot.data ?? false
                       ? HomeView(
                           title: title,
                         )
                       : LoginView(title: title);
                 }
-                return Text("logging in...");
+                return Scaffold(
+                  body: LoadingView(),
+                );
               });
         },
       ),

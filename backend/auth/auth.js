@@ -1,5 +1,5 @@
 require('dotenv').config();
-const db = require('./db/queries')
+const db = require('../db/queries')
 
 const api_wall = (req, res, next) => {
     if (!req.headers.authorization) {
@@ -11,7 +11,7 @@ const api_wall = (req, res, next) => {
     next();
 }
 
-const user_wall = (req, res, next) => {
+const login_wall = (req, res, next) => {
     const loginFreePaths = ['/api/secure/login'];
     if (loginFreePaths.includes(req.path)) return next();
     isValidUser(user, next,()=>{return res.status(403).json({ error: 'user NOT AUTHORIZED' });})
@@ -19,5 +19,5 @@ const user_wall = (req, res, next) => {
 
 module.exports = {
     api_wall,
-    user_wall
+    login_wall
 }

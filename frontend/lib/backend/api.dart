@@ -19,7 +19,7 @@ class Backend {
   static const _username_store = "user_name";
   static const _userpass_store = "user_pass";
 
-  final _baseurl = dotenv.env['API_URL'];
+  final _baseurl = 'https://' + (dotenv.env['API_URL'] ?? '');
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
 
   User? _user;
@@ -44,10 +44,8 @@ class Backend {
   Future connectionGuard() async {
     if (_baseurl == null)
       throw NoConnectionToBackendException("no url provided");
-    final result = await InternetAddress.lookup(_baseurl!);
-    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      return;
-    }
+    //TODO: check if we can reach our api?
+    if (true) return;
     throw NoConnectionToBackendException("couldn't find $_baseurl");
   }
 
@@ -69,8 +67,9 @@ class Backend {
   //TODO: needs testing
   /// post_JSON to our backend as the user
   Future<http.Response> post_JSON(String route,
-      {Map<String, dynamic> json = const {}}) async {
+      {Map<String, dynamic>? json}) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+    json = json ?? {};
     json['user'] = await _c_user();
     return post(route, headers: headers, body: jsonEncode(json));
   }
