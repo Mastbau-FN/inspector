@@ -21,11 +21,21 @@ class LoginWrapper extends StatelessWidget {
       create: (context) => LoginModel(),
       child: Consumer<LoginModel>(
         builder: (context, login, child) {
-          return login.isLoggedIn
-              ? HomeView(
-                  title: title,
-                )
-              : LoginView(title: title);
+          return FutureBuilder(
+              future: login.isLoggedIn,
+              builder: (context, AsyncSnapshot<bool> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError)
+                    return Text(
+                        "this (${snapshot.error!.toString()}) was not supposed to happen");
+                  return snapshot.data ?? false
+                      ? HomeView(
+                          title: title,
+                        )
+                      : LoginView(title: title);
+                }
+                return Text("logging in...");
+              });
         },
       ),
     );

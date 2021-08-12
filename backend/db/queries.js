@@ -1,5 +1,19 @@
-const pool = require('./pool').db.pool
+const bcrypt = require("bcrypt");
+const pool = require('./pool').db.pool;
 
+const isValidUser = (user, onValid, onInvalid) => {
+  pool.query('SELECT * FROM users WHERE name = $1', [user.name], (error, results) => {
+    if (error) {
+      throw error
+    }
+    if (bcrypt.compare(user.pass, results)){
+      onValid();
+    }
+  })
+}
+
+
+/// stuff below is just for trial
 const getUsers = (request, response) => {
   pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
     if (error) {
@@ -8,6 +22,7 @@ const getUsers = (request, response) => {
     response.status(200).json(results.rows)
   })
 }
+
 /**
  * 
  * @param {*} request 

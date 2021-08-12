@@ -26,6 +26,7 @@ app.get('/', (request, response) => {
 */
 if (!process.env.insecure){
     app.use('/api/secure/', auth.api_wall);
+    app.use('/api/secure/',auth.login_wall);
 }
 
 //TODO: remove these tests

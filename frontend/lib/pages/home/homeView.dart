@@ -74,7 +74,7 @@ class _MyHomePageState extends State<HomeView> {
             Consumer<LoginModel>(
               builder: (context, login, child) {
                 return Text(
-                  '${login.apikey.length} \n You have pushed the button this many times:',
+                  'You have pushed the button this many times:',
                 );
               },
             ),
