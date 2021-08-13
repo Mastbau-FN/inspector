@@ -1,17 +1,9 @@
 const bcrypt = require("bcrypt");
 const pool = require('./pool').db.pool;
 
-const isValidUser = (user, onValid, onInvalid) => {
-  pool.query('SELECT * FROM users', [], (error, results) => {
-    if (error) {
-      throw error
-    }
-    try{
-    bcrypt.compare(user.pass, results.rows[1]?.pass)
-      .then(onValid)
-      .catch(onInvalid)
-    }catch(e){()=>{onInvalid();}}
-  })
+const isValidUser = async (user) => {
+    data = await pool.asyncQuery('SELECT * FROM users', []);
+    return await bcrypt.compare(user.pass, data.rows[1]?.pass);
 }
 
 

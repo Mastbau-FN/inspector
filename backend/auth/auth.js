@@ -11,13 +11,15 @@ const api_wall = (req, res, next) => {
     next();
 }
 
-const login_wall = (req, res, next) => {
+const login_wall = async (req, res, next) => {
     const loginFreePaths = [''];
     if (loginFreePaths.includes(req.path)) return next();
-    db.isValidUser(req.body.user, next,()=>{
-        return res.status(403).json({ error: 'user NOT AUTHORIZED' });
-    })
-    next();
+    try {
+        if (await db.isValidUser(req.body.user))next();
+        else res.status(403).json({ error: 'wrong credentials' });
+    }catch(e){
+        return res.status(403).json({ error: 'no user provided' });
+    }
 }
 
 module.exports = {
