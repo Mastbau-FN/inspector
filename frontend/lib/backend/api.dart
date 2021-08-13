@@ -1,4 +1,4 @@
-// TODO
+// TODO offline storage etc
 
 import 'dart:convert';
 import 'dart:io';
@@ -79,7 +79,6 @@ class Backend {
     return http.post(fullURL, headers: headers, body: body, encoding: encoding);
   }
 
-  //TODO: needs testing
   /// post_JSON to our backend as the user
   Future<http.Response> post_JSON(String route,
       {Map<String, dynamic>? json}) async {
