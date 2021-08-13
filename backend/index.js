@@ -29,6 +29,10 @@ if (!process.env.insecure){
     app.use('/api/secure/', auth.login_wall);
 }
 
+app.get('/api/secure/login',(req,res)=>{
+  res.status(200).json({'success':true});
+});
+
 //TODO: remove these tests
 app.get('/users', db.getUsers)
 app.get('/users/:id', db.getUserById)

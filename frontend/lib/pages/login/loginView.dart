@@ -119,7 +119,11 @@ class _LoginFieldState extends State<LoginField> {
           loading = false;
         });
       } catch (e) {
-        controller.close();
+        try {
+          controller.close();
+        } catch (e) {
+          'the controller was already closed';
+        }
         setState(() {
           error_message = e.toString();
           loading = false;

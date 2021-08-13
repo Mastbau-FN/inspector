@@ -12,7 +12,8 @@ class LoginModel extends ChangeNotifier {
       throw Exception("username or password was not given");
     }
 
-    await Backend().login(User(username, password));
+    var res = await Backend().login(User(username, password));
+    print(res);
     notifyListeners();
   }
 }

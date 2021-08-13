@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 class NoConnectionToBackendException implements Exception {
@@ -9,7 +11,7 @@ class ResponseException implements Exception {
   http.Response res;
   @override
   String toString() {
-    return 'Connection Failed, server responded with code \n ${res.statusCode} \n\n ${res.body}';
+    return '${res.statusCode}: ${jsonDecode(res.body)['error']}';
   }
 
   ResponseException(this.res);

@@ -21,6 +21,10 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
+
+  # check if a network is connected and what kind of network (mobile/wifi etc)
+  connectivity_plus: ^1.0.6
+
   # storing sensitive data like username and password
   flutter_secure_storage: ^4.2.1
 

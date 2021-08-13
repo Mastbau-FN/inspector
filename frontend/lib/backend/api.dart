@@ -3,9 +3,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:mastbau_inspector/assets/consts.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
@@ -44,9 +46,21 @@ class Backend {
   Future connectionGuard() async {
     if (_baseurl == null)
       throw NoConnectionToBackendException("no url provided");
-    //TODO: check if we can reach our api?
-    if (true) return;
-    throw NoConnectionToBackendException("couldn't find $_baseurl");
+
+    //check network
+    var connection = await (Connectivity().checkConnectivity());
+    if (connection == ConnectivityResult.none)
+      throw NoConnectionToBackendException("no network available");
+    if (!canUseMobileNetworkIfPossible &&
+        connection == ConnectivityResult.mobile)
+      throw NoConnectionToBackendException("mobile network not allowed");
+
+    try {
+      // check if we can reach our api
+      await post_JSON('/login');
+    } catch (e) {
+      throw NoConnectionToBackendException("couldn't reach $_baseurl");
+    }
   }
 
   /// checks whether the given user is currently logged in
@@ -75,9 +89,9 @@ class Backend {
   }
 
   /// login a [User] by checking if he exists in the remote database
-  Future login(User user) async {
+  Future<Map<String, dynamic>?> login(User user) async {
     // if user is already logged in
-    if (await isUserLoggedIn(user)) return;
+    if (await isUserLoggedIn(user)) return {'alreadyLoggedIn': true};
     await connectionGuard();
     _user = user;
     var res = await post_JSON('/login');
@@ -85,7 +99,7 @@ class Backend {
       //success
       await _storage.write(key: _username_store, value: user.name);
       await _storage.write(key: _userpass_store, value: user.pass);
-      return;
+      return jsonDecode(res.body);
     }
 
     // login failed
@@ -94,6 +108,6 @@ class Backend {
     // logout user
     await _storage.write(key: _username_store, value: null);
     await _storage.write(key: _userpass_store, value: null);
-    throw ResponseException(res); //TODO parse res and log res.error
+    throw ResponseException(res);
   }
 }
