@@ -71,12 +71,8 @@ class _MyHomePageState extends State<HomeView> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Consumer<LoginModel>(
-              builder: (context, login, child) {
-                return Text(
-                  'You have pushed the button this many times:',
-                );
-              },
+            Text(
+              'You have pushed the button this many times:',
             ),
             Text(
               '$_counter',

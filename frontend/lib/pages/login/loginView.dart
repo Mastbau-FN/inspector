@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/fragments/ErrorView.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
 import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
@@ -19,26 +20,29 @@ class LoginWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => LoginModel(),
-      child: Consumer<LoginModel>(
-        builder: (context, login, child) {
-          return FutureBuilder(
-              future: login.isLoggedIn,
-              builder: (context, AsyncSnapshot<bool> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) return ErrorView(snapshot.error);
-                  return snapshot.data ?? false
-                      ? HomeView(
-                          title: title,
-                        )
-                      : LoginView(title: title);
-                }
-                return Scaffold(
-                  body: LoadingView(),
-                );
-              });
-        },
+    return Phoenix(
+      child: ChangeNotifierProvider(
+        create: (context) => LoginModel(),
+        child: Consumer<LoginModel>(
+          builder: (context, login, child) {
+            print("login changed");
+            return FutureBuilder(
+                future: login.isLoggedIn,
+                builder: (context, AsyncSnapshot<bool> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) return ErrorView(snapshot.error);
+                    return snapshot.data ?? false
+                        ? HomeView(
+                            title: title,
+                          )
+                        : LoginView(title: title);
+                  }
+                  return Scaffold(
+                    body: LoadingView(),
+                  );
+                });
+          },
+        ),
       ),
     );
   }

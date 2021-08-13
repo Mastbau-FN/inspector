@@ -16,4 +16,9 @@ class LoginModel extends ChangeNotifier {
     print(res);
     notifyListeners();
   }
+
+  Future logout() async {
+    await Backend().logout();
+    notifyListeners();
+  }
 }

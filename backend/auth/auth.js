@@ -12,7 +12,6 @@ const api_wall = (req, res, next) => {
 }
 
 const login_wall = (req, res, next) => {
-    console.log(req.path);
     const loginFreePaths = [''];
     if (loginFreePaths.includes(req.path)) return next();
     db.isValidUser(req.body.user, next,()=>{

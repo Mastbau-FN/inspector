@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -75,7 +76,6 @@ class Backend {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
-    print(fullURL);
     return http.post(fullURL, headers: headers, body: body, encoding: encoding);
   }
 
@@ -102,13 +102,14 @@ class Backend {
       await _storage.write(key: _userpass_store, value: user.pass);
       return jsonDecode(res.body);
     }
+    await logout(); //we could omit the await for a slight speed improvement (but if anything crashes for some reason it could lead to unexpected behaviour)
+    throw ResponseException(res);
+  }
 
-    // login failed
+  Future logout() async {
     _user = null;
-
-    // logout user
     await _storage.write(key: _username_store, value: null);
     await _storage.write(key: _userpass_store, value: null);
-    throw ResponseException(res);
+    debugPrint('user logged out');
   }
 }
