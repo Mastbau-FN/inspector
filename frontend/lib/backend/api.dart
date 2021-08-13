@@ -74,8 +74,9 @@ class Backend {
       {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
-    return http.post(Uri.parse(_baseurl! + route),
-        headers: headers, body: body, encoding: encoding);
+    var fullURL = Uri.parse(_baseurl! + route);
+    print(fullURL);
+    return http.post(fullURL, headers: headers, body: body, encoding: encoding);
   }
 
   //TODO: needs testing

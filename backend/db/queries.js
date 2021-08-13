@@ -2,13 +2,15 @@ const bcrypt = require("bcrypt");
 const pool = require('./pool').db.pool;
 
 const isValidUser = (user, onValid, onInvalid) => {
-  pool.query('SELECT * FROM users WHERE name = $1', [user.name], (error, results) => {
+  pool.query('SELECT * FROM users', [], (error, results) => {
     if (error) {
       throw error
     }
-    bcrypt.compare(user.pass, results.rows[0].pass)
+    try{
+    bcrypt.compare(user.pass, results.rows[1]?.pass)
       .then(onValid)
       .catch(onInvalid)
+    }catch(e){()=>{onInvalid();}}
   })
 }
 

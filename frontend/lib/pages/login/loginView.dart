@@ -27,8 +27,7 @@ class LoginWrapper extends StatelessWidget {
               future: login.isLoggedIn,
               builder: (context, AsyncSnapshot<bool> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError)
-                    return ErrorView(snapshot.error as Exception);
+                  if (snapshot.hasError) return ErrorView(snapshot.error);
                   return snapshot.data ?? false
                       ? HomeView(
                           title: title,

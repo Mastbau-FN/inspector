@@ -1,6 +1,9 @@
+import 'dart:io' as io;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mastbau_inspector/pages/login/loginView.dart';
+import 'package:mastbau_inspector/widgets/error.dart';
 
 Future main() async {
   await dotenv.load(fileName: ".env");
@@ -30,7 +33,32 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: LoginWrapper(appTitle),
+      home: kIsWeb ? WebWrap() : LoginWrapper(appTitle),
+    );
+  }
+}
+
+class WebWrap extends StatelessWidget {
+  const WebWrap({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(appTitle),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ErrorText(
+              'the web is currently not supported, but it will be soon',
+              color: Colors.yellow[800]!,
+            ),
+            Text('a link to the built APK will also follow soon')
+          ],
+        ),
+      ),
     );
   }
 }

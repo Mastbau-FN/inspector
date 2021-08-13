@@ -36,5 +36,7 @@ and store in backend dir
 
 #### if neccessary also spin up the postgres database
 
+to use the app a database `users` with `name`and `pass` should be available. The pass should be a hash than can be generated with [this generator](https://bcrypt-generator.com/) for example.
+
 ### run
 `node index.js`

@@ -1,3 +1,8 @@
+const fs = require('fs');
+const key = fs.readFileSync('./key.pem');
+const cert = fs.readFileSync('./cert.pem');
+const https = require('https');
+
 const express = require('express')
 const bodyParser = require('body-parser')
 
@@ -7,6 +12,7 @@ const db = require('./db/queries')
 const auth = require('./auth/auth')
 
 const app = express()
+const server = https.createServer({key: key, cert: cert }, app);
 const port = process.env.port
 
 app.use(bodyParser.json())
@@ -29,7 +35,11 @@ if (!process.env.insecure){
     app.use('/api/secure/', auth.login_wall);
 }
 
-app.get('/api/secure/login',(req,res)=>{
+//log everything
+const logger = require('./misc/logger');
+app.use(logger.logreq);
+
+app.post('/api/secure/login',(req,res)=>{
   res.status(200).json({'success':true});
 });
 
@@ -40,6 +50,9 @@ app.post('/users', db.createUser)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)
 
-app.listen(port, () => {
+server.listen(port+1, () => {
     console.log(`App running on port ${port}.`)
+})
+app.listen(port, () => {
+  console.warn(`App running on port ${port}. THIS IS INSECURE`)//TODO remove http and force https
 })

@@ -12,11 +12,13 @@ const api_wall = (req, res, next) => {
 }
 
 const login_wall = (req, res, next) => {
-    const loginFreePaths = ['/api/secure/login'];
+    console.log(req.path);
+    const loginFreePaths = [''];
     if (loginFreePaths.includes(req.path)) return next();
     db.isValidUser(req.body.user, next,()=>{
         return res.status(403).json({ error: 'user NOT AUTHORIZED' });
     })
+    next();
 }
 
 module.exports = {
