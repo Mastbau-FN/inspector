@@ -107,37 +107,29 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
+  var unlimiteddoggosTile = OpenNewViewTile(
+    title: &#39;see some Doggos&#39;,
+    icon: Icons.child_care,
+    newView: RandomDogsScrollView(),
+  );
+
+  var settingsTile = OpenNewViewTile(
+    title: &#39;Settings&#39;,
+    icon: Icons.settings,
+    newView: SettingsView(
+      logoutcontext: context,
+    ),
+    supplyLoginModel: true,
+  );
+
   return Drawer(
     child: ListView(
       &#47;&#47; Important: Remove any padding from the ListView.
       padding: EdgeInsets.zero,
       children: &lt;Widget&gt;[
-        DrawerHeader(
-          child: Center(
-              child: Text(
-            &#39;Mastbau FN&#39;,
-            style: TextStyle(
-                fontSize: 32, color: Theme.of(context).backgroundColor),
-          )),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topLeft, colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).accentColor
-            ]),
-            &#47;&#47;color: Theme.of(context).primaryColor,
-          ),
-        ),
-        MyCardListTile1(
-          icon: Icons.child_care,
-          text: &#39;Unendlich Hunde&#39;,
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) =&gt; RandomDogsScrollView()),
-            );
-          },
-        ),
+        MainDrawerHeader(),
+        settingsTile,
+        unlimiteddoggosTile,
       ],
     ),
   );

@@ -107,16 +107,29 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return ChangeNotifierProvider(
-    create: (context) =&gt; LoginModel(dotenv),
-    child: Consumer&lt;LoginModel&gt;(
-      builder: (context, login, child) {
-        return login.isLoggedIn
-            ? HomeView(
-                title: title,
-              )
-            : LoginView(title: title);
-      },
+  return Phoenix(
+    child: ChangeNotifierProvider(
+      create: (context) =&gt; LoginModel(),
+      child: Consumer&lt;LoginModel&gt;(
+        builder: (context, login, child) {
+          print(&quot;login changed&quot;);
+          return FutureBuilder(
+              future: login.isLoggedIn,
+              builder: (context, AsyncSnapshot&lt;bool&gt; snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError) return ErrorView(snapshot.error);
+                  return snapshot.data ?? false
+                      ? HomeView(
+                          title: title,
+                        )
+                      : LoginView(title: title);
+                }
+                return Scaffold(
+                  body: LoadingView(),
+                );
+              });
+        },
+      ),
     ),
   );
 }</code></pre>

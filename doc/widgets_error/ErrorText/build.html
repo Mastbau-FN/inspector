@@ -119,11 +119,11 @@ Widget build(BuildContext context) {
       ),
       Text(
         &#47;&#47; removes the the &quot;Exception: &quot; if wanted and the string matches
-        error?.substring(
-                removeException &amp;&amp; error?.substring(0, 11) == &quot;Exception: &quot;
-                    ? 11
-                    : 0) ??
-            &quot;&quot;,
+        error.substring(removeException &amp;&amp;
+                error.length &gt; 10 &amp;&amp;
+                error.substring(0, 11) == &quot;Exception: &quot;
+            ? 11
+            : 0),
         style: TextStyle(color: color),
       )
     ],

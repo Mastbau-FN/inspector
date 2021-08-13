@@ -63,9 +63,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">const ErrorText(this.error,
+  <pre class="language-dart"><code class="language-dart">const ErrorText(final String? error,
     {this.color = Colors.red, Key? key, this.removeException = true})
-    : super(key: key);</code></pre>
+    : this.error = error ?? &#39;an Error occured&#39;,
+      super(key: key);</code></pre>
 </section>
 
 

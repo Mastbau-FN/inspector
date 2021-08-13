@@ -121,7 +121,7 @@ Widget build(BuildContext context) {
       &#47;&#47; is not restarted.
       primarySwatch: Colors.blue,
     ),
-    home: LoginWrapper(dotenv, appTitle),
+    home: kIsWeb ? WebWrap() : LoginWrapper(appTitle),
   );
 }</code></pre>
 </section>
