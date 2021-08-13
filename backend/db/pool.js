@@ -12,6 +12,17 @@ db.pool = new Pool({
   password: process.env.postgres_password,
   port: process.env.postgres_port
 });
+db.pool.asyncQuery = (querystring,args)=> 
+  new Promise(
+    (resolve,reject)=>{
+      db.pool.query(querystring,args, 
+        (err,data)=>{
+          if (err) reject(err);
+          resolve(data);
+        }
+      )
+    }
+  )
 
 module.exports = {
   db

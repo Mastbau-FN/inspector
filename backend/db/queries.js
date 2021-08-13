@@ -1,5 +1,13 @@
-const pool = require('./pool').db.pool
+const bcrypt = require("bcrypt");
+const pool = require('./pool').db.pool;
 
+const isValidUser = async (user) => {
+    data = await pool.asyncQuery('SELECT * FROM users', []);
+    return await bcrypt.compare(user.pass, data.rows[1]?.pass);
+}
+
+
+/// stuff below is just for trial
 const getUsers = (request, response) => {
   pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
     if (error) {
@@ -8,6 +16,7 @@ const getUsers = (request, response) => {
     response.status(200).json(results.rows)
   })
 }
+
 /**
  * 
  * @param {*} request 
@@ -65,6 +74,7 @@ const deleteUser = (request, response) => {
 }
 
 module.exports = {
+  isValidUser,
   getUsers,
   getUserById,
   createUser,

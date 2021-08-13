@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 class ErrorText extends StatelessWidget {
-  final String? error;
+  final String error;
   final Color color;
 
   /// whether to remove the "Exception: " with which most exceptions start
   final bool removeException;
-  const ErrorText(this.error,
+  const ErrorText(final String? error,
       {this.color = Colors.red, Key? key, this.removeException = true})
-      : super(key: key);
+      : this.error = error ?? 'an Error occured',
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +25,11 @@ class ErrorText extends StatelessWidget {
         ),
         Text(
           // removes the the "Exception: " if wanted and the string matches
-          error?.substring(
-                  removeException && error?.substring(0, 11) == "Exception: "
-                      ? 11
-                      : 0) ??
-              "",
+          error.substring(removeException &&
+                  error.length > 10 &&
+                  error.substring(0, 11) == "Exception: "
+              ? 11
+              : 0),
           style: TextStyle(color: color),
         )
       ],

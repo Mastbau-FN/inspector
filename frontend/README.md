@@ -22,7 +22,7 @@ samples, guidance on mobile development, and a full API reference.
 
 ### Environment
 
-create a .env file in the root dir containing a field `API_KEY=xxx`
+create a .env file in the frontend dir containing a field `API_KEY=xxx`
 
 ### Build
 
