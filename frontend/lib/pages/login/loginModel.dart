@@ -6,7 +6,8 @@ class LoginModel extends ChangeNotifier {
   LoginModel();
 
   /// whether anyone is logged in, used to switch whether to show the login screen or the main view
-  Future<bool> get isLoggedIn async => await Backend().isAnyoneLoggedIn();
+  Future<bool> get isLoggedIn async => await Backend().isAnyoneLoggedIn;
+  Future<DisplayUser?> get user async => await Backend().user;
 
   /// logs the user in and updates the UI
   Future login(String? username, String? password) async {
@@ -16,7 +17,7 @@ class LoginModel extends ChangeNotifier {
     }
 
     var res = await Backend().login(User(username, password));
-    print(res);
+    debugPrint(res.toString());
     notifyListeners();
   }
 

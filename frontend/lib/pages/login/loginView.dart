@@ -25,7 +25,7 @@ class LoginWrapper extends StatelessWidget {
         create: (context) => LoginModel(),
         child: Consumer<LoginModel>(
           builder: (context, login, child) {
-            print("login changed");
+            debugPrint("login changed");
             return FutureBuilder(
                 future: login.isLoggedIn,
                 builder: (context, AsyncSnapshot<bool> snapshot) {

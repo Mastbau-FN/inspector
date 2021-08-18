@@ -9,11 +9,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
+  // MARK: internals
+
   static final Backend _instance = Backend._internal();
   factory Backend() => _instance;
 
@@ -22,6 +25,11 @@ class Backend {
   static const _username_store = "user_name";
   static const _userpass_store = "user_pass";
 
+  // Insecure Key-Value pairs
+  final prefs = SharedPreferences.getInstance();
+  static const _full_name_store = "full_name";
+  static const _full_surname_store = "full_surname";
+
   final _baseurl = dotenv.env['API_URL'];
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
 
@@ -29,18 +37,22 @@ class Backend {
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
-  Future<User?> _c_user() async {
+  Future<User?> get _c_user async {
     if (_user != null) return _user;
     String? name = await _storage.read(key: _username_store);
     String? pass = await _storage.read(key: _userpass_store);
     if (name == null || pass == null) return null;
     _user = User(name, pass);
+    _user?.full_name = (await prefs).getString(_full_name_store);
+    _user?.full_surname = (await prefs).getString(_full_surname_store);
     return _user;
   }
 
   Backend._internal() {
     // init
   }
+
+  // MARK: available Helpers
 
   /// checks whether a connection to the backend is possible
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
@@ -64,12 +76,6 @@ class Backend {
     }
   }
 
-  /// checks whether the given user is currently logged in
-  Future<bool> isUserLoggedIn(User user) async => user == await _c_user();
-
-  /// checks whether anyone is currently logged in
-  Future<bool> isAnyoneLoggedIn() async => await _c_user() != null;
-
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
   Future<http.Response> post(String route,
       {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
@@ -84,9 +90,20 @@ class Backend {
       {Map<String, dynamic>? json}) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
-    json['user'] = await _c_user();
+    json['user'] = await _c_user;
     return post(route, headers: headers, body: jsonEncode(json));
   }
+
+  // MARK: API
+
+  /// checks whether the given user is currently logged in
+  Future<bool> isUserLoggedIn(User user) async => user == await _c_user;
+
+  /// checks whether anyone is currently logged in
+  Future<bool> get isAnyoneLoggedIn async => await _c_user != null;
+
+  /// gets the currently logged in [DisplayUser], which is the current [User] but with removed [User.pass] to avoid abuse
+  Future<DisplayUser> get user async => (await _c_user) as DisplayUser;
 
   /// login a [User] by checking if he exists in the remote database
   Future<Map<String, dynamic>?> login(User user) async {
@@ -99,7 +116,19 @@ class Backend {
       //success
       await _storage.write(key: _username_store, value: user.name);
       await _storage.write(key: _userpass_store, value: user.pass);
-      return jsonDecode(res.body);
+      var resb = jsonDecode(res.body)['user'];
+      if (_user != null) {}
+      _user?.full_surname = resb?['Name'];
+      _user?.full_name = resb?['Vorname'];
+      if (_user != null &&
+          _user?.full_name == null &&
+          _user?.full_surname == null) {
+        //persist data
+        (await prefs).setString(_full_name_store, _user?.full_name ?? 'noname');
+        (await prefs)
+            .setString(_full_surname_store, _user?.full_surname ?? 'noname');
+      }
+      return resb;
     }
     await logout(); //we could omit the await for a slight speed improvement (but if anything crashes for some reason it could lead to unexpected behaviour)
     throw ResponseException(res);

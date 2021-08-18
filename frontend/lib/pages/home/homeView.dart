@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mastbau_inspector/fragments/MainDrawer.dart';
-import 'package:mastbau_inspector/pages/login/loginModel.dart';
-import 'package:provider/provider.dart';
+import 'package:mastbau_inspector/pages/locationOverview/locationView.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends StatelessWidget {
+  final String title;
+  const HomeView({required this.title, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: LocationView(),
+    );
+  }
+}
+
+/*class HomeView extends StatefulWidget {
   HomeView({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -88,4 +99,4 @@ class _MyHomePageState extends State<HomeView> {
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-}
+}*/

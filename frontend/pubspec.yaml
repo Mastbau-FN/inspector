@@ -30,6 +30,9 @@ dependencies:
   # storing sensitive data like username and password
   flutter_secure_storage: ^4.2.1
 
+  # insecure storage for key value pairs
+  shared_preferences: ^2.0.6
+
   # state management
   provider: ^5.0.0
 
