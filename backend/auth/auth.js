@@ -15,10 +15,11 @@ const login_wall = async (req, res, next) => {
     const loginFreePaths = [''];
     if (loginFreePaths.includes(req.path)) return next();
     try {
-        if (await db.isValidUser(req.body.user))next();
-        else res.status(403).json({ error: 'wrong credentials' });
+        let user = await db.getValidUser(req.body.user);
+        req.user = user;
+        next();
     }catch(e){
-        return res.status(403).json({ error: 'no user provided' });
+        return res.status(403).json({ error: 'wrong credentials' });
     }
 }
 

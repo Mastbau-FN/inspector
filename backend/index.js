@@ -37,18 +37,13 @@ if (!process.env.insecure){
 
 //log everything
 const logger = require('./misc/logger');
-app.use(logger.logreq);
+app.use('/',logger.logreq);
 
 app.post('/api/secure/login',(req,res)=>{
-  res.status(200).json({'success':true});
+  let json_response = {'success':true};
+  json_response.user = req.user;
+  res.status(200).json(json_response);
 });
-
-//TODO: remove these tests
-app.get('/users', db.getUsers)
-app.get('/users/:id', db.getUserById)
-app.post('/users', db.createUser)
-app.put('/users/:id', db.updateUser)
-app.delete('/users/:id', db.deleteUser)
 
 server.listen(port+1, () => {
     console.log(`App running on port ${port}.`)
