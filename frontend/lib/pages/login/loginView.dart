@@ -175,14 +175,14 @@ class _LoginFieldState extends State<LoginField> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Bitte Namen eingeben';
+                        return 'Bitte Kürzel eingeben';
                       }
                       return null;
                     },
                     autofocus: widget.autofocus,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Username',
+                      labelText: 'Kürzel',
                     ),
                     textInputAction: TextInputAction.next,
                   ),
@@ -204,7 +204,7 @@ class _LoginFieldState extends State<LoginField> {
                     autocorrect: false,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Password',
+                      labelText: 'Passwort',
                     ),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => logmein(context),

@@ -10,6 +10,7 @@ class LoginModel extends ChangeNotifier {
 
   /// logs the user in and updates the UI
   Future login(String? username, String? password) async {
+    // current kürzel and password for testing are HH testpass
     if (username == null || password == null) {
       throw Exception("username or password was not given");
     }

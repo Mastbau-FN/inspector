@@ -1,83 +1,83 @@
-const bcrypt = require("bcrypt");
+////const bcrypt = require("bcrypt");
+const fs = require('fs');
+const fsp = fs.promises;
 const pool = require('./pool').db.pool;
 
-const isValidUser = async (user) => {
-    data = await pool.asyncQuery('SELECT * FROM users', []);
-    return await bcrypt.compare(user.pass, data.rows[1]?.pass);
-}
+// MARK: Helpers
 
+/**
+ * 
+ * example usage: 
+ * ```
+ * await getQueryString('inspection_locations');
+ * ```
+ * returns the sql query in `./sql/inspection_locations.sql`
+ */
+const getQueryString = async (name) => {
+  //change path here if folder structure changes
+  return (await fsp.readFile(`./db/sql/${name}.sql`)).toString()
+} 
 
-/// stuff below is just for trial
-const getUsers = (request, response) => {
-  pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
-    if (error) {
-      throw error
-    }
-    response.status(200).json(results.rows)
-  })
+/**
+ * 
+ * @param {String} file
+ * @param {List} params
+ * @returns a Promise resolving the data given by sql query name (uses {getQueryString}) with given parameters
+ */
+const queryFileWithParams = async (file,params)=>{
+  let query = await getQueryString(file);
+  let data = await pool.asyncQuery(query,params);
+  return data.rows;
 }
 
 /**
  * 
- * @param {*} request 
- * @param {*} response 
- * returns all the users with matching id
+ * @param {User} user 
+ * @returns a Promise resolving all user data when the credentials are valid and throwing if not
  */
-const getUserById = (request, response) => {
-  const id = parseInt(request.params.id)
+const getValidUser = async (user) => {
+  let userdata = (await queryFileWithParams('auth_user', [user.name,user.pass]))[0];
+  if (userdata === undefined){
+    throw new Error('user credentials invalid');
+  }
+  userdata.PW = undefined; //remove PW hash, not needed actually
+  return userdata;
+};
 
-  pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
-    if (error) {
-      throw error
-    }
-    response.status(200).json(results.rows)
-  })
-}
+/**
+ * 
+ * @param {User} user 
+ * @returns a Promise resolving to all the inspection location data for the inspector given by {user.name} (with name beeing the kürzel)
+ */
+ const getInspectionsForUser = (user) => queryFileWithParams('inspection_locations',user.name);
 
-//TODO: add the actual queries
-const createUser = (request, response) => {
-  const { name, email } = request.body
+ /**
+ * 
+ * @param {Number} pjNr 
+ * @returns a Promise resolving to all categories that need to be checked for a given project
+ */
+  const getCheckCategoriesForPjNR = (pjNr) => queryFileWithParams('check_categories',pjNr);
 
-  pool.query('INSERT INTO users (name, email) VALUES ($1, $2)', [name, email], (error, results) => {
-    if (error) {
-      throw error
-    }
-    response.status(201).send(`User added with ID: ${result.insertId}`)
-  })
-}
+ /**
+ * 
+ * @param {Number} pjNr 
+ * @returns a Promise resolving to all points that need to be checked for a given project
+ */
+  const getCheckPointsForPjNR = (pjNr) => queryFileWithParams('check_points',pjNr);
 
-const updateUser = (request, response) => {
-  const id = parseInt(request.params.id)
-  const { name, email } = request.body
+ /**
+ * 
+ * @param {Number} pjNr 
+ * @returns a Promise resolving to all defects that were checked for a given project
+ */
+  const getCheckPointDefectsForPjNR = (pjNr) => queryFileWithParams('check_point_defects',pjNr);
 
-  pool.query(
-    'UPDATE users SET name = $1, email = $2 WHERE id = $3',
-    [name, email, id],
-    (error, results) => {
-      if (error) {
-        throw error
-      }
-      response.status(200).send(`User modified with ID: ${id}`)
-    }
-  )
-}
 
-const deleteUser = (request, response) => {
-  const id = parseInt(request.params.id)
-
-  pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
-    if (error) {
-      throw error
-    }
-    response.status(200).send(`User deleted with ID: ${id}`)
-  })
-}
 
 module.exports = {
-  isValidUser,
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
+  getValidUser,
+  getInspectionsForUser,
+  getCheckCategoriesForPjNR,
+  getCheckPointsForPjNR,
+  getCheckPointDefectsForPjNR,
 }

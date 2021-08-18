@@ -1155,10 +1155,9 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE public."Def_Login" (
-    "Def_Login_ID" integer NOT NULL,
+    "KZL" public.citext NOT NULL PRIMARY KEY,
     "Name" character varying(50),
     "Vorname" character varying(50),
-    "KZL" public.citext,
     "PW" text NOT NULL,
     aktiv boolean DEFAULT false
 );
