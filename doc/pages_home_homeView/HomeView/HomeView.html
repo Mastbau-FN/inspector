@@ -32,7 +32,7 @@
     <li><a href="../../index.html">mastbau_inspector</a></li>
     <li><a href="../../pages_home_homeView/pages_home_homeView-library.html">homeView</a></li>
     <li><a href="../../pages_home_homeView/HomeView-class.html">HomeView</a></li>
-    <li class="self-crumb">HomeView constructor</li>
+    <li class="self-crumb">HomeView const constructor</li>
   </ol>
   <div class="self-name">HomeView</div>
   <form class="search navbar-right" role="search">
@@ -49,9 +49,9 @@
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
-    <section class="multi-line-signature">
-      <span class="name ">HomeView</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-key">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>, </span></li>
-<li><span class="parameter" id="-param-title"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">title</span>}</span></li>
+    <section class="multi-line-signature">const
+      <span class="name ">HomeView</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-title">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">title</span>, </span></li>
+<li><span class="parameter" id="-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>}</span></li>
 </ol>)
     </section>
 
@@ -61,7 +61,7 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">HomeView({Key? key, required this.title}) : super(key: key);</code></pre>
+  <pre class="language-dart"><code class="language-dart">const HomeView({required this.title, Key? key}) : super(key: key);</code></pre>
 </section>
 
 
@@ -78,7 +78,7 @@
   <li><a href="../../index.html">mastbau_inspector</a></li>
   <li><a href="../../pages_home_homeView/pages_home_homeView-library.html">homeView</a></li>
   <li><a href="../../pages_home_homeView/HomeView-class.html">HomeView</a></li>
-  <li class="self-crumb">HomeView constructor</li>
+  <li class="self-crumb">HomeView const constructor</li>
 </ol>
 
 
@@ -98,8 +98,8 @@
     <li><a href="../../pages_home_homeView/HomeView/title.html">title</a></li>
 
     <li class="section-title"><a href="../../pages_home_homeView/HomeView-class.html#instance-methods">Methods</a></li>
-    <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/StatefulWidget/createElement.html">createElement</a></li>
-    <li><a href="../../pages_home_homeView/HomeView/createState.html">createState</a></li>
+    <li><a href="../../pages_home_homeView/HomeView/build.html">build</a></li>
+    <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/StatelessWidget/createElement.html">createElement</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/DiagnosticableTree/debugDescribeChildren.html">debugDescribeChildren</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/debugFillProperties.html">debugFillProperties</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>

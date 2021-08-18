@@ -78,7 +78,19 @@
     &#47;&#47;success
     await _storage.write(key: _username_store, value: user.name);
     await _storage.write(key: _userpass_store, value: user.pass);
-    return jsonDecode(res.body);
+    var resb = jsonDecode(res.body)[&#39;user&#39;];
+    if (_user != null) {}
+    _user?.full_surname = resb?[&#39;Name&#39;];
+    _user?.full_name = resb?[&#39;Vorname&#39;];
+    if (_user != null &amp;&amp;
+        _user?.full_name == null &amp;&amp;
+        _user?.full_surname == null) {
+      &#47;&#47;persist data
+      (await prefs).setString(_full_name_store, _user?.full_name ?? &#39;noname&#39;);
+      (await prefs)
+          .setString(_full_surname_store, _user?.full_surname ?? &#39;noname&#39;);
+    }
+    return resb;
   }
   await logout(); &#47;&#47;we could omit the await for a slight speed improvement (but if anything crashes for some reason it could lead to unexpected behaviour)
   throw ResponseException(res);
@@ -110,15 +122,18 @@
     <li><a href="../../backend_api/Backend/Backend.html">Backend</a></li>
 
 
-    <li class="section-title inherited">
+    <li class="section-title">
       <a href="../../backend_api/Backend-class.html#instance-properties">Properties</a>
     </li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
+    <li><a href="../../backend_api/Backend/isAnyoneLoggedIn.html">isAnyoneLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/prefs.html">prefs</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
+    <li><a href="../../backend_api/Backend/user.html">user</a></li>
 
     <li class="section-title"><a href="../../backend_api/Backend-class.html#instance-methods">Methods</a></li>
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
-    <li><a href="../../backend_api/Backend/isAnyoneLoggedIn.html">isAnyoneLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>

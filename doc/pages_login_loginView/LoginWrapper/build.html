@@ -112,7 +112,7 @@ Widget build(BuildContext context) {
       create: (context) =&gt; LoginModel(),
       child: Consumer&lt;LoginModel&gt;(
         builder: (context, login, child) {
-          print(&quot;login changed&quot;);
+          debugPrint(&quot;login changed&quot;);
           return FutureBuilder(
               future: login.isLoggedIn,
               builder: (context, AsyncSnapshot&lt;bool&gt; snapshot) {
