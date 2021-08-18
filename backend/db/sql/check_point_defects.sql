@@ -14,7 +14,7 @@ SELECT "MGAUFTR"."PjNr",
 FROM "MGAUFTR"
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
-("MGAUFTR"."PjNr" = 6006259) --$1?
+("MGAUFTR"."PjNr" = 6006259) --$1? only param? -- ASKTHIS 
 AND ("MGAUFTR"."Bauleitung" LIKE 'NL')
 AND (
 "Events"."EREArt" = 5201 -- leichte Mängel

@@ -36,6 +36,11 @@ class _LocationView extends StatelessWidget {
           title: Text('Inspektionen: ${user.toString()}'),
         ),
         drawer: MainDrawer(),
+        body: DropDownList(
+          children: [
+            MainDropDown(title: Text('title'), child: Text('expanded')),
+          ],
+        ),
       ),
     );
   }

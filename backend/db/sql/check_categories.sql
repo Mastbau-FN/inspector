@@ -14,7 +14,7 @@ SELECT "MGAUFTR"."PjNr",
 FROM "MGAUFTR"
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
-("MGAUFTR"."PjNr" = 6006259) -- Projektnummer --$1 ? ist das schon inspector agnostic? 
+("MGAUFTR"."PjNr" = 6006259) -- Projektnummer --$1 ? ist das schon inspector agnostic? -- ASKTHIS 
 AND ("MGAUFTR"."Bauleitung" LIKE 'NL') -- Monteur
 AND ("Events"."EREArt" = 5100) -- Kategorien
 )

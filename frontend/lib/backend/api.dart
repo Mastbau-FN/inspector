@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
+import 'package:mastbau_inspector/classes/inspection_location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
@@ -140,5 +141,17 @@ class Backend {
     await _storage.write(key: _username_store, value: null);
     await _storage.write(key: _userpass_store, value: null);
     debugPrint('user logged out');
+  }
+
+  //TODO make queries offlineable
+
+  /// gets all the [InspectionLocation]s for the currently logged in [user]
+  Future<List<InspectionLocation>>
+      getAllInspectionLocationsForCurrentUser() async {
+    //TODO: unmock
+    return [
+      InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
+      InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
+    ];
   }
 }
