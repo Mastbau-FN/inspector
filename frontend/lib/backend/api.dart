@@ -105,6 +105,7 @@ class Backend {
     throw ResponseException(res);
   }
 
+  /// removes the credentials from local storage and therefors logs out
   Future logout() async {
     _user = null;
     await _storage.write(key: _username_store, value: null);
