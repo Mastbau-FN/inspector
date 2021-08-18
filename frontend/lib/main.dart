@@ -48,15 +48,18 @@ class WebWrap extends StatelessWidget {
         appBar: AppBar(
           title: Text(appTitle),
         ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ErrorText(
-              'the web is currently not supported, but it will be soon',
-              color: Colors.yellow[800]!,
-            ),
-            Text('a link to the built APK will also follow soon')
-          ],
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ErrorText(
+                'the web is currently not supported, but it will be soon',
+                color: Colors.yellow[800]!,
+              ),
+              Text('a link to the built APK will also follow soon')
+            ],
+          ),
         ),
       ),
     );

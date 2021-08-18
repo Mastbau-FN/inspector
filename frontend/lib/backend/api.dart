@@ -143,8 +143,6 @@ class Backend {
     debugPrint('user logged out');
   }
 
-  //TODO make queries offlineable
-
   /// gets all the [InspectionLocation]s for the currently logged in [user]
   Future<List<InspectionLocation>>
       getAllInspectionLocationsForCurrentUser() async {

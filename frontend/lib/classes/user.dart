@@ -9,7 +9,7 @@ class DisplayUser {
 
   @override
   String toString() {
-    return '${full_name?[0]}. $full_surname';
+    return (full_name!=null && full_surname!=null)?'${full_name?[0]}. $full_surname': name;
   }
 }
 
