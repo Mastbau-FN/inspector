@@ -8,7 +8,7 @@ enum LocationNext { categories, images, informations }
 
 extension LocationNextString on LocationNext {
   static const _names = {
-    LocationNext.categories: "Kategorien",
+    LocationNext.categories: "Prüfkategorien",
     LocationNext.images: "Fotos",
     LocationNext.informations: "Infos"
   };

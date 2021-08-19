@@ -6,11 +6,9 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
 import 'package:mastbau_inspector/classes/inspection_location.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
@@ -21,15 +19,13 @@ class Backend {
   static final Backend _instance = Backend._internal();
   factory Backend() => _instance;
 
-  // Create secure storage
-  final _storage = new FlutterSecureStorage();
-  static const _username_store = "user_name";
-  static const _userpass_store = "user_pass";
+  bool _isFaked = false;
 
-  // Insecure Key-Value pairs
-  final prefs = SharedPreferences.getInstance();
-  static const _full_name_store = "full_name";
-  static const _full_surname_store = "full_surname";
+  /// creates a fake backend which can be used for mocking data
+  factory Backend.fake() {
+    _instance._isFaked = true;
+    return _instance;
+  }
 
   final _baseurl = dotenv.env['API_URL'];
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
@@ -40,13 +36,7 @@ class Backend {
   /// should be prefered over [_user], since it makes sure to have it initialized
   Future<User?> get _c_user async {
     if (_user != null) return _user;
-    String? name = await _storage.read(key: _username_store);
-    String? pass = await _storage.read(key: _userpass_store);
-    if (name == null || pass == null) return null;
-    _user = User(name, pass);
-    _user?.full_name = (await prefs).getString(_full_name_store);
-    _user?.full_surname = (await prefs).getString(_full_surname_store);
-    return _user;
+    return await User.fromStore();
   }
 
   Backend._internal() {
@@ -107,29 +97,21 @@ class Backend {
   Future<DisplayUser> get user async => (await _c_user) as DisplayUser;
 
   /// login a [User] by checking if he exists in the remote database
-  Future<Map<String, dynamic>?> login(User user) async {
+  Future<DisplayUser?> login(User user) async {
     // if user is already logged in
-    if (await isUserLoggedIn(user)) return {'alreadyLoggedIn': true};
+    if (await isUserLoggedIn(user)) return await this.user;
+    if (_isFaked) {
+      return user;
+    }
     await connectionGuard();
     _user = user;
     var res = await post_JSON('/login');
     if (res.statusCode == 200) {
       //success
-      await _storage.write(key: _username_store, value: user.name);
-      await _storage.write(key: _userpass_store, value: user.pass);
       var resb = jsonDecode(res.body)['user'];
-      if (_user != null) {}
-      _user?.full_surname = resb?['Name'];
-      _user?.full_name = resb?['Vorname'];
-      if (_user != null &&
-          _user?.full_name == null &&
-          _user?.full_surname == null) {
-        //persist data
-        (await prefs).setString(_full_name_store, _user?.full_name ?? 'noname');
-        (await prefs)
-            .setString(_full_surname_store, _user?.full_surname ?? 'noname');
-      }
-      return resb;
+      _user?.fromMap(resb);
+      await _user?.store();
+      return this.user;
     }
     await logout(); //we could omit the await for a slight speed improvement (but if anything crashes for some reason it could lead to unexpected behaviour)
     throw ResponseException(res);
@@ -137,15 +119,20 @@ class Backend {
 
   /// removes the credentials from local storage and therefors logs out
   Future logout() async {
+    _user?.unstore();
     _user = null;
-    await _storage.write(key: _username_store, value: null);
-    await _storage.write(key: _userpass_store, value: null);
     debugPrint('user logged out');
   }
 
   /// gets all the [InspectionLocation]s for the currently logged in [user]
   Future<List<InspectionLocation>>
       getAllInspectionLocationsForCurrentUser() async {
+    if (_isFaked) {
+      return [
+        InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
+        InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
+      ];
+    }
     //TODO: unmock
     return [
       InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
