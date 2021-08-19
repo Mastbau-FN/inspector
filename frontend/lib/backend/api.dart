@@ -8,7 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
-import 'package:mastbau_inspector/classes/inspection_location.dart';
+import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 

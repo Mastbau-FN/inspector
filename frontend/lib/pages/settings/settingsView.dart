@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/pages/login/loginModel.dart';
-import 'package:mastbau_inspector/pages/login/loginView.dart';
 import 'package:provider/provider.dart';
 
 class SettingsView extends StatelessWidget {
