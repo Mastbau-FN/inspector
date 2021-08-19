@@ -4,6 +4,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/fragments/ErrorView.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
 import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
+import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 import 'package:provider/provider.dart';
 
 import 'loginModel.dart';
@@ -21,8 +22,13 @@ class LoginWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Phoenix(
-      child: ChangeNotifierProvider(
-        create: (context) => LoginModel(),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (c) => LoginModel(),
+          ),
+          ChangeNotifierProvider(create: (c) => LocationModel())
+        ],
         child: Consumer<LoginModel>(
           builder: (context, login, child) {
             debugPrint("login changed");

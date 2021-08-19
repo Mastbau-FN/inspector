@@ -4,6 +4,7 @@ import 'package:mastbau_inspector/classes/inspection_location.dart';
 import 'package:mastbau_inspector/classes/user.dart';
 import 'package:mastbau_inspector/fragments/MainDrawer.dart';
 import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
+import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 import 'package:mastbau_inspector/pages/login/loginModel.dart';
 import 'package:mastbau_inspector/widgets/MyListTile1.dart';
 import 'package:mastbau_inspector/widgets/myExpandablelList.dart';
@@ -46,7 +47,7 @@ class _LocationView extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.done) {
                 return ExpandablesListRadio(
                     children: snapshot.data!
-                        .map((e) => locationDropDown(e))
+                        .map((e) => locationDropDown(e, context))
                         .toList());
               }
               return ExpandablesListRadio.fake(3);
@@ -55,29 +56,15 @@ class _LocationView extends StatelessWidget {
     );
   }
 
-  ExpandableCard2 locationDropDown(InspectionLocation inspectionLocation) {
+  ExpandableCard2 locationDropDown(
+      InspectionLocation inspectionLocation, BuildContext context) {
     return ExpandableCard2(
-      title: inspectionLocation.pjName,
-      children: [
-        MyCardListTile1(
-          text: "Prüfkategorien",
-          onTap: () {
-            //TODO
-          },
-        ),
-        MyCardListTile1(
-          text: "Fotos",
-          onTap: () {
-            //TODO
-          },
-        ),
-        MyCardListTile1(
-          text: "Infos",
-          onTap: () {
-            //TODO
-          },
-        ),
-      ],
-    );
+        title: inspectionLocation.pjName,
+        children: LocationNext.values
+            .map((e) => MyCardListTile1(
+                  text: e.name ?? '',
+                  onTap: () => e.open(context, inspectionLocation),
+                ))
+            .toList());
   }
 }
