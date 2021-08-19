@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// all userdata that is needed to use it in the UI
 class DisplayUser {
   /// this is aquivalent to the KZL
   final String name;
@@ -23,6 +24,8 @@ class DisplayUser {
   }
 }
 
+/// extends the [DisplayUser] by the [pass] field, which is used to store the password for the current user.
+/// this should not be used in the UI, cause it risks exposing the password
 class User extends DisplayUser {
   final String pass;
 
