@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/fragments/ErrorView.dart';
+import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesModel.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
 import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
 import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
@@ -27,7 +28,12 @@ class LoginWrapper extends StatelessWidget {
           ChangeNotifierProvider(
             create: (c) => LoginModel(),
           ),
-          ChangeNotifierProvider(create: (c) => LocationModel())
+          ChangeNotifierProvider(
+            create: (c) => LocationModel(),
+          ),
+          ChangeNotifierProvider(
+            create: (c) => CategoryModel(),
+          ),
         ],
         child: Consumer<LoginModel>(
           builder: (context, login, child) {
@@ -43,9 +49,7 @@ class LoginWrapper extends StatelessWidget {
                           )
                         : LoginView(title: title);
                   }
-                  return Scaffold(
-                    body: LoadingView(),
-                  );
+                  return LoadingPage();
                 });
           },
         ),

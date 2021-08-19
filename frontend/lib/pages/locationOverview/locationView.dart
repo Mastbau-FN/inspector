@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/classes/inspection_location.dart';
 import 'package:mastbau_inspector/classes/user.dart';
 import 'package:mastbau_inspector/fragments/MainDrawer.dart';
@@ -24,7 +23,7 @@ class LocationView extends StatelessWidget {
                       ? _LocationView(
                           user: snapshot.data!,
                         )
-                      : LoadingView())),
+                      : LoadingPage())),
     );
   }
 }
@@ -40,9 +39,9 @@ class _LocationView extends StatelessWidget {
         appBar: AppBar(
           title: Text('Inspektionen: ${user.toString()}'),
         ),
-        drawer: MainDrawer(),
+        endDrawer: MainDrawer(),
         body: FutureBuilder<List<InspectionLocation>>(
-            future: Backend().getAllInspectionLocationsForCurrentUser(),
+            future: Provider.of<LocationModel>(context).all,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return ExpandablesListRadio(

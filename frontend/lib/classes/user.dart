@@ -73,5 +73,6 @@ class User extends DisplayUser {
     var _user = User(name, pass);
     _user.full_name = (await _prefs).getString(_full_name_store);
     _user.full_surname = (await _prefs).getString(_full_surname_store);
+    return _user;
   }
 }

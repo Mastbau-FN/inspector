@@ -23,4 +23,13 @@ class InspectionLocation {
       this.plz,
       required this.stONr,
       this.strasse});
+
+  @override
+  String toString() {
+    return 'Ins $pjNr: $pjName';
+  }
+
+  String toSubString() {
+    return '${bauleitung ?? ''}';
+  }
 }
