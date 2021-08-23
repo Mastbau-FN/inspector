@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
-class InspectionLocation {
+class InspectionLocation implements Data {
   // TODO: which of them are non-null? // ASKTHIS
   final int pjNr;
   final String pjName;
@@ -23,4 +24,16 @@ class InspectionLocation {
       this.plz,
       required this.stONr,
       this.strasse});
+
+  @override
+  String toString() {
+    return 'Ins $pjNr: $pjName';
+  }
+
+  String toSubString() {
+    return '${bauleitung ?? ''}';
+  }
+
+  @override
+  String get title => toString();
 }

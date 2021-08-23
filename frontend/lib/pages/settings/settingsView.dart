@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/pages/login/loginModel.dart';
-import 'package:mastbau_inspector/pages/login/loginView.dart';
 import 'package:provider/provider.dart';
 
+/// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;
   const SettingsView({Key? key, required this.logoutcontext}) : super(key: key);
@@ -30,6 +29,7 @@ class Logout extends StatelessWidget {
   final BuildContext logoutcontext;
   const Logout({Key? key, required this.logoutcontext}) : super(key: key);
 
+  /// logs the user out and resets app state accordingly
   Future _logout(context) async {
     /*Navigator.popUntil(
         context,

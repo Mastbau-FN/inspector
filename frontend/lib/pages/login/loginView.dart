@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:mastbau_inspector/classes/user.dart';
 import 'package:mastbau_inspector/fragments/ErrorView.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
 import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
+import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 import 'package:provider/provider.dart';
 
 import 'loginModel.dart';
@@ -21,24 +23,38 @@ class LoginWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Phoenix(
-      child: ChangeNotifierProvider(
-        create: (context) => LoginModel(),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (c) => LoginModel(),
+          ),
+          /*ChangeNotifierProvider(
+            create: (c) => CategoryModel(),
+          ),*/
+        ],
         child: Consumer<LoginModel>(
           builder: (context, login, child) {
             debugPrint("login changed");
-            return FutureBuilder(
-                future: login.isLoggedIn,
-                builder: (context, AsyncSnapshot<bool> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasError) return ErrorView(snapshot.error);
-                    return snapshot.data ?? false
-                        ? HomeView(
-                            title: title,
-                          )
-                        : LoginView(title: title);
-                  }
-                  return Scaffold(
-                    body: LoadingView(),
+            return FutureBuilder<DisplayUser?>(
+                future: login.user,
+                builder: (context, snapshot) {
+                  return ChangeNotifierProvider(
+                    create: (c) => LocationModel(user: snapshot.data),
+                    child: FutureBuilder(
+                        future: login.isLoggedIn,
+                        builder: (context, AsyncSnapshot<bool> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            if (snapshot.hasError)
+                              return ErrorView(snapshot.error);
+                            return snapshot.data ?? false
+                                ? HomeView(
+                                    title: title,
+                                  )
+                                : LoginView(title: title);
+                          }
+                          return LoadingPage();
+                        }),
                   );
                 });
           },

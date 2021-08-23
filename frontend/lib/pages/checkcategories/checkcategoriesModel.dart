@@ -1,56 +1,53 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/backend/api.dart';
+import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/classes/user.dart';
-import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesModel.dart';
-import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesView.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:provider/provider.dart';
+import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
-class LocationModel extends DropDownModel<InspectionLocation>
-    with ChangeNotifier {
+class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
   final Backend _b = Backend();
-  final DisplayUser? user;
+  final InspectionLocation currentLocation;
 
-  static const _nextViewTitle = "Prüfkategorien";
+  static const _nextViewTitle = "Prüfpunkte";
 
-  LocationModel({this.user});
+  CategoryModel(this.currentLocation);
 
-  Future<List<InspectionLocation>> get all async =>
-      _b.getAllInspectionLocationsForCurrentUser();
+  Future<List<CheckCategory>> get all async => []; //TODO
 
   @override
   List<MyListTileData> actions = [
     MyListTileData(
       title: _nextViewTitle,
-      nextBuilder: (c) => CategoriesView(),
+      nextBuilder: (c) => Text('todo'), //TODO
     ),
     MyListTileData(
       title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO build image View
+      nextBuilder: (c) => Text('todo'), //TODO
     ),
     MyListTileData(
-      title: "Infos",
-      nextBuilder: (c) => Text('todo'), //TODO build details View
+      title: "Kommentar",
+      nextBuilder: (c) => Text('todo'), //TODO
     ),
   ];
 
   @override
-  String get title => 'Inspektionen: $user';
+  String get title => '$currentLocation';
 
   @override
   void open(
     BuildContext context,
-    InspectionLocation data,
+    CheckCategory data,
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (newcontext) => tiledata.title == _nextViewTitle
             ? ChangeNotifierProvider<CategoryModel>(
-                create: (c) => CategoryModel(data),
+                create: (c) => CategoryModel(
+                    currentLocation), //TODO swap with model for next view
                 child: tiledata.nextBuilder(newcontext),
               )
             : tiledata.nextBuilder(newcontext),

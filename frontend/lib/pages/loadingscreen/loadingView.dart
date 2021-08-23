@@ -13,3 +13,17 @@ class LoadingView extends StatelessWidget {
     );
   }
 }
+
+class LoadingPage extends StatelessWidget {
+  const LoadingPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("loading..."),
+      ),
+      body: LoadingView(),
+    );
+  }
+}
