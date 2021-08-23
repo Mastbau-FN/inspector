@@ -83,7 +83,9 @@ mainly for debugging or logging.</p>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 String toString() {
-  return (full_name!=null &amp;&amp; full_surname!=null)?&#39;${full_name?[0]}. $full_surname&#39;: name;
+  return (full_name != null &amp;&amp; full_surname != null)
+      ? &#39;${full_name?[0]}. $full_surname&#39;
+      : name;
 }</code></pre>
 </section>
 
@@ -122,6 +124,7 @@ String toString() {
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
 
     <li class="section-title"><a href="../../classes_user/DisplayUser-class.html#instance-methods">Methods</a></li>
+    <li><a href="../../classes_user/DisplayUser/fromMap.html">fromMap</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
     <li><a href="../../classes_user/DisplayUser/toString.html">toString</a></li>
 

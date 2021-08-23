@@ -108,24 +108,38 @@ and</li>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
   return Phoenix(
-    child: ChangeNotifierProvider(
-      create: (context) =&gt; LoginModel(),
+    child: MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (c) =&gt; LoginModel(),
+        ),
+        &#47;*ChangeNotifierProvider(
+          create: (c) =&gt; CategoryModel(),
+        ),*&#47;
+      ],
       child: Consumer&lt;LoginModel&gt;(
         builder: (context, login, child) {
           debugPrint(&quot;login changed&quot;);
-          return FutureBuilder(
-              future: login.isLoggedIn,
-              builder: (context, AsyncSnapshot&lt;bool&gt; snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) return ErrorView(snapshot.error);
-                  return snapshot.data ?? false
-                      ? HomeView(
-                          title: title,
-                        )
-                      : LoginView(title: title);
-                }
-                return Scaffold(
-                  body: LoadingView(),
+          return FutureBuilder&lt;DisplayUser?&gt;(
+              future: login.user,
+              builder: (context, snapshot) {
+                return ChangeNotifierProvider(
+                  create: (c) =&gt; LocationModel(user: snapshot.data),
+                  child: FutureBuilder(
+                      future: login.isLoggedIn,
+                      builder: (context, AsyncSnapshot&lt;bool&gt; snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.done) {
+                          if (snapshot.hasError)
+                            return ErrorView(snapshot.error);
+                          return snapshot.data ?? false
+                              ? HomeView(
+                                  title: title,
+                                )
+                              : LoginView(title: title);
+                        }
+                        return LoadingPage();
+                      }),
                 );
               });
         },

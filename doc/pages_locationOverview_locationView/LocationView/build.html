@@ -107,17 +107,7 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return Container(
-    child: Consumer&lt;LoginModel&gt;(
-        builder: (context, login, child) =&gt; FutureBuilder(
-            future: login.user,
-            builder: (context, AsyncSnapshot&lt;DisplayUser?&gt; snapshot) =&gt;
-                (snapshot.hasData &amp;&amp; snapshot.data != null)
-                    ? _LocationView(
-                        user: snapshot.data!,
-                      )
-                    : LoadingView())),
-  );
+  return DropDownPage&lt;LocationModel&gt;();
 }</code></pre>
 </section>
 
