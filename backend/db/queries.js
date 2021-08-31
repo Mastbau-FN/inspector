@@ -65,7 +65,7 @@ const getValidUser = async (user) => {
  * @param {Number} category_index 
  * @returns a Promise resolving to all points that need to be checked for a given category_index in a specific project
  */
-  const getCheckPointsForPjNR = (pjNr,category_index) => queryFileWithParams('check_points',[pjNr,category_index]);
+  const getCheckPoints = (pjNr,category_index) => queryFileWithParams('check_points',[pjNr,category_index]);
 
  /**
  * 
@@ -75,7 +75,7 @@ const getValidUser = async (user) => {
  * @returns a Promise resolving to all defects that were checked the check_point_index-th checkpoint for the category_index-th category in project number pjNr
  * TODO: ASKTHIS is this correct or only check_point_index needed?
  */
-  const getCheckPointDefectsForPjNR = (pjNr,category_index,check_point_index) => queryFileWithParams('check_point_defects',[pjNr]);
+  const getCheckPointDefects = (pjNr,category_index,check_point_index) => queryFileWithParams('check_point_defects',[pjNr,check_point_index,]);
 
 
 
@@ -83,6 +83,6 @@ module.exports = {
   getValidUser,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,
-  getCheckPointsForPjNR,
-  getCheckPointDefectsForPjNR,
+  getCheckPoints,
+  getCheckPointDefects,
 }

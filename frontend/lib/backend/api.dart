@@ -9,6 +9,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
+import 'package:mastbau_inspector/classes/data/checkpoint.dart';
+import 'package:mastbau_inspector/classes/data/checkpointdefect.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
@@ -16,6 +18,8 @@ import '/classes/user.dart';
 
 const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
+const _getCheckPoints_r = '/getCheckPoints';
+const _getCheckPointDefects_r = '/getCheckPointDefects';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -129,7 +133,7 @@ class Backend {
           );
 
   /// gets all the [CheckCategory]s for the given [InspectionLocation]
-  Future<List<CheckCategory>> getAllChackCategoriesForLocation(
+  Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
           InspectionLocation location) async =>
       getListFromJson(
         jsonDecode(
@@ -140,6 +144,36 @@ class Backend {
               .body,
         ),
         CheckCategory.fromJson,
+        objName: 'categories',
+      );
+
+  /// gets all the [CheckPoint]s corresponding to a given [CheckCategory]
+  Future<List<CheckPoint>> getAllCheckPointsForCategory(
+          CheckCategory category) async =>
+      getListFromJson(
+        jsonDecode(
+          (await post_JSON(
+            _getCheckPoints_r,
+            json: category.toSmallJson(),
+          ))
+              .body,
+        ),
+        CheckPoint.fromJson,
+        objName: 'checkpoints',
+      );
+
+  /// gets all the [CheckPointDefect]s for the given [CheckPoint]
+  Future<List<CheckPointDefect>> getAllDefectsForCheckpoint(
+          CheckPoint checkpoint) async =>
+      getListFromJson(
+        jsonDecode(
+          (await post_JSON(
+            _getCategories_r,
+            json: checkpoint.toSmallJson(),
+          ))
+              .body,
+        ),
+        CheckPointDefect.fromJson,
         objName: 'categories',
       );
 }

@@ -1,6 +1,8 @@
 
-const _getProjects_r = 'getProjects';
-const _getCategories_r = 'getCategories';
+const _getProjects_r = '/getProjects';
+const _getCategories_r = '/getCategories';
+const _getCheckPoints_r = '/getCheckPoints';
+const _getCheckPointDefects_r = '/getCheckPointDefects';
 
 
 const fs = require('fs');
@@ -54,8 +56,10 @@ app.use('/',logger.logreq);
 
 app.post('/api/secure/login',api.login);
 
-app.post('/api/secure/'+_getProjects_r,api.getProjects);
-app.post('/api/secure/'+_getCategories_r,api.getCategories);
+app.post('/api/secure'+_getProjects_r,api.getProjects);
+app.post('/api/secure'+_getCategories_r,api.getCategories);
+app.post('/api/secure'+_getCheckPoints_r,api.getCheckPoints);
+app.post('/api/secure'+_getCheckPointDefects_r,api.getCheckPointDefects);
 
 
 app.get('/error',(req,res)=>{
