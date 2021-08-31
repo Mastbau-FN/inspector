@@ -147,7 +147,7 @@ class Backend {
         objName: 'categories',
       );
 
-  /// gets all the [InspectionLocation]s for the currently logged in [user]
+  /// gets all the [CheckPoint]s corresponding to a given [CheckCategory]
   Future<List<CheckPoint>> getAllCheckPointsForCategory(
           CheckCategory category) async =>
       getListFromJson(
@@ -162,7 +162,7 @@ class Backend {
         objName: 'checkpoints',
       );
 
-  /// gets all the [CheckCategory]s for the given [InspectionLocation]
+  /// gets all the [CheckPointDefect]s for the given [CheckPoint]
   Future<List<CheckPointDefect>> getAllDefectsForCheckpoint(
           CheckPoint checkpoint) async =>
       getListFromJson(
