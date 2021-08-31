@@ -8,9 +8,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
+import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
+import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
+
+const _getProjects_r = '/getProjects';
+const _getCategories_r = '/getCategories';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -18,14 +23,6 @@ class Backend {
 
   static final Backend _instance = Backend._internal();
   factory Backend() => _instance;
-
-  bool _isFaked = false;
-
-  /// creates a fake backend which can be used for mocking data
-  factory Backend.fake() {
-    _instance._isFaked = true;
-    return _instance;
-  }
 
   final _baseurl = dotenv.env['API_URL'];
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
@@ -100,9 +97,6 @@ class Backend {
   Future<DisplayUser?> login(User user) async {
     // if user is already logged in
     if (await isUserLoggedIn(user)) return await this.user;
-    if (_isFaked) {
-      return user;
-    }
     await connectionGuard();
     _user = user;
     var res = await post_JSON('/login');
@@ -126,17 +120,39 @@ class Backend {
 
   /// gets all the [InspectionLocation]s for the currently logged in [user]
   Future<List<InspectionLocation>>
-      getAllInspectionLocationsForCurrentUser() async {
-    if (_isFaked) {
-      return [
-        InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
-        InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
-      ];
-    }
-    //TODO: unmock
-    return [
-      InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
-      InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
-    ];
+      getAllInspectionLocationsForCurrentUser() async => getListFromJson(
+            jsonDecode(
+              (await post_JSON(_getProjects_r)).body,
+            ),
+            InspectionLocation.fromJson,
+            objName: 'inspections',
+          );
+
+  /// gets all the [CheckCategory]s for the given [InspectionLocation]
+  Future<List<CheckCategory>> getAllChackCategoriesForLocation(
+          InspectionLocation location) async =>
+      getListFromJson(
+        jsonDecode(
+          (await post_JSON(
+            _getCategories_r,
+            json: location.toSmallJson(),
+          ))
+              .body,
+        ),
+        CheckCategory.fromJson,
+        objName: 'categories',
+      );
+}
+
+/// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
+List<T> getListFromJson<T extends Data>(
+    Map<String, dynamic> json, T? Function(Map<String, dynamic>) converter,
+    {String? objName}) {
+  try {
+    List<dynamic> str = (objName != null) ? json[objName] : json;
+    return List<T>.from(str.map((insp) => converter(insp)));
+  } catch (e) {
+    debugPrint(e.toString());
   }
+  return [];
 }

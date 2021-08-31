@@ -1,0 +1,142 @@
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 Zeile)
+
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:30: FEHLER:  Berechtigung nur fÃ¼r EigentÃ¼mer der Erweiterung plpgsql
+CREATE EXTENSION
+COMMENT
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:59: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+SET
+SET
+CREATE TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:107: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+CREATE TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:252: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+CREATE TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:440: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+COPY 18
+COPY 1
+COPY 1
+ setval
+--------
+      1
+(1 Zeile)
+
+
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 Zeile)
+
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:574: FEHLER:  Berechtigung nur fÃ¼r EigentÃ¼mer der Erweiterung plpgsql
+CREATE EXTENSION
+COMMENT
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:603: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+SET
+SET
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:651: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:796: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:984: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+ setval
+--------
+      1
+(1 Zeile)
+
+
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1042: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»EventsÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1050: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»MGAUFTRÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1058: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»STANDORTÂ« nicht erlaubt
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 Zeile)
+
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1118: FEHLER:  Berechtigung nur fÃ¼r EigentÃ¼mer der Erweiterung plpgsql
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+SET
+SET
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1163: FEHLER:  Relation Â»Def_LoginÂ« existiert bereits
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1166: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1177: FEHLER:  Relation Â»events_index_seqÂ« existiert bereits
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1180: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1221: FEHLER:  Relation Â»EventsÂ« existiert bereits
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1224: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1366: FEHLER:  Relation Â»MGAUFTRÂ« existiert bereits
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1369: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1554: FEHLER:  Relation Â»STANDORTÂ« existiert bereits
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1557: FEHLER:  Berechtigung nur fÃ¼r Mitglied von Rolle Â»postgresÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1563: FEHLER:  Spalte Â»Def_Login_IDÂ« von Relation Â»Def_LoginÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1566: Fehler: ungültige Anweisung \.
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1573: FEHLER:  Syntaxfehler bei Â»1Â«
+ZEILE 1: 1 LÃ¼ck Norbert NL $2a$06$7LcLogySZhUck6jPw69BSOJxlGZdqq1ZffJ...
+         ^
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1574: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1575: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1576: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1577: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1578: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1579: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1580: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1581: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1582: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1583: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1584: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1585: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1586: Fehler: ungültige Anweisung \
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1587: Fehler: ungültige Anweisung \
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1588: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1589: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1590: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1591: Fehler: ungültige Anweisung \N
+         ^
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1625: FEHLER:  Spalte Â»Def_Login_IDÂ« von Relation Â»Def_LoginÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1633: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»EventsÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1641: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»MGAUFTRÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1649: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»STANDORTÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1680: FEHLER:  Rolle Â»insp_readÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1687: FEHLER:  Rolle Â»insp_readwriteÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1694: FEHLER:  Rolle Â»insp_readwriteÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1701: FEHLER:  Rolle Â»insp_readwriteÂ« existiert nicht

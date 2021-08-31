@@ -1,0 +1,12 @@
+<%- include('error_header') -%>
+<h1>500</h1>
+        <p>Sorry, it's me, not you.</p>
+        <p>&#58;&#40;</p>
+<h2>Error: <%= error.message %></h2>
+<% if (settings['verbose errors']) { %>
+  <pre><%= error.stack %></pre>
+<% } else { %>
+  <p>An error occurred!</p>
+<% } %>
+<p><a href="/">Let me try again!</a></p>
+<%- include('footer') -%>

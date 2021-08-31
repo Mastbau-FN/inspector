@@ -7,6 +7,11 @@ import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
 abstract class Data {
   String get title;
+  Map<String, dynamic> toJson();
+  Map<String, dynamic> toSmallJson();
+
+  // sadly https://github.com/dart-lang/language/issues/356
+  static T? fromJson<T extends Data>(Map<String, dynamic> map) => null;
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]

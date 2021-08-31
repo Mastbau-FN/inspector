@@ -61,6 +61,9 @@ dev_dependencies:
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
   flutter_launcher_icons: "^0.9.1"
 
+  # annotation for classes so i can stay DRY, alternatively this https://javiercbk.github.io/json_to_dart/ would also work
+  json_serializable: any
+
 flutter_icons:
   android: "launcher_icon" 
   ios: true

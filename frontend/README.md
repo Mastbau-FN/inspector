@@ -26,4 +26,5 @@ create a .env file in the frontend dir containing a field `API_KEY=xxx`
 
 ### Build
 
+- `flutter pub run build_runner build` to run code gen (probably optional)
 - `flutter build` {apk, web, ..}
