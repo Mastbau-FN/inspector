@@ -58,5 +58,6 @@ class CheckPoint implements Data {
   Map<String, dynamic> toJson() => _$CheckPointToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'E1': index};
+  Map<String, dynamic> toSmallJson() =>
+      {'PjNr': pjNr, 'E1': category_index, 'E2': index};
 }

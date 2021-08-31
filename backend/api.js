@@ -16,7 +16,7 @@ const getCheckPoints = async (req,res) =>
     res.status(200).json({checkpoints: await queries.getCheckPoints(req.body.PjNr,req.body.E1)});
 
 const getCheckPointDefects = async (req,res) => 
-    res.status(200).json({checkpoints: await queries.getCheckPointDefects(req.body.PjNr,req.body.E1,req.body.E2)});
+    res.status(200).json({checkpointdefects: await queries.getCheckPointDefects(req.body.PjNr,req.body.E1,req.body.E2)});
 
 
 module.exports = {
