@@ -1,10 +1,14 @@
+
+const _getProjects_r = 'getProjects';
+const _getCategories_r = 'getCategories';
+
+
 const fs = require('fs');
 const key = fs.readFileSync('./key.pem');
 const cert = fs.readFileSync('./cert.pem');
 const https = require('https');
 
 const express = require('express')
-const bodyParser = require('body-parser')
 
 require('dotenv').config();
 
@@ -16,9 +20,9 @@ const app = express()
 const server = https.createServer({key: key, cert: cert }, app);
 const port = process.env.port
 
-app.use(bodyParser.json())
+app.use(express.json())
 app.use(
-  bodyParser.urlencoded({
+  express.urlencoded({
     extended: true,
   })
 )
@@ -50,7 +54,8 @@ app.use('/',logger.logreq);
 
 app.post('/api/secure/login',api.login);
 
-app.post('/api/secure/getProjects',api.getProjects);
+app.post('/api/secure/'+_getProjects_r,api.getProjects);
+app.post('/api/secure/'+_getCategories_r,api.getCategories);
 
 
 app.get('/error',(req,res)=>{

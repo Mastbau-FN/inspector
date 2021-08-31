@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
+/// stores all the data needed for a specific location in a type-safe way
 class InspectionLocation implements Data {
-  // TODO: which of them are non-null? // ASKTHIS
   final int pjNr;
-  final String pjName;
+  final String? pjName;
   final String? pjInfo;
   final String? bauleitung;
   final int stONr;
@@ -19,7 +19,7 @@ class InspectionLocation implements Data {
       this.defaultpicture,
       this.ort,
       this.pjInfo,
-      required this.pjName,
+      this.pjName,
       required this.pjNr,
       this.plz,
       required this.stONr,
@@ -36,4 +36,22 @@ class InspectionLocation implements Data {
 
   @override
   String get title => toString();
+
+  static InspectionLocation? fromMap(Map<String, dynamic> map) {
+    debugPrint(map.toString());
+    try {
+      return InspectionLocation(
+        pjName: map['PjName'],
+        pjNr: map['PjNr'],
+        stONr: map['StONr'],
+        bauleitung: map['Bauleitung'],
+        pjInfo: map['PjInfo'],
+        strasse: map['Straße'],
+        plz: map['PLZ'],
+        ort: map['Ort'],
+      );
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -6,9 +6,14 @@ const login = (req,res)=>{
     res.status(200).json(json_response);
 }
 
-const getProjects = async (req,res) => res.json(await queries.getInspectionsForUser(req.user));
+const getProjects = async (req,res) => {
+    console.log(req.user);
+    res.status(200).json({inspections: await queries.getInspectionsForUser(req.user)});
+}
+const getCategories = async (req,res) => res.status(200).json({categories: await queries.getCheckCategoriesForPjNR(req.pjNr)});
 
 module.exports = {
     login,
     getProjects,
+    getCategories,
 }

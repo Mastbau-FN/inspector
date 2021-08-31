@@ -9,8 +9,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
+import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
+
+const _getProjects_r = '/getProjects';
+const _getCategories_r = '/getCategories';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -133,10 +137,21 @@ class Backend {
         InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
       ];
     }
-    //TODO: unmock
-    return [
-      InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
-      InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
-    ];
+    var res = await post_JSON(_getProjects_r);
+    debugPrint(res.body);
+    return getListFromJson(jsonDecode(res.body), InspectionLocation.fromMap,
+        objName: 'inspections');
   }
+}
+
+List<T> getListFromJson<T extends Data>(
+    Map<String, dynamic> json, T? Function(Map<String, dynamic>) converter,
+    {String? objName}) {
+  try {
+    List<dynamic> str = (objName != null) ? json[objName] : json;
+    return List<T>.from(str.map((insp) => converter(insp)));
+  } catch (e) {
+    debugPrint(e.toString());
+  }
+  return [];
 }

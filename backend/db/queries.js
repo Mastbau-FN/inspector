@@ -50,7 +50,7 @@ const getValidUser = async (user) => {
  * @returns a Promise resolving to all the inspection location data for the inspector given by {user.name} (with name beeing the kürzel)
  */
   // TODO later: 2000 = inspections, 6097 = auch irgendeine nummer, die als parameter verwendet werden können später
- const getInspectionsForUser = (user) => queryFileWithParams('inspection_locations',[user.name,2000,6097]);
+ const getInspectionsForUser = (user) => queryFileWithParams('inspection_locations',[user.KZL,2000,6097]);
 
  /**
  * 
