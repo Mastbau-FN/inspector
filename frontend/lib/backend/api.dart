@@ -16,6 +16,8 @@ import '/classes/user.dart';
 
 const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
+const _getCheckPoints_r = '/getCheckPoints';
+const _getCheckPointDefects_r = '/getCheckPointDefects';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -129,7 +131,7 @@ class Backend {
           );
 
   /// gets all the [CheckCategory]s for the given [InspectionLocation]
-  Future<List<CheckCategory>> getAllChackCategoriesForLocation(
+  Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
           InspectionLocation location) async =>
       getListFromJson(
         jsonDecode(

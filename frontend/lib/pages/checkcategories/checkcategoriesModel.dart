@@ -16,7 +16,7 @@ class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
   CategoryModel(this.currentLocation);
 
   Future<List<CheckCategory>> get all async =>
-      _b.getAllChackCategoriesForLocation(currentLocation); //TODO
+      _b.getAllCheckCategoriesForLocation(currentLocation);
 
   @override
   List<MyListTileData> actions = [

@@ -11,9 +11,18 @@ const getProjects = async (req,res) =>
 
 const getCategories = async (req,res) => 
     res.status(200).json({categories: await queries.getCheckCategoriesForPjNR(req.body.PjNr)});
-    
+
+const getCheckPoints = async (req,res) => 
+    res.status(200).json({checkpoints: await queries.getCheckPoints(req.body.PjNr,req.body.E1)});
+
+const getCheckPointDefects = async (req,res) => 
+    res.status(200).json({checkpoints: await queries.getCheckPointDefects(req.body.PjNr,req.body.E1,req.body.E2)});
+
+
 module.exports = {
     login,
     getProjects,
     getCategories,
+    getCheckPoints,
+    getCheckPointDefects
 }
