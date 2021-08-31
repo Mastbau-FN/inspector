@@ -138,8 +138,8 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
 </dd>
 
-        <dt id="getAllChackCategoriesForLocation" class="callable">
-  <span class="name"><a href="../backend_api/Backend/getAllChackCategoriesForLocation.html">getAllChackCategoriesForLocation</a></span><span class="signature">(<wbr><span class="parameter" id="getAllChackCategoriesForLocation-param-location"><span class="type-annotation"><a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">location</span></span>)
+        <dt id="getAllCheckCategoriesForLocation" class="callable">
+  <span class="name"><a href="../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></span><span class="signature">(<wbr><span class="parameter" id="getAllCheckCategoriesForLocation-param-location"><span class="type-annotation"><a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">location</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span>&gt;</span></span>&gt;</span></span>
   </span>
   
@@ -147,6 +147,32 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 </dt>
 <dd>
   gets all the <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a>s for the given <a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a> 
+  
+
+</dd>
+
+        <dt id="getAllCheckPointsForCategory" class="callable">
+  <span class="name"><a href="../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></span><span class="signature">(<wbr><span class="parameter" id="getAllCheckPointsForCategory-param-category"><span class="type-annotation"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> <span class="parameter-name">category</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span>&gt;</span></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  gets all the <a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a>s corresponding to a given <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a> 
+  
+
+</dd>
+
+        <dt id="getAllDefectsForCheckpoint" class="callable">
+  <span class="name"><a href="../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></span><span class="signature">(<wbr><span class="parameter" id="getAllDefectsForCheckpoint-param-checkpoint"><span class="type-annotation"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span> <span class="parameter-name">checkpoint</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span>&gt;</span></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  gets all the <a href="../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a>s for the given <a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a> 
   
 
 </dd>
@@ -331,7 +357,9 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
     <li class="section-title"><a href="../backend_api/Backend-class.html#instance-methods">Methods</a></li>
     <li><a href="../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
-    <li><a href="../backend_api/Backend/getAllChackCategoriesForLocation.html">getAllChackCategoriesForLocation</a></li>
+    <li><a href="../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></li>
+    <li><a href="../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></li>
+    <li><a href="../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></li>
     <li><a href="../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
     <li><a href="../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../backend_api/Backend/login.html">login</a></li>

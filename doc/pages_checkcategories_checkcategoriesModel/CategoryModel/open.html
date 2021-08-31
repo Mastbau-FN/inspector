@@ -84,9 +84,8 @@ void open(
   Navigator.of(context).push(
     MaterialPageRoute(
       builder: (newcontext) =&gt; tiledata.title == _nextViewTitle
-          ? ChangeNotifierProvider&lt;CategoryModel&gt;(
-              create: (c) =&gt; CategoryModel(
-                  currentLocation), &#47;&#47;TODO swap with model for next view
+          ? ChangeNotifierProvider&lt;CheckPointsModel&gt;(
+              create: (c) =&gt; CheckPointsModel(data),
               child: tiledata.nextBuilder(newcontext),
             )
           : tiledata.nextBuilder(newcontext),
