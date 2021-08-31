@@ -16,6 +16,7 @@ const login_wall = async (req, res, next) => {
     if (loginFreePaths.includes(req.path)) return next();
     try {
         let user = await db.getValidUser(req.body.user);
+        //important s.t. we can use req.user in all api-calls that require a user to be logged in
         req.user = user;
         next();
     }catch(e){

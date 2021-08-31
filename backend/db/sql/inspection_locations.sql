@@ -14,8 +14,8 @@ FROM (
 )
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
-("MGAUFTR"."Bauleitung" = $1) -- Monteur -- $1 oder immer 'NL' für monteur -- ASKTHIS
-AND "MGAUFTR"."PjTypID" = 2000 -- Projekttyp Inspektion, als Variable ablegen --for future proofing?
-AND ("Events"."EventID" = 6097) -- Standardereignis_ID Übersichtsfoto zum Standort, als Variable ablegen  -- ASKTHIS
+("MGAUFTR"."Bauleitung" = $1) -- Monteur Kürzel(KZL) -- hauptparameter
+AND "MGAUFTR"."PjTypID" = $2 -- Projekttyp (2000=Inspektion) for future proofing
+AND ("Events"."EventID" = $3) -- Standardereignis_ID 6097 Übersichtsfoto zum Standort (moch nicht 100% durchblickt)
 )
 ORDER BY "MGAUFTR"."AuDatum";

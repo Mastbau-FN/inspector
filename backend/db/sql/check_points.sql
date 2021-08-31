@@ -14,10 +14,9 @@ SELECT "MGAUFTR"."PjNr",
 FROM "MGAUFTR"
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
-("MGAUFTR"."PjNr" = 6006259) -- $1 ? -- probably but still -- ASKTHIS
-AND ("MGAUFTR"."Bauleitung" LIKE 'NL')  -- TODO remove
+("MGAUFTR"."PjNr" = $1) -- Primarykey, von welchem projekt wollen wir die Prüfpunkte wissen
 AND ("Events"."EREArt" = 5200) -- Prüfpunkte
-AND ("Events"."E1" = 2) -- alle Prüfpunkte zur zweiten Kategorie  -- TODO ADD KEY
+AND ("Events"."E1" = $2) -- zur wievielten Kategorie wollen wir die Prüfpunkte, 1-indiziert empty wenn nicht-existent
 )
 ORDER BY "Events"."E1",
 "Events"."E2",

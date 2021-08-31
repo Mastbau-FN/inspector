@@ -14,8 +14,8 @@ SELECT "MGAUFTR"."PjNr",
 FROM "MGAUFTR"
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
-("MGAUFTR"."PjNr" = 6006259) -- Projektnummer --$1 ? ist das schon inspector agnostic? -- ASKTHIS 
-AND ("MGAUFTR"."Bauleitung" LIKE 'NL') -- Monteur -- TODO NL durch parameter ersetzten oder einfach entfernen
+("MGAUFTR"."PjNr" = $1) -- Projektnummer --$1 , ist inspector agnostic
+-- AND ("MGAUFTR"."Bauleitung" LIKE 'NL') -- Monteur -- redundant über PjNr
 AND ("Events"."EREArt" = 5100) -- Kategorien
 )
 ORDER BY "Events"."E1",
