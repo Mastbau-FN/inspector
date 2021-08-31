@@ -27,8 +27,13 @@ class InspectionLocation implements Data {
 
   @override
   String toString() {
-    return 'Ins $pjNr: $pjName';
+    return pjName ?? 'Inspektion $pjNr';
   }
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'PjNr': pjNr,
+      };
 
   String toSubString() {
     return '${bauleitung ?? ''}';

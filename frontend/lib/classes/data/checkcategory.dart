@@ -4,4 +4,6 @@ class CheckCategory implements Data {
   //TODO
   @override
   String get title => 'TODO';
+
+  static CheckCategory? fromMap(Map<String, dynamic> map) => CheckCategory();
 }
