@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mastbau_inspector/assets/consts.dart';
+import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
@@ -137,13 +138,28 @@ class Backend {
         InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
       ];
     }
-    var res = await post_JSON(_getProjects_r);
-    debugPrint(res.body);
-    return getListFromJson(jsonDecode(res.body), InspectionLocation.fromMap,
+    return getListFromJson(jsonDecode((await post_JSON(_getProjects_r)).body),
+        InspectionLocation.fromMap,
         objName: 'inspections');
+  }
+
+  /// gets all the [CheckCategory]s for the currently logged in [user]
+  Future<List<CheckCategory>> getAllChackCategoriesForLocation(
+      InspectionLocation location) async {
+    if (_isFaked) {
+      return [
+        CheckCategory(),
+        CheckCategory(),
+      ];
+    }
+    return getListFromJson(
+        jsonDecode((await post_JSON(_getCategories_r, location.toJson())).body),
+        CheckCategory.fromMap,
+        objName: 'categories');
   }
 }
 
+/// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
 List<T> getListFromJson<T extends Data>(
     Map<String, dynamic> json, T? Function(Map<String, dynamic>) converter,
     {String? objName}) {
