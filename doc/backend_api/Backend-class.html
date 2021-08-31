@@ -67,13 +67,6 @@
            
           <div class="constructor-modifier features">factory</div>
         </dd>
-        <dt id="Backend.fake" class="callable">
-          <span class="name"><a href="../backend_api/Backend/Backend.fake.html">Backend.fake</a></span><span class="signature">()</span>
-        </dt>
-        <dd>
-          creates a fake backend which can be used for mocking data 
-          <div class="constructor-modifier features">factory</div>
-        </dd>
       </dl>
     </section>
 
@@ -141,6 +134,19 @@
 <dd>
   checks whether a connection to the backend is possible
 throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html">NoConnectionToBackendException</a> or <a href="https://api.flutter.dev/flutter/dart-io/SocketException-class.html">SocketException</a> if its not. 
+  
+
+</dd>
+
+        <dt id="getAllChackCategoriesForLocation" class="callable">
+  <span class="name"><a href="../backend_api/Backend/getAllChackCategoriesForLocation.html">getAllChackCategoriesForLocation</a></span><span class="signature">(<wbr><span class="parameter" id="getAllChackCategoriesForLocation-param-location"><span class="type-annotation"><a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">location</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span>&gt;</span></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  gets all the <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a>s for the given <a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a> 
   
 
 </dd>
@@ -299,6 +305,8 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
 
 
+  <li class="section-title"><a href="../backend_api/backend_api-library.html#functions">Functions</a></li>
+  <li><a href="../backend_api/getListFromJson.html">getListFromJson</a></li>
 
 
 
@@ -311,7 +319,6 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
     <li class="section-title"><a href="../backend_api/Backend-class.html#constructors">Constructors</a></li>
     <li><a href="../backend_api/Backend/Backend.html">Backend</a></li>
-    <li><a href="../backend_api/Backend/Backend.fake.html">fake</a></li>
 
 
     <li class="section-title">
@@ -324,6 +331,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
     <li class="section-title"><a href="../backend_api/Backend-class.html#instance-methods">Methods</a></li>
     <li><a href="../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
+    <li><a href="../backend_api/Backend/getAllChackCategoriesForLocation.html">getAllChackCategoriesForLocation</a></li>
     <li><a href="../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
     <li><a href="../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../backend_api/Backend/login.html">login</a></li>

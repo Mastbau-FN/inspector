@@ -8151,6 +8151,7 @@ freely, subject to the following restrictions:
 --------------------------------------------------------------------------------
 graphs
 json_annotation
+json_serializable
 pedantic
 platform
 process

@@ -68,19 +68,13 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;InspectionLocation&gt;&gt;
-    getAllInspectionLocationsForCurrentUser() async {
-  if (_isFaked) {
-    return [
-      InspectionLocation(pjName: &#39;mock-location 1&#39;, pjNr: 4, stONr: 7),
-      InspectionLocation(pjName: &#39;mock-location 2&#39;, pjNr: 7, stONr: 4)
-    ];
-  }
-  &#47;&#47;TODO: unmock
-  return [
-    InspectionLocation(pjName: &#39;mock-location 1&#39;, pjNr: 4, stONr: 7),
-    InspectionLocation(pjName: &#39;mock-location 2&#39;, pjNr: 7, stONr: 4)
-  ];
-}</code></pre>
+    getAllInspectionLocationsForCurrentUser() async =&gt; getListFromJson(
+          jsonDecode(
+            (await post_JSON(_getProjects_r)).body,
+          ),
+          InspectionLocation.fromJson,
+          objName: &#39;inspections&#39;,
+        );</code></pre>
 </section>
 
 
@@ -106,7 +100,6 @@
 
     <li class="section-title"><a href="../../backend_api/Backend-class.html#constructors">Constructors</a></li>
     <li><a href="../../backend_api/Backend/Backend.html">Backend</a></li>
-    <li><a href="../../backend_api/Backend/Backend.fake.html">fake</a></li>
 
 
     <li class="section-title">
@@ -119,6 +112,7 @@
 
     <li class="section-title"><a href="../../backend_api/Backend-class.html#instance-methods">Methods</a></li>
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
+    <li><a href="../../backend_api/Backend/getAllChackCategoriesForLocation.html">getAllChackCategoriesForLocation</a></li>
     <li><a href="../../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>

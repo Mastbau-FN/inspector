@@ -71,9 +71,6 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;DisplayUser?&gt; login(User user) async {
   &#47;&#47; if user is already logged in
   if (await isUserLoggedIn(user)) return await this.user;
-  if (_isFaked) {
-    return user;
-  }
   await connectionGuard();
   _user = user;
   var res = await post_JSON(&#39;&#47;login&#39;);
@@ -112,7 +109,6 @@
 
     <li class="section-title"><a href="../../backend_api/Backend-class.html#constructors">Constructors</a></li>
     <li><a href="../../backend_api/Backend/Backend.html">Backend</a></li>
-    <li><a href="../../backend_api/Backend/Backend.fake.html">fake</a></li>
 
 
     <li class="section-title">
@@ -125,6 +121,7 @@
 
     <li class="section-title"><a href="../../backend_api/Backend-class.html#instance-methods">Methods</a></li>
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
+    <li><a href="../../backend_api/Backend/getAllChackCategoriesForLocation.html">getAllChackCategoriesForLocation</a></li>
     <li><a href="../../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
