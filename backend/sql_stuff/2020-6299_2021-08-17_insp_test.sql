@@ -1,5 +1,5 @@
 --
--- PostgreSQL database dump
+-- meQL database dump
 --
 
 -- Dumped from database version 10.14 (Ubuntu 10.14-1.pgdg16.04+1)
@@ -45,7 +45,7 @@ COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings
 
 
 --
--- Name: events_index_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: events_index_seq; Type: SEQUENCE; Schema: public; Owner: me
 --
 
 CREATE SEQUENCE public.events_index_seq
@@ -56,14 +56,14 @@ CREATE SEQUENCE public.events_index_seq
     CACHE 1;
 
 
-ALTER TABLE public.events_index_seq OWNER TO postgres;
+ALTER TABLE public.events_index_seq OWNER TO me;
 
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: Events; Type: TABLE; Schema: public; Owner: postgres
+-- Name: Events; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."Events" (
@@ -104,10 +104,10 @@ CREATE TABLE public."Events" (
 );
 
 
-ALTER TABLE public."Events" OWNER TO postgres;
+ALTER TABLE public."Events" OWNER TO me;
 
 --
--- Name: MGAUFTR; Type: TABLE; Schema: public; Owner: postgres
+-- Name: MGAUFTR; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."MGAUFTR" (
@@ -249,10 +249,10 @@ CREATE TABLE public."MGAUFTR" (
 );
 
 
-ALTER TABLE public."MGAUFTR" OWNER TO postgres;
+ALTER TABLE public."MGAUFTR" OWNER TO me;
 
 --
--- Name: STANDORT; Type: TABLE; Schema: public; Owner: postgres
+-- Name: STANDORT; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."STANDORT" (
@@ -437,10 +437,10 @@ CREATE TABLE public."STANDORT" (
 );
 
 
-ALTER TABLE public."STANDORT" OWNER TO postgres;
+ALTER TABLE public."STANDORT" OWNER TO me;
 
 --
--- Data for Name: Events; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: Events; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."Events" ("Index", "IndexDat", "EventID", "Datum", "Zeit", "BisDatum", "BisZeit", "Dauer", "GanzTag", "Autor", "PsNr", "AusEin", "AnVon", "IDNr", "PjNr", "Art", "KurzText", "LangText", "Link", "LinkOrdner", "LinkQuelle", "istImportiert", "ErDat", "ErZei", "EREArt", "Update_Date", "Prio", "nextStep", "IndexReply", "KGZ_Ext_ID", "E1", "E2", "E3", "Insp_Stelle") FROM stdin;
@@ -466,7 +466,7 @@ COPY public."Events" ("Index", "IndexDat", "EventID", "Datum", "Zeit", "BisDatum
 
 
 --
--- Data for Name: MGAUFTR; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: MGAUFTR; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."MGAUFTR" ("PjNr", "PjNr_HP", "PjTypID", "Status", "Status_HP", "AnzahlAuHProjekte", "MBG", "HP_RANr", "Verfolgung", "StONr", "VhNr", "SGNr", "PreisCode", "AuDatum", "AuForm", "ANG_Dat", "ANG_Sum", "ANG_Frei", "Netzbetreiber", "InKuNr", "InKuNrIndex", "EndKuNr", "EndKuNrIndex", "RAanKuNr", "RAanAnIndex", "VM_Orga_ID", "VM_ASP_ID", "RV_ID", "RV_Rabatt", "NeNr", "PjGrNr", "PjName", "PjInfo", "VLeitung", "PjLeitung", "Bauleitung", "BauteitungEXTERN", "AuftrNrEXTERN1", "AuftrNrEXTERN2", "AuftrNrEXTERN3", "AuftrNrEXTERN4", "AuftrNrEXTERN5", "AuftrDatEXTERN", "AuftrBestSAP", "LIEanEXT", "LIEanEXTIndex", "LIEanEXT_Info", "LTDatEXT", "Bem_INT", "Bem_EXT", "Baufrei", "MannStd", "DiffStd", "Max_Event_Dat", "Max_Event_Zeit", "Max_Event_KurzText", "Max_Mont_Dat", "Buget", "Buget_Dat", "UmsProg", "UmsProg_Art", "UmsProg_Dat", "Sum_STD", "Sum_STD_MP", "Sum_STD_KGZ_0", "Sum_STD_KGZ_1", "Sum_STD_KGZ_2", "Sum_STD_KGZ_3", "Sum_STD_KGZ_4", "Sum_STD_KGZ_5", "Sum_STD_KGZ_6", "Sum_STD_KGZ_8", "Sum_STD_ALP", "Sum_MAT", "Sum_RE", "Sum_RE_oA", "Sum_KAS", "Sum_RA", "Zahlungen_Pos_Sum", "Zahlungen_Neg_Sum", "Zahlungen_Anzahl", "DB", "Check_STD", "Check_MAT", "Check_RE", "Check_RA", "Plan_Start", "Plan_Ende", "Start", "Ende", "Bearbeitungszeit", "ÄndFLT", "FLT", "ÄndBZA", "BZA", "MatDat", "Aktiv", "Fertig", "BauInfo", "BereitZurAbnahme", "AbnahmeDat", "AbnahmeMangelOffen", "RestleistungOffen", "InspektMangelOffen", "BereitZurSR", "SR_Dat", "Prio_ID_Bau", "Länder_ID", "Std_Satz_Sonst", "Std_Satz_VW", "Std_Satz_BL", "Std_Satz_Mont", "Std_Satz_MontFremd", "Std_Satz_AKQ", "Std_Satz_CAD", "Std_Satz_Statik", "GKZ_Mat", "GKZ_Fremd", "GKZ_Kasse", "LB_ID", "initMP_PsNr", "initMP_Dat", "Montage_Info", "Montage_Info_KZL", "Montage_Prio", "Montage_Tage", "Montage_Mont", "Montage_Fremd", "istMBGPaar", "Material_Engpass", "Montage_Start_Wunsch", "Montage_Ende", "Montage_Forecast", "Montage_Sa_inkl", "KGZ_Ext_ID") FROM stdin;
@@ -475,7 +475,7 @@ COPY public."MGAUFTR" ("PjNr", "PjNr_HP", "PjTypID", "Status", "Status_HP", "Anz
 
 
 --
--- Data for Name: STANDORT; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: STANDORT; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."STANDORT" ("StONr", "CreatedByPsNr", "StOaktiv", "TECH_Typ_ID", "StO_Typ_ID", "ESS_KAN", "InspektionErforderlich", "StONrBH", "BYNr", "BHNr", "StO_Suchgebiet", "Straße", "PLZ", "Ort", "Ortsteil", "Bezirk", "Region", "Bundesland_ID", "RegionZiffer", "StO_Inh_Info", "StO_ET", "StO_HV", "Beschreibung Telekom", "Beschreibung2", "AufbauFIRMA", "Beschreibung MBG", "InfoMBG", "GEO_STR", "GEO_HNr", "GEO_HNrZ", "GEO_Hoehe", "IMM_Höhe", "IMM_Hoehe_Qual_ID", "IMM_Typ", "IMM_Ges", "IMM_Dach", "PV_Dachneigung", "PV_AzimuthSüd", "StO_Status", "StO_Nutz_TMO", "StO_Nutz_MMO", "StO_Nutz_MCMM", "StO_Nutz_O2", "StO_Nutz_EPLUS", "StO_Nutz_SIG", "StO_MN_MMO", "StO_MN_Eplus", "StO_MN_VIAG", "StO_MN_Sonst", "StO_MN_Info", "StO_MN_Info_Dat", "DIENST_D1_900", "DIENST_D1_1800", "DIENST_D1_UMTS", "DIENST_C-Netz", "DIENST_Modacom", "DIENST_Sonst", "DIENST_Info", "ATR_Anz", "ATR_KLmax", "ATR_NLmax", "ATR_KL>10m", "ATR_HüTmax", "ATR_EWT_Info", "ANT_Konzept_ID", "ANT_GFK", "ANT_VF", "ANT_HF", "FertigDat", "UmbauDat", "Bearbeiter", "TuBuErforderlich", "InfoDatErforderlich", "TuBuRAUSmaxDat", "InfoTuBu", "StO_fertig", "InfoDatFertig", "StatikenATRda", "InfoDatATR", "StatikenGEBda", "InfoDatGEB", "FotosDa", "InfoDatFoto", "WegDa", "InfoDatWeg", "TuBuNEXTart", "SchildErf", "SchildBest-Alt", "SchildBest", "SchildMont", "01", "02", "03", "04", "05", "06", "07", "08", "Insp1996", "Insp1997", "Insp1998", "Insp1999", "Insp2000", "StONr_DFMG", "StONr_TMobile", "StONr_Vodafone", "StONr_EPlus", "StONr_O2", "StOName_Sonstige1", "StOName_Sonstige2", "StOName_DFMG", "StOName_TMobile", "StOName_Vodafone", "StOName_EPlus", "StOName_O2", "StOSuchgebiet_DFMG", "StOSuchgebiet_TMobile", "StOSuchgebiet_Vodafone", "StOSuchgebiet_EPlus", "StOSuchgebiet_O2", "SGNr_DFMG", "SGNr_TMobile", "SGNr_Vodafone", "SGNr_EPlus", "SGNr_O2", "BSNr_EPlus_Master", "BSNr_EPlus_UMTS", "BSNr_EPlus_GMS", "BSNr_EPlus_Erw1", "BSNr_EPlus_Erw2", "BSNr_O2_Master", "BSNr_O2_UMTS", "BSNr_O2_GMS", "BSNr_O2_Erw1", "BSNr_O2_Erw2", "StO_Status_Suche", "StO_Status_Kandidat", "StO_Status_ESS", "StO_Status_Planung", "StO_Status_Bau", "StO_Status_Demontiert", "StO_Status_Fremd", "StONr_BDBOS", "StONr_BDBOS_Brb", "StOName_BDBOS", "SGNr_BDBOS", "NENr_BDBOS_1", "NENr_BDBOS_2", "NENr_BDBOS_3", "NENr_BDBOS_4", "SGNr_PV", "StOSuchgebiet_PV", "SGNr_Taxi", "StOSuchgebiet_Taxi", "SGNr_Sigfox", "StOSuchgebiet_Sigfox", "StONr_PV", "Länder_ID", "AdminRegion2_ID", "Gemarkung", "Flur", "Flurstück", "istPVStO", "FLH", "DMS", "Windlast", "Schneelast", "NetzOrga_ID", "Netzimpedanz", "Netzeinspeisung", "Netz_Einschr", "Netzklasse", "Notstromaggregat", "Notstrom_typ", "ET_Typ_ID", "DSL", "StromAnschluss", "EntfernungZuMBG") FROM stdin;
@@ -484,14 +484,14 @@ COPY public."STANDORT" ("StONr", "CreatedByPsNr", "StOaktiv", "TECH_Typ_ID", "St
 
 
 --
--- Name: events_index_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: events_index_seq; Type: SEQUENCE SET; Schema: public; Owner: me
 --
 
 SELECT pg_catalog.setval('public.events_index_seq', 1, false);
 
 
 --
--- Name: Events Events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Events Events_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Events"
@@ -499,7 +499,7 @@ ALTER TABLE ONLY public."Events"
 
 
 --
--- Name: MGAUFTR MGAUFTR_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -507,7 +507,7 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: STANDORT STANDORT_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: STANDORT STANDORT_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."STANDORT"
@@ -515,7 +515,7 @@ ALTER TABLE ONLY public."STANDORT"
 
 
 --
--- Name: Events Events_PjNr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Events Events_PjNr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Events"
@@ -523,7 +523,7 @@ ALTER TABLE ONLY public."Events"
 
 
 --
--- Name: MGAUFTR MGAUFTR_PjNr_HP_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_PjNr_HP_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -531,7 +531,7 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: MGAUFTR MGAUFTR_StONr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_StONr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -539,11 +539,11 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- PostgreSQL database dump complete
+-- meQL database dump complete
 --
 
 --
--- PostgreSQL database dump
+-- meQL database dump
 --
 
 -- Dumped from database version 10.14 (Ubuntu 10.14-1.pgdg16.04+1)
@@ -589,7 +589,7 @@ COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings
 
 
 --
--- Name: events_index_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: events_index_seq; Type: SEQUENCE; Schema: public; Owner: me
 --
 
 CREATE SEQUENCE public.events_index_seq
@@ -600,14 +600,14 @@ CREATE SEQUENCE public.events_index_seq
     CACHE 1;
 
 
-ALTER TABLE public.events_index_seq OWNER TO postgres;
+ALTER TABLE public.events_index_seq OWNER TO me;
 
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: Events; Type: TABLE; Schema: public; Owner: postgres
+-- Name: Events; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."Events" (
@@ -648,10 +648,10 @@ CREATE TABLE public."Events" (
 );
 
 
-ALTER TABLE public."Events" OWNER TO postgres;
+ALTER TABLE public."Events" OWNER TO me;
 
 --
--- Name: MGAUFTR; Type: TABLE; Schema: public; Owner: postgres
+-- Name: MGAUFTR; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."MGAUFTR" (
@@ -793,10 +793,10 @@ CREATE TABLE public."MGAUFTR" (
 );
 
 
-ALTER TABLE public."MGAUFTR" OWNER TO postgres;
+ALTER TABLE public."MGAUFTR" OWNER TO me;
 
 --
--- Name: STANDORT; Type: TABLE; Schema: public; Owner: postgres
+-- Name: STANDORT; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."STANDORT" (
@@ -981,10 +981,10 @@ CREATE TABLE public."STANDORT" (
 );
 
 
-ALTER TABLE public."STANDORT" OWNER TO postgres;
+ALTER TABLE public."STANDORT" OWNER TO me;
 
 --
--- Data for Name: Events; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: Events; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."Events" ("Index", "IndexDat", "EventID", "Datum", "Zeit", "BisDatum", "BisZeit", "Dauer", "GanzTag", "Autor", "PsNr", "AusEin", "AnVon", "IDNr", "PjNr", "Art", "KurzText", "LangText", "Link", "LinkOrdner", "LinkQuelle", "istImportiert", "ErDat", "ErZei", "EREArt", "Update_Date", "Prio", "nextStep", "IndexReply", "KGZ_Ext_ID", "E1", "E2", "E3", "Insp_Stelle") FROM stdin;
@@ -1010,7 +1010,7 @@ COPY public."Events" ("Index", "IndexDat", "EventID", "Datum", "Zeit", "BisDatum
 
 
 --
--- Data for Name: MGAUFTR; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: MGAUFTR; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."MGAUFTR" ("PjNr", "PjNr_HP", "PjTypID", "Status", "Status_HP", "AnzahlAuHProjekte", "MBG", "HP_RANr", "Verfolgung", "StONr", "VhNr", "SGNr", "PreisCode", "AuDatum", "AuForm", "ANG_Dat", "ANG_Sum", "ANG_Frei", "Netzbetreiber", "InKuNr", "InKuNrIndex", "EndKuNr", "EndKuNrIndex", "RAanKuNr", "RAanAnIndex", "VM_Orga_ID", "VM_ASP_ID", "RV_ID", "RV_Rabatt", "NeNr", "PjGrNr", "PjName", "PjInfo", "VLeitung", "PjLeitung", "Bauleitung", "BauteitungEXTERN", "AuftrNrEXTERN1", "AuftrNrEXTERN2", "AuftrNrEXTERN3", "AuftrNrEXTERN4", "AuftrNrEXTERN5", "AuftrDatEXTERN", "AuftrBestSAP", "LIEanEXT", "LIEanEXTIndex", "LIEanEXT_Info", "LTDatEXT", "Bem_INT", "Bem_EXT", "Baufrei", "MannStd", "DiffStd", "Max_Event_Dat", "Max_Event_Zeit", "Max_Event_KurzText", "Max_Mont_Dat", "Buget", "Buget_Dat", "UmsProg", "UmsProg_Art", "UmsProg_Dat", "Sum_STD", "Sum_STD_MP", "Sum_STD_KGZ_0", "Sum_STD_KGZ_1", "Sum_STD_KGZ_2", "Sum_STD_KGZ_3", "Sum_STD_KGZ_4", "Sum_STD_KGZ_5", "Sum_STD_KGZ_6", "Sum_STD_KGZ_8", "Sum_STD_ALP", "Sum_MAT", "Sum_RE", "Sum_RE_oA", "Sum_KAS", "Sum_RA", "Zahlungen_Pos_Sum", "Zahlungen_Neg_Sum", "Zahlungen_Anzahl", "DB", "Check_STD", "Check_MAT", "Check_RE", "Check_RA", "Plan_Start", "Plan_Ende", "Start", "Ende", "Bearbeitungszeit", "ÄndFLT", "FLT", "ÄndBZA", "BZA", "MatDat", "Aktiv", "Fertig", "BauInfo", "BereitZurAbnahme", "AbnahmeDat", "AbnahmeMangelOffen", "RestleistungOffen", "InspektMangelOffen", "BereitZurSR", "SR_Dat", "Prio_ID_Bau", "Länder_ID", "Std_Satz_Sonst", "Std_Satz_VW", "Std_Satz_BL", "Std_Satz_Mont", "Std_Satz_MontFremd", "Std_Satz_AKQ", "Std_Satz_CAD", "Std_Satz_Statik", "GKZ_Mat", "GKZ_Fremd", "GKZ_Kasse", "LB_ID", "initMP_PsNr", "initMP_Dat", "Montage_Info", "Montage_Info_KZL", "Montage_Prio", "Montage_Tage", "Montage_Mont", "Montage_Fremd", "istMBGPaar", "Material_Engpass", "Montage_Start_Wunsch", "Montage_Ende", "Montage_Forecast", "Montage_Sa_inkl", "KGZ_Ext_ID") FROM stdin;
@@ -1019,7 +1019,7 @@ COPY public."MGAUFTR" ("PjNr", "PjNr_HP", "PjTypID", "Status", "Status_HP", "Anz
 
 
 --
--- Data for Name: STANDORT; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: STANDORT; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."STANDORT" ("StONr", "CreatedByPsNr", "StOaktiv", "TECH_Typ_ID", "StO_Typ_ID", "ESS_KAN", "InspektionErforderlich", "StONrBH", "BYNr", "BHNr", "StO_Suchgebiet", "Straße", "PLZ", "Ort", "Ortsteil", "Bezirk", "Region", "Bundesland_ID", "RegionZiffer", "StO_Inh_Info", "StO_ET", "StO_HV", "Beschreibung Telekom", "Beschreibung2", "AufbauFIRMA", "Beschreibung MBG", "InfoMBG", "GEO_STR", "GEO_HNr", "GEO_HNrZ", "GEO_Hoehe", "IMM_Höhe", "IMM_Hoehe_Qual_ID", "IMM_Typ", "IMM_Ges", "IMM_Dach", "PV_Dachneigung", "PV_AzimuthSüd", "StO_Status", "StO_Nutz_TMO", "StO_Nutz_MMO", "StO_Nutz_MCMM", "StO_Nutz_O2", "StO_Nutz_EPLUS", "StO_Nutz_SIG", "StO_MN_MMO", "StO_MN_Eplus", "StO_MN_VIAG", "StO_MN_Sonst", "StO_MN_Info", "StO_MN_Info_Dat", "DIENST_D1_900", "DIENST_D1_1800", "DIENST_D1_UMTS", "DIENST_C-Netz", "DIENST_Modacom", "DIENST_Sonst", "DIENST_Info", "ATR_Anz", "ATR_KLmax", "ATR_NLmax", "ATR_KL>10m", "ATR_HüTmax", "ATR_EWT_Info", "ANT_Konzept_ID", "ANT_GFK", "ANT_VF", "ANT_HF", "FertigDat", "UmbauDat", "Bearbeiter", "TuBuErforderlich", "InfoDatErforderlich", "TuBuRAUSmaxDat", "InfoTuBu", "StO_fertig", "InfoDatFertig", "StatikenATRda", "InfoDatATR", "StatikenGEBda", "InfoDatGEB", "FotosDa", "InfoDatFoto", "WegDa", "InfoDatWeg", "TuBuNEXTart", "SchildErf", "SchildBest-Alt", "SchildBest", "SchildMont", "01", "02", "03", "04", "05", "06", "07", "08", "Insp1996", "Insp1997", "Insp1998", "Insp1999", "Insp2000", "StONr_DFMG", "StONr_TMobile", "StONr_Vodafone", "StONr_EPlus", "StONr_O2", "StOName_Sonstige1", "StOName_Sonstige2", "StOName_DFMG", "StOName_TMobile", "StOName_Vodafone", "StOName_EPlus", "StOName_O2", "StOSuchgebiet_DFMG", "StOSuchgebiet_TMobile", "StOSuchgebiet_Vodafone", "StOSuchgebiet_EPlus", "StOSuchgebiet_O2", "SGNr_DFMG", "SGNr_TMobile", "SGNr_Vodafone", "SGNr_EPlus", "SGNr_O2", "BSNr_EPlus_Master", "BSNr_EPlus_UMTS", "BSNr_EPlus_GMS", "BSNr_EPlus_Erw1", "BSNr_EPlus_Erw2", "BSNr_O2_Master", "BSNr_O2_UMTS", "BSNr_O2_GMS", "BSNr_O2_Erw1", "BSNr_O2_Erw2", "StO_Status_Suche", "StO_Status_Kandidat", "StO_Status_ESS", "StO_Status_Planung", "StO_Status_Bau", "StO_Status_Demontiert", "StO_Status_Fremd", "StONr_BDBOS", "StONr_BDBOS_Brb", "StOName_BDBOS", "SGNr_BDBOS", "NENr_BDBOS_1", "NENr_BDBOS_2", "NENr_BDBOS_3", "NENr_BDBOS_4", "SGNr_PV", "StOSuchgebiet_PV", "SGNr_Taxi", "StOSuchgebiet_Taxi", "SGNr_Sigfox", "StOSuchgebiet_Sigfox", "StONr_PV", "Länder_ID", "AdminRegion2_ID", "Gemarkung", "Flur", "Flurstück", "istPVStO", "FLH", "DMS", "Windlast", "Schneelast", "NetzOrga_ID", "Netzimpedanz", "Netzeinspeisung", "Netz_Einschr", "Netzklasse", "Notstromaggregat", "Notstrom_typ", "ET_Typ_ID", "DSL", "StromAnschluss", "EntfernungZuMBG") FROM stdin;
@@ -1028,14 +1028,14 @@ COPY public."STANDORT" ("StONr", "CreatedByPsNr", "StOaktiv", "TECH_Typ_ID", "St
 
 
 --
--- Name: events_index_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: events_index_seq; Type: SEQUENCE SET; Schema: public; Owner: me
 --
 
 SELECT pg_catalog.setval('public.events_index_seq', 1, false);
 
 
 --
--- Name: Events Events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Events Events_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Events"
@@ -1043,7 +1043,7 @@ ALTER TABLE ONLY public."Events"
 
 
 --
--- Name: MGAUFTR MGAUFTR_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -1051,7 +1051,7 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: STANDORT STANDORT_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: STANDORT STANDORT_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."STANDORT"
@@ -1059,7 +1059,7 @@ ALTER TABLE ONLY public."STANDORT"
 
 
 --
--- Name: Events Events_PjNr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Events Events_PjNr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Events"
@@ -1067,7 +1067,7 @@ ALTER TABLE ONLY public."Events"
 
 
 --
--- Name: MGAUFTR MGAUFTR_PjNr_HP_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_PjNr_HP_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -1075,7 +1075,7 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: MGAUFTR MGAUFTR_StONr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_StONr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -1083,11 +1083,11 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- PostgreSQL database dump complete
+-- meQL database dump complete
 --
 
 --
--- PostgreSQL database dump
+-- meQL database dump
 --
 
 -- Dumped from database version 10.14 (Ubuntu 10.14-1.pgdg16.04+1)
@@ -1151,7 +1151,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: Def_Login; Type: TABLE; Schema: public; Owner: postgres
+-- Name: Def_Login; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."Def_Login" (
@@ -1163,10 +1163,10 @@ CREATE TABLE public."Def_Login" (
 );
 
 
-ALTER TABLE public."Def_Login" OWNER TO postgres;
+ALTER TABLE public."Def_Login" OWNER TO me;
 
 --
--- Name: events_index_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: events_index_seq; Type: SEQUENCE; Schema: public; Owner: me
 --
 
 CREATE SEQUENCE public.events_index_seq
@@ -1177,10 +1177,10 @@ CREATE SEQUENCE public.events_index_seq
     CACHE 1;
 
 
-ALTER TABLE public.events_index_seq OWNER TO postgres;
+ALTER TABLE public.events_index_seq OWNER TO me;
 
 --
--- Name: Events; Type: TABLE; Schema: public; Owner: postgres
+-- Name: Events; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."Events" (
@@ -1221,10 +1221,10 @@ CREATE TABLE public."Events" (
 );
 
 
-ALTER TABLE public."Events" OWNER TO postgres;
+ALTER TABLE public."Events" OWNER TO me;
 
 --
--- Name: MGAUFTR; Type: TABLE; Schema: public; Owner: postgres
+-- Name: MGAUFTR; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."MGAUFTR" (
@@ -1366,10 +1366,10 @@ CREATE TABLE public."MGAUFTR" (
 );
 
 
-ALTER TABLE public."MGAUFTR" OWNER TO postgres;
+ALTER TABLE public."MGAUFTR" OWNER TO me;
 
 --
--- Name: STANDORT; Type: TABLE; Schema: public; Owner: postgres
+-- Name: STANDORT; Type: TABLE; Schema: public; Owner: me
 --
 
 CREATE TABLE public."STANDORT" (
@@ -1554,10 +1554,10 @@ CREATE TABLE public."STANDORT" (
 );
 
 
-ALTER TABLE public."STANDORT" OWNER TO postgres;
+ALTER TABLE public."STANDORT" OWNER TO me;
 
 --
--- Data for Name: Def_Login; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: Def_Login; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."Def_Login" ("Def_Login_ID", "Name", "Vorname", "KZL", "PW", aktiv) FROM stdin;
@@ -1567,7 +1567,7 @@ COPY public."Def_Login" ("Def_Login_ID", "Name", "Vorname", "KZL", "PW", aktiv) 
 
 
 --
--- Data for Name: Events; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: Events; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."Events" ("Index", "IndexDat", "EventID", "Datum", "Zeit", "BisDatum", "BisZeit", "Dauer", "GanzTag", "Autor", "PsNr", "AusEin", "AnVon", "IDNr", "PjNr", "Art", "KurzText", "LangText", "Link", "LinkOrdner", "LinkQuelle", "istImportiert", "ErDat", "ErZei", "EREArt", "Update_Date", "Prio", "nextStep", "IndexReply", "KGZ_Ext_ID", "E1", "E2", "E3", "Insp_Stelle") FROM stdin;
@@ -1593,7 +1593,7 @@ COPY public."Events" ("Index", "IndexDat", "EventID", "Datum", "Zeit", "BisDatum
 
 
 --
--- Data for Name: MGAUFTR; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: MGAUFTR; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."MGAUFTR" ("PjNr", "PjNr_HP", "PjTypID", "Status", "Status_HP", "AnzahlAuHProjekte", "MBG", "HP_RANr", "Verfolgung", "StONr", "VhNr", "SGNr", "PreisCode", "AuDatum", "AuForm", "ANG_Dat", "ANG_Sum", "ANG_Frei", "Netzbetreiber", "InKuNr", "InKuNrIndex", "EndKuNr", "EndKuNrIndex", "RAanKuNr", "RAanAnIndex", "VM_Orga_ID", "VM_ASP_ID", "RV_ID", "RV_Rabatt", "NeNr", "PjGrNr", "PjName", "PjInfo", "VLeitung", "PjLeitung", "Bauleitung", "BauteitungEXTERN", "AuftrNrEXTERN1", "AuftrNrEXTERN2", "AuftrNrEXTERN3", "AuftrNrEXTERN4", "AuftrNrEXTERN5", "AuftrDatEXTERN", "AuftrBestSAP", "LIEanEXT", "LIEanEXTIndex", "LIEanEXT_Info", "LTDatEXT", "Bem_INT", "Bem_EXT", "Baufrei", "MannStd", "DiffStd", "Max_Event_Dat", "Max_Event_Zeit", "Max_Event_KurzText", "Max_Mont_Dat", "Buget", "Buget_Dat", "UmsProg", "UmsProg_Art", "UmsProg_Dat", "Sum_STD", "Sum_STD_MP", "Sum_STD_KGZ_0", "Sum_STD_KGZ_1", "Sum_STD_KGZ_2", "Sum_STD_KGZ_3", "Sum_STD_KGZ_4", "Sum_STD_KGZ_5", "Sum_STD_KGZ_6", "Sum_STD_KGZ_8", "Sum_STD_ALP", "Sum_MAT", "Sum_RE", "Sum_RE_oA", "Sum_KAS", "Sum_RA", "Zahlungen_Pos_Sum", "Zahlungen_Neg_Sum", "Zahlungen_Anzahl", "DB", "Check_STD", "Check_MAT", "Check_RE", "Check_RA", "Plan_Start", "Plan_Ende", "Start", "Ende", "Bearbeitungszeit", "ÄndFLT", "FLT", "ÄndBZA", "BZA", "MatDat", "Aktiv", "Fertig", "BauInfo", "BereitZurAbnahme", "AbnahmeDat", "AbnahmeMangelOffen", "RestleistungOffen", "InspektMangelOffen", "BereitZurSR", "SR_Dat", "Prio_ID_Bau", "Länder_ID", "Std_Satz_Sonst", "Std_Satz_VW", "Std_Satz_BL", "Std_Satz_Mont", "Std_Satz_MontFremd", "Std_Satz_AKQ", "Std_Satz_CAD", "Std_Satz_Statik", "GKZ_Mat", "GKZ_Fremd", "GKZ_Kasse", "LB_ID", "initMP_PsNr", "initMP_Dat", "Montage_Info", "Montage_Info_KZL", "Montage_Prio", "Montage_Tage", "Montage_Mont", "Montage_Fremd", "istMBGPaar", "Material_Engpass", "Montage_Start_Wunsch", "Montage_Ende", "Montage_Forecast", "Montage_Sa_inkl", "KGZ_Ext_ID") FROM stdin;
@@ -1602,7 +1602,7 @@ COPY public."MGAUFTR" ("PjNr", "PjNr_HP", "PjTypID", "Status", "Status_HP", "Anz
 
 
 --
--- Data for Name: STANDORT; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: STANDORT; Type: TABLE DATA; Schema: public; Owner: me
 --
 
 COPY public."STANDORT" ("StONr", "CreatedByPsNr", "StOaktiv", "TECH_Typ_ID", "StO_Typ_ID", "ESS_KAN", "InspektionErforderlich", "StONrBH", "BYNr", "BHNr", "StO_Suchgebiet", "Straße", "PLZ", "Ort", "Ortsteil", "Bezirk", "Region", "Bundesland_ID", "RegionZiffer", "StO_Inh_Info", "StO_ET", "StO_HV", "Beschreibung Telekom", "Beschreibung2", "AufbauFIRMA", "Beschreibung MBG", "InfoMBG", "GEO_STR", "GEO_HNr", "GEO_HNrZ", "GEO_Hoehe", "IMM_Höhe", "IMM_Hoehe_Qual_ID", "IMM_Typ", "IMM_Ges", "IMM_Dach", "PV_Dachneigung", "PV_AzimuthSüd", "StO_Status", "StO_Nutz_TMO", "StO_Nutz_MMO", "StO_Nutz_MCMM", "StO_Nutz_O2", "StO_Nutz_EPLUS", "StO_Nutz_SIG", "StO_MN_MMO", "StO_MN_Eplus", "StO_MN_VIAG", "StO_MN_Sonst", "StO_MN_Info", "StO_MN_Info_Dat", "DIENST_D1_900", "DIENST_D1_1800", "DIENST_D1_UMTS", "DIENST_C-Netz", "DIENST_Modacom", "DIENST_Sonst", "DIENST_Info", "ATR_Anz", "ATR_KLmax", "ATR_NLmax", "ATR_KL>10m", "ATR_HüTmax", "ATR_EWT_Info", "ANT_Konzept_ID", "ANT_GFK", "ANT_VF", "ANT_HF", "FertigDat", "UmbauDat", "Bearbeiter", "TuBuErforderlich", "InfoDatErforderlich", "TuBuRAUSmaxDat", "InfoTuBu", "StO_fertig", "InfoDatFertig", "StatikenATRda", "InfoDatATR", "StatikenGEBda", "InfoDatGEB", "FotosDa", "InfoDatFoto", "WegDa", "InfoDatWeg", "TuBuNEXTart", "SchildErf", "SchildBest-Alt", "SchildBest", "SchildMont", "01", "02", "03", "04", "05", "06", "07", "08", "Insp1996", "Insp1997", "Insp1998", "Insp1999", "Insp2000", "StONr_DFMG", "StONr_TMobile", "StONr_Vodafone", "StONr_EPlus", "StONr_O2", "StOName_Sonstige1", "StOName_Sonstige2", "StOName_DFMG", "StOName_TMobile", "StOName_Vodafone", "StOName_EPlus", "StOName_O2", "StOSuchgebiet_DFMG", "StOSuchgebiet_TMobile", "StOSuchgebiet_Vodafone", "StOSuchgebiet_EPlus", "StOSuchgebiet_O2", "SGNr_DFMG", "SGNr_TMobile", "SGNr_Vodafone", "SGNr_EPlus", "SGNr_O2", "BSNr_EPlus_Master", "BSNr_EPlus_UMTS", "BSNr_EPlus_GMS", "BSNr_EPlus_Erw1", "BSNr_EPlus_Erw2", "BSNr_O2_Master", "BSNr_O2_UMTS", "BSNr_O2_GMS", "BSNr_O2_Erw1", "BSNr_O2_Erw2", "StO_Status_Suche", "StO_Status_Kandidat", "StO_Status_ESS", "StO_Status_Planung", "StO_Status_Bau", "StO_Status_Demontiert", "StO_Status_Fremd", "StONr_BDBOS", "StONr_BDBOS_Brb", "StOName_BDBOS", "SGNr_BDBOS", "NENr_BDBOS_1", "NENr_BDBOS_2", "NENr_BDBOS_3", "NENr_BDBOS_4", "SGNr_PV", "StOSuchgebiet_PV", "SGNr_Taxi", "StOSuchgebiet_Taxi", "SGNr_Sigfox", "StOSuchgebiet_Sigfox", "StONr_PV", "Länder_ID", "AdminRegion2_ID", "Gemarkung", "Flur", "Flurstück", "istPVStO", "FLH", "DMS", "Windlast", "Schneelast", "NetzOrga_ID", "Netzimpedanz", "Netzeinspeisung", "Netz_Einschr", "Netzklasse", "Notstromaggregat", "Notstrom_typ", "ET_Typ_ID", "DSL", "StromAnschluss", "EntfernungZuMBG") FROM stdin;
@@ -1611,14 +1611,14 @@ COPY public."STANDORT" ("StONr", "CreatedByPsNr", "StOaktiv", "TECH_Typ_ID", "St
 
 
 --
--- Name: events_index_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: events_index_seq; Type: SEQUENCE SET; Schema: public; Owner: me
 --
 
 SELECT pg_catalog.setval('public.events_index_seq', 1, false);
 
 
 --
--- Name: Def_Login Def_Login_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Def_Login Def_Login_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Def_Login"
@@ -1626,7 +1626,7 @@ ALTER TABLE ONLY public."Def_Login"
 
 
 --
--- Name: Events Events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Events Events_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Events"
@@ -1634,7 +1634,7 @@ ALTER TABLE ONLY public."Events"
 
 
 --
--- Name: MGAUFTR MGAUFTR_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -1642,7 +1642,7 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: STANDORT STANDORT_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: STANDORT STANDORT_pkey; Type: CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."STANDORT"
@@ -1650,7 +1650,7 @@ ALTER TABLE ONLY public."STANDORT"
 
 
 --
--- Name: Events Events_PjNr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: Events Events_PjNr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."Events"
@@ -1658,7 +1658,7 @@ ALTER TABLE ONLY public."Events"
 
 
 --
--- Name: MGAUFTR MGAUFTR_PjNr_HP_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_PjNr_HP_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -1666,7 +1666,7 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: MGAUFTR MGAUFTR_StONr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: MGAUFTR MGAUFTR_StONr_fkey; Type: FK CONSTRAINT; Schema: public; Owner: me
 --
 
 ALTER TABLE ONLY public."MGAUFTR"
@@ -1674,34 +1674,34 @@ ALTER TABLE ONLY public."MGAUFTR"
 
 
 --
--- Name: TABLE "Def_Login"; Type: ACL; Schema: public; Owner: postgres
+-- Name: TABLE "Def_Login"; Type: ACL; Schema: public; Owner: me
 --
 
 GRANT SELECT ON TABLE public."Def_Login" TO insp_read;
 
 
 --
--- Name: TABLE "Events"; Type: ACL; Schema: public; Owner: postgres
+-- Name: TABLE "Events"; Type: ACL; Schema: public; Owner: me
 --
 
 GRANT SELECT,INSERT,UPDATE ON TABLE public."Events" TO insp_readwrite;
 
 
 --
--- Name: TABLE "MGAUFTR"; Type: ACL; Schema: public; Owner: postgres
+-- Name: TABLE "MGAUFTR"; Type: ACL; Schema: public; Owner: me
 --
 
 GRANT SELECT,INSERT,UPDATE ON TABLE public."MGAUFTR" TO insp_readwrite;
 
 
 --
--- Name: TABLE "STANDORT"; Type: ACL; Schema: public; Owner: postgres
+-- Name: TABLE "STANDORT"; Type: ACL; Schema: public; Owner: me
 --
 
 GRANT SELECT,INSERT,UPDATE ON TABLE public."STANDORT" TO insp_readwrite;
 
 
 --
--- PostgreSQL database dump complete
+-- meQL database dump complete
 --
 

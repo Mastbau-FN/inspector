@@ -1,0 +1,181 @@
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 Zeile)
+
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:30: FEHLER:  Berechtigung nur fÃ¼r EigentÃ¼mer der Erweiterung plpgsql
+CREATE EXTENSION
+COMMENT
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:56: FEHLER:  Relation Â»events_index_seqÂ« existiert bereits
+ALTER TABLE
+SET
+SET
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:104: FEHLER:  Relation Â»EventsÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:249: FEHLER:  Relation Â»MGAUFTRÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:437: FEHLER:  Relation Â»STANDORTÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:465: FEHLER:  doppelter SchlÃ¼sselwert verletzt Unique-Constraint Â»Events_pkeyÂ«
+DETAIL:  SchlÃ¼ssel Â»("Index")=(944833)Â« existiert bereits.
+KONTEXT:  COPY Events, Zeile 1
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:474: FEHLER:  doppelter SchlÃ¼sselwert verletzt Unique-Constraint Â»MGAUFTR_pkeyÂ«
+DETAIL:  SchlÃ¼ssel Â»("PjNr")=(6006259)Â« existiert bereits.
+KONTEXT:  COPY MGAUFTR, Zeile 1
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:483: FEHLER:  doppelter SchlÃ¼sselwert verletzt Unique-Constraint Â»STANDORT_pkeyÂ«
+DETAIL:  SchlÃ¼ssel Â»("StONr")=(5843)Â« existiert bereits.
+KONTEXT:  COPY STANDORT, Zeile 1
+ setval
+--------
+      1
+(1 Zeile)
+
+
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:498: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»EventsÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:506: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»MGAUFTRÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:514: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»STANDORTÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:522: FEHLER:  Constraint Â»Events_PjNr_fkeyÂ« existiert bereits fÃ¼r Relation Â»EventsÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:530: FEHLER:  Constraint Â»MGAUFTR_PjNr_HP_fkeyÂ« existiert bereits fÃ¼r Relation Â»MGAUFTRÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:538: FEHLER:  Constraint Â»MGAUFTR_StONr_fkeyÂ« existiert bereits fÃ¼r Relation Â»MGAUFTRÂ«
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 Zeile)
+
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:574: FEHLER:  Berechtigung nur fÃ¼r EigentÃ¼mer der Erweiterung plpgsql
+CREATE EXTENSION
+COMMENT
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:600: FEHLER:  Relation Â»events_index_seqÂ« existiert bereits
+ALTER TABLE
+SET
+SET
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:648: FEHLER:  Relation Â»EventsÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:793: FEHLER:  Relation Â»MGAUFTRÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:981: FEHLER:  Relation Â»STANDORTÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1009: FEHLER:  doppelter SchlÃ¼sselwert verletzt Unique-Constraint Â»Events_pkeyÂ«
+DETAIL:  SchlÃ¼ssel Â»("Index")=(944819)Â« existiert bereits.
+KONTEXT:  COPY Events, Zeile 1
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1018: FEHLER:  doppelter SchlÃ¼sselwert verletzt Unique-Constraint Â»MGAUFTR_pkeyÂ«
+DETAIL:  SchlÃ¼ssel Â»("PjNr")=(6006259)Â« existiert bereits.
+KONTEXT:  COPY MGAUFTR, Zeile 1
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1027: FEHLER:  doppelter SchlÃ¼sselwert verletzt Unique-Constraint Â»STANDORT_pkeyÂ«
+DETAIL:  SchlÃ¼ssel Â»("StONr")=(5843)Â« existiert bereits.
+KONTEXT:  COPY STANDORT, Zeile 1
+ setval
+--------
+      1
+(1 Zeile)
+
+
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1042: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»EventsÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1050: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»MGAUFTRÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1058: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»STANDORTÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1066: FEHLER:  Constraint Â»Events_PjNr_fkeyÂ« existiert bereits fÃ¼r Relation Â»EventsÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1074: FEHLER:  Constraint Â»MGAUFTR_PjNr_HP_fkeyÂ« existiert bereits fÃ¼r Relation Â»MGAUFTRÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1082: FEHLER:  Constraint Â»MGAUFTR_StONr_fkeyÂ« existiert bereits fÃ¼r Relation Â»MGAUFTRÂ«
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+
+(1 Zeile)
+
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1118: FEHLER:  Berechtigung nur fÃ¼r EigentÃ¼mer der Erweiterung plpgsql
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+SET
+SET
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1163: FEHLER:  Relation Â»Def_LoginÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1177: FEHLER:  Relation Â»events_index_seqÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1221: FEHLER:  Relation Â»EventsÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1366: FEHLER:  Relation Â»MGAUFTRÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1554: FEHLER:  Relation Â»STANDORTÂ« existiert bereits
+ALTER TABLE
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1563: FEHLER:  Spalte Â»Def_Login_IDÂ« von Relation Â»Def_LoginÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1566: Fehler: ungültige Anweisung \.
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1573: FEHLER:  Syntaxfehler bei Â»1Â«
+ZEILE 1: 1 LÃ¼ck Norbert NL $2a$06$7LcLogySZhUck6jPw69BSOJxlGZdqq1ZffJ...
+         ^
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1574: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1575: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1576: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1577: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1578: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1579: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1580: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1581: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1582: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1583: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1584: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1585: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1586: Fehler: ungültige Anweisung \
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1587: Fehler: ungültige Anweisung \
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1588: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1589: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1590: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1591: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1592: Fehler: ungültige Anweisung \.
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1599: FEHLER:  Syntaxfehler bei Â»944819Â«
+ZEILE 1: 944819 2021-07-21 0 2021-07-21 1899-12-30 12:28:00 2021-07-2...
+         ^
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1600: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1601: Fehler: ungültige Anweisung \.
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1608: FEHLER:  Syntaxfehler bei Â»6006259Â«
+ZEILE 1: 6006259
+         ^
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1609: Fehler: ungültige Anweisung \N
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1610: Fehler: ungültige Anweisung \.
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1617: FEHLER:  Syntaxfehler bei Â»5843Â«
+ZEILE 1: 5843 147 t 0 0 t f
+         ^
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1625: FEHLER:  Spalte Â»Def_Login_IDÂ« von Relation Â»Def_LoginÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1633: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»EventsÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1641: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»MGAUFTRÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1649: FEHLER:  mehrere PrimÃ¤rschlÃ¼ssel fÃ¼r Tabelle Â»STANDORTÂ« nicht erlaubt
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1657: FEHLER:  Constraint Â»Events_PjNr_fkeyÂ« existiert bereits fÃ¼r Relation Â»EventsÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1665: FEHLER:  Constraint Â»MGAUFTR_PjNr_HP_fkeyÂ« existiert bereits fÃ¼r Relation Â»MGAUFTRÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1673: FEHLER:  Constraint Â»MGAUFTR_StONr_fkeyÂ« existiert bereits fÃ¼r Relation Â»MGAUFTRÂ«
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1680: FEHLER:  Rolle Â»insp_readÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1687: FEHLER:  Rolle Â»insp_readwriteÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1694: FEHLER:  Rolle Â»insp_readwriteÂ« existiert nicht
+psql:d:/job/masbau/inspector/backend/sql_stuff/2020-6299_2021-08-17_insp_test.sql:1701: FEHLER:  Rolle Â»insp_readwriteÂ« existiert nicht
