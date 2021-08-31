@@ -2,29 +2,28 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
+import 'package:mastbau_inspector/classes/data/checkpoint.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/pages/checkpoints/checkpointsModel.dart';
-import 'package:mastbau_inspector/pages/checkpoints/checkpointsView.dart';
+import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
 import 'package:provider/provider.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
-class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
+class CheckPointsModel extends DropDownModel<CheckPoint> with ChangeNotifier {
   final Backend _b = Backend();
-  final InspectionLocation currentLocation;
+  final CheckCategory currentCategory;
 
   static const _nextViewTitle = "Prüfpunkte";
 
-  CategoryModel(this.currentLocation);
+  CheckPointsModel(this.currentCategory);
 
-  Future<List<CheckCategory>> get all async =>
-      _b.getAllCheckCategoriesForLocation(currentLocation);
+  Future<List<CheckPoint>> get all async =>
+      _b.getAllCheckPointsForCategory(currentCategory);
 
   @override
   List<MyListTileData> actions = [
     MyListTileData(
       title: _nextViewTitle,
-      nextBuilder: (c) => CheckPointsView(),
+      nextBuilder: (c) => Text('todo'), //TODO
     ),
     MyListTileData(
       title: "Fotos",
@@ -37,19 +36,20 @@ class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
   ];
 
   @override
-  String get title => '$currentLocation';
+  String get title => currentCategory.title;
 
   @override
   void open(
     BuildContext context,
-    CheckCategory data,
+    CheckPoint data,
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (newcontext) => tiledata.title == _nextViewTitle
-            ? ChangeNotifierProvider<CheckPointsModel>(
-                create: (c) => CheckPointsModel(data),
+            ? ChangeNotifierProvider<CheckPointDefectsModel>(
+                create: (c) => CheckPointDefectsModel(
+                    data), //TODO swap with model for next view
                 child: tiledata.nextBuilder(newcontext),
               )
             : tiledata.nextBuilder(newcontext),
