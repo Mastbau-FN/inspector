@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'inspection_location.g.dart';
 
 /// stores all the data needed for a specific location in a type-safe way
+
+@JsonSerializable()
 class InspectionLocation implements Data {
+  @JsonKey(name: 'PjNr')
   final int pjNr;
+  @JsonKey(name: 'PjName')
   final String? pjName;
+  @JsonKey(name: 'PjInfo')
   final String? pjInfo;
+  @JsonKey(name: 'Bauleitung')
   final String? bauleitung;
+  @JsonKey(name: 'StONr')
   final int stONr;
+  @JsonKey(name: 'Straße')
   final String? strasse;
+  @JsonKey(name: 'PLZ')
   final String? plz;
+  @JsonKey(name: 'Ort')
   final String? ort;
-  final Image?
-      defaultpicture; //is a link (Link varchar + LinkOrdner varchar) first needs to be resolved by api.dart
+  //// final Image? defaultpicture; //is a link (Link varchar + LinkOrdner varchar) first needs to be resolved by api.dart
 
   InspectionLocation(
       {this.bauleitung,
-      this.defaultpicture,
+      ////this.defaultpicture,
       this.ort,
       this.pjInfo,
       this.pjName,
@@ -30,11 +42,6 @@ class InspectionLocation implements Data {
     return pjName ?? 'Inspektion $pjNr';
   }
 
-  @override
-  Map<String, dynamic> toJson() => {
-        'PjNr': pjNr,
-      };
-
   String toSubString() {
     return '${bauleitung ?? ''}';
   }
@@ -42,21 +49,14 @@ class InspectionLocation implements Data {
   @override
   String get title => toString();
 
-  static InspectionLocation? fromMap(Map<String, dynamic> map) {
-    debugPrint(map.toString());
+  static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
-      return InspectionLocation(
-        pjName: map['PjName'],
-        pjNr: map['PjNr'],
-        stONr: map['StONr'],
-        bauleitung: map['Bauleitung'],
-        pjInfo: map['PjInfo'],
-        strasse: map['Straße'],
-        plz: map['PLZ'],
-        ort: map['Ort'],
-      );
-    } catch (e) {
-      return null;
-    }
+      return _$InspectionLocationFromJson(json);
+    } catch (e) {}
   }
+
+  Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
+
+  @override
+  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr};
 }

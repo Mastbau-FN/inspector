@@ -139,22 +139,24 @@ class Backend {
       ];
     }
     return getListFromJson(jsonDecode((await post_JSON(_getProjects_r)).body),
-        InspectionLocation.fromMap,
+        InspectionLocation.fromJson,
         objName: 'inspections');
   }
 
-  /// gets all the [CheckCategory]s for the currently logged in [user]
+  /// gets all the [CheckCategory]s for the given [InspectionLocation]
   Future<List<CheckCategory>> getAllChackCategoriesForLocation(
       InspectionLocation location) async {
     if (_isFaked) {
       return [
-        CheckCategory(),
-        CheckCategory(),
+        CheckCategory(pjNr: 7, index: 1),
+        CheckCategory(pjNr: 6, index: 2),
       ];
     }
     return getListFromJson(
-        jsonDecode((await post_JSON(_getCategories_r, location.toJson())).body),
-        CheckCategory.fromMap,
+        jsonDecode(
+            (await post_JSON(_getCategories_r, json: location.toSmallJson()))
+                .body),
+        CheckCategory.fromJson,
         objName: 'categories');
   }
 }
