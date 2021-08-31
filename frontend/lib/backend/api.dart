@@ -24,14 +24,6 @@ class Backend {
   static final Backend _instance = Backend._internal();
   factory Backend() => _instance;
 
-  bool _isFaked = false;
-
-  /// creates a fake backend which can be used for mocking data
-  factory Backend.fake() {
-    _instance._isFaked = true;
-    return _instance;
-  }
-
   final _baseurl = dotenv.env['API_URL'];
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
 
@@ -105,9 +97,6 @@ class Backend {
   Future<DisplayUser?> login(User user) async {
     // if user is already logged in
     if (await isUserLoggedIn(user)) return await this.user;
-    if (_isFaked) {
-      return user;
-    }
     await connectionGuard();
     _user = user;
     var res = await post_JSON('/login');
@@ -131,34 +120,28 @@ class Backend {
 
   /// gets all the [InspectionLocation]s for the currently logged in [user]
   Future<List<InspectionLocation>>
-      getAllInspectionLocationsForCurrentUser() async {
-    if (_isFaked) {
-      return [
-        InspectionLocation(pjName: 'mock-location 1', pjNr: 4, stONr: 7),
-        InspectionLocation(pjName: 'mock-location 2', pjNr: 7, stONr: 4)
-      ];
-    }
-    return getListFromJson(jsonDecode((await post_JSON(_getProjects_r)).body),
-        InspectionLocation.fromJson,
-        objName: 'inspections');
-  }
+      getAllInspectionLocationsForCurrentUser() async => getListFromJson(
+            jsonDecode(
+              (await post_JSON(_getProjects_r)).body,
+            ),
+            InspectionLocation.fromJson,
+            objName: 'inspections',
+          );
 
   /// gets all the [CheckCategory]s for the given [InspectionLocation]
   Future<List<CheckCategory>> getAllChackCategoriesForLocation(
-      InspectionLocation location) async {
-    if (_isFaked) {
-      return [
-        CheckCategory(pjNr: 7, index: 1),
-        CheckCategory(pjNr: 6, index: 2),
-      ];
-    }
-    return getListFromJson(
+          InspectionLocation location) async =>
+      getListFromJson(
         jsonDecode(
-            (await post_JSON(_getCategories_r, json: location.toSmallJson()))
-                .body),
+          (await post_JSON(
+            _getCategories_r,
+            json: location.toSmallJson(),
+          ))
+              .body,
+        ),
         CheckCategory.fromJson,
-        objName: 'categories');
-  }
+        objName: 'categories',
+      );
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
