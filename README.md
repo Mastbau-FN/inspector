@@ -11,7 +11,7 @@ backend stuff is not included there, but can be seen [here](https://github.com/M
 - setup backend ([here](https://github.com/Mastbau-FN/inspector/tree/main/backend/readme.md))
 - create .env file in frontend dir
     - needs the same `API_KEY` value as the backend .env
-    - and the ip of the backend
+    - and the url of the backend
     <details><summary>example</summary>
 
     ```
