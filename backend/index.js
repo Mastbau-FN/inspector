@@ -1,3 +1,5 @@
+const isInsecure = true; // TODO : make secure, lol
+
 
 const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
@@ -6,9 +8,9 @@ const _getCheckPointDefects_r = '/getCheckPointDefects';
 
 
 const fs = require('fs');
-const key = fs.readFileSync('./key.pem');
-const cert = fs.readFileSync('./cert.pem');
-const https = require('https');
+
+var http = require('http');
+var https = require('https');
 
 const express = require('express')
 
@@ -19,7 +21,6 @@ const auth = require('./auth/auth')
 
 
 const app = express()
-const server = https.createServer({key: key, cert: cert }, app);
 const port = process.env.port
 
 app.use(express.json())
@@ -100,9 +101,18 @@ app.use('/api/',function(err, req, res, next) {
   res.status(500).send({error: 'Something broke!'});
 });
 
-server.listen(port+1, () => {
+if(isInsecure){
+  var httpServer = http.createServer(app);
+  httpServer.listen(port, () => {
+    console.warn(`App running on port ${port}. THIS IS INSECURE`)//TODO remove http and force https
+  })
+}else{
+  const key = fs.readFileSync('./key.pem');
+  const cert = fs.readFileSync('./cert.pem');
+  var httpsServer = https.createServer({key: key, cert: cert}, app);
+  httpsServer.listen(port, () => {
     console.log(`App running on port ${port}.`)
-})
-app.listen(port, () => {
-  console.warn(`App running on port ${port}. THIS IS INSECURE`)//TODO remove http and force https
-})
+  })
+}
+
+
