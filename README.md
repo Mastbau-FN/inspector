@@ -25,7 +25,7 @@ backend stuff is not included there, but can be seen [here](https://github.com/M
 - see [here](https://flutter.dev/docs/get-started/install)
 
 ### install app
-- run `flutter build apk`
+- run `flutter build apk` (inside frontend dir)
 - a new file in `frontend\build\app\outputs\apk\release\app-release.apk` appears, get this to an android device somehow 
 - click it from the android device, install, run, tada!
 
