@@ -1,9 +1,21 @@
 ////const bcrypt = require("bcrypt");
 const fs = require('fs');
 const fsp = fs.promises;
+
+const path = require('path');
+
 const pool = require('./pool').db.pool;
 
+const imghasher = require('../images/hash');
+
 // MARK: Helpers
+
+//adding .last() for arrays
+if (!Array.prototype.last){
+  Array.prototype.last = function(){
+      return this[this.length - 1];
+  };
+};
 
 /**
  * 
@@ -24,9 +36,29 @@ const getQueryString = async (name) => {
  * @param {List} params
  * @returns a Promise resolving the data given by sql query name (uses {getQueryString}) with given parameters
  */
-const queryFileWithParams = async (file,params)=>{
+const queryFileWithParams = async (file,params, addHashFunction = true)=>{
   let query = await getQueryString(file);
   let data = await pool.asyncQuery(query,params);
+
+  if (addHashFunction){
+    data.rows.hashImages = function(){
+      for(thingy of this){
+        let rootfolder = queryFileWithParams('root_folder',[thingy.pjNr],false)[0];
+        if (thingy.Link){
+          let link = path.join(thingy.Link.split('/').slice(0, -1))
+          thingy.mainIMG = imghasher.memorize(
+            rootfolder,
+            rootfolder == link ? '/' : link,
+            thingy.Link.split('/').last())
+        }
+        delete thingy.Link;
+        delete thingy.LinkOrdner;
+      }
+      
+      console.log(this);
+    };
+  }
+
   return data.rows;
 }
 
@@ -75,7 +107,7 @@ const getValidUser = async (user) => {
  * @returns a Promise resolving to all defects that were checked the check_point_index-th checkpoint for the category_index-th category in project number pjNr
  * TODO: ASKTHIS is this correct or only check_point_index needed?
  */
-  const getCheckPointDefects = (pjNr,category_index,check_point_index) => queryFileWithParams('check_point_defects',[pjNr,check_point_index,]);
+  const getCheckPointDefects = (pjNr,category_index,check_point_index) => queryFileWithParams('check_point_defects',[pjNr,check_point_index,category_index]);
 
 
 

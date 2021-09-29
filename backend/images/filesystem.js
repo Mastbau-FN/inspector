@@ -1,6 +1,9 @@
 const fs = require('fs');
 const fsp = fs.promises;
 
+const path = require('path');
+
+
 const root_path = process.env.img_root_path;
 
 const _getImageFromPath = async (path) => {
@@ -10,7 +13,7 @@ const _getImageFromPath = async (path) => {
 
 const getImageFrom = async (rootpath,link,filename)=>{
     //TODO how to merge the specific paths and where do they come from?
-    return await _getImageFromPath(rootpath+link+filename);
+    return await _getImageFromPath(path.join(rootpath,link,filename));
 }
 
 
@@ -21,7 +24,7 @@ const _getAllImagenamesFromPath = async (path) => {
 
 const getAllImagenamesFrom = async (rootpath, link) => {
     //TODO how to merge the specific paths and where do they come from?
-    return await _getAllImagenamesFromPath(rootpath+link)
+    return await _getAllImagenamesFromPath(path.join(rootpath,link))
 }
 
 module.exports = {

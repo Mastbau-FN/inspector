@@ -5,6 +5,7 @@ const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
 const _getCheckPoints_r = '/getCheckPoints';
 const _getCheckPointDefects_r = '/getCheckPointDefects';
+const _getImageFromHash_r = '/image';
 
 
 const fs = require('fs');
@@ -61,6 +62,7 @@ app.post('/api/secure'+_getProjects_r,api.getProjects);
 app.post('/api/secure'+_getCategories_r,api.getCategories);
 app.post('/api/secure'+_getCheckPoints_r,api.getCheckPoints);
 app.post('/api/secure'+_getCheckPointDefects_r,api.getCheckPointDefects);
+app.post('/api/secure'+_getImageFromHash_r,api.getFileFromHash);
 
 
 app.get('/error',(req,res)=>{
