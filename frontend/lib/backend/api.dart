@@ -102,9 +102,15 @@ class Backend {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);
       //TODO: wenn ich das entferne, oder images empty ist, wird dieses Data nicht erstellt?! WHAT THE FRCK
-      data?.images = (await Future.wait(
+      data?.images = await Future.wait(
+        List<Future<Image?>>.from(
           // i could use CachedNetworkImage here, and that would be a nice in-between solution, but the idea is that post_json will handle offline availability in the future
-          data.imagehashes.map((hash) async => await _fetchImage(hash)))).toList();
+          data.imagehashes?.map(
+                (hash) => _fetchImage(hash),
+              ) ??
+              [],
+        ),
+      );
       return data;
     };
   }

@@ -20,7 +20,7 @@ CheckPoint _$CheckPointFromJson(Map<String, dynamic> json) {
     index: json['E2'] as int,
     e3: json['E3'] as int?,
   )..imagehashes =
-      (json['images'] as List<dynamic>).map((e) => e as String).toList();
+      (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 }
 
 Map<String, dynamic> _$CheckPointToJson(CheckPoint instance) =>

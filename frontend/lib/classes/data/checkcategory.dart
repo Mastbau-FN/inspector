@@ -28,9 +28,9 @@ class CheckCategory implements Data {
   int? e3;
 
   @JsonKey(name: 'images')
-  List<String> imagehashes = []; //should not be used
+  List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Image?> images = [];
+  List<Image?>? images;
 
   CheckCategory(
       {required this.pjNr,
@@ -50,7 +50,9 @@ class CheckCategory implements Data {
   static CheckCategory? fromJson(Map<String, dynamic> json) {
     try {
       return _$CheckCategoryFromJson(json);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   @override

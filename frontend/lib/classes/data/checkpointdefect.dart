@@ -28,9 +28,9 @@ class CheckPointDefect implements Data {
   int index;
 
   @JsonKey(name: 'images')
-  List<String> imagehashes = []; //should not be used
+  List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Image?> images = [];
+  List<Image?>? images;
 
   CheckPointDefect(
       {required this.pjNr,

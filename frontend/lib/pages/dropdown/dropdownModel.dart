@@ -5,8 +5,8 @@ import 'package:mastbau_inspector/pages/dropdown/dropdownPage.dart';
 import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 
 abstract class WithImgHashes {
-  List<String> imagehashes = []; //should not be used
-  List<Image?> images = [];
+  List<String>? imagehashes = []; //should not be used
+  List<Image?>? images = [];
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]

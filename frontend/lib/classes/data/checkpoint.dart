@@ -28,9 +28,9 @@ class CheckPoint implements Data {
   int? e3;
 
   @JsonKey(name: 'images')
-  List<String> imagehashes = []; //should not be used
+  List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Image?> images = [];
+  List<Image?>? images;
 
   CheckPoint(
       {required this.pjNr,
