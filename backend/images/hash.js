@@ -18,7 +18,7 @@ const memorize = async (rootpath,link,filename) => {
 
     let key = await bcript.hash(rootpath+link+filename,1);
 
-    console.log({rootpath,link,filename});
+    ////console.log({rootpath,link,filename});
 
     //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
     cache.set(key+'r', rootpath);

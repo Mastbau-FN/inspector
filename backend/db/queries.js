@@ -112,8 +112,8 @@ const hashImages = async (tthis) => {
 
     if (thingy.Link){
 
-      let rootfolder = path.basename((await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].Link ?? '');
-      let link = path.dirname(thingy.Link); link = rootfolder == link ? path.delimiter : link;
+      let rootfolder = path.dirname((await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].Link ?? '');
+      let link = path.dirname(thingy.Link); link = rootfolder == link ? '' : link;
       let mainImg = path.basename(thingy.Link);
 
       // get all *other* image names

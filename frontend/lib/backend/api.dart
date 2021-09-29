@@ -99,10 +99,12 @@ class Backend {
       _generateImageFetcher<T extends Data>(
           T? Function(Map<String, dynamic>) jsoner) {
     return (Map<String, dynamic> json) async {
-      var data = jsoner(json);
+      //debugPrint(json.toString() + '\n');
+      T? data = jsoner(json);
+      //TODO: wenn ich das entferne, oder images empty ist, wird dieses Data nicht erstellt?! WHAT THE FRCK
       data?.images = (await Future.wait(
-              data.imagehashes.map((hash) async => await _fetchImage(hash))))
-          .toList();
+          // i could use CachedNetworkImage here, and that would be a nice in-between solution, but the idea is that post_json will handle offline availability in the future
+          data.imagehashes.map((hash) async => await _fetchImage(hash)))).toList();
       return data;
     };
   }
@@ -164,7 +166,7 @@ class Backend {
           ))
               .body,
         ),
-        CheckCategory.fromJson,
+        _generateImageFetcher(CheckCategory.fromJson),
         objName: 'categories',
       );
 
@@ -206,7 +208,8 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
   try {
     List<dynamic> str = (objName != null) ? json[objName] : json;
     return List<T>.from(
-        await Future.wait(str.map((insp) async => await converter(insp))));
+        (await Future.wait(str.map((insp) async => await converter(insp))))
+            .whereType<T>());
   } catch (e) {
     debugPrint(e.toString());
   }

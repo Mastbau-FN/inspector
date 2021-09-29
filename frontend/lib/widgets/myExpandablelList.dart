@@ -9,12 +9,17 @@ abstract class ExpandablesRadio extends StatelessWidget {
 }
 
 class ExpandableCard2 extends ExpandablesRadio {
+  final Image? previewImg;
   final Color? color;
   final String title;
   final List<Widget> children;
   final Key key;
   ExpandableCard2(
-      {required this.title, this.children = const [], this.color, Key? key})
+      {required this.title,
+      this.previewImg,
+      this.children = const [],
+      this.color,
+      Key? key})
       : this.key = key ?? UniqueKey();
 
   Color _color(isExpanded, context) => !isExpanded
@@ -26,9 +31,18 @@ class ExpandableCard2 extends ExpandablesRadio {
     return ExpansionPanelRadio(
         backgroundColor: color,
         headerBuilder: (context, isExpanded) => ListTile(
-              leading: Icon(
-                Icons.construction,
-                color: _color(isExpanded, context),
+              leading: Padding(
+                padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
+                child: ClipOval(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: previewImg ??
+                        Icon(
+                          Icons.construction,
+                          color: _color(isExpanded, context),
+                        ),
+                  ),
+                ),
               ),
               title: Text(
                 title,

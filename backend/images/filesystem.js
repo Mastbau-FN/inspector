@@ -29,7 +29,7 @@ const _getAllImagenamesFromPath = async (path) => {
 const getAllImagenamesFrom = async (rootpath, link) => {
     //TODO how to merge the specific paths and where do they come from?
     ////console.log(rootpath);console.log(link);
-    return await _getAllImagenamesFromPath(path.join(rootpath,link))
+    try {return await _getAllImagenamesFromPath(path.join(rootpath,link))}catch(e){return []}
 }
 
 module.exports = {

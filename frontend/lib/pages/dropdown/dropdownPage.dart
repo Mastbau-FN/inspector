@@ -52,6 +52,7 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
   ExpandableCard2 locationDropDown(
       Data data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
+        previewImg: data.images[0],
         title: data.title,
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(
