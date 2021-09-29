@@ -44,7 +44,7 @@ app.get('/', (request, response) => {
  * very important later though, since otherwise everybody can read and write data 
  * its also very important to only expose this api via https since otherwise the auth data wouldn't be encrypted and anyone could steal the credentials
 */
-if (!process.env.insecure){
+if (!isInsecure){
     // api-key wall
     app.use('/api/secure/', auth.api_wall);
     // needs a user to be logged in aka provided via the user param inside the post request 

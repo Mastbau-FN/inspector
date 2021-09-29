@@ -1,0 +1,1 @@
+const root_path = process.env.img_root_path;
