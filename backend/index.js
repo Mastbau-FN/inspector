@@ -108,7 +108,7 @@ if(isInsecure){
   })
 }else{
   const cert_path = process.env.cert_path;
-  const key = fs.readFileSync(cert_path+'key.pem');
+  const key = fs.readFileSync(cert_path+'privkey.pem');
   const cert = fs.readFileSync(cert_path+'cert.pem');
   var httpsServer = https.createServer({key: key, cert: cert}, app);
   httpsServer.listen(port, () => {
