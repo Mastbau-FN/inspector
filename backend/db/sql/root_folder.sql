@@ -3,6 +3,6 @@ SELECT "LinkOrdner" -- Ordner für Fotos
 FROM "Events"
 WHERE (
     "EventID" = 6097
-    AND "PrNr" = $1
+    AND "PjNr" = $1
 )
 ;

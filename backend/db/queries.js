@@ -42,27 +42,27 @@ const queryFileWithParams = async (file,params, addHashFunction = true)=>{
   let data = await pool.asyncQuery(query,params);
 
   if (addHashFunction){
-    data.rows.hashImages = function(){
+    data.rows.hashImages = async function(){
 
       for(thingy of this){
 
         if (thingy.Link){
 
-          let rootfolder = queryFileWithParams('root_folder',[thingy.pjNr],false)[0];
-          var link = path.join(thingy.Link.split('/').slice(0, -1));link = rootfolder == link ? '/' : link;
+          let rootfolder = (await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].LinkOrdner;
+          var link = path.join(...(thingy.Link.split('/').slice(0, -1)));link = rootfolder == link ? '/' : link;
           let mainImg = thingy.Link.split('/').last();
 
           // get all *other* image names
-          let imageNames = imgfiler.getAllImagenamesFrom(rootfolder,link)
+          let imageNames = (await imgfiler.getAllImagenamesFrom(rootfolder,link))
             .filter((v)=>v!=mainImg);
 
           // append their hashes to the returned obj
-          thingy.images = imageNames.map(name => 
-            imghasher.memorize(rootfolder,link,name)
-          )
+          thingy.images = await Promise.all(imageNames.map(async name => 
+            await imghasher.memorize(rootfolder,link,name)
+          ));
 
           // set main image at first index
-          thingy.images.unshift(imghasher.memorize(rootfolder,link,mainImg));
+          thingy.images.unshift(await imghasher.memorize(rootfolder,link,mainImg));
 
         }
         // no longer needed
@@ -73,6 +73,8 @@ const queryFileWithParams = async (file,params, addHashFunction = true)=>{
 
       //selfdestruction muhhahah
       delete data.rows.hashImages;
+
+      return this;
     
     };
   }

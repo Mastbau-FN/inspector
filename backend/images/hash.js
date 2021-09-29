@@ -11,7 +11,7 @@ var cache = new NanoCache({
 
 
 const getFileFromHash = async (hash) => {
-    return await imgfiler.getImageFrom(cache.get(hash+r),cache.get(hash+l),cache.get(hash+f));
+    return await imgfiler.getImageFrom(cache.get(hash+'r'),cache.get(hash+'l'),cache.get(hash+'f'));
 }
 
 const memorize = async (rootpath,link,filename) => {
@@ -19,9 +19,9 @@ const memorize = async (rootpath,link,filename) => {
     let key = await bcript.hash(rootpath+link+filename,1);
 
     //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
-    cache.set(key+r, rootpath);
-    cache.set(key+l, link);
-    cache.set(key+v, filename);
+    cache.set(key+'r', rootpath);
+    cache.set(key+'l', link);
+    cache.set(key+'f', filename);
 
     return key;
 }
