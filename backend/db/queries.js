@@ -70,6 +70,9 @@ const queryFileWithParams = async (file,params, addHashFunction = true)=>{
         //never needed anyways
         delete thingy.LinkOrdner;
       }
+
+      //selfdestruction muhhahah
+      delete data.rows.hashImages;
     
     };
   }
