@@ -4,9 +4,15 @@ import 'package:mastbau_inspector/classes/listTileData.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownPage.dart';
 import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 
+abstract class WithImgHashes {
+  List<String> imagehashes = []; //should not be used
+  List<Image?> images = [];
+}
+
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
-abstract class Data {
+abstract class Data implements WithImgHashes {
   String get title;
+
   Map<String, dynamic> toJson();
   Map<String, dynamic> toSmallJson();
 

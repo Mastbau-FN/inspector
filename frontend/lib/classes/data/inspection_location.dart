@@ -24,7 +24,11 @@ class InspectionLocation implements Data {
   final String? plz;
   @JsonKey(name: 'Ort')
   final String? ort;
-  //// final Image? defaultpicture; //is a link (Link varchar + LinkOrdner varchar) first needs to be resolved by api.dart
+
+  @JsonKey(name: 'images')
+  List<String> imagehashes = []; //should not be used
+  @JsonKey(ignore: true)
+  List<Image?> images = [];
 
   InspectionLocation(
       {this.bauleitung,

@@ -1,5 +1,6 @@
 // TODO offline storage etc
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -20,6 +21,8 @@ const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
 const _getCheckPoints_r = '/getCheckPoints';
 const _getCheckPointDefects_r = '/getCheckPointDefects';
+
+const _getImageFromHash_r = '/image';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -86,6 +89,24 @@ class Backend {
     return post(route, headers: headers, body: jsonEncode(json));
   }
 
+  Future<Image?> _fetchImage(String hash) async {
+    return Image.memory(
+        (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
+            .bodyBytes);
+  }
+
+  Future<T?> Function(Map<String, dynamic>)
+      _generateImageFetcher<T extends Data>(
+          T? Function(Map<String, dynamic>) jsoner) {
+    return (Map<String, dynamic> json) async {
+      var data = jsoner(json);
+      data?.images = (await Future.wait(
+              data.imagehashes.map((hash) async => await _fetchImage(hash))))
+          .toList();
+      return data;
+    };
+  }
+
   // MARK: API
 
   /// checks whether the given user is currently logged in
@@ -124,18 +145,24 @@ class Backend {
 
   /// gets all the [InspectionLocation]s for the currently logged in [user]
   Future<List<InspectionLocation>>
-      getAllInspectionLocationsForCurrentUser() async => getListFromJson(
+      getAllInspectionLocationsForCurrentUser() async => await getListFromJson(
             jsonDecode(
               (await post_JSON(_getProjects_r)).body,
             ),
-            InspectionLocation.fromJson,
+            (Map<String, dynamic> json) async {
+              var loc = InspectionLocation.fromJson(json);
+              loc?.images = (await Future.wait(loc.imagehashes
+                      .map((hash) async => await _fetchImage(hash))))
+                  .toList();
+              return loc;
+            },
             objName: 'inspections',
           );
 
   /// gets all the [CheckCategory]s for the given [InspectionLocation]
   Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
           InspectionLocation location) async =>
-      getListFromJson(
+      await getListFromJson(
         jsonDecode(
           (await post_JSON(
             _getCategories_r,
@@ -150,7 +177,7 @@ class Backend {
   /// gets all the [CheckPoint]s corresponding to a given [CheckCategory]
   Future<List<CheckPoint>> getAllCheckPointsForCategory(
           CheckCategory category) async =>
-      getListFromJson(
+      await getListFromJson(
         jsonDecode(
           (await post_JSON(
             _getCheckPoints_r,
@@ -165,26 +192,27 @@ class Backend {
   /// gets all the [CheckPointDefect]s for the given [CheckPoint]
   Future<List<CheckPointDefect>> getAllDefectsForCheckpoint(
           CheckPoint checkpoint) async =>
-      getListFromJson(
+      await getListFromJson(
         jsonDecode(
           (await post_JSON(
-            _getCategories_r,
+            _getCheckPointDefects_r,
             json: checkpoint.toSmallJson(),
           ))
               .body,
         ),
         CheckPointDefect.fromJson,
-        objName: 'categories',
+        objName: 'checkpointdefects',
       );
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
-List<T> getListFromJson<T extends Data>(
-    Map<String, dynamic> json, T? Function(Map<String, dynamic>) converter,
-    {String? objName}) {
+Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
+    FutureOr<T?> Function(Map<String, dynamic>) converter,
+    {String? objName}) async {
   try {
     List<dynamic> str = (objName != null) ? json[objName] : json;
-    return List<T>.from(str.map((insp) => converter(insp)));
+    return List<T>.from(
+        await Future.wait(str.map((insp) async => await converter(insp))));
   } catch (e) {
     debugPrint(e.toString());
   }
