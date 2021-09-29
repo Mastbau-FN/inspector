@@ -7,6 +7,7 @@ const path = require('path');
 const pool = require('./pool').db.pool;
 
 const imghasher = require('../images/hash');
+const imgfiler  = require('../images/filesystem');
 
 // MARK: Helpers
 
@@ -42,20 +43,34 @@ const queryFileWithParams = async (file,params, addHashFunction = true)=>{
 
   if (addHashFunction){
     data.rows.hashImages = function(){
+
       for(thingy of this){
-        let rootfolder = queryFileWithParams('root_folder',[thingy.pjNr],false)[0];
+
         if (thingy.Link){
-          let link = path.join(thingy.Link.split('/').slice(0, -1))
-          thingy.mainIMG = imghasher.memorize(
-            rootfolder,
-            rootfolder == link ? '/' : link,
-            thingy.Link.split('/').last())
+
+          let rootfolder = queryFileWithParams('root_folder',[thingy.pjNr],false)[0];
+          var link = path.join(thingy.Link.split('/').slice(0, -1));link = rootfolder == link ? '/' : link;
+          let mainImg = thingy.Link.split('/').last();
+
+          // get all *other* image names
+          let imageNames = imgfiler.getAllImagenamesFrom(rootfolder,link)
+            .filter((v)=>v!=mainImg);
+
+          // append their hashes to the returned obj
+          thingy.images = imageNames.map(name => 
+            imghasher.memorize(rootfolder,link,name)
+          )
+
+          // set main image at first index
+          thingy.images.unshift(imghasher.memorize(rootfolder,link,mainImg));
+
         }
+        // no longer needed
         delete thingy.Link;
+        //never needed anyways
         delete thingy.LinkOrdner;
       }
-      
-      console.log(this);
+    
     };
   }
 
