@@ -1,4 +1,5 @@
 # getting started
+(this all runs from the `backend`dir)
 
 ### Install
 - install node (and therefor npm) then run `npm install`
@@ -23,11 +24,9 @@ fill
     ```
 </details>
 
-and store in backend dir
+and store (in backend dir)
 
 #### if neccessary also spin up the postgres database
-
-to use the app a database `users` with `name`and `pass` should be available. 
 
 ### run
 `node index.js`
