@@ -42,41 +42,7 @@ const queryFileWithParams = async (file,params, addHashFunction = true)=>{
   let data = await pool.asyncQuery(query,params);
 
   if (addHashFunction){
-    data.rows.hashImages = async function(){
-
-      for(thingy of this){
-
-        if (thingy.Link){
-
-          let rootfolder = (await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].LinkOrdner;
-          var link = path.join(...(thingy.Link.split('/').slice(0, -1)));link = rootfolder == link ? '/' : link;
-          let mainImg = thingy.Link.split('/').last();
-
-          // get all *other* image names
-          let imageNames = (await imgfiler.getAllImagenamesFrom(rootfolder,link))
-            .filter((v)=>v!=mainImg);
-
-          // append their hashes to the returned obj
-          thingy.images = await Promise.all(imageNames.map(async name => 
-            await imghasher.memorize(rootfolder,link,name)
-          ));
-
-          // set main image at first index
-          thingy.images.unshift(await imghasher.memorize(rootfolder,link,mainImg));
-
-        }
-        // no longer needed
-        delete thingy.Link;
-        //never needed anyways
-        delete thingy.LinkOrdner;
-      }
-
-      //selfdestruction muhhahah
-      delete data.rows.hashImages;
-
-      return this;
-    
-    };
+    data.rows.hashImages = async function(){return await hashImages(this)};
   }
 
   return data.rows;
@@ -125,7 +91,6 @@ const getValidUser = async (user) => {
  * @param {Number} category_index 
  * @param {Number} check_point_index 
  * @returns a Promise resolving to all defects that were checked the check_point_index-th checkpoint for the category_index-th category in project number pjNr
- * TODO: ASKTHIS is this correct or only check_point_index needed?
  */
   const getCheckPointDefects = (pjNr,category_index,check_point_index) => queryFileWithParams('check_point_defects',[pjNr,check_point_index,category_index]);
 
@@ -137,4 +102,41 @@ module.exports = {
   getCheckCategoriesForPjNR,
   getCheckPoints,
   getCheckPointDefects,
+}
+
+
+
+
+const hashImages = async (tthis) => {
+  for(thingy of tthis){
+
+    if (thingy.Link){
+
+      let rootfolder = path.basename((await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].Link ?? '');
+      let link = path.dirname(thingy.Link); link = rootfolder == link ? path.delimiter : link;
+      let mainImg = path.basename(thingy.Link);
+
+      // get all *other* image names
+      let imageNames = (await imgfiler.getAllImagenamesFrom(rootfolder,link))
+        .filter((v)=>v!=mainImg);
+
+      // append their hashes to the returned obj
+      thingy.images = await Promise.all(imageNames.map(async name => 
+        await imghasher.memorize(rootfolder,link,name)
+      ));
+
+      // set main image at first index
+      thingy.images.unshift(await imghasher.memorize(rootfolder,link,mainImg));
+
+    }
+    // no longer needed
+    delete thingy.Link;
+    //never needed anyways
+    delete thingy.LinkOrdner;
+  }
+
+  //// //selfdestruction muhhahah
+  //// delete data.rows.hashImages;
+
+  return tthis;
 }
