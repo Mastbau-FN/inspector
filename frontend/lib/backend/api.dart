@@ -149,13 +149,7 @@ class Backend {
             jsonDecode(
               (await post_JSON(_getProjects_r)).body,
             ),
-            (Map<String, dynamic> json) async {
-              var loc = InspectionLocation.fromJson(json);
-              loc?.images = (await Future.wait(loc.imagehashes
-                      .map((hash) async => await _fetchImage(hash))))
-                  .toList();
-              return loc;
-            },
+            _generateImageFetcher(InspectionLocation.fromJson),
             objName: 'inspections',
           );
 
@@ -185,7 +179,7 @@ class Backend {
           ))
               .body,
         ),
-        CheckPoint.fromJson,
+        _generateImageFetcher(CheckPoint.fromJson),
         objName: 'checkpoints',
       );
 
@@ -200,7 +194,7 @@ class Backend {
           ))
               .body,
         ),
-        CheckPointDefect.fromJson,
+        _generateImageFetcher(CheckPointDefect.fromJson),
         objName: 'checkpointdefects',
       );
 }
