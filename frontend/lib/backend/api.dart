@@ -95,7 +95,7 @@ class Backend {
   Future<bool> get isAnyoneLoggedIn async => await _c_user != null;
 
   /// gets the currently logged in [DisplayUser], which is the current [User] but with removed [User.pass] to avoid abuse
-  Future<DisplayUser> get user async => (await _c_user) as DisplayUser;
+  Future<DisplayUser?> get user async => await _c_user;
 
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
@@ -117,7 +117,7 @@ class Backend {
 
   /// removes the credentials from local storage and therefors logs out
   Future logout() async {
-    _user?.unstore();
+    (await _c_user)?.unstore();
     _user = null;
     debugPrint('user logged out');
   }

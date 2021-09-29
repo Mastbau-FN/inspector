@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 
 import 'dropdownModel.dart';
 
+// TODO drag to refresh
+
 // XXX get to new page with hero transition
 
 /// this builds the main layout from all the pages fully automatically

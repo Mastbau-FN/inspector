@@ -1,6 +1,3 @@
-const isInsecure = true &&false; 
-
-
 const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
 const _getCheckPoints_r = '/getCheckPoints';
@@ -38,19 +35,19 @@ app.get('/', (request, response) => {
     response.render('index');
 })
 
+const isInsecure = process.env.isInsecure ?? false;
+
 /** 
  * everything at this path (/api/secure/) is hidden behind an auth-wall currently requiring the correct authentication header (API-Key)
- * can be disabled for testing purposes
  * 
- * very important later though, since otherwise everybody can read and write data 
  * its also very important to only expose this api via https since otherwise the auth data wouldn't be encrypted and anyone could steal the credentials
 */
-if (!isInsecure){
-    // api-key wall
-    app.use('/api/secure/', auth.api_wall);
-    // needs a user to be logged in aka provided via the user param inside the post request 
-    app.use('/api/secure/', auth.login_wall);
-}
+
+// api-key wall
+app.use('/api/secure/', auth.api_wall);
+// needs a user to be logged in aka provided via the user param inside the post request 
+app.use('/api/secure/', auth.login_wall);
+
 
 //log everything
 const logger = require('./misc/logger');
