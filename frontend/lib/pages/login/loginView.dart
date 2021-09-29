@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/classes/user.dart';
 import 'package:mastbau_inspector/fragments/ErrorView.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
@@ -22,43 +21,40 @@ class LoginWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Phoenix(
-      child: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (c) => LoginModel(),
-          ),
-          /*ChangeNotifierProvider(
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (c) => LoginModel(),
+        ),
+        /*ChangeNotifierProvider(
             create: (c) => CategoryModel(),
           ),*/
-        ],
-        child: Consumer<LoginModel>(
-          builder: (context, login, child) {
-            debugPrint("login changed");
-            return FutureBuilder<DisplayUser?>(
-                future: login.user,
-                builder: (context, snapshot) {
-                  return ChangeNotifierProvider(
-                    create: (c) => LocationModel(user: snapshot.data),
-                    child: FutureBuilder(
-                        future: login.isLoggedIn,
-                        builder: (context, AsyncSnapshot<bool> snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.done) {
-                            if (snapshot.hasError)
-                              return ErrorView(snapshot.error);
-                            return snapshot.data ?? false
-                                ? HomeView(
-                                    title: title,
-                                  )
-                                : LoginView(title: title);
-                          }
-                          return LoadingPage();
-                        }),
-                  );
-                });
-          },
-        ),
+      ],
+      child: Consumer<LoginModel>(
+        builder: (context, login, child) {
+          debugPrint("login changed");
+          return FutureBuilder<DisplayUser?>(
+              future: login.user,
+              builder: (context, snapshot) {
+                return ChangeNotifierProvider(
+                  create: (c) => LocationModel(user: snapshot.data),
+                  child: FutureBuilder(
+                      future: login.isLoggedIn,
+                      builder: (context, AsyncSnapshot<bool> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasError)
+                            return ErrorView(snapshot.error);
+                          return snapshot.data ?? false
+                              ? HomeView(
+                                  title: title,
+                                )
+                              : LoginView(title: title);
+                        }
+                        return LoadingPage();
+                      }),
+                );
+              });
+        },
       ),
     );
   }
