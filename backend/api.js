@@ -1,4 +1,5 @@
 const queries = require("./db/queries");
+const imagehandler = require("./images/hash");
 
 const login = (req,res)=>{
     let json_response = {'success':true};
@@ -18,11 +19,17 @@ const getCheckPoints = async (req,res) =>
 const getCheckPointDefects = async (req,res) => 
     res.status(200).json({checkpointdefects: await queries.getCheckPointDefects(req.body.PjNr,req.body.E1,req.body.E2)});
 
+const getFileFromHash = async (req,res) => {
+    res.writeHead(200,{'Content-type':'image/jpg'});
+    res.end(await imagehandler.getFileFromHash(req.body.imghash));
+}
+
 
 module.exports = {
     login,
     getProjects,
     getCategories,
     getCheckPoints,
-    getCheckPointDefects
+    getCheckPointDefects,
+    getFileFromHash,
 }
