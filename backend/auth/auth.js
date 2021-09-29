@@ -5,7 +5,7 @@ const api_wall = (req, res, next) => {
     if (!req.headers.authorization) {
         return res.status(401).json({ error: 'No auth header given' });
     }
-    if (req.headers.authorization!=process.env.api_key) {
+    if (req.headers.authorization!=process.env.API_KEY) {
         return res.status(403).json({ error: 'NOT AUTHORIZED' });
     }
     next();

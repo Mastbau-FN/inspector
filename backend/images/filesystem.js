@@ -4,7 +4,7 @@ const fsp = fs.promises;
 const path = require('path');
 
 
-const root_path = process.env.img_root_path;
+const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally
 
 const _getImageFromPath = async (path) => {
     //TODO get image from network (siehe [#9](https://github.com/Mastbau-FN/inspector/issues/9))

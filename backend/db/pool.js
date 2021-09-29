@@ -6,11 +6,11 @@ const Pool = require('pg').Pool
 let db = [];
 
 db.pool = new Pool({
-  user:  process.env.postgres_user,
-  host: process.env.postgres_host,
-  database: process.env.postgres_database,
-  password: process.env.postgres_password,
-  port: process.env.postgres_port
+  user:  process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DATABASE,
+  password: process.env.POSTGRES_PASSWORD,
+  port: process.env.POSTGRES_PORT
 });
 db.pool.asyncQuery = (querystring,args)=> 
   new Promise(
