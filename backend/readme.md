@@ -18,6 +18,8 @@ fill
 
     API_KEY=AE*%kXy2@WqCxNpm+^zz4V*eM93_B3P7
 
+    CERT_PATH="/path/to/key_and_cert/"
+
     PORT=3000
     ```
 </details>

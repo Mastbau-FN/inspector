@@ -1,4 +1,4 @@
-const isInsecure = true; // TODO : make secure, lol
+const isInsecure = true &&false; 
 
 
 const _getProjects_r = '/getProjects';
@@ -21,7 +21,7 @@ const auth = require('./auth/auth')
 
 
 const app = express()
-const port = process.env.port
+const port = process.env.port || 443
 
 app.use(express.json())
 app.use(
@@ -107,8 +107,9 @@ if(isInsecure){
     console.warn(`App running on port ${port}. THIS IS INSECURE`)//TODO remove http and force https
   })
 }else{
-  const key = fs.readFileSync('./key.pem');
-  const cert = fs.readFileSync('./cert.pem');
+  const cert_path = process.env.cert_path;
+  const key = fs.readFileSync(cert_path+'key.pem');
+  const cert = fs.readFileSync(cert_path+'cert.pem');
   var httpsServer = https.createServer({key: key, cert: cert}, app);
   httpsServer.listen(port, () => {
     console.log(`App running on port ${port}.`)
