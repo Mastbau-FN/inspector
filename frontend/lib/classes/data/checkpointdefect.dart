@@ -1,3 +1,4 @@
+import 'package:flutter/src/widgets/image.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -13,8 +14,6 @@ class CheckPointDefect implements Data {
   String? kurzText;
   @JsonKey(name: 'LangText')
   String? langText;
-  ////Null link;
-  ////Null linkOrdner;
   @JsonKey(name: 'ErDat')
   DateTime? erDate;
   @JsonKey(name: 'EventID')
@@ -28,13 +27,16 @@ class CheckPointDefect implements Data {
   @JsonKey(name: 'E3')
   int index;
 
+  @JsonKey(name: 'images')
+  List<String> imagehashes = []; //should not be used
+  @JsonKey(ignore: true)
+  List<Image?> images = [];
+
   CheckPointDefect(
       {required this.pjNr,
       this.bauleitung,
       this.kurzText,
       this.langText,
-      ////this.link,
-      ////this.linkOrdner,
       this.erDate,
       this.eventID,
       this.ereArt,

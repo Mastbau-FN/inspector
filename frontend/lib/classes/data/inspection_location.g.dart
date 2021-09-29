@@ -16,7 +16,8 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) {
     plz: json['PLZ'] as String?,
     stONr: json['StONr'] as int,
     strasse: json['Straße'] as String?,
-  );
+  )..imagehashes =
+      (json['images'] as List<dynamic>).map((e) => e as String).toList();
 }
 
 Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
@@ -29,4 +30,5 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Straße': instance.strasse,
       'PLZ': instance.plz,
       'Ort': instance.ort,
+      'images': instance.imagehashes,
     };
