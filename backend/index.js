@@ -21,7 +21,7 @@ const auth = require('./auth/auth')
 
 
 const app = express()
-const port = process.env.port || 443
+const port = process.env.PORT || 443
 
 app.use(express.json())
 app.use(
@@ -44,7 +44,7 @@ app.get('/', (request, response) => {
  * very important later though, since otherwise everybody can read and write data 
  * its also very important to only expose this api via https since otherwise the auth data wouldn't be encrypted and anyone could steal the credentials
 */
-if (!process.env.insecure){
+if (!isInsecure){
     // api-key wall
     app.use('/api/secure/', auth.api_wall);
     // needs a user to be logged in aka provided via the user param inside the post request 
@@ -107,7 +107,7 @@ if(isInsecure){
     console.warn(`App running on port ${port}. THIS IS INSECURE`)//TODO remove http and force https
   })
 }else{
-  const cert_path = process.env.cert_path;
+  const cert_path = process.env.CERT_PATH;
   const key = fs.readFileSync(cert_path+'privkey.pem');
   const cert = fs.readFileSync(cert_path+'cert.pem');
   var httpsServer = https.createServer({key: key, cert: cert}, app);
