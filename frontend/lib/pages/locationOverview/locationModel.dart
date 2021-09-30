@@ -23,18 +23,9 @@ class LocationModel extends DropDownModel<InspectionLocation>
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(
-      title: _nextViewTitle,
-      nextBuilder: (c) => CategoriesView(),
-    ),
-    MyListTileData(
-      title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO build image View
-    ),
-    MyListTileData(
-      title: "Infos",
-      nextBuilder: (c) => Text('todo'), //TODO build details View
-    ),
+    MyListTileData(title: _nextViewTitle),
+    MyListTileData(title: "Fotos"),
+    MyListTileData(title: "Infos"), //TODO build details View
   ];
 
   @override
@@ -51,7 +42,7 @@ class LocationModel extends DropDownModel<InspectionLocation>
         builder: (newcontext) => tiledata.title == _nextViewTitle
             ? ChangeNotifierProvider<CategoryModel>(
                 create: (c) => CategoryModel(data),
-                child: tiledata.nextBuilder(newcontext),
+                child: CategoriesView(),
               )
             : tiledata.nextBuilder(newcontext),
       ),
