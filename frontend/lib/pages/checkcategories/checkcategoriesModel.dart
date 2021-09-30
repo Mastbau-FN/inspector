@@ -12,7 +12,7 @@ import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
 import '../imageView.dart';
 
-class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
+class CategoryModel extends DropDownModel<CheckCategory> {
   final Backend _b = Backend();
   final InspectionLocation currentLocation;
 

@@ -11,8 +11,7 @@ import 'package:provider/provider.dart';
 
 import '../imageView.dart';
 
-class LocationModel extends DropDownModel<InspectionLocation>
-    with ChangeNotifier {
+class LocationModel extends DropDownModel<InspectionLocation> {
   final Backend _b = Backend();
   final DisplayUser? user;
 

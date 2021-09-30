@@ -3,6 +3,7 @@ import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownPage.dart';
 import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
+import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
@@ -21,7 +22,7 @@ abstract class Data implements WithImgHashes {
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
-abstract class DropDownModel<DataT extends Data> {
+abstract class DropDownModel<DataT extends Data> with ChangeNotifier {
   /// could be used for the scaffold appbar title
   String get title;
 
@@ -42,6 +43,13 @@ abstract class DropDownModel<DataT extends Data> {
     ));
   }
 }
+
+//TODO alternativ schonmal bissl issue #14:
+Widget nextModel<DDModel extends DropDownModel>(DDModel child) =>
+    ChangeNotifierProvider<DDModel>(
+      create: (c) => child,
+      child: DropDownPage<DDModel>(),
+    );
 
 Type typeOf<T>() => T;
 typedef BuilderT = Widget Function(BuildContext);

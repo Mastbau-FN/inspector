@@ -4,15 +4,12 @@ import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/checkpoint.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/fragments/imageWrap.dart';
 import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
-import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsView.dart';
-import 'package:provider/provider.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
 import '../imageView.dart';
 
-class CheckPointsModel extends DropDownModel<CheckPoint> with ChangeNotifier {
+class CheckPointsModel extends DropDownModel<CheckPoint> {
   final Backend _b = Backend();
   final CheckCategory currentCategory;
 
@@ -43,10 +40,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint> with ChangeNotifier {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return ChangeNotifierProvider<CheckPointDefectsModel>(
-              create: (c) => CheckPointDefectsModel(data),
-              child: CheckPointDefectsView(),
-            );
+            return nextModel(CheckPointDefectsModel(data));
           case 'Fotos':
             return ImageView(
               images: data.images,

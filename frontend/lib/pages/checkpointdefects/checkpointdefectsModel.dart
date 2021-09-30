@@ -6,8 +6,7 @@ import 'package:mastbau_inspector/classes/data/checkpoint.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
-class CheckPointDefectsModel extends DropDownModel<CheckPointDefect>
-    with ChangeNotifier {
+class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   final Backend _b = Backend();
   final CheckPoint currentCheckPoint;
 
