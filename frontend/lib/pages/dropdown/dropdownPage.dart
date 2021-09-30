@@ -19,31 +19,32 @@ import 'dropdownModel.dart';
 /// this will create the page for choosing the next [CheckCategory]
 /// the given model must implement [DropDownModel]!
 class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
-  final DDModel ddmodel;
-  const DropDownPage(this.ddmodel, {Key? key}) : super(key: key);
+  const DropDownPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Scaffold(
-        appBar: AppBar(
-          /*leading: BackButton(
+      child: Consumer<DDModel>(
+        builder: (context, ddmodel, child) => Scaffold(
+          appBar: AppBar(
+            /*leading: BackButton(
               onPressed: Navigator.of(context).pop,
             ),*/
-          title: Text(ddmodel.title),
+            title: Text(ddmodel.title),
+          ),
+          endDrawer: MainDrawer(),
+          body: FutureBuilder<List>(
+              future: Provider.of<DDModel>(context).all,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return ExpandablesListRadio(
+                      children: snapshot.data!
+                          .map((e) => locationDropDown(e, context, ddmodel))
+                          .toList());
+                }
+                return ExpandablesListRadio.fake(3);
+              }),
         ),
-        endDrawer: MainDrawer(),
-        body: FutureBuilder<List>(
-            future: Provider.of<DDModel>(context).all,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return ExpandablesListRadio(
-                    children: snapshot.data!
-                        .map((e) => locationDropDown(e, context, ddmodel))
-                        .toList());
-              }
-              return ExpandablesListRadio.fake(3);
-            }),
       ),
     );
   }

@@ -36,7 +36,11 @@ abstract class DropDownModel<DataT extends Data> {
     BuildContext context,
     DataT data,
     MyListTileData tiledata,
-  );
+  ) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (newcontext) => tiledata.nextBuilder(newcontext),
+    ));
+  }
 }
 
 Type typeOf<T>() => T;

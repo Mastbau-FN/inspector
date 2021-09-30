@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/pages/locationOverview/locationView.dart';
 
 class HomeView extends StatelessWidget {
@@ -10,7 +9,7 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: LocationView(Backend().user),
+      child: LocationView(),
     );
   }
 }
