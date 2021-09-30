@@ -81,18 +81,22 @@ class Backend {
   }
 
   /// post_JSON to our backend as the user
-  Future<http.Response> post_JSON(String route,
+  Future<http.Response?> post_JSON(String route,
       {Map<String, dynamic>? json}) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
     json['user'] = await _c_user;
-    return post(route, headers: headers, body: jsonEncode(json));
+    try {
+      return post(route, headers: headers, body: jsonEncode(json));
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<Image?> _fetchImage(String hash) async {
-    return Image.memory(
-        (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-            .bodyBytes);
+    var bytes = (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
+        ?.bodyBytes;
+    return bytes == null ? null : Image.memory(bytes);
   }
 
   Future<T?> Function(Map<String, dynamic>)
@@ -101,7 +105,6 @@ class Backend {
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);
-      //TODO: wenn ich das entferne, oder images empty ist, wird dieses Data nicht erstellt?! WHAT THE FRCK
       data?.images = await Future.wait(
         List<Future<Image?>>.from(
           // i could use CachedNetworkImage here, and that would be a nice in-between solution, but the idea is that post_json will handle offline availability in the future
@@ -133,7 +136,7 @@ class Backend {
     await connectionGuard();
     _user = user;
     var res = await post_JSON('/login');
-    if (res.statusCode == 200) {
+    if (res != null && res.statusCode == 200) {
       //success
       var resb = jsonDecode(res.body)['user'];
       _user?.fromMap(resb);
@@ -151,59 +154,63 @@ class Backend {
     debugPrint('user logged out');
   }
 
-  /// gets all the [InspectionLocation]s for the currently logged in [user]
-  Future<List<InspectionLocation>>
-      getAllInspectionLocationsForCurrentUser() async => await getListFromJson(
-            jsonDecode(
-              (await post_JSON(_getProjects_r)).body,
-            ),
-            _generateImageFetcher(InspectionLocation.fromJson),
-            objName: 'inspections',
-          );
-
-  /// gets all the [CheckCategory]s for the given [InspectionLocation]
-  Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
-          InspectionLocation location) async =>
+  /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
+  Future<List<D>> _getAllForNextLevel<D extends Data>({
+    required String route,
+    required String jsonResponseID,
+    Map<String, dynamic> Function()?
+        toJson, //might be more reasonable to directly pass json instead of the function..
+    required D? Function(Map<String, dynamic>) fromJson,
+  }) async =>
       await getListFromJson(
         jsonDecode(
           (await post_JSON(
-            _getCategories_r,
-            json: location.toSmallJson(),
-          ))
-              .body,
+                _getCategories_r,
+                json: toJson?.call(),
+              ))
+                  ?.body ??
+              '',
         ),
-        _generateImageFetcher(CheckCategory.fromJson),
-        objName: 'categories',
+        _generateImageFetcher(fromJson),
+        objName: jsonResponseID,
+      );
+
+  /// gets all the [InspectionLocation]s for the currently logged in [user]
+  Future<List<InspectionLocation>> getAllInspectionLocationsForCurrentUser() =>
+      _getAllForNextLevel(
+        route: _getProjects_r,
+        jsonResponseID: 'inspections',
+        fromJson: InspectionLocation.fromJson,
+      );
+
+  /// gets all the [CheckCategory]s for the given [InspectionLocation]
+  Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
+          InspectionLocation location) =>
+      _getAllForNextLevel(
+        route: _getCategories_r,
+        jsonResponseID: 'categories',
+        toJson: location.toSmallJson,
+        fromJson: CheckCategory.fromJson,
       );
 
   /// gets all the [CheckPoint]s corresponding to a given [CheckCategory]
   Future<List<CheckPoint>> getAllCheckPointsForCategory(
-          CheckCategory category) async =>
-      await getListFromJson(
-        jsonDecode(
-          (await post_JSON(
-            _getCheckPoints_r,
-            json: category.toSmallJson(),
-          ))
-              .body,
-        ),
-        _generateImageFetcher(CheckPoint.fromJson),
-        objName: 'checkpoints',
+          CheckCategory category) =>
+      _getAllForNextLevel(
+        route: _getCheckPoints_r,
+        jsonResponseID: 'checkpoints',
+        toJson: category.toSmallJson,
+        fromJson: CheckPoint.fromJson,
       );
 
   /// gets all the [CheckPointDefect]s for the given [CheckPoint]
   Future<List<CheckPointDefect>> getAllDefectsForCheckpoint(
-          CheckPoint checkpoint) async =>
-      await getListFromJson(
-        jsonDecode(
-          (await post_JSON(
-            _getCheckPointDefects_r,
-            json: checkpoint.toSmallJson(),
-          ))
-              .body,
-        ),
-        _generateImageFetcher(CheckPointDefect.fromJson),
-        objName: 'checkpointdefects',
+          CheckPoint checkpoint) =>
+      _getAllForNextLevel(
+        route: _getCheckPointDefects_r,
+        jsonResponseID: 'checkpointdefects',
+        toJson: checkpoint.toSmallJson,
+        fromJson: CheckPointDefect.fromJson,
       );
 }
 

@@ -13,16 +13,19 @@ class NoConnectionToBackendException implements Exception {
 }
 
 class ResponseException implements Exception {
-  http.Response res;
+  http.Response? res;
   @override
   String toString() {
     String error = '';
-    try {
-      error = jsonDecode(res.body)['error'];
-    } catch (e) {
-      'the body had no error field';
+    if (res != null) {
+      try {
+        error = jsonDecode(res!.body)['error'];
+      } catch (e) {
+        'the body had no error field';
+      }
+      return '${res?.statusCode}: ${error}';
     }
-    return '${res.statusCode}: ${error}';
+    return 'no response';
   }
 
   ResponseException(this.res);

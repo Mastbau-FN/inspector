@@ -56,7 +56,9 @@ class InspectionLocation implements Data {
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
       return _$InspectionLocationFromJson(json);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
