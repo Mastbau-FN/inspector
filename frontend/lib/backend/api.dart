@@ -158,18 +158,12 @@ class Backend {
   Future<List<D>> _getAllForNextLevel<D extends Data>({
     required String route,
     required String jsonResponseID,
-    Map<String, dynamic> Function()?
-        toJson, //might be more reasonable to directly pass json instead of the function..
+    Map<String, dynamic>? json,
     required D? Function(Map<String, dynamic>) fromJson,
   }) async =>
       await getListFromJson(
         jsonDecode(
-          (await post_JSON(
-                _getCategories_r,
-                json: toJson?.call(),
-              ))
-                  ?.body ??
-              '',
+          (await post_JSON(_getCategories_r, json: json))?.body ?? '',
         ),
         _generateImageFetcher(fromJson),
         objName: jsonResponseID,
@@ -189,7 +183,7 @@ class Backend {
       _getAllForNextLevel(
         route: _getCategories_r,
         jsonResponseID: 'categories',
-        toJson: location.toSmallJson,
+        json: location.toSmallJson(),
         fromJson: CheckCategory.fromJson,
       );
 
@@ -199,7 +193,7 @@ class Backend {
       _getAllForNextLevel(
         route: _getCheckPoints_r,
         jsonResponseID: 'checkpoints',
-        toJson: category.toSmallJson,
+        json: category.toSmallJson(),
         fromJson: CheckPoint.fromJson,
       );
 
@@ -209,7 +203,7 @@ class Backend {
       _getAllForNextLevel(
         route: _getCheckPointDefects_r,
         jsonResponseID: 'checkpointdefects',
-        toJson: checkpoint.toSmallJson,
+        json: checkpoint.toSmallJson(),
         fromJson: CheckPointDefect.fromJson,
       );
 }
