@@ -101,7 +101,8 @@ class Backend {
 
   Future<T?> Function(Map<String, dynamic>)
       _generateImageFetcher<T extends Data>(
-          T? Function(Map<String, dynamic>) jsoner) {
+    T? Function(Map<String, dynamic>) jsoner,
+  ) {
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);
@@ -117,6 +118,21 @@ class Backend {
       return data;
     };
   }
+
+  /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
+  Future<List<D>> _getAllForNextLevel<D extends Data>({
+    required String route,
+    required String jsonResponseID,
+    Map<String, dynamic>? json,
+    required D? Function(Map<String, dynamic>) fromJson,
+  }) async =>
+      await getListFromJson(
+        jsonDecode(
+          (await post_JSON(route, json: json))?.body ?? '',
+        ),
+        _generateImageFetcher(fromJson),
+        objName: jsonResponseID,
+      );
 
   // MARK: API
 
@@ -153,21 +169,6 @@ class Backend {
     _user = null;
     debugPrint('user logged out');
   }
-
-  /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
-  Future<List<D>> _getAllForNextLevel<D extends Data>({
-    required String route,
-    required String jsonResponseID,
-    Map<String, dynamic>? json,
-    required D? Function(Map<String, dynamic>) fromJson,
-  }) async =>
-      await getListFromJson(
-        jsonDecode(
-          (await post_JSON(_getCategories_r, json: json))?.body ?? '',
-        ),
-        _generateImageFetcher(fromJson),
-        objName: jsonResponseID,
-      );
 
   /// gets all the [InspectionLocation]s for the currently logged in [user]
   Future<List<InspectionLocation>> getAllInspectionLocationsForCurrentUser() =>
