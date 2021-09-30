@@ -20,14 +20,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect>
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(
-      title: "Details",
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
-    MyListTileData(
-      title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
+    MyListTileData(title: "Details"),
+    MyListTileData(title: "Fotos"),
   ];
 
   @override
@@ -41,7 +35,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect>
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (newcontext) => tiledata.nextBuilder(newcontext),
+        builder: (newcontext) => Text("TODO"),
       ),
     );
   }

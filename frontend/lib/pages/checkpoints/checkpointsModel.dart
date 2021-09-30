@@ -4,9 +4,13 @@ import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/checkpoint.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
+import 'package:mastbau_inspector/fragments/imageWrap.dart';
 import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
+import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsView.dart';
 import 'package:provider/provider.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+
+import '../imageView.dart';
 
 class CheckPointsModel extends DropDownModel<CheckPoint> with ChangeNotifier {
   final Backend _b = Backend();
@@ -21,18 +25,9 @@ class CheckPointsModel extends DropDownModel<CheckPoint> with ChangeNotifier {
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(
-      title: _nextViewTitle,
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
-    MyListTileData(
-      title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
-    MyListTileData(
-      title: "Kommentar",
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
+    MyListTileData(title: _nextViewTitle),
+    MyListTileData(title: "Fotos"),
+    MyListTileData(title: "Kommentar"),
   ];
 
   @override
@@ -45,15 +40,22 @@ class CheckPointsModel extends DropDownModel<CheckPoint> with ChangeNotifier {
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (newcontext) => tiledata.title == _nextViewTitle
-            ? ChangeNotifierProvider<CheckPointDefectsModel>(
-                create: (c) => CheckPointDefectsModel(
-                    data), //TODO swap with model for next view
-                child: tiledata.nextBuilder(newcontext),
-              )
-            : tiledata.nextBuilder(newcontext),
-      ),
+      MaterialPageRoute(builder: (newcontext) {
+        switch (tiledata.title) {
+          case _nextViewTitle:
+            return ChangeNotifierProvider<CheckPointDefectsModel>(
+              create: (c) => CheckPointDefectsModel(data),
+              child: CheckPointDefectsView(),
+            );
+          case 'Fotos':
+            return ImageView(
+              images: data.images,
+            );
+
+          default:
+            return Text("TODO");
+        }
+      }),
     );
   }
 }

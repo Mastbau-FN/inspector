@@ -38,7 +38,7 @@ abstract class DropDownModel<DataT extends Data> {
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (newcontext) => tiledata.nextBuilder(newcontext),
+      builder: (newcontext) => Text("${tiledata.title} not yet implemeted"),
     ));
   }
 }

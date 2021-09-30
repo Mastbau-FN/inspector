@@ -9,6 +9,8 @@ import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesView.dart
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:provider/provider.dart';
 
+import '../imageView.dart';
+
 class LocationModel extends DropDownModel<InspectionLocation>
     with ChangeNotifier {
   final Backend _b = Backend();
@@ -22,19 +24,10 @@ class LocationModel extends DropDownModel<InspectionLocation>
       _b.getAllInspectionLocationsForCurrentUser();
 
   @override
-  List<MyListTileData> actions = [
-    MyListTileData(
-      title: _nextViewTitle,
-      nextBuilder: (c) => CategoriesView(),
-    ),
-    MyListTileData(
-      title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO build image View
-    ),
-    MyListTileData(
-      title: "Infos",
-      nextBuilder: (c) => Text('todo'), //TODO build details View
-    ),
+  final List<MyListTileData> actions = [
+    MyListTileData(title: _nextViewTitle),
+    MyListTileData(title: "Fotos"),
+    MyListTileData(title: "Infos"),
   ];
 
   @override
@@ -47,14 +40,22 @@ class LocationModel extends DropDownModel<InspectionLocation>
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (newcontext) => tiledata.title == _nextViewTitle
-            ? ChangeNotifierProvider<CategoryModel>(
-                create: (c) => CategoryModel(data),
-                child: tiledata.nextBuilder(newcontext),
-              )
-            : tiledata.nextBuilder(newcontext),
-      ),
+      MaterialPageRoute(builder: (newcontext) {
+        switch (tiledata.title) {
+          case _nextViewTitle:
+            return ChangeNotifierProvider<CategoryModel>(
+              create: (c) => CategoryModel(data),
+              child: CategoriesView(),
+            );
+          case 'Fotos':
+            return ImageView(
+              images: data.images,
+            );
+
+          default:
+            return Text("TODO");
+        }
+      }),
     );
   }
 }

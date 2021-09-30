@@ -6,8 +6,6 @@ import 'package:mastbau_inspector/widgets/MyListTile1.dart';
 class MyListTileData {
   final String title;
   final IconData? icon;
-  final BuilderT nextBuilder;
 
-  const MyListTileData(
-      {required this.title, this.icon, required this.nextBuilder});
+  const MyListTileData({required this.title, this.icon});
 }
