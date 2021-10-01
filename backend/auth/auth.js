@@ -20,7 +20,7 @@ const login_wall = async (req, res, next) => {
         req.user = user;
         next();
     }catch(e){
-        return res.status(403).json({ error: 'wrong credentials' });
+        return res.status(403).json({ error: e.toString() }); //TODO: re-replace e.toString with 'wrong credentials' to make attacks harder
     }
 }
 
