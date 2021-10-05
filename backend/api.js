@@ -21,8 +21,9 @@ const getCheckPointDefects = async (req,res) =>
 
 const getFileFromHash = async (req,res) => {
     try{
+        let img = await imagehandler.getFileFromHash(req.body.imghash)
         res.writeHead(200,{'Content-type':'image/jpg'});
-        res.end(await imagehandler.getFileFromHash(req.body.imghash));
+        res.end(img);
     }catch(e){
         res.status(404).json({reason: 'image no longer available'})
     }

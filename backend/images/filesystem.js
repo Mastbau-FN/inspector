@@ -17,7 +17,7 @@ const _formatpath = (path) => {
 
 const _getImageFromPath = async (path) => {
     path = _formatpath(path);
-    ////console.log(path)
+    ////console.log({path});
     //TODO get image from network (siehe [#9](https://github.com/Mastbau-FN/inspector/issues/9))
     return await fsp.readFile(path);
 }
