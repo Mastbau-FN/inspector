@@ -94,9 +94,10 @@ class Backend {
   }
 
   Future<Image?> _fetchImage(String hash) async {
-    var bytes = (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-        ?.bodyBytes;
-    return bytes == null ? null : Image.memory(bytes);
+    http.Response? res =
+        await post_JSON(_getImageFromHash_r, json: {'imghash': hash});
+    if (res == null || res.statusCode != 200) return null;
+    return Image.memory(res.bodyBytes);
   }
 
   Future<T?> Function(Map<String, dynamic>)
