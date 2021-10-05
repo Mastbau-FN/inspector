@@ -112,9 +112,13 @@ const hashImages = async (tthis) => {
 
     if (thingy.Link){
 
-      let rootfolder = path.dirname((await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].Link ?? '');
-      let link = path.dirname(thingy.Link); link = rootfolder == link ? '' : link;
-      let mainImg = path.basename(thingy.Link);
+      let convertpath = winpath => winpath.split(path.win32.sep).join(path.posix.sep);
+
+      let rootfolder = path.dirname(convertpath((await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].Link ?? ''));
+      let link = path.dirname(convertpath(thingy.Link)); link = rootfolder == link ? '' : link;
+      let mainImg = path.basename(convertpath(thingy.Link));
+
+      ////console.log({rootfolder,link,mainImg});
 
       // get all *other* image names
       let imageNames = (await imgfiler.getAllImagenamesFrom(rootfolder,link))

@@ -15,6 +15,7 @@ const _formatpath = (path) => {
 
 
 const _getImageFromPath = async (path) => {
+    path = _formatpath(path);
     ////console.log(path)
     //TODO get image from network (siehe [#9](https://github.com/Mastbau-FN/inspector/issues/9))
     return await fsp.readFile(path);
@@ -22,11 +23,12 @@ const _getImageFromPath = async (path) => {
 
 const getImageFrom = async (rootpath,link,filename)=>{
     //TODO how to merge the specific paths and where do they come from?
-    return await _getImageFromPath(pathm.join(_formatpath(rootpath),link,filename));
+    return await _getImageFromPath(pathm.join(rootpath,link,filename));
 }
 
 
 const _getAllImagenamesFromPath = async (path) => {
+    path = _formatpath(path);
     //TODO get image from network (siehe [#9])
     const dirents = await fsp.readdir(path, { withFileTypes: true });
     return dirents
@@ -37,7 +39,7 @@ const _getAllImagenamesFromPath = async (path) => {
 const getAllImagenamesFrom = async (rootpath, link) => {
     //TODO how to merge the specific paths and where do they come from?
     ////console.log(rootpath);console.log(link);
-    try {return await _getAllImagenamesFromPath(pathm.join(_formatpath(rootpath),link))}catch(e){return []}
+    try {return await _getAllImagenamesFromPath(pathm.join(rootpath,link))}catch(e){return []}
 }
 
 module.exports = {
