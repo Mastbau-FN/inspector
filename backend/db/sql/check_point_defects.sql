@@ -27,3 +27,4 @@ AND ("Events"."E1" = $3) -- so hätte ich das verstanden, aus der $3-ten Prüfka
 ORDER BY "Events"."E1",
 "Events"."E2",
 "Events"."E3"
+;
