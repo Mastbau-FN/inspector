@@ -9,8 +9,9 @@ const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting net
 ///removes the drive and replaces it with our given root path
 const _formatpath = (path) => {
     const parts = path.split(pathm.sep);
-    parts.shift();
-    pathm.join(root_path,...parts);
+    const drive = parts.shift()[0];
+    path = pathm.join(root_path, drive ,...parts);
+    return path;
 };
 
 
@@ -38,8 +39,8 @@ const _getAllImagenamesFromPath = async (path) => {
 
 const getAllImagenamesFrom = async (rootpath, link) => {
     //TODO how to merge the specific paths and where do they come from?
-    ////console.log(rootpath);console.log(link);
-    try {return await _getAllImagenamesFromPath(pathm.join(rootpath,link))}catch(e){return []}
+    ////console.log({rootpath,link});
+    try {return await _getAllImagenamesFromPath(pathm.join(rootpath,link))}catch(e){console.warn("failed to get image names: ",e);return []}
 }
 
 module.exports = {
