@@ -1,5 +1,7 @@
 // TODO offline storage etc, error handling
 
+// BUG: FormatException
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

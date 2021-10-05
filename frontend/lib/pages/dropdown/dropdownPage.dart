@@ -56,6 +56,7 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
             ? data.images![0]
             : null,
         title: data.title,
+        extra: data.extra,
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(
                   text: actionTileData.title,

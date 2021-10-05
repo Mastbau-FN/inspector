@@ -12,51 +12,52 @@ class ExpandableCard2 extends ExpandablesRadio {
   final Image? previewImg;
   final Color? color;
   final String title;
+  final Widget? extra;
   final List<Widget> children;
   final Key key;
-  ExpandableCard2(
-      {required this.title,
-      this.previewImg,
-      this.children = const [],
-      this.color,
-      Key? key})
-      : this.key = key ?? UniqueKey();
+  ExpandableCard2({
+    required this.title,
+    this.extra,
+    this.previewImg,
+    this.children = const [],
+    this.color,
+    Key? key,
+  }) : this.key = key ?? UniqueKey();
 
   Color _color(isExpanded, context) => !isExpanded
       ? (Theme.of(context).iconTheme.color ?? Theme.of(context).disabledColor)
-      : Theme.of(context).accentColor;
+      : Theme.of(context).colorScheme.secondary;
 
   @override
-  ExpansionPanelRadio make(BuildContext context) {
-    return ExpansionPanelRadio(
-        backgroundColor: color,
-        headerBuilder: (context, isExpanded) => ListTile(
-              leading: Padding(
-                padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
-                child: ClipOval(
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: previewImg ??
-                        Icon(
-                          Icons.construction,
-                          color: _color(isExpanded, context),
-                        ),
-                  ),
+  ExpansionPanelRadio make(BuildContext context) => ExpansionPanelRadio(
+      backgroundColor: color,
+      headerBuilder: (context, isExpanded) => ListTile(
+            leading: Padding(
+              padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
+              child: ClipOval(
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: previewImg ??
+                      Icon(
+                        Icons.construction,
+                        color: _color(isExpanded, context),
+                      ),
                 ),
               ),
-              title: Text(
-                title,
-                style: isExpanded
-                    ? Theme.of(context).textTheme.headline5
-                    : Theme.of(context).textTheme.bodyText1,
-              ),
             ),
-        body: Column(
-          children: [...children, SizedBox(height: 10)],
-        ),
-        canTapOnHeader: true,
-        value: key);
-  }
+            trailing: extra,
+            title: Text(
+              title,
+              style: isExpanded
+                  ? Theme.of(context).textTheme.headline5
+                  : Theme.of(context).textTheme.bodyText1,
+            ),
+          ),
+      body: Column(
+        children: [...children, SizedBox(height: 10)],
+      ),
+      canTapOnHeader: true,
+      value: key);
 }
 
 class ExpandablesListRadio extends StatelessWidget {

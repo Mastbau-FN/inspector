@@ -1,3 +1,6 @@
+import 'dart:ffi';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -5,7 +8,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'checkpointdefect.g.dart';
 
 @JsonSerializable()
-class CheckPointDefect implements Data {
+class CheckPointDefect extends Data {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
@@ -49,6 +52,32 @@ class CheckPointDefect implements Data {
       kurzText ??
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
+
+  @override
+  Widget? get extra {
+    switch (ereArt) {
+      case null:
+        return null;
+      case 5201:
+        return Chip(
+          label: Text("leicht"),
+          backgroundColor: Colors.green,
+        );
+      case 5202:
+        return Chip(
+          label: Text("mittel"),
+          backgroundColor: Colors.yellow,
+        );
+      case 5203:
+        return Chip(
+          label: Text("schwer"),
+          backgroundColor: Colors.red,
+        );
+
+      default:
+        return null;
+    }
+  }
 
   static CheckPointDefect? fromJson(Map<String, dynamic> json) {
     try {
