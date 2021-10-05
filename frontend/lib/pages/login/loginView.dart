@@ -75,8 +75,17 @@ class LoginView extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-            child: LoginField(
-          padding: EdgeInsets.all(10),
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image(
+              image: AssetImage('lib/assets/MBG.webp'),
+            ),
+            SizedBox(height: 20),
+            LoginField(
+              padding: EdgeInsets.all(10),
+            ),
+          ],
         )),
       ),
     );

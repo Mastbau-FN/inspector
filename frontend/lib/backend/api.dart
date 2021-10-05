@@ -1,4 +1,4 @@
-// TODO offline storage etc
+// TODO offline storage etc, error handling
 
 import 'dart:async';
 import 'dart:convert';
