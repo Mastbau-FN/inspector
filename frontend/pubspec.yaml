@@ -51,6 +51,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
 
   # for unit test mocking (see https://flutter.dev/docs/cookbook/testing/unit/mocking)
   mockito: ^5.0.0
