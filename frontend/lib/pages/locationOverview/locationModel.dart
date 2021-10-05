@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/backend/api.dart';
+import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
 import 'package:mastbau_inspector/classes/user.dart';
@@ -42,10 +43,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return ChangeNotifierProvider<CategoryModel>(
-              create: (c) => CategoryModel(data),
-              child: CategoriesView(),
-            );
+            return nextModel(CategoryModel(data));
           case 'Fotos':
             return ImageView(
               images: data.images,

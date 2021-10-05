@@ -10,8 +10,6 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   final Backend _b = Backend();
   final CheckPoint currentCheckPoint;
 
-  static const _nextViewTitle = "Prüfpunkte";
-
   CheckPointDefectsModel(this.currentCheckPoint);
 
   Future<List<CheckPointDefect>> get all async =>

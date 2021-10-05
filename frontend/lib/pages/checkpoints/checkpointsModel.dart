@@ -13,7 +13,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
   final Backend _b = Backend();
   final CheckCategory currentCategory;
 
-  static const _nextViewTitle = "Prüfpunkte";
+  static const _nextViewTitle = "Defekte";
 
   CheckPointsModel(this.currentCategory);
 
