@@ -7,7 +7,7 @@ import 'package:mastbau_inspector/widgets/error.dart';
 
 Future main() async {
   await dotenv.load(fileName: ".env");
-  runApp(MyApp());
+  runApp(GlobalProviders(child: MyApp()));
 }
 
 /// how the App is called (shown in AppBar or Tab etc.)
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: mbgpalette0,
       ),
-      home: kIsWeb ? WebWrap() : LoginWrapper(appTitle),
+      home: kIsWeb ? WebWrap() : LoginWrapper(title: appTitle),
     );
   }
 }

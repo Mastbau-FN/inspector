@@ -1,10 +1,15 @@
 const fs = require('fs');
 const fsp = fs.promises;
 
-const path = require('path');
+const pathm = require('path');
 
 
 const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally
+
+const _formatpath = (path) => {
+    pathm.
+};
+
 
 const _getImageFromPath = async (path) => {
     ////console.log(path)
@@ -14,7 +19,7 @@ const _getImageFromPath = async (path) => {
 
 const getImageFrom = async (rootpath,link,filename)=>{
     //TODO how to merge the specific paths and where do they come from?
-    return await _getImageFromPath(path.join(rootpath,link,filename));
+    return await _getImageFromPath(pathm.join(rootpath,link,filename));
 }
 
 
@@ -29,7 +34,7 @@ const _getAllImagenamesFromPath = async (path) => {
 const getAllImagenamesFrom = async (rootpath, link) => {
     //TODO how to merge the specific paths and where do they come from?
     ////console.log(rootpath);console.log(link);
-    try {return await _getAllImagenamesFromPath(path.join(rootpath,link))}catch(e){return []}
+    try {return await _getAllImagenamesFromPath(pathm.join(rootpath,link))}catch(e){return []}
 }
 
 module.exports = {
