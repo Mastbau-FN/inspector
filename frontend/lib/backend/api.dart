@@ -19,10 +19,10 @@ import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
-const _getProjects_r = '/getProjects';
-const _getCategories_r = '/getCategories';
-const _getCheckPoints_r = '/getCheckPoints';
-const _getCheckPointDefects_r = '/getCheckPointDefects';
+const _getProjects_r = '/projects/get';
+const _getCategories_r = '/categories/get';
+const _getCheckPoints_r = '/checkPoints/get';
+const _getCheckPointDefects_r = '/checkPointDefects/get';
 
 const _getImageFromHash_r = '/image/get';
 

@@ -1,9 +1,14 @@
-const _getProjects_r = "/getProjects";
-const _getCategories_r = "/getCategories";
-const _getCheckPoints_r = "/getCheckPoints";
-const _getCheckPointDefects_r = "/getCheckPointDefects";
+const _getProjects_r = "/projects/get";
+const _getCategories_r = "/categories/get";
+const _getCheckPoints_r = "/checkPoints/get";
+const _getCheckPointDefects_r = "/checkPointDefects/get";
+
 const _getImageFromHash_r = "/image/get";
 const _uploadImage_r = "/image/set";
+
+const _addCategory_r = "/categories/set";
+const _addCheckPoint_r = "/checkPoints/set";
+const _addCheckPointDefect_r = "/checkPointDefects/set";
 
 const fs = require("fs");
 
@@ -60,8 +65,12 @@ app.post("/api/secure" + _getProjects_r, api.getProjects);
 app.post("/api/secure" + _getCategories_r, api.getCategories);
 app.post("/api/secure" + _getCheckPoints_r, api.getCheckPoints);
 app.post("/api/secure" + _getCheckPointDefects_r, api.getCheckPointDefects);
-app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 
+app.post("/api/secure" + _addCategory_r, api.addCategory);
+app.post("/api/secure" + _addCheckPoint_r, api.addCheckPoint);
+app.post("/api/secure" + _addCheckPointDefect_r, api.addCheckPointDefect);
+
+app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 app.post(
   "/api/secure" + _uploadImage_r,
   upload.single("img_up"),

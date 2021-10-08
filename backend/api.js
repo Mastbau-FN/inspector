@@ -1,6 +1,9 @@
 const queries = require("./db/queries");
 const imagehandler = require("./images/hash");
 
+//TODO: errorhandling
+//TODO: docstrings
+
 const login = (req, res) => {
   let json_response = { success: true };
   json_response.user = req.user;
@@ -8,44 +11,60 @@ const login = (req, res) => {
 };
 
 const getProjects = async (req, res) =>
-  res
-    .status(200)
-    .json({
-      inspections: await (
-        await queries.getInspectionsForUser(req.user)
-      ).hashImages(),
-    });
+  res.status(200).json({
+    inspections: await (
+      await queries.getInspectionsForUser(req.user)
+    ).hashImages(),
+  });
 
 const getCategories = async (req, res) =>
-  res
-    .status(200)
-    .json({
-      categories: await (
-        await queries.getCheckCategoriesForPjNR(req.body.PjNr)
-      ).hashImages(),
-    });
+  res.status(200).json({
+    categories: await (
+      await queries.getCheckCategoriesForPjNR(req.body.PjNr)
+    ).hashImages(),
+  });
 
 const getCheckPoints = async (req, res) =>
-  res
-    .status(200)
-    .json({
-      checkpoints: await (
-        await queries.getCheckPoints(req.body.PjNr, req.body.E1)
-      ).hashImages(),
-    });
+  res.status(200).json({
+    checkpoints: await (
+      await queries.getCheckPoints(req.body.PjNr, req.body.E1)
+    ).hashImages(),
+  });
 
 const getCheckPointDefects = async (req, res) =>
-  res
-    .status(200)
-    .json({
-      checkpointdefects: await (
-        await queries.getCheckPointDefects(
-          req.body.PjNr,
-          req.body.E1,
-          req.body.E2
-        )
-      ).hashImages(),
-    });
+  res.status(200).json({
+    checkpointdefects: await (
+      await queries.getCheckPointDefects(
+        req.body.PjNr,
+        req.body.E1,
+        req.body.E2
+      )
+    ).hashImages(),
+  });
+
+const addCategory = async (req, res) =>
+  res.status(200).json({
+    E1: await queries.addCheckCategory(req.body.PjNr, req.body.category),
+  });
+
+const addCheckPoint = async (req, res) =>
+  res.status(200).json({
+    E2: await queries.addCheckCategory(
+      req.body.PjNr,
+      req.body.E1,
+      req.body.checkpoint
+    ),
+  });
+
+const addCheckPointDefect = async (req, res) =>
+  res.status(200).json({
+    E3: await queries.addCheckCategory(
+      req.body.PjNr,
+      req.body.E1,
+      req.body.E2,
+      req.body.defect
+    ),
+  });
 
 const getFileFromHash = async (req, res) => {
   try {
@@ -66,11 +85,17 @@ const fileUpload = async (req, res) => {
 };
 
 module.exports = {
-  fileUpload,
   login,
+
   getProjects,
   getCategories,
   getCheckPoints,
   getCheckPointDefects,
+
   getFileFromHash,
+  fileUpload,
+
+  addCategory,
+  addCheckPoint,
+  addCheckPointDefect,
 };
