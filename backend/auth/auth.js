@@ -28,3 +28,4 @@ module.exports = {
   api_wall,
   login_wall,
 };
+
