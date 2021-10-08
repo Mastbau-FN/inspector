@@ -96,12 +96,47 @@ const getValidUser = async (user) => {
 
 
 
+
+
+ /**
+ * 
+ * @param {Number} pjNr 
+ * @param category the new category that shall be added (name, description, link, linkOrdner)
+ * @returns a Promise resolving to the new ID (E1)
+ */
+  const addCheckCategory = (pjNr,category) => queryFileWithParams('set/check_categories',[pjNr, ...category.values()]);
+
+ /**
+ * 
+ * @param {Number} pjNr 
+ * @param {Number} category_index 
+ * @param check_point the new check_point that shall be added (name, description, link, linkOrdner)
+ * @returns a Promise resolving to the new ID (E2)
+ */
+  const addCheckPoint = (pjNr,category_index,check_point) => queryFileWithParams('set/check_points',[pjNr,category_index, ...check_point.values()]);
+
+ /**
+ * 
+ * @param {Number} pjNr 
+ * @param {Number} category_index 
+ * @param {Number} check_point_index 
+ * @param check_point_defect the new defect that shall be added (name, description, link, linkOrdner)
+ * @returns a Promise resolving to the new ID (E3)
+ */
+  const addCheckPointDefect = (pjNr,category_index,check_point_index,check_point_defect) => queryFileWithParams('set/check_point_defects',[pjNr,check_point_index,category_index, ...check_point_defect.values()]);
+
+
+
+
 module.exports = {
   getValidUser,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,
   getCheckPoints,
   getCheckPointDefects,
+  addCheckCategory,
+  addCheckPoint,
+  addCheckPointDefect
 }
 
 
