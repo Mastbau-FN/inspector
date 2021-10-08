@@ -133,7 +133,33 @@ const getLink = async (data) => {
   let convertpath = winpath => winpath.split(path.win32.sep).join(path.posix.sep);
 
   let rootfolder = await getRootFolder(data.PjNr);
-  let _link = data.Link ?? '' /* TODO: query link for e1..e3 */;
+  
+  let _link = data.Link ?? 
+    await pool.asyncQuery(
+      ```
+        SELECT 
+          "Events"."Link"
+        FROM 
+          "MGAUFTR" INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
+
+        WHERE (
+          ("MGAUFTR"."PjNr" = $1) -- projektnummer
+          AND ("Events"."Link" IS NOT NULL) 
+      ``` 
+      + data.E1 != null ? 'AND ("Events"."E1" = '+ data.E1 + ')' : ''
+      + data.E2 != null ? 'AND ("Events"."E2" = '+ data.E2 + ')' : ''
+      + data.E3 != null ? 'AND ("Events"."E3" = '+ data.E3 + ')' : ''
+      +
+      ```
+        )
+
+        ORDER BY "Events"."EREArt" DESC, "Events"."E1","Events"."E2","Events"."E3" ASC
+        ;
+    
+      ```,
+      [data.PjNr]
+    )
+  ;
 
   let link = path.dirname(convertpath(_link)); link = rootfolder == link ? '' : link;
   let mainImg = path.basename(convertpath(_link));
