@@ -7,7 +7,7 @@ part 'inspection_location.g.dart';
 /// stores all the data needed for a specific location in a type-safe way
 
 @JsonSerializable()
-class InspectionLocation implements Data {
+class InspectionLocation extends Data {
   @JsonKey(name: 'PjNr')
   final int pjNr;
   @JsonKey(name: 'PjName')
@@ -24,7 +24,11 @@ class InspectionLocation implements Data {
   final String? plz;
   @JsonKey(name: 'Ort')
   final String? ort;
-  //// final Image? defaultpicture; //is a link (Link varchar + LinkOrdner varchar) first needs to be resolved by api.dart
+
+  @JsonKey(name: 'images')
+  List<String>? imagehashes; //should not be used
+  @JsonKey(ignore: true)
+  List<Image?>? images;
 
   InspectionLocation(
       {this.bauleitung,
@@ -52,7 +56,9 @@ class InspectionLocation implements Data {
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
       return _$InspectionLocationFromJson(json);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);

@@ -1,10 +1,14 @@
+import 'dart:ffi';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/image.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpointdefect.g.dart';
 
 @JsonSerializable()
-class CheckPointDefect implements Data {
+class CheckPointDefect extends Data {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
@@ -13,8 +17,6 @@ class CheckPointDefect implements Data {
   String? kurzText;
   @JsonKey(name: 'LangText')
   String? langText;
-  ////Null link;
-  ////Null linkOrdner;
   @JsonKey(name: 'ErDat')
   DateTime? erDate;
   @JsonKey(name: 'EventID')
@@ -28,13 +30,16 @@ class CheckPointDefect implements Data {
   @JsonKey(name: 'E3')
   int index;
 
+  @JsonKey(name: 'images')
+  List<String>? imagehashes; //should not be used
+  @JsonKey(ignore: true)
+  List<Image?>? images;
+
   CheckPointDefect(
       {required this.pjNr,
       this.bauleitung,
       this.kurzText,
       this.langText,
-      ////this.link,
-      ////this.linkOrdner,
       this.erDate,
       this.eventID,
       this.ereArt,
@@ -47,6 +52,32 @@ class CheckPointDefect implements Data {
       kurzText ??
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
+
+  @override
+  Widget? get extra {
+    switch (ereArt) {
+      case null:
+        return null;
+      case 5201:
+        return Chip(
+          label: Text("leicht"),
+          backgroundColor: Colors.green,
+        );
+      case 5202:
+        return Chip(
+          label: Text("mittel"),
+          backgroundColor: Colors.yellow,
+        );
+      case 5203:
+        return Chip(
+          label: Text("schwer"),
+          backgroundColor: Colors.red,
+        );
+
+      default:
+        return null;
+    }
+  }
 
   static CheckPointDefect? fromJson(Map<String, dynamic> json) {
     try {

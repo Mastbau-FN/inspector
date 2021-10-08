@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:mastbau_inspector/classes/user.dart';
 import 'package:mastbau_inspector/fragments/ErrorView.dart';
 import 'package:mastbau_inspector/pages/home/homeView.dart';
-import 'package:mastbau_inspector/pages/loadingscreen/loadingView.dart';
+import 'package:mastbau_inspector/fragments/loadingscreen/loadingView.dart';
 import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
 import 'package:provider/provider.dart';
 
@@ -14,52 +13,63 @@ import 'package:mastbau_inspector/widgets/error.dart';
 /// Wraps the whole app to provide login if no user is signed in, and provide the credentials for use by children
 ///
 /// {@category Login}
-/// If no user is logged in (given by [LoginModel]) it shows the [LoginView].
-/// If someone is already logged in it directly forwards to the [HomeView]
-class LoginWrapper extends StatelessWidget {
-  final String title;
-  const LoginWrapper(this.title, {Key? key}) : super(key: key);
+class GlobalProviders extends StatelessWidget {
+  final Widget child;
+  const GlobalProviders({required this.child, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Phoenix(
-      child: MultiProvider(
-        providers: [
-          ChangeNotifierProvider(
-            create: (c) => LoginModel(),
-          ),
-          /*ChangeNotifierProvider(
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (c) => LoginModel(),
+        ),
+        /*ChangeNotifierProvider(
             create: (c) => CategoryModel(),
           ),*/
-        ],
-        child: Consumer<LoginModel>(
-          builder: (context, login, child) {
-            debugPrint("login changed");
-            return FutureBuilder<DisplayUser?>(
-                future: login.user,
-                builder: (context, snapshot) {
-                  return ChangeNotifierProvider(
-                    create: (c) => LocationModel(user: snapshot.data),
-                    child: FutureBuilder(
-                        future: login.isLoggedIn,
-                        builder: (context, AsyncSnapshot<bool> snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.done) {
-                            if (snapshot.hasError)
-                              return ErrorView(snapshot.error);
-                            return snapshot.data ?? false
-                                ? HomeView(
-                                    title: title,
-                                  )
-                                : LoginView(title: title);
-                          }
-                          return LoadingPage();
-                        }),
-                  );
-                });
-          },
-        ),
-      ),
+      ],
+      child: child,
+    );
+  }
+}
+
+/// {@category Login}
+/// If no user is logged in (given by [LoginModel]) it shows the [LoginView].
+/// If someone is already logged in it directly forwards to the [HomeView]
+class LoginWrapper extends StatelessWidget {
+  const LoginWrapper({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LoginModel>(
+      builder: (context, login, child) {
+        debugPrint("login changed");
+        return FutureBuilder<DisplayUser?>(
+            future: login.user,
+            builder: (context, snapshot) {
+              return ChangeNotifierProvider(
+                create: (c) => LocationModel(user: snapshot.data),
+                child: FutureBuilder(
+                    future: login.isLoggedIn,
+                    builder: (context, AsyncSnapshot<bool> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.hasError) return ErrorView(snapshot.error);
+                        return snapshot.data ?? false
+                            ? HomeView(
+                                title: title,
+                              )
+                            : LoginView(title: title);
+                      }
+                      return LoadingPage();
+                    }),
+              );
+            });
+      },
     );
   }
 }
@@ -79,8 +89,17 @@ class LoginView extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-            child: LoginField(
-          padding: EdgeInsets.all(10),
+            child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image(
+              image: AssetImage('lib/assets/MBG.webp'),
+            ),
+            SizedBox(height: 20),
+            LoginField(
+              padding: EdgeInsets.all(10),
+            ),
+          ],
         )),
       ),
     );
@@ -163,7 +182,7 @@ class _LoginFieldState extends State<LoginField> {
             width: loading ? 70 : 0,
             child: Padding(
               padding: const EdgeInsets.only(bottom: padding),
-              child: CircularProgressIndicator(),
+              child: LoadingView(),
             )),
         AnimatedContainer(
           duration: Duration(milliseconds: 400),

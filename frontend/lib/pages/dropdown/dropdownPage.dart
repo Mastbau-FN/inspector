@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 
 import 'dropdownModel.dart';
 
+// TODO drag to refresh
+
 // XXX get to new page with hero transition
 
 /// this builds the main layout from all the pages fully automatically
@@ -50,7 +52,11 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
   ExpandableCard2 locationDropDown(
       Data data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
+        previewImg: data.images != null && data.images!.length > 0
+            ? data.images![0]
+            : null,
         title: data.title,
+        extra: data.extra,
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(
                   text: actionTileData.title,

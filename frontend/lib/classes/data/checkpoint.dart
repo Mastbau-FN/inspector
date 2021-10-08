@@ -1,10 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpoint.g.dart';
 
 @JsonSerializable()
-class CheckPoint implements Data {
+class CheckPoint extends Data {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
@@ -13,8 +14,6 @@ class CheckPoint implements Data {
   String? kurzText;
   @JsonKey(name: 'LangText')
   String? langText;
-  ////Null link;
-  ////Null linkOrdner;
   @JsonKey(name: 'ErDat')
   DateTime? erDate;
   @JsonKey(name: 'EventID')
@@ -27,6 +26,11 @@ class CheckPoint implements Data {
   int index;
   @JsonKey(name: 'E3')
   int? e3;
+
+  @JsonKey(name: 'images')
+  List<String>? imagehashes; //should not be used
+  @JsonKey(ignore: true)
+  List<Image?>? images;
 
   CheckPoint(
       {required this.pjNr,

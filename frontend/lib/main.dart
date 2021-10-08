@@ -2,11 +2,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mastbau_inspector/pages/login/loginView.dart';
+import 'package:mastbau_inspector/theme.dart';
 import 'package:mastbau_inspector/widgets/error.dart';
 
 Future main() async {
   await dotenv.load(fileName: ".env");
-  runApp(MyApp());
+  runApp(GlobalProviders(child: MyApp()));
 }
 
 /// how the App is called (shown in AppBar or Tab etc.)
@@ -30,9 +31,9 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: mbgpalette0,
       ),
-      home: kIsWeb ? WebWrap() : LoginWrapper(appTitle),
+      home: kIsWeb ? WebWrap() : LoginWrapper(title: appTitle),
     );
   }
 }

@@ -6,12 +6,9 @@ import 'package:mastbau_inspector/classes/data/checkpoint.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
-class CheckPointDefectsModel extends DropDownModel<CheckPointDefect>
-    with ChangeNotifier {
+class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   final Backend _b = Backend();
   final CheckPoint currentCheckPoint;
-
-  static const _nextViewTitle = "Prüfpunkte";
 
   CheckPointDefectsModel(this.currentCheckPoint);
 
@@ -20,14 +17,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect>
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(
-      title: "Details",
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
-    MyListTileData(
-      title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO
-    ),
+    MyListTileData(title: "Details"),
+    MyListTileData(title: "Fotos"),
   ];
 
   @override
@@ -41,7 +32,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect>
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (newcontext) => tiledata.nextBuilder(newcontext),
+        builder: (newcontext) => Text("TODO"),
       ),
     );
   }

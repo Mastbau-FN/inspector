@@ -48,7 +48,6 @@ class Logout extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
         onPressed: () async {
-          ////Phoenix.rebirth(context);
           await _logout(context);
         },
         child: Text("Logout"));
