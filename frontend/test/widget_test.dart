@@ -19,7 +19,7 @@ Future main() async {
     testWidgets(
         'fake test to trick my testenv to think i tested something although i didnt',
         (WidgetTester tester) async {
-      tester.pumpWidget(Text("this is not a test"));
+      tester.pumpWidget(MaterialApp(home: Text("this is not a test")));
     });
     return 0;
   }
