@@ -54,7 +54,7 @@ const queryFileWithParams = async (file,params, addHashFunction = true)=>{
  * @returns a Promise resolving all user data when the credentials are valid and throwing if not
  */
 const getValidUser = async (user) => {
-  let userdata = (await queryFileWithParams('auth_user', [user.name,user.pass]))[0];
+  let userdata = (await queryFileWithParams('get/auth_user', [user.name,user.pass]))[0];
   if (userdata === undefined){
     throw new Error('user credentials invalid');
   }
@@ -68,14 +68,14 @@ const getValidUser = async (user) => {
  * @returns a Promise resolving to all the inspection location data for the inspector given by {user.name} (with name beeing the kürzel)
  */
   // TODO later: 2000 = inspections, 6097 = auch irgendeine nummer, die als parameter verwendet werden können später
- const getInspectionsForUser = (user) => queryFileWithParams('inspection_locations',[user.KZL,2000,6097]);
+ const getInspectionsForUser = (user) => queryFileWithParams('get/inspection_locations',[user.KZL,2000,6097]);
 
  /**
  * 
  * @param {Number} pjNr 
  * @returns a Promise resolving to all categories that need to be checked for a given project
  */
-  const getCheckCategoriesForPjNR = (pjNr) => queryFileWithParams('check_categories',[pjNr]);
+  const getCheckCategoriesForPjNR = (pjNr) => queryFileWithParams('get/check_categories',[pjNr]);
 
  /**
  * 
@@ -83,7 +83,7 @@ const getValidUser = async (user) => {
  * @param {Number} category_index 
  * @returns a Promise resolving to all points that need to be checked for a given category_index in a specific project
  */
-  const getCheckPoints = (pjNr,category_index) => queryFileWithParams('check_points',[pjNr,category_index]);
+  const getCheckPoints = (pjNr,category_index) => queryFileWithParams('get/check_points',[pjNr,category_index]);
 
  /**
  * 
@@ -92,7 +92,7 @@ const getValidUser = async (user) => {
  * @param {Number} check_point_index 
  * @returns a Promise resolving to all defects that were checked the check_point_index-th checkpoint for the category_index-th category in project number pjNr
  */
-  const getCheckPointDefects = (pjNr,category_index,check_point_index) => queryFileWithParams('check_point_defects',[pjNr,check_point_index,category_index]);
+  const getCheckPointDefects = (pjNr,category_index,check_point_index) => queryFileWithParams('get/check_point_defects',[pjNr,check_point_index,category_index]);
 
 
 
