@@ -24,7 +24,7 @@ const _getCategories_r = '/getCategories';
 const _getCheckPoints_r = '/getCheckPoints';
 const _getCheckPointDefects_r = '/getCheckPointDefects';
 
-const _getImageFromHash_r = '/image';
+const _getImageFromHash_r = '/image/get';
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {

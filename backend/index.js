@@ -2,7 +2,8 @@ const _getProjects_r = '/getProjects';
 const _getCategories_r = '/getCategories';
 const _getCheckPoints_r = '/getCheckPoints';
 const _getCheckPointDefects_r = '/getCheckPointDefects';
-const _getImageFromHash_r = '/image';
+const _getImageFromHash_r = '/image/get';
+const _uploadImage_r = '/image/set';
 
 
 const fs = require('fs');
@@ -13,6 +14,9 @@ var https = require('https');
 const express = require('express')
 
 require('dotenv').config();
+
+const multer  = require('multer')
+const upload = multer({ storage: require('./images/filesystem').mstorage })
 
 const api = require('./api')
 const auth = require('./auth/auth')
@@ -61,6 +65,7 @@ app.post('/api/secure'+_getCheckPoints_r,api.getCheckPoints);
 app.post('/api/secure'+_getCheckPointDefects_r,api.getCheckPointDefects);
 app.post('/api/secure'+_getImageFromHash_r,api.getFileFromHash);
 
+app.post('/api/secure'+_uploadImage_r,upload.single('img_up'),api.fileUpload);
 
 app.get('/error',(req,res)=>{
   throw Error('failed');

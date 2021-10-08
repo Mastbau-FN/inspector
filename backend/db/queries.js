@@ -154,11 +154,12 @@ const getLink = async (data) => {
         )
 
         ORDER BY "Events"."EREArt" DESC, "Events"."E1","Events"."E2","Events"."E3" ASC
+        LIMIT 1 -- could be removed but im just interested in a sngle link sooo yeah
         ;
     
       ```,
       [data.PjNr]
-    )
+    ).rows[0] // this could throw if no link is found, TODO: err-handling
   ;
 
   let link = path.dirname(convertpath(_link)); link = rootfolder == link ? '' : link;

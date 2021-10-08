@@ -29,8 +29,17 @@ const getFileFromHash = async (req,res) => {
     }
 }
 
+const fileUpload = async (req, res) => {
+    if (!req.file) {
+        res.status(400).json({reason: 'no file uploaded'})
+    }else{
+        res.status(204).json()
+    }
+}
+
 
 module.exports = {
+    fileUpload,
     login,
     getProjects,
     getCategories,
