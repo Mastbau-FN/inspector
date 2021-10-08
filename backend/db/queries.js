@@ -127,18 +127,34 @@ const getValidUser = async (user) => {
 
 
 
+const getRootFolder = async pjNr => path.dirname(convertpath((await queryFileWithParams('root_folder',[pjNr],false))[0].Link ?? ''));
+
+const getLink = async (data) => {
+  let convertpath = winpath => winpath.split(path.win32.sep).join(path.posix.sep);
+
+  let rootfolder = await getRootFolder(data.PjNr);
+  let _link = data.Link ?? '' /* TODO: query link for e1..e3 */;
+
+  let link = path.dirname(convertpath(_link)); link = rootfolder == link ? '' : link;
+  let mainImg = path.basename(convertpath(_link));
+
+  return {rootfolder,link,mainImg};
+}
+
 
 module.exports = {
+  getLink,
+
   getValidUser,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,
   getCheckPoints,
   getCheckPointDefects,
+
   addCheckCategory,
   addCheckPoint,
   addCheckPointDefect
 }
-
 
 
 
@@ -147,12 +163,8 @@ const hashImages = async (tthis) => {
 
     if (thingy.Link){
 
-      let convertpath = winpath => winpath.split(path.win32.sep).join(path.posix.sep);
-
-      let rootfolder = path.dirname(convertpath((await queryFileWithParams('root_folder',[thingy.PjNr],false))[0].Link ?? ''));
-      let link = path.dirname(convertpath(thingy.Link)); link = rootfolder == link ? '' : link;
-      let mainImg = path.basename(convertpath(thingy.Link));
-
+      let rootfolder,link,mainImg;
+      ({rootfolder,link,mainImg} = await getLink(thingy));
       ////console.log({rootfolder,link,mainImg});
 
       // get all *other* image names
