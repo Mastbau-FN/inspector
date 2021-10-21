@@ -33,35 +33,43 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: mbgpalette0,
       ),
-      home: kIsWeb ? WebWrap() : LoginWrapper(title: appTitle),
+      home: kIsWeb
+          ? WebWrap(
+              title: appTitle,
+            )
+          : LoginWrapper(title: appTitle),
     );
   }
 }
 
 class WebWrap extends StatelessWidget {
-  const WebWrap({Key? key}) : super(key: key);
+  final bool webSupported = true;
+  final String title;
+  const WebWrap({required this.title, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(appTitle),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ErrorText(
-                'the web is currently not supported, but it will be soon',
-                color: Colors.yellow[800]!,
+    return webSupported
+        ? LoginWrapper(title: title)
+        : Container(
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(title),
               ),
-              Text('a link to the built APK will also follow soon')
-            ],
-          ),
-        ),
-      ),
-    );
+              body: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ErrorText(
+                      'the web is currently not supported, but it will be soon',
+                      color: Colors.yellow[800]!,
+                    ),
+                    Text('a link to the built APK will also follow soon')
+                  ],
+                ),
+              ),
+            ),
+          );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
