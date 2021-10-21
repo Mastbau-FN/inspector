@@ -15,6 +15,8 @@ class ExpandableCard2 extends ExpandablesRadio {
   final Widget? extra;
   final List<Widget> children;
   final Key key;
+  final double opacity;
+
   ExpandableCard2({
     required this.title,
     this.extra,
@@ -22,7 +24,22 @@ class ExpandableCard2 extends ExpandablesRadio {
     this.children = const [],
     this.color,
     Key? key,
+  })  : this.key = key ?? UniqueKey(),
+        this.opacity = 1;
+
+  ExpandableCard2._({
+    required this.opacity,
+    required this.title,
+    this.extra,
+    this.previewImg,
+    this.children = const [],
+    this.color,
+    Key? key,
   }) : this.key = key ?? UniqueKey();
+
+  factory ExpandableCard2.fake() {
+    return ExpandableCard2._(opacity: 0.4, title: 'loading...');
+  }
 
   Color _color(isExpanded, context) => !isExpanded
       ? (Theme.of(context).iconTheme.color ?? Theme.of(context).disabledColor)
@@ -67,8 +84,7 @@ class ExpandablesListRadio extends StatelessWidget {
 
   factory ExpandablesListRadio.fake(int amount) {
     return ExpandablesListRadio(
-      children:
-          List.generate(amount, (i) => ExpandableCard2(title: 'loading..')),
+      children: List.generate(amount, (i) => ExpandableCard2.fake()),
     );
   }
 
