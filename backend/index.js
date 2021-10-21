@@ -28,6 +28,12 @@ const auth = require("./auth/auth");
 const app = express();
 const port = process.env.PORT || 443;
 
+var cors = require('cors');
+app.use(cors({
+    origin: ["https://mastbau-fn.github.io/"],
+    credentials: true,
+}));
+
 app.use(express.json());
 app.use(
   express.urlencoded({
