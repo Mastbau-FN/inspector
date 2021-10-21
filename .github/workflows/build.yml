@@ -1,3 +1,5 @@
+# TODO release to playstore or smth
+
 name: build app (APK only rn)
 on: 
   push:
