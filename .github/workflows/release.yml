@@ -77,8 +77,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: tag_${{ github.ref }}
-          release_name: AutoRelease (${{ github.ref }})
+          tag_name: release_v_${{ github.run_number }}
+          release_name: AutoRelease (v${{ github.run_number }})
           body: ${{ steps.release-info.outputs.content }}
           draft: false
           prerelease: false
