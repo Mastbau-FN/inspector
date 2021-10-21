@@ -65,18 +65,9 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 List&lt;MyListTileData&gt; actions = [
-  MyListTileData(
-    title: _nextViewTitle,
-    nextBuilder: (c) =&gt; Text(&#39;todo&#39;), &#47;&#47;TODO
-  ),
-  MyListTileData(
-    title: &quot;Fotos&quot;,
-    nextBuilder: (c) =&gt; Text(&#39;todo&#39;), &#47;&#47;TODO
-  ),
-  MyListTileData(
-    title: &quot;Kommentar&quot;,
-    nextBuilder: (c) =&gt; Text(&#39;todo&#39;), &#47;&#47;TODO
-  ),
+  MyListTileData(title: _nextViewTitle),
+  MyListTileData(title: &quot;Fotos&quot;),
+  MyListTileData(title: &quot;Kommentar&quot;),
 ];
 
 </code></pre>

@@ -119,9 +119,13 @@ Widget build(BuildContext context) {
       &#47;&#47; or simply save your changes to &quot;hot reload&quot; in a Flutter IDE).
       &#47;&#47; Notice that the counter didn&#39;t reset back to zero; the application
       &#47;&#47; is not restarted.
-      primarySwatch: Colors.blue,
+      primarySwatch: mbgpalette0,
     ),
-    home: kIsWeb ? WebWrap() : LoginWrapper(appTitle),
+    home: kIsWeb
+        ? WebWrap(
+            title: appTitle,
+          )
+        : LoginWrapper(title: appTitle),
   );
 }</code></pre>
 </section>

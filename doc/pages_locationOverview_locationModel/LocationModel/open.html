@@ -82,14 +82,19 @@ void open(
   MyListTileData tiledata,
 ) {
   Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (newcontext) =&gt; tiledata.title == _nextViewTitle
-          ? ChangeNotifierProvider&lt;CategoryModel&gt;(
-              create: (c) =&gt; CategoryModel(data),
-              child: tiledata.nextBuilder(newcontext),
-            )
-          : tiledata.nextBuilder(newcontext),
-    ),
+    MaterialPageRoute(builder: (newcontext) {
+      switch (tiledata.title) {
+        case _nextViewTitle:
+          return nextModel(CategoryModel(data));
+        case &#39;Fotos&#39;:
+          return ImageView(
+            images: data.images,
+          );
+
+        default:
+          return Text(&quot;TODO&quot;);
+      }
+    }),
   );
 }</code></pre>
 </section>

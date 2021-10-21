@@ -114,8 +114,17 @@ Widget build(BuildContext context) {
     body: Padding(
       padding: const EdgeInsets.all(8.0),
       child: Center(
-          child: LoginField(
-        padding: EdgeInsets.all(10),
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image(
+            image: AssetImage(&#39;lib&#47;assets&#47;MBG.webp&#39;),
+          ),
+          SizedBox(height: 20),
+          LoginField(
+            padding: EdgeInsets.all(10),
+          ),
+        ],
       )),
     ),
   );

@@ -84,12 +84,15 @@ mainly for debugging or logging.</p>
   <pre class="language-dart"><code class="language-dart">@override
 String toString() {
   String error = &#39;&#39;;
-  try {
-    error = jsonDecode(res.body)[&#39;error&#39;];
-  } catch (e) {
-    &#39;the body had no error field&#39;;
+  if (res != null) {
+    try {
+      error = jsonDecode(res!.body)[&#39;error&#39;];
+    } catch (e) {
+      &#39;the body had no error field&#39;;
+    }
+    return &#39;${res?.statusCode}: ${error}&#39;;
   }
-  return &#39;${res.statusCode}: ${error}&#39;;
+  return &#39;no response&#39;;
 }</code></pre>
 </section>
 

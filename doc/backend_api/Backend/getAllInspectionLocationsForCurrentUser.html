@@ -67,14 +67,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;InspectionLocation&gt;&gt;
-    getAllInspectionLocationsForCurrentUser() async =&gt; getListFromJson(
-          jsonDecode(
-            (await post_JSON(_getProjects_r)).body,
-          ),
-          InspectionLocation.fromJson,
-          objName: &#39;inspections&#39;,
-        );</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;InspectionLocation&gt;&gt; getAllInspectionLocationsForCurrentUser() =&gt;
+    _getAllForNextLevel(
+      route: _getProjects_r,
+      jsonResponseID: &#39;inspections&#39;,
+      fromJson: InspectionLocation.fromJson,
+    );</code></pre>
 </section>
 
 

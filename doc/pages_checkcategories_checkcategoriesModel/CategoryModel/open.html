@@ -82,14 +82,22 @@ void open(
   MyListTileData tiledata,
 ) {
   Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (newcontext) =&gt; tiledata.title == _nextViewTitle
-          ? ChangeNotifierProvider&lt;CheckPointsModel&gt;(
-              create: (c) =&gt; CheckPointsModel(data),
-              child: tiledata.nextBuilder(newcontext),
-            )
-          : tiledata.nextBuilder(newcontext),
-    ),
+    MaterialPageRoute(builder: (newcontext) {
+      switch (tiledata.title) {
+        case _nextViewTitle:
+          return ChangeNotifierProvider&lt;CheckPointsModel&gt;(
+            create: (c) =&gt; CheckPointsModel(data),
+            child: CheckPointsView(),
+          );
+        case &#39;Fotos&#39;:
+          return ImageView(
+            images: data.images,
+          );
+
+        default:
+          return Text(&quot;TODO&quot;);
+      }
+    }),
   );
 }</code></pre>
 </section>

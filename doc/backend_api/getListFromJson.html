@@ -52,9 +52,9 @@
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></span>&gt;</span></span>
 <span class="name ">getListFromJson</span>&lt;<wbr><span class="type-parameter">T extends Data</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="getListFromJson-param-json"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span> <span class="parameter-name">json</span>, </span></li>
-<li><span class="parameter" id="getListFromJson-param-converter"><span class="type-annotation">T?</span> <span class="parameter-name">converter</span>(<ol class="parameter-list"><li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span></span></li>
+<li><span class="parameter" id="getListFromJson-param-converter"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">T?</span>&gt;</span></span> <span class="parameter-name">converter</span>(<ol class="parameter-list"><li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span></span></li>
 </ol>
 ), </span></li>
 <li><span class="parameter" id="getListFromJson-param-objName">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">objName</span>}</span></li>
@@ -70,12 +70,14 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">List&lt;T&gt; getListFromJson&lt;T extends Data&gt;(
-    Map&lt;String, dynamic&gt; json, T? Function(Map&lt;String, dynamic&gt;) converter,
-    {String? objName}) {
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;T&gt;&gt; getListFromJson&lt;T extends Data&gt;(Map&lt;String, dynamic&gt; json,
+    FutureOr&lt;T?&gt; Function(Map&lt;String, dynamic&gt;) converter,
+    {String? objName}) async {
   try {
     List&lt;dynamic&gt; str = (objName != null) ? json[objName] : json;
-    return List&lt;T&gt;.from(str.map((insp) =&gt; converter(insp)));
+    return List&lt;T&gt;.from(
+        (await Future.wait(str.map((insp) async =&gt; await converter(insp))))
+            .whereType&lt;T&gt;());
   } catch (e) {
     debugPrint(e.toString());
   }

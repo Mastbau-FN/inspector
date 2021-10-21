@@ -69,17 +69,12 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CheckPoint&gt;&gt; getAllCheckPointsForCategory(
-        CheckCategory category) async =&gt;
-    getListFromJson(
-      jsonDecode(
-        (await post_JSON(
-          _getCheckPoints_r,
-          json: category.toSmallJson(),
-        ))
-            .body,
-      ),
-      CheckPoint.fromJson,
-      objName: &#39;checkpoints&#39;,
+        CheckCategory category) =&gt;
+    _getAllForNextLevel(
+      route: _getCheckPoints_r,
+      jsonResponseID: &#39;checkpoints&#39;,
+      json: category.toSmallJson(),
+      fromJson: CheckPoint.fromJson,
     );</code></pre>
 </section>
 

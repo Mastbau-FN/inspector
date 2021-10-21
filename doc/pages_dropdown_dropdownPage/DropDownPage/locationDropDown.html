@@ -70,7 +70,11 @@
   <pre class="language-dart"><code class="language-dart">ExpandableCard2 locationDropDown(
     Data data, BuildContext context, DDModel ddmodel) {
   return ExpandableCard2(
+      previewImg: data.images != null &amp;&amp; data.images!.length &gt; 0
+          ? data.images![0]
+          : null,
       title: data.title,
+      extra: data.extra,
       children: ddmodel.actions
           .map((actionTileData) =&gt; MyCardListTile1(
                 text: actionTileData.title,

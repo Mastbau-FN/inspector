@@ -52,7 +52,7 @@
         <section class="multi-line-signature">
           <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../classes_listTileData/MyListTileData-class.html">MyListTileData</a></span>&gt;</span>
           <span class="name ">actions</span>
-          <div class="features">read / write, override-getter</div>
+          <div class="features">final</div>
 
         </section>
         
@@ -64,19 +64,10 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-List&lt;MyListTileData&gt; actions = [
-  MyListTileData(
-    title: _nextViewTitle,
-    nextBuilder: (c) =&gt; CategoriesView(),
-  ),
-  MyListTileData(
-    title: &quot;Fotos&quot;,
-    nextBuilder: (c) =&gt; Text(&#39;todo&#39;), &#47;&#47;TODO build image View
-  ),
-  MyListTileData(
-    title: &quot;Infos&quot;,
-    nextBuilder: (c) =&gt; Text(&#39;todo&#39;), &#47;&#47;TODO build details View
-  ),
+final List&lt;MyListTileData&gt; actions = [
+  MyListTileData(title: _nextViewTitle),
+  MyListTileData(title: &quot;Fotos&quot;),
+  MyListTileData(title: &quot;Infos&quot;),
 ];
 
 </code></pre>

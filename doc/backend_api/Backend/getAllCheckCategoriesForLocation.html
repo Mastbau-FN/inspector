@@ -69,17 +69,12 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CheckCategory&gt;&gt; getAllCheckCategoriesForLocation(
-        InspectionLocation location) async =&gt;
-    getListFromJson(
-      jsonDecode(
-        (await post_JSON(
-          _getCategories_r,
-          json: location.toSmallJson(),
-        ))
-            .body,
-      ),
-      CheckCategory.fromJson,
-      objName: &#39;categories&#39;,
+        InspectionLocation location) =&gt;
+    _getAllForNextLevel(
+      route: _getCategories_r,
+      jsonResponseID: &#39;categories&#39;,
+      json: location.toSmallJson(),
+      fromJson: CheckCategory.fromJson,
     );</code></pre>
 </section>
 

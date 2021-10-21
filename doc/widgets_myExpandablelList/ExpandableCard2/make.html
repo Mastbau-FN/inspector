@@ -71,27 +71,35 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-ExpansionPanelRadio make(BuildContext context) {
-  return ExpansionPanelRadio(
-      backgroundColor: color,
-      headerBuilder: (context, isExpanded) =&gt; ListTile(
-            leading: Icon(
-              Icons.construction,
-              color: _color(isExpanded, context),
-            ),
-            title: Text(
-              title,
-              style: isExpanded
-                  ? Theme.of(context).textTheme.headline5
-                  : Theme.of(context).textTheme.bodyText1,
+ExpansionPanelRadio make(BuildContext context) =&gt; ExpansionPanelRadio(
+    backgroundColor: color,
+    headerBuilder: (context, isExpanded) =&gt; ListTile(
+          leading: Padding(
+            padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
+            child: ClipOval(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: previewImg ??
+                    Icon(
+                      Icons.construction,
+                      color: _color(isExpanded, context),
+                    ),
+              ),
             ),
           ),
-      body: Column(
-        children: [...children, SizedBox(height: 10)],
-      ),
-      canTapOnHeader: true,
-      value: key);
-}</code></pre>
+          trailing: extra,
+          title: Text(
+            title,
+            style: isExpanded
+                ? Theme.of(context).textTheme.headline5
+                : Theme.of(context).textTheme.bodyText1,
+          ),
+        ),
+    body: Column(
+      children: [...children, SizedBox(height: 10)],
+    ),
+    canTapOnHeader: true,
+    value: key);</code></pre>
 </section>
 
 
@@ -124,8 +132,10 @@ ExpansionPanelRadio make(BuildContext context) {
     </li>
     <li><a href="../../widgets_myExpandablelList/ExpandableCard2/children.html">children</a></li>
     <li><a href="../../widgets_myExpandablelList/ExpandableCard2/color.html">color</a></li>
+    <li><a href="../../widgets_myExpandablelList/ExpandableCard2/extra.html">extra</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
     <li><a href="../../widgets_myExpandablelList/ExpandableCard2/key.html">key</a></li>
+    <li><a href="../../widgets_myExpandablelList/ExpandableCard2/previewImg.html">previewImg</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
     <li><a href="../../widgets_myExpandablelList/ExpandableCard2/title.html">title</a></li>
 

@@ -74,7 +74,7 @@
   await connectionGuard();
   _user = user;
   var res = await post_JSON(&#39;&#47;login&#39;);
-  if (res.statusCode == 200) {
+  if (res != null &amp;&amp; res.statusCode == 200) {
     &#47;&#47;success
     var resb = jsonDecode(res.body)[&#39;user&#39;];
     _user?.fromMap(resb);

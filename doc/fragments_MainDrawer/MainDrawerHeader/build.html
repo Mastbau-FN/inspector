@@ -109,15 +109,13 @@ and</li>
 Widget build(BuildContext context) {
   return DrawerHeader(
     child: Center(
-        child: Text(
-      &#39;Mastbau FN&#39;,
-      style:
-          TextStyle(fontSize: 32, color: Theme.of(context).backgroundColor),
-    )),
+      child: Image(image: AssetImage(&#39;lib&#47;assets&#47;MBG.webp&#39;)),
+    ),
     decoration: BoxDecoration(
       gradient: LinearGradient(begin: Alignment.topLeft, colors: [
-        Theme.of(context).primaryColor,
-        Theme.of(context).accentColor
+        Theme.of(context).primaryColorDark.withAlpha(200),
+        Theme.of(context).canvasColor,
+        &#47;&#47;Theme.of(context).primaryColor.withAlpha(250),
       ]),
       &#47;&#47;color: Theme.of(context).primaryColor,
     ),
