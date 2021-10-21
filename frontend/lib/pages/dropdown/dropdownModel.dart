@@ -1,4 +1,3 @@
-//TODO: //ASKTHIS: wo steht die schwere eines Mangels / farbe
 //TODO: nextView()/DropDownPage braucht noch ein child oÄ womit dann das hinzufügen zb ermöglicht wird (oder ein add-callback-parameter der wieder generic für alle aktiviert werden kann im model hinterlegt)
 
 import 'package:flutter/material.dart';

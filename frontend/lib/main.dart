@@ -7,6 +7,8 @@ import 'package:mastbau_inspector/widgets/error.dart';
 
 Future main() async {
   //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
+  // could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
+
   await dotenv.load(fileName: ".env");
   runApp(GlobalProviders(child: MyApp()));
 }
