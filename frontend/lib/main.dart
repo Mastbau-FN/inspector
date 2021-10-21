@@ -6,6 +6,7 @@ import 'package:mastbau_inspector/theme.dart';
 import 'package:mastbau_inspector/widgets/error.dart';
 
 Future main() async {
+  //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
   await dotenv.load(fileName: ".env");
   runApp(GlobalProviders(child: MyApp()));
 }

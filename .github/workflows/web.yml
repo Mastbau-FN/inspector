@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-deploy:
     env:
-      API_KEY: "add web api key here" #${{ secrets.API_KEY}}
+      API_KEY: ${{ secrets.API_KEY}}
     runs-on: ubuntu-latest
     defaults:
       run:
