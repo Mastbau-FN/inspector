@@ -28,6 +28,7 @@ const auth = require("./auth/auth");
 const app = express();
 const port = process.env.PORT || 443;
 
+//TODO: check if this worked
 var cors = require('cors');
 app.use(cors({
     origin: ["https://mastbau-fn.github.io/"],
