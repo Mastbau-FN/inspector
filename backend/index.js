@@ -20,7 +20,7 @@ const express = require("express");
 require("dotenv").config();
 
 const multer = require("multer");
-const upload = multer({ storage: require("./images/filesystem").mstorage });
+const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
 const auth = require("./auth/auth");
@@ -31,7 +31,7 @@ const port = process.env.PORT || 443;
 //TODO: check if this worked
 var cors = require('cors');
 app.use(cors({
-    origin: ["https://mastbau-fn.github.io/"],
+    origin: ["https://mastbau-fn.github.io"],
     credentials: true,
 }));
 

@@ -150,16 +150,17 @@ const addCheckPointDefect = (
     ...check_point_defect.values(),
   ]);
 
+const convertpath = (winpath) =>
+  winpath.split(path.win32.sep).join(path.posix.sep);
+
 const getRootFolder = async (pjNr) =>
   path.dirname(
     convertpath(
-      (await queryFileWithParams("root_folder", [pjNr], false))[0].Link ?? ""
+      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].Link ?? ""
     )
   );
 
 const getLink = async (data) => {
-  let convertpath = (winpath) =>
-    winpath.split(path.win32.sep).join(path.posix.sep);
 
   let rootfolder = await getRootFolder(data.PjNr);
 
@@ -198,8 +199,6 @@ const getLink = async (data) => {
 };
 
 module.exports = {
-  getLink,
-
   getValidUser,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,

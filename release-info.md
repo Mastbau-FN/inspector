@@ -1,3 +1,4 @@
-### first (v5) test release
+### release v0.0.1
 
-- login works tho
+#### changes:
+- icon for web
