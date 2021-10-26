@@ -22,8 +22,11 @@ environment:
 
 dependencies:
 
+  # image picker duh
+  image_picker: ^0.8.4
+
   # check if a network is connected and what kind of network (mobile/wifi etc)
-  connectivity_plus: ^1.0.6
+  connectivity_plus: ^2.0.2
 
   # storing sensitive data like username and password
   flutter_secure_storage: ^5.0.0-beta.5
@@ -32,7 +35,7 @@ dependencies:
   shared_preferences: ^2.0.6
 
   # state management
-  provider: ^5.0.0
+  provider: ^6.0.1
 
   # used to query and send data to our API
   http: ^0.13.3

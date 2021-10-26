@@ -10,6 +10,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:mastbau_inspector/assets/consts.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/checkpoint.dart';
@@ -25,6 +26,7 @@ const _getCheckPoints_r = '/checkPoints/get';
 const _getCheckPointDefects_r = '/checkPointDefects/get';
 
 const _getImageFromHash_r = '/image/get';
+const _uploadImage_r = "/image/set";
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -210,6 +212,16 @@ class Backend {
         json: checkpoint.toSmallJson(),
         fromJson: CheckPointDefect.fromJson,
       );
+
+  /// upload a bunch of images //TODO
+  Future uploadFiles(
+    List<XFile> files,
+    /*TODO*/
+  ) async {
+    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+    post_JSON(_uploadImage_r); //wont work
+    //make multipartrequest or add it to post_json
+  }
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

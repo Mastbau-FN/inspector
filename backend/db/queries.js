@@ -199,6 +199,8 @@ const getLink = async (data) => {
 };
 
 module.exports = {
+  getLink,
+
   getValidUser,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,
