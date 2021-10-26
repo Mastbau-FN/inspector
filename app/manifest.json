@@ -19,12 +19,6 @@
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
             "type": "image/png"
-        }/*,
-        {
-            "src": "assets/lib/assets/icon.svg",
-            "sizes": "any",
-            "purpose": "maskable any",
-            "type": "image/svg+xml"
-        }*/
+        }
     ]
 }
