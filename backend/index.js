@@ -30,7 +30,7 @@ const port = process.env.PORT || 443;
 
 var cors = require('cors');
 app.use(cors({
-    origin: ["https://mastbau-fn.github.io/"],
+    origin: ["https://mastbau-fn.github.io"],
     credentials: true,
 }));
 
