@@ -156,7 +156,7 @@ const convertpath = (winpath) =>
 const getRootFolder = async (pjNr) =>
   path.dirname(
     convertpath(
-      (await queryFileWithParams("root_folder", [pjNr], false))[0].Link ?? ""
+      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].Link ?? ""
     )
   );
 
@@ -199,8 +199,6 @@ const getLink = async (data) => {
 };
 
 module.exports = {
-  getLink,
-
   getValidUser,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,
