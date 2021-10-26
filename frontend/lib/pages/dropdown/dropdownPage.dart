@@ -23,28 +23,28 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Consumer<DDModel>(
-        builder: (context, ddmodel, child) => Scaffold(
-          appBar: AppBar(
-            /*leading: BackButton(
-              onPressed: Navigator.of(context).pop,
-            ),*/
-            title: Text(ddmodel.title),
-          ),
-          endDrawer: MainDrawer(),
-          body: FutureBuilder<List>(
-              future: Provider.of<DDModel>(context).all,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  return ExpandablesListRadio(
-                      children: snapshot.data!
-                          .map((e) => locationDropDown(e, context, ddmodel))
-                          .toList());
-                }
-                return ExpandablesListRadio.fake(3);
-              }),
+    return Consumer<DDModel>(
+      builder: (context, ddmodel, child) => Scaffold(
+        appBar: AppBar(
+          leading: Navigator.canPop(context)
+              ? BackButton(
+                  onPressed: Navigator.of(context).pop,
+                )
+              : null,
+          title: Text(ddmodel.title),
         ),
+        endDrawer: MainDrawer(),
+        body: FutureBuilder<List>(
+            future: Provider.of<DDModel>(context).all,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return ExpandablesListRadio(
+                    children: snapshot.data!
+                        .map((e) => locationDropDown(e, context, ddmodel))
+                        .toList());
+              }
+              return ExpandablesListRadio.fake(3);
+            }),
       ),
     );
   }
