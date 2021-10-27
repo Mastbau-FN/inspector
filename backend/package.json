@@ -14,16 +14,18 @@
     "pg": "^8.7.1"
   },
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "serve": "node index.js > ../../log && disown",
+    "tmpserve": "node index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HannesGitH/express-test.git"
+    "url": "git+https://github.com/Mastbau-FN/inspector.git"
   },
   "author": "hannes",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/HannesGitH/express-test/issues"
+    "url": "https://github.com/Mastbau-FN/inspector/issues"
   },
-  "homepage": "https://github.com/HannesGitH/express-test#readme"
+  "homepage": "https://github.com/Mastbau-FN/inspector/tree/main/backend/#readme"
 }
