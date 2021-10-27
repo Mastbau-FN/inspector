@@ -25,9 +25,18 @@ class LocationModel extends DropDownModel<InspectionLocation> {
 
   @override
   final List<MyListTileData> actions = [
-    MyListTileData(title: _nextViewTitle),
-    MyListTileData(title: "Fotos"),
-    MyListTileData(title: "Infos"),
+    MyListTileData(
+      title: _nextViewTitle,
+      icon: Icons.category,
+    ),
+    MyListTileData(
+      title: "Fotos",
+      icon: Icons.photo_library,
+    ),
+    MyListTileData(
+      title: "Infos",
+      icon: Icons.text_snippet,
+    ),
   ];
 
   @override

@@ -17,8 +17,14 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(title: "Details"),
-    MyListTileData(title: "Fotos"),
+    MyListTileData(
+      title: "Details",
+      icon: Icons.info,
+    ),
+    MyListTileData(
+      title: "Fotos",
+      icon: Icons.photo_library,
+    ),
   ];
 
   @override

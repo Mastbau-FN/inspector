@@ -25,9 +25,18 @@ class CategoryModel extends DropDownModel<CheckCategory> {
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(title: _nextViewTitle),
-    MyListTileData(title: "Fotos"),
-    MyListTileData(title: "Kommentar"),
+    MyListTileData(
+      title: _nextViewTitle,
+      icon: Icons.checklist,
+    ),
+    MyListTileData(
+      title: "Fotos",
+      icon: Icons.photo_library,
+    ),
+    MyListTileData(
+      title: "Kommentar",
+      icon: Icons.text_snippet,
+    ),
   ];
 
   @override

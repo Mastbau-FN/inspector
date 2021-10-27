@@ -22,9 +22,18 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
 
   @override
   List<MyListTileData> actions = [
-    MyListTileData(title: _nextViewTitle),
-    MyListTileData(title: "Fotos"),
-    MyListTileData(title: "Kommentar"),
+    MyListTileData(
+      title: _nextViewTitle,
+      icon: Icons.report_problem,
+    ),
+    MyListTileData(
+      title: "Fotos",
+      icon: Icons.photo_library,
+    ),
+    MyListTileData(
+      title: "Kommentar",
+      icon: Icons.text_snippet,
+    ),
   ];
 
   @override

@@ -60,6 +60,7 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(
                   text: actionTileData.title,
+                  icon: actionTileData.icon,
                   onTap: () => ddmodel.open(context, data, actionTileData),
                 ))
             .toList());
