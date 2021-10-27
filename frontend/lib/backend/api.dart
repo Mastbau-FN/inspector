@@ -215,10 +215,12 @@ class Backend {
 
   /// upload a bunch of images //TODO
   Future uploadFiles(
+    Data data,
     List<XFile> files,
     /*TODO*/
   ) async {
-    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.thingy.E1 etc
+    // data -> body = {thingy: data}
     post_JSON(_uploadImage_r); //wont work
     //make multipartrequest or add it to post_json
   }

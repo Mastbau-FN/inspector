@@ -20,8 +20,21 @@ if (!Array.prototype.last) {
 
 const _addfoldername = (data)=>{
   //TODO: get folder of parent data and add name or something (didnt understand the scheme yet)   .....would probably be even better in sql
-  data.Link = "TODO";
-  data.LinkOrdner = "TODO";
+  let data_copy = data;
+
+  //remove highest event
+  if (!data_copy.E2) {
+    data_copy.E1 = null;
+  } else if(!data_copy.E3) {
+    data_copy.E2 = null;
+  } else {
+    data_copy.E3 = null;
+  }
+  //to then get parent folder
+  const {r,f,i} = getLink(data_copy);
+
+  data.Link = path.join(r,f+"TODO"+data.name,"no_default_picture_yet")
+  data.LinkOrdner = path.join(r,f+"TODO"+data.name)
   return data;
 }
 
