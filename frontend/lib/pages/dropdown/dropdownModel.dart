@@ -49,6 +49,10 @@ abstract class DropDownModel<DataT extends Data> with ChangeNotifier {
       builder: (newcontext) => Text("${tiledata.title} not yet implemeted"),
     ));
   }
+
+  ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
+  /// for adding new [DataT] to this level (or other additional functionality)
+  Widget? floatingActionButton = null;
 }
 
 //TODO alternativ schonmal bissl issue #14:

@@ -4,6 +4,7 @@ import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/classes/data/checkpointdefect.dart';
 import 'package:mastbau_inspector/classes/data/checkpoint.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
+import 'package:mastbau_inspector/fragments/adder.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
@@ -42,4 +43,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
       ),
     );
   }
+
+  @override
+  Widget? get floatingActionButton => TransformeableActionbutton();
 }

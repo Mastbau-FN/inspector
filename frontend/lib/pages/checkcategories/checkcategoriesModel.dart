@@ -67,4 +67,11 @@ class CategoryModel extends DropDownModel<CheckCategory> {
       }),
     );
   }
+
+  @override
+  Widget? get floatingActionButton => FloatingActionButton(
+        child: Icon(Icons.add),
+        tooltip: "neuen Kategorie hinzufügen",
+        onPressed: () {},
+      );
 }

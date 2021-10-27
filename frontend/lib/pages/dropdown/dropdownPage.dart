@@ -45,6 +45,7 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
               }
               return ExpandablesListRadio.fake(3);
             }),
+        floatingActionButton: ddmodel.floatingActionButton,
       ),
     );
   }
