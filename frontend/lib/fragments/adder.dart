@@ -205,7 +205,7 @@ class Adder extends StatelessWidget {
         width: 130,
         child: TextField(
           //maxLength: 20,
-          textInputAction: TextInputAction.next,
+          textInputAction: TextInputAction.done,
           textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
@@ -250,9 +250,10 @@ class Adder extends StatelessWidget {
       return Container(
         padding: EdgeInsets.only(top: 10, left: 20, right: 20),
         child: TextField(
-          autofocus: isBetterthantherest,
+          autofocus:
+              isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
           focusNode: fn,
-          textInputAction: TextInputAction.next,
+          //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
           textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
