@@ -1,4 +1,7 @@
 ////const bcrypt = require("bcrypt");
+
+//TODO: update queries (wharscheinlich nur LangText, der rest ist final)
+
 const fs = require("fs");
 const fsp = fs.promises;
 
