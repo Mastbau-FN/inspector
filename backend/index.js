@@ -110,16 +110,17 @@ app.use(function (req, res, next) {
 
 // MARK : 500
 
+app.use("/api/", function (err, req, res, next) {
+  console.error({err});
+  res.status(500).send({ error: "Something broke!" });
+});
+
 // when an error accurs that should be human readable
 app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("500", { error: err });
 });
 
-app.use("/api/", function (err, req, res, next) {
-  console.error(err);
-  res.status(500).send({ error: "Something broke!" });
-});
 
 if (isInsecure) {
   var httpServer = http.createServer(app);

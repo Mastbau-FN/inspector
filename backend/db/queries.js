@@ -18,6 +18,13 @@ if (!Array.prototype.last) {
   };
 }
 
+const _addfoldername = (data)=>{
+  //TODO: get folder of parent data and add name or something (didnt understand the scheme yet)   .....would probably be even better in sql
+  data.Link = "TODO";
+  data.LinkOrdner = "TODO";
+  return data;
+}
+
 /**
  *
  * example usage:
@@ -109,24 +116,24 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
 /**
  *
  * @param {Number} pjNr
- * @param category the new category that shall be added (name, description, link, linkOrdner)
+ * @param category the new category that shall be added (name, description)
  * @returns a Promise resolving to the new ID (E1)
  */
-const addCheckCategory = (pjNr, category) =>
-  queryFileWithParams("set/check_categories", [pjNr, ...category.values()]);
+const addCheckCategory = (pjNr, category) => 
+  queryFileWithParams("set/check_categories", [pjNr, ...Object.values(_addfoldername(category))]);
 
 /**
  *
  * @param {Number} pjNr
  * @param {Number} category_index
- * @param check_point the new check_point that shall be added (name, description, link, linkOrdner)
+ * @param check_point the new check_point that shall be added (name, description)
  * @returns a Promise resolving to the new ID (E2)
  */
 const addCheckPoint = (pjNr, category_index, check_point) =>
   queryFileWithParams("set/check_points", [
     pjNr,
     category_index,
-    ...check_point.values(),
+    ...Object.values(_addfoldername(check_point)),
   ]);
 
 /**
@@ -134,7 +141,7 @@ const addCheckPoint = (pjNr, category_index, check_point) =>
  * @param {Number} pjNr
  * @param {Number} category_index
  * @param {Number} check_point_index
- * @param check_point_defect the new defect that shall be added (name, description, link, linkOrdner)
+ * @param check_point_defect the new defect that shall be added (name, description, location, oufness)
  * @returns a Promise resolving to the new ID (E3)
  */
 const addCheckPointDefect = (
@@ -142,13 +149,15 @@ const addCheckPointDefect = (
   category_index,
   check_point_index,
   check_point_defect
-) =>
-  queryFileWithParams("set/check_point_defects", [
+) => {
+  check_point_defect.oufness = check_point_defect.oufness ? 5204 : check_point_defect.oufness + 5200; /* 1 -> 5201 Mangel leicht, 2 -> 5202 Mangel mittel, 3 -> 5203 Mangel schwer, undefined -> 5204 ohne Mangel*/
+  return queryFileWithParams("set/check_point_defects", [
     pjNr,
     check_point_index,
     category_index,
-    ...check_point_defect.values(),
+    ...Object.values(_addfoldername(check_point_defect)),
   ]);
+}
 
 const convertpath = (winpath) =>
   winpath.split(path.win32.sep).join(path.posix.sep);
@@ -177,6 +186,7 @@ const getLink = async (data) => {
           ("MGAUFTR"."PjNr" = $1) -- projektnummer
           AND ("Events"."Link" IS NOT NULL) 
       ``` 
+      //TODO: SECURITY: this is susceptible against SQL-Injection
       + data.E1 != null ? 'AND ("Events"."E1" = ' + data.E1 + ")" : "" 
       + data.E2 != null ? 'AND ("Events"."E2" = ' + data.E2 + ")" : "" 
       + data.E3 != null ? 'AND ("Events"."E3" = ' + data.E3 + ")" : "" 
