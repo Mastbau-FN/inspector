@@ -45,5 +45,15 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   }
 
   @override
-  Widget? get floatingActionButton => TransformeableActionbutton();
+  Widget? get floatingActionButton => TransformeableActionbutton(
+        expandedChild: (onCancel) => Adder(
+          onCancel: onCancel,
+          textfield_list: [
+            InputData(hint: "testfeld1", verify: (str) => false),
+            InputData(hint: "testfeld2", verify: (str) => false),
+            InputData(hint: "testfeld3", verify: (str) => false),
+            InputData(hint: "testfeld4", verify: (str) => false),
+          ],
+        ),
+      );
 }

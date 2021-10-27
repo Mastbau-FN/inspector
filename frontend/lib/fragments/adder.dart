@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
+//should be held up to date with FloatingActionButton
+const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
+  width: 56.0,
+  height: 56.0,
+);
+
 class TransformeableActionbutton extends StatefulWidget {
+  final Widget collapsedChild;
+  final Widget Function(Function()) expandedChild;
+  final double expandedHeight;
   final Function(Data?)? onAdd;
 
-  const TransformeableActionbutton({Key? key, this.onAdd}) : super(key: key);
+  final EdgeInsets padding;
+
+  const TransformeableActionbutton({
+    Key? key,
+    this.onAdd,
+    this.collapsedChild = const Icon(Icons.add),
+    required this.expandedChild,
+    this.padding = const EdgeInsets.all(15),
+    this.expandedHeight = 400,
+  }) : super(key: key);
 
   @override
   TransformeableActionbuttonState createState() =>
@@ -16,11 +34,13 @@ class TransformeableActionbuttonState
   bool isClicked = false;
   bool wasClicked = false;
 
+  final transition_ms = 400;
+
   void popupGroup() {
     setState(() {
       isClicked = true;
     });
-    Future.delayed(Duration(milliseconds: 400), () {
+    Future.delayed(Duration(milliseconds: transition_ms), () {
       setState(() {
         wasClicked = true;
       });
@@ -36,73 +56,92 @@ class TransformeableActionbuttonState
 
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = Theme.of(context);
+    FloatingActionButtonThemeData ftheme =
+        Theme.of(context).floatingActionButtonTheme;
+    double radius =
+        (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
     return GestureDetector(
       onTap: popupGroup,
       child: AnimatedContainer(
+        key: UniqueKey(),
+        //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
         decoration: BoxDecoration(
           boxShadow: isClicked
               ? [
                   BoxShadow(
-                      color: Theme.of(context).backgroundColor,
-                      blurRadius: 25,
-                      spreadRadius: 10)
+                      color: theme.colorScheme.secondary.withAlpha(30),
+                      blurRadius: radius * .4,
+                      spreadRadius: 0)
                 ]
-              : [
-                  BoxShadow(
-                      color: Colors.black,
-                      blurRadius: 15,
-                      offset: Offset.fromDirection(1.3, 7),
-                      spreadRadius: -4)
-                ],
+              : [],
           color: isClicked
-              ? Theme.of(context).cardColor
-              : Theme.of(context).accentColor,
-          borderRadius:
-              isClicked ? BorderRadius.circular(20) : BorderRadius.circular(30),
+              ? theme.cardColor
+              : ftheme.backgroundColor ?? theme.colorScheme.primary,
+          borderRadius: BorderRadius.circular(radius),
         ),
         curve: Curves.easeInOutCubic,
-        duration: Duration(milliseconds: 400),
-        height: isClicked ? 350 : 60,
-        width: isClicked ? MediaQuery.of(context).size.width - 30 : 60,
-        child: wasClicked
-            ? Container(
-                child: GroupEditor(
-                  update: (group) {
-                    widget.onAdd?.call(group);
-                    cancel();
-                  },
-                  abort: cancel,
-                ),
-              )
-            : Icon(
-                Icons.group_add,
-                color: Theme.of(context).backgroundColor,
-              ),
+        duration: Duration(milliseconds: transition_ms),
+        height: isClicked
+            ? widget.expandedHeight
+            : ftheme.sizeConstraints?.maxHeight ?? _kSizeConstraints.maxHeight,
+        width: isClicked
+            ? MediaQuery.of(context).size.width -
+                widget.padding.left -
+                widget.padding.right
+            : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
+        child:
+            isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
+                ? Container(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: widget.expandedChild(cancel),
+                    ),
+                  )
+                : /*isClicked
+                ? Container()
+                : */
+                Container(
+                    child: FloatingActionButton(
+                      child: widget.collapsedChild,
+                      onPressed: popupGroup,
+                    ),
+                  ),
       ),
     );
   }
 }
 
+/*class Cancelable {
+  final Function(Function) builder;
+  const Cancelable({
+    Key? key,
+    required this.builder,
+  });
+
+  Widget withcancel(Function onCancel) => builder(onCancel);
+}*/
+
 //TODO: nicht nur 3 namen sondern wie eingestellt
-class GroupEditor extends StatelessWidget {
-  final FocusNode name2 = FocusNode();
-  final FocusNode name3 = FocusNode();
+class Adder extends StatelessWidget {
+  final Function(Data?)? onSet;
+  final Function()? onCancel;
 
-  final name1C = TextEditingController();
-  final name2C = TextEditingController();
-  final name3C = TextEditingController();
-  final gNameC = TextEditingController();
-
-  final Function(Data?)? update;
-  final Function()? abort;
+  final List<InputData> textfield_list;
+  final List<TextEditingController> _textfield_controller_list;
+  final List<FocusNode> _textfield_focusnode_list;
 
   List<String> names = [];
 
-  GroupEditor({this.update, this.abort});
+  Adder({this.onSet, this.onCancel, this.textfield_list = const []})
+      : this._textfield_controller_list =
+            textfield_list.map((tf) => TextEditingController()).toList(),
+        this._textfield_focusnode_list =
+            textfield_list.map((tf) => FocusNode()).toList();
 
   @override
   Widget build(BuildContext context) {
-    Future<void> _fillNames() async {
+    Future<void> _alert() async {
       return showDialog<void>(
         context: context,
         //barrierDismissible: false, // user must tap button!
@@ -111,19 +150,18 @@ class GroupEditor extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20.0),
             ),
-            title: Text('Da fehlt wohl jemand'),
+            title: Text('Noch nicht unterstützt'),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  Text('Es sind doch immer 3 in einer Gruppe'),
-                  Text('Du hast wohl nicht genug eingegeben.'),
+                  Text('sorry, ich arbeite dran'),
                 ],
               ),
             ),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text(
-                  'Oops',
+                  'okay..',
                   style: TextStyle(color: Theme.of(context).primaryColor),
                 ),
                 onPressed: () {
@@ -137,43 +175,100 @@ class GroupEditor extends StatelessWidget {
     }
 
     void set() {
-      bool hasName = gNameC.text.isNotEmpty;
-      bool bedingung = name1C.text.length > 0 &&
-          name2C.text.length > 0 &&
-          name3C.text.length > 0;
-      if (bedingung) {
-        names = [name1C.text, name2C.text, name3C.text];
-        List kids = List.generate(names.length, (i) {
-          return names[i];
-        });
-        update?.call(
-          null, /*TODO */
+      if (textfield_list.every((element) => element.verify(
+          //okay the indexOf workaround is pretty bad (O(n^2)), make the every iteretion indexed and it'll be O(n). (but the list shall be rather short so np)
+          _textfield_controller_list[textfield_list.indexOf(element)].text))) {
+        onSet?.call(
+          null, /*TODO: generate data or whatever from texts */
         );
       } else {
-        _fillNames();
+        _alert();
       }
     }
 
-    Widget input({onDone, fn, c}) {
+    Widget _paddedButton(IconData icon, Function()? onPressed) => Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: FloatingActionButton(
+            backgroundColor: Theme.of(context).canvasColor,
+            onPressed: () {
+              onPressed?.call();
+            },
+            child: Icon(
+              icon,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+        );
+
+    Container _mainField(void set()) {
+      return Container(
+        width: 130,
+        child: TextField(
+          //maxLength: 20,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary, width: 2),
+                borderRadius: BorderRadius.circular(15)),
+            enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onBackground
+                        .withAlpha(50),
+                    width: 1),
+                borderRadius: BorderRadius.circular(15)),
+            hintText: textfield_list[0].hint,
+            hintStyle: TextStyle(
+              fontWeight: FontWeight.w300,
+              fontSize: 19,
+            ),
+          ),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+          textAlign: TextAlign.center,
+          onSubmitted: (x) {
+            set();
+          },
+          focusNode: _textfield_focusnode_list[0],
+          controller: _textfield_controller_list[0],
+        ),
+      );
+    }
+
+    Widget _input({
+      bool isBetterthantherest = false,
+      required String hint,
+      required Function(String) onDone,
+      required FocusNode fn,
+      required TextEditingController c,
+    }) {
       return Container(
         padding: EdgeInsets.only(top: 10, left: 20, right: 20),
         child: TextField(
-          maxLength: 15,
+          autofocus: isBetterthantherest,
           focusNode: fn,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white70, width: 1)),
-            hintText: "Schüler Name",
+                borderSide: BorderSide(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onBackground
+                        .withAlpha(50),
+                    width: 1)),
+            hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.white70,
               fontWeight: FontWeight.w100,
               fontSize: 17,
             ),
           ),
           style: TextStyle(
-            color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -186,92 +281,43 @@ class GroupEditor extends StatelessWidget {
 
     return Column(
       children: <Widget>[
-        input(
-          onDone: (name) {
-            FocusScope.of(context).requestFocus(name2);
-          },
-          c: name1C,
-        ),
-        input(
-          onDone: (name) {
-            FocusScope.of(context).requestFocus(name3);
-          },
-          fn: name2,
-          c: name2C,
-        ),
-        input(
-          onDone: (name) {
-            set();
-          },
-          fn: name3,
-          c: name3C,
+        Spacer(),
+        ...List.generate(
+          textfield_list.length - 1,
+          (i) => _input(
+            isBetterthantherest: i ==
+                0, //TODO: its buggy for some reason: crash on backbutton .. something something hero, focusnodes are somehow messed up
+            hint: textfield_list[i + 1].hint,
+            onDone: (name) {
+              try {
+                //TextInputAction.next;
+                FocusScope.of(context)
+                    .requestFocus(_textfield_focusnode_list[i + 2]);
+              } catch (e) {
+                FocusScope.of(context)
+                    .requestFocus(_textfield_focusnode_list[0]);
+              }
+            },
+            fn: _textfield_focusnode_list[i + 1],
+            c: _textfield_controller_list[i + 1],
+          ),
         ),
         Container(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            RaisedButton(
-              elevation: 8,
-              padding: EdgeInsets.all(15),
-              color: Theme.of(context).canvasColor,
-              shape: CircleBorder(),
-              onPressed: () {
-                abort?.call();
-                debugPrint("aborted");
-              },
-              child: Icon(
-                Icons.cancel,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-            Container(
-              width: 130,
-              child: TextField(
-                maxLength: 20,
-                textInputAction: TextInputAction.next,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white, width: 2),
-                      borderRadius: BorderRadius.circular(15)),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white54, width: 1),
-                      borderRadius: BorderRadius.circular(15)),
-                  hintText: "-Gruppename-",
-                  hintStyle: TextStyle(
-                    color: Colors.white60,
-                    fontWeight: FontWeight.w300,
-                    fontSize: 19,
-                  ),
-                ),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.center,
-                onSubmitted: (x) {
-                  set();
-                },
-                controller: gNameC,
-              ),
-            ),
-            RaisedButton(
-              elevation: 8,
-              padding: EdgeInsets.all(15),
-              color: Theme.of(context).canvasColor,
-              shape: CircleBorder(),
-              onPressed: () {
-                set();
-              },
-              child: Icon(
-                Icons.check_circle,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
+            _paddedButton(Icons.cancel, onCancel),
+            if (textfield_list.isNotEmpty) _mainField(set),
+            _paddedButton(Icons.check_circle, set),
           ],
         ),
       ],
     );
   }
+}
+
+class InputData {
+  final String hint;
+  final bool Function(String text) verify;
+  const InputData({required this.hint, required this.verify});
 }
