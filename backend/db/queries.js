@@ -35,6 +35,7 @@ const _addfoldername = (data)=>{
   }
   //to then get parent folder
   const {r,f,i} = getLink(data_copy);
+  console.log(data,data_copy, r,f,i)
 
   data.Link = path.join(r,f+"TODO"+data.name,"no_default_picture_yet")
   data.LinkOrdner = path.join(r,f+"TODO"+data.name)

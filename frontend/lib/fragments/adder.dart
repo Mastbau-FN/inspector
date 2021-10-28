@@ -157,7 +157,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   final List<TextEditingController> _textfield_controller_list;
   final List<FocusNode> _textfield_focusnode_list;
 
-  final Map<String, dynamic> json;
+  final Map<String, Map<String, dynamic>> json;
 
   Adder(
     this.name, {
@@ -185,18 +185,18 @@ class Adder extends StatelessWidget implements JsonExtractable {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20.0),
             ),
-            title: Text('Noch nicht unterstützt'),
+            title: Text('Irgendwas stimmt hier noch nicht'),
             content: SingleChildScrollView(
               child: ListBody(
                 children: <Widget>[
-                  Text('sorry, ich arbeite dran'),
+                  Text('probier\'s nochmal'),
                 ],
               ),
             ),
             actions: <Widget>[
               TextButton(
                 child: Text(
-                  'okay..',
+                  'hm, nagut',
                   style: TextStyle(color: Theme.of(context).primaryColor),
                 ),
                 onPressed: () {
@@ -214,11 +214,11 @@ class Adder extends StatelessWidget implements JsonExtractable {
           //okay the indexOf workaround is pretty bad (O(n^2)), make the every iteretion indexed and it'll be O(n). (but the list shall be rather short so np)
           _textfield_controller_list[textfield_list.indexOf(element)].text))) {
         for (var i = 0; i < textfield_list.length; i++) {
-          json[name][textfield_list[i].varName] =
+          json[name]![textfield_list[i].varName] =
               _textfield_controller_list[i].text;
         }
         children.forEach((child) {
-          json[name][child.name] = child.json;
+          json[name]![child.name] = child.json;
         });
         onSet?.call(json);
       } else {

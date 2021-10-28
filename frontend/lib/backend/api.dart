@@ -224,6 +224,37 @@ class Backend {
         fromJson: CheckPointDefect.fromJson,
       );
 
+  /// sets a new [DataT]
+  Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
+    debugPrint(data.toString());
+    if (data == null) return null;
+    String route;
+    String identifier;
+    switch (typeOf<DataT>()) {
+      case CheckCategory:
+        route = _addCategory_r;
+        identifier = 'category';
+        break;
+      case CheckPoint:
+        route = _addCheckPoint_r;
+        identifier = 'checkpoint';
+        break;
+      case CheckPointDefect:
+        route = _addCheckPointDefect_r;
+        identifier = 'defect';
+        break;
+      default:
+        debugPrint("yo this type is not supported : ${typeOf<DataT>()}");
+        return null;
+    }
+    var json_data = data.toJson();
+    http.Response? res = await post_JSON(route, json: {
+      identifier: json_data,
+    });
+    debugPrint(res?.body.toString());
+    return null;
+  }
+
   /// upload a bunch of images //TODO
   Future uploadFiles(
     Data data,

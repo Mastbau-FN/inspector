@@ -47,7 +47,16 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   @override
   Widget? get floatingActionButton => TransformeableActionbutton(
         expandedChild: (onCancel) => Adder(
-          'checkpointdefects',
+          'checkpointdefect',
+          onSet: (json) {
+            debugPrint("set ${json['checkpointdefect'].toString()}");
+            json['checkpointdefect']['PjNr'] = currentCheckPoint.pjNr;
+            json['checkpointdefect']['E1'] = currentCheckPoint.category_index;
+            json['checkpointdefect']['E2'] = currentCheckPoint.index;
+            json['checkpointdefect']['E3'] = -1;
+            Backend()
+                .setNew(CheckPointDefect.fromJson(json['checkpointdefect']));
+          },
           onCancel: onCancel,
           children: [
             OufnessChooser(),
