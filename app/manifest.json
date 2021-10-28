@@ -9,7 +9,12 @@
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
-
+        {
+            "src": "assets/lib/assets/icon.svg",
+            "sizes": "any",
+            "purpose": "maskable any",
+            "type": "image/svg+xml"
+        },
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",

@@ -29,7 +29,7 @@
 <header id="title">
   <button id="sidenav-left-toggle" type="button">&nbsp;</button>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
-    <li><a href="../../index.html">mastbau_inspector</a></li>
+    <li><a href="../../index.html">inspector</a></li>
     <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></li>
     <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
     <li class="self-crumb">extra property</li>
@@ -69,30 +69,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget? get extra {
-  switch (ereArt) {
-    case null:
-      return null;
-    case 5201:
-      return Chip(
-        label: Text(&quot;leicht&quot;),
-        backgroundColor: Colors.green,
-      );
-    case 5202:
-      return Chip(
-        label: Text(&quot;mittel&quot;),
-        backgroundColor: Colors.yellow,
-      );
-    case 5203:
-      return Chip(
-        label: Text(&quot;schwer&quot;),
-        backgroundColor: Colors.red,
-      );
-
-    default:
-      return null;
-  }
-}</code></pre>
+Widget? get extra =&gt; chipd(ereArt)?.toChip;</code></pre>
 </section>
 
 </section>
@@ -108,7 +85,7 @@ Widget? get extra {
 </header>
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
-  <li><a href="../../index.html">mastbau_inspector</a></li>
+  <li><a href="../../index.html">inspector</a></li>
   <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></li>
   <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
   <li class="self-crumb">extra property</li>
@@ -154,6 +131,7 @@ Widget? get extra {
 
 
     <li class="section-title"><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html#static-methods">Static methods</a></li>
+    <li><a href="../../classes_data_checkpointdefect/CheckPointDefect/chipd.html">chipd</a></li>
     <li><a href="../../classes_data_checkpointdefect/CheckPointDefect/fromJson.html">fromJson</a></li>
 
 </ol>
@@ -167,7 +145,7 @@ Widget? get extra {
 
 <footer>
   <span class="no-break">
-    mastbau_inspector
+    inspector
       1.0.0+1
   </span>
 

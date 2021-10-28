@@ -29,7 +29,7 @@
 <header id="title">
   <button id="sidenav-left-toggle" type="button">&nbsp;</button>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
-    <li><a href="../../index.html">mastbau_inspector</a></li>
+    <li><a href="../../index.html">inspector</a></li>
     <li><a href="../../pages_dropdown_dropdownPage/pages_dropdown_dropdownPage-library.html">dropdownPage</a></li>
     <li><a href="../../pages_dropdown_dropdownPage/DropDownPage-class.html">DropDownPage<span class="signature">&lt;<wbr><span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">Data</span>&gt;</span>&gt;</span></a></li>
     <li class="self-crumb">build method</li>
@@ -107,28 +107,21 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return Container(
-    child: Consumer&lt;DDModel&gt;(
-      builder: (context, ddmodel, child) =&gt; Scaffold(
-        appBar: AppBar(
-          &#47;*leading: BackButton(
-            onPressed: Navigator.of(context).pop,
-          ),*&#47;
-          title: Text(ddmodel.title),
-        ),
-        endDrawer: MainDrawer(),
-        body: FutureBuilder&lt;List&gt;(
-            future: Provider.of&lt;DDModel&gt;(context).all,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return ExpandablesListRadio(
-                    children: snapshot.data!
-                        .map((e) =&gt; locationDropDown(e, context, ddmodel))
-                        .toList());
-              }
-              return ExpandablesListRadio.fake(3);
-            }),
+  return Consumer&lt;DDModel&gt;(
+    builder: (context, ddmodel, child) =&gt; Scaffold(
+      appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? BackButton(
+                onPressed: Navigator.of(context).pop,
+              )
+            : null,
+        title: Text(ddmodel.title),
       ),
+      endDrawer: MainDrawer(),
+      body: _DropDownBody(
+        ddmodel: ddmodel,
+      ),
+      floatingActionButton: ddmodel.floatingActionButton,
     ),
   );
 }</code></pre>
@@ -145,7 +138,7 @@ Widget build(BuildContext context) {
 </header>
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
-  <li><a href="../../index.html">mastbau_inspector</a></li>
+  <li><a href="../../index.html">inspector</a></li>
   <li><a href="../../pages_dropdown_dropdownPage/pages_dropdown_dropdownPage-library.html">dropdownPage</a></li>
   <li><a href="../../pages_dropdown_dropdownPage/DropDownPage-class.html">DropDownPage<span class="signature">&lt;<wbr><span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">Data</span>&gt;</span>&gt;</span></a></li>
   <li class="self-crumb">build method</li>
@@ -171,7 +164,6 @@ Widget build(BuildContext context) {
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/StatelessWidget/createElement.html">createElement</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/DiagnosticableTree/debugDescribeChildren.html">debugDescribeChildren</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/debugFillProperties.html">debugFillProperties</a></li>
-    <li><a href="../../pages_dropdown_dropdownPage/DropDownPage/locationDropDown.html">locationDropDown</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/DiagnosticableTree/toDiagnosticsNode.html">toDiagnosticsNode</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/Diagnosticable/toString.html">toString</a></li>
@@ -196,7 +188,7 @@ Widget build(BuildContext context) {
 
 <footer>
   <span class="no-break">
-    mastbau_inspector
+    inspector
       1.0.0+1
   </span>
 

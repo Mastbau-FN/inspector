@@ -29,7 +29,7 @@
 <header id="title">
   <button id="sidenav-left-toggle" type="button">&nbsp;</button>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
-    <li><a href="../../index.html">mastbau_inspector</a></li>
+    <li><a href="../../index.html">inspector</a></li>
     <li><a href="../../widgets_MyListTile1/widgets_MyListTile1-library.html">MyListTile1</a></li>
     <li><a href="../../widgets_MyListTile1/MyCardListTile1-class.html">MyCardListTile1</a></li>
     <li class="self-crumb">MyCardListTile1 constructor</li>
@@ -50,7 +50,7 @@
 </h1></div>
 
     <section class="multi-line-signature">
-      <span class="name ">MyCardListTile1</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-icon">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/IconData-class.html">IconData</a></span> <span class="parameter-name">icon</span> = <span class="default-value">Icons.apps</span>, </span></li>
+      <span class="name ">MyCardListTile1</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-icon">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/IconData-class.html">IconData</a>?</span> <span class="parameter-name">icon</span>, </span></li>
 <li><span class="parameter" id="-param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span> = <span class="default-value">&quot;Click mich doch&quot;</span>, </span></li>
 <li><span class="parameter" id="-param-onTap"><span class="type-annotation">void</span> <span class="parameter-name">onTap</span>(<ol class="parameter-list"></ol>
 )?}</span></li>
@@ -64,10 +64,10 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">MyCardListTile1({
-  this.icon = Icons.apps,
+  IconData? icon,
   this.text = &quot;Click mich doch&quot;,
   this.onTap,
-});</code></pre>
+}) : this.icon = icon ?? Icons.apps;</code></pre>
 </section>
 
 
@@ -81,7 +81,7 @@
 </header>
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
-  <li><a href="../../index.html">mastbau_inspector</a></li>
+  <li><a href="../../index.html">inspector</a></li>
   <li><a href="../../widgets_MyListTile1/widgets_MyListTile1-library.html">MyListTile1</a></li>
   <li><a href="../../widgets_MyListTile1/MyCardListTile1-class.html">MyCardListTile1</a></li>
   <li class="self-crumb">MyCardListTile1 constructor</li>
@@ -134,7 +134,7 @@
 
 <footer>
   <span class="no-break">
-    mastbau_inspector
+    inspector
       1.0.0+1
   </span>
 
