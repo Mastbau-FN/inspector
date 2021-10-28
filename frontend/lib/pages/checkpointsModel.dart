@@ -8,6 +8,7 @@ import 'package:inspector/fragments/adder.dart';
 import 'package:inspector/pages/checkpointdefectsModel.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
+import 'detailsPage.dart';
 import 'imageView.dart';
 
 class CheckPointsModel extends DropDownModel<CheckPoint> {
@@ -57,7 +58,10 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
             );
 
           default:
-            return Text("TODO");
+            return DetailsPage(
+                title: data.title,
+                details: data.langText,
+                onChanged: (txt) {/*TODO*/});
         }
       }),
     );

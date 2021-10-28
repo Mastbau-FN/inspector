@@ -7,6 +7,9 @@ import 'package:inspector/classes/listTileData.dart';
 import 'package:inspector/fragments/adder.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
+import 'detailsPage.dart';
+import 'imageView.dart';
+
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   final Backend _b = Backend();
   final CheckPoint currentCheckPoint;
@@ -38,9 +41,20 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (newcontext) => Text("TODO"),
-      ),
+      MaterialPageRoute(builder: (newcontext) {
+        switch (tiledata.title) {
+          case 'Fotos':
+            return ImageView(
+              images: data.images,
+            );
+
+          default:
+            return DetailsPage(
+                title: data.title,
+                details: data.langText,
+                onChanged: (txt) {/*TODO*/});
+        }
+      }),
     );
   }
 

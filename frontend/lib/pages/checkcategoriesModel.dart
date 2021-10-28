@@ -6,6 +6,7 @@ import 'package:inspector/classes/data/inspection_location.dart';
 import 'package:inspector/classes/listTileData.dart';
 import 'package:inspector/fragments/adder.dart';
 import 'package:inspector/pages/checkpointsModel.dart';
+import 'package:inspector/pages/detailsPage.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
 import 'imageView.dart';
@@ -57,7 +58,10 @@ class CategoryModel extends DropDownModel<CheckCategory> {
             );
 
           default:
-            return Text("TODO");
+            return DetailsPage(
+                title: data.title,
+                details: data.langText,
+                onChanged: (txt) {/*TODO*/});
         }
       }),
     );
