@@ -4,12 +4,15 @@ import 'package:mastbau_inspector/backend/api.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/inspection_location.dart';
 import 'package:mastbau_inspector/classes/listTileData.dart';
+import 'package:mastbau_inspector/fragments/imageWrap.dart';
 import 'package:mastbau_inspector/pages/checkpoints/checkpointsModel.dart';
 import 'package:mastbau_inspector/pages/checkpoints/checkpointsView.dart';
 import 'package:provider/provider.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 
-class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
+import '../imageView.dart';
+
+class CategoryModel extends DropDownModel<CheckCategory> {
   final Backend _b = Backend();
   final InspectionLocation currentLocation;
 
@@ -24,15 +27,15 @@ class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
   List<MyListTileData> actions = [
     MyListTileData(
       title: _nextViewTitle,
-      nextBuilder: (c) => CheckPointsView(),
+      icon: Icons.checklist,
     ),
     MyListTileData(
       title: "Fotos",
-      nextBuilder: (c) => Text('todo'), //TODO
+      icon: Icons.photo_library,
     ),
     MyListTileData(
       title: "Kommentar",
-      nextBuilder: (c) => Text('todo'), //TODO
+      icon: Icons.text_snippet,
     ),
   ];
 
@@ -46,14 +49,29 @@ class CategoryModel extends DropDownModel<CheckCategory> with ChangeNotifier {
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (newcontext) => tiledata.title == _nextViewTitle
-            ? ChangeNotifierProvider<CheckPointsModel>(
-                create: (c) => CheckPointsModel(data),
-                child: tiledata.nextBuilder(newcontext),
-              )
-            : tiledata.nextBuilder(newcontext),
-      ),
+      MaterialPageRoute(builder: (newcontext) {
+        switch (tiledata.title) {
+          case _nextViewTitle:
+            return ChangeNotifierProvider<CheckPointsModel>(
+              create: (c) => CheckPointsModel(data),
+              child: CheckPointsView(),
+            );
+          case 'Fotos':
+            return ImageView(
+              images: data.images,
+            );
+
+          default:
+            return Text("TODO");
+        }
+      }),
     );
   }
+
+  @override
+  Widget? get floatingActionButton => FloatingActionButton(
+        child: Icon(Icons.add),
+        tooltip: "neuen Kategorie hinzufügen",
+        onPressed: () {},
+      );
 }

@@ -1,3 +1,5 @@
+# TODO release to playstore or smth
+
 name: build app (APK only rn)
 on: 
   push:
@@ -6,6 +8,8 @@ on:
       - release
       - 'releases/**'
       - '!releases/**-alpha'
+
+# also TODO: directly deploying service to backend would be super lit
 
 # copied from https://gist.github.com/vinicioslc/b9bd073c8013a726033a999db68a45be
 # not currently in use, needs to be edited TODO (also remove if:false)

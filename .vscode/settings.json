@@ -1,3 +1,4 @@
 {
-    "todo-tree.tree.showBadges": false
+    "todo-tree.tree.showBadges": false,
+    "cmake.configureOnOpen": false
 }

@@ -5,7 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'checkcategory.g.dart';
 
 @JsonSerializable()
-class CheckCategory implements Data {
+class CheckCategory extends Data {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')

@@ -1,14 +1,20 @@
 {
-    "name": "mastbau_inspector",
-    "short_name": "mastbau_inspector",
+    "name": "mastbau inspector",
+    "short_name": "inspector",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "intern inspections by mastbau-fn",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
+        {
+            "src": "assets/lib/assets/icon.svg",
+            "sizes": "any",
+            "purpose": "maskable any",
+            "type": "image/svg+xml"
+        },
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",

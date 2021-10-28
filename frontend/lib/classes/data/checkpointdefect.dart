@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
 import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -5,7 +6,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'checkpointdefect.g.dart';
 
 @JsonSerializable()
-class CheckPointDefect implements Data {
+class CheckPointDefect extends Data {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
@@ -50,6 +51,34 @@ class CheckPointDefect implements Data {
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
 
+  @override
+  Widget? get extra => chipd(ereArt)?.toChip;
+
+  static ChipData? chipd(int? oufness) {
+    switch (oufness) {
+      case null:
+        return null;
+      case 5201:
+        return ChipData(
+          label: "leicht",
+          backgroundColor: Colors.green,
+        );
+      case 5202:
+        return ChipData(
+          label: "mittel",
+          backgroundColor: Colors.orange,
+        );
+      case 5203:
+        return ChipData(
+          label: "schwer",
+          backgroundColor: Colors.red,
+        );
+
+      default:
+        return null;
+    }
+  }
+
   static CheckPointDefect? fromJson(Map<String, dynamic> json) {
     try {
       return _$CheckPointDefectFromJson(json);
@@ -62,4 +91,14 @@ class CheckPointDefect implements Data {
   @override
   Map<String, dynamic> toSmallJson() =>
       {'PjNr': pjNr, 'E1': category_index, 'E2': check_index, 'E3': index};
+}
+
+class ChipData {
+  final String? label;
+  final Color? backgroundColor;
+  const ChipData({this.label, this.backgroundColor});
+  Widget get toChip => Chip(
+        label: Text(label ?? ""),
+        backgroundColor: backgroundColor,
+      );
 }

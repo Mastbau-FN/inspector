@@ -1,4 +1,6 @@
-// TODO offline storage etc
+// TODO offline storage etc, error handling
+
+// BUG: FormatException
 
 import 'dart:async';
 import 'dart:convert';
@@ -8,6 +10,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:mastbau_inspector/assets/consts.dart';
 import 'package:mastbau_inspector/classes/data/checkcategory.dart';
 import 'package:mastbau_inspector/classes/data/checkpoint.dart';
@@ -17,12 +20,13 @@ import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
-const _getProjects_r = '/getProjects';
-const _getCategories_r = '/getCategories';
-const _getCheckPoints_r = '/getCheckPoints';
-const _getCheckPointDefects_r = '/getCheckPointDefects';
+const _getProjects_r = '/projects/get';
+const _getCategories_r = '/categories/get';
+const _getCheckPoints_r = '/checkPoints/get';
+const _getCheckPointDefects_r = '/checkPointDefects/get';
 
-const _getImageFromHash_r = '/image';
+const _getImageFromHash_r = '/image/get';
+const _uploadImage_r = "/image/set";
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -94,9 +98,10 @@ class Backend {
   }
 
   Future<Image?> _fetchImage(String hash) async {
-    var bytes = (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-        ?.bodyBytes;
-    return bytes == null ? null : Image.memory(bytes);
+    http.Response? res =
+        await post_JSON(_getImageFromHash_r, json: {'imghash': hash});
+    if (res == null || res.statusCode != 200) return null;
+    return Image.memory(res.bodyBytes);
   }
 
   Future<T?> Function(Map<String, dynamic>)
@@ -125,14 +130,21 @@ class Backend {
     required String jsonResponseID,
     Map<String, dynamic>? json,
     required D? Function(Map<String, dynamic>) fromJson,
-  }) async =>
-      await getListFromJson(
-        jsonDecode(
-          (await post_JSON(route, json: json))?.body ?? '',
-        ),
-        _generateImageFetcher(fromJson),
-        objName: jsonResponseID,
+  }) async {
+    Map<String, dynamic> _json = {};
+    try {
+      _json = jsonDecode(
+        (await post_JSON(route, json: json))?.body ?? '',
       );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return await getListFromJson(
+      _json,
+      _generateImageFetcher(fromJson),
+      objName: jsonResponseID,
+    );
+  }
 
   // MARK: API
 
@@ -207,6 +219,18 @@ class Backend {
         json: checkpoint.toSmallJson(),
         fromJson: CheckPointDefect.fromJson,
       );
+
+  /// upload a bunch of images //TODO
+  Future uploadFiles(
+    Data data,
+    List<XFile> files,
+    /*TODO*/
+  ) async {
+    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.thingy.E1 etc
+    // data -> body = {thingy: data}
+    post_JSON(_uploadImage_r); //wont work
+    //make multipartrequest or add it to post_json
+  }
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

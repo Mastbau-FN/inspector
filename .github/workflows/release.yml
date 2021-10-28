@@ -1,0 +1,97 @@
+on:
+  push:
+    branches:
+      - main
+      - release
+      - 'releases/**'
+    
+    paths:
+      - 'release-info.md'
+
+name: Create Release
+
+jobs:
+  build-n-release:
+    name: Build and Create Release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    env:
+      API_KEY: ${{ secrets.API_KEY}}
+      API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+      - uses: subosito/flutter-action@v1
+        with:
+          flutter-version: '2.x'
+      - run: |
+          touch .env
+          echo "API_KEY=$API_KEY" >> .env
+          echo "API_URL=$API_URL" >> .env
+      - name: install dependencies
+        run: flutter pub get
+
+      - name: run tests and report coverage
+        run: flutter test --coverage
+      - name: comment coverage
+        if: github.event.pull_request
+        uses: romeovs/lcov-reporter-action@v0.2.16 
+        with:
+          github-token: ${{secrets.TOKEN_GITHUB}}
+
+      - name: Build Documentation
+        run: |
+          flutter pub global activate dartdoc
+          flutter pub global run dartdoc
+
+      - name: Build Web-App
+        run: flutter build web
+
+      - name: make gh-pages folder for doc as well as the app
+        run: |
+          mkdir gh-pages
+          mv doc/api gh-pages/doc
+          mv build/web gh-pages/app
+          cd gh-pages && touch .nojekyll 
+        # the last command is needed to serve the .env
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: frontend/gh-pages
+
+      - name: Read release node
+        id: release-info
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./release-info.md
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release_v_${{ github.run_number }}
+          release_name: AutoRelease (v${{ github.run_number }})
+          body: ${{ steps.release-info.outputs.content }}
+          draft: false
+          prerelease: false
+
+      - name: build apk
+        run: flutter build apk
+
+      - name: upload apk
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: frontend/build/app/outputs/flutter-apk/app-release.apk
+          asset_name: inspector.apk
+          asset_content_type: application/octet-stream

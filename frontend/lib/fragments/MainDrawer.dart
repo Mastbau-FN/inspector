@@ -83,15 +83,13 @@ class MainDrawerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return DrawerHeader(
       child: Center(
-          child: Text(
-        'Mastbau FN',
-        style:
-            TextStyle(fontSize: 32, color: Theme.of(context).backgroundColor),
-      )),
+        child: Image(image: AssetImage('lib/assets/MBG.webp')),
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(begin: Alignment.topLeft, colors: [
-          Theme.of(context).primaryColor,
-          Theme.of(context).accentColor
+          Theme.of(context).primaryColorDark.withAlpha(200),
+          Theme.of(context).canvasColor,
+          //Theme.of(context).primaryColor.withAlpha(250),
         ]),
         //color: Theme.of(context).primaryColor,
       ),
