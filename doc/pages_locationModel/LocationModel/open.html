@@ -90,9 +90,11 @@ void open(
           return ImageView(
             images: data.images,
           );
-
         default:
-          return Text(&quot;TODO&quot;);
+          return DetailsPage(
+              title: data.title,
+              details: data.toJson().toString(),
+              onChanged: (txt) {&#47;*TODO*&#47;});
       }
     }),
   );
