@@ -274,7 +274,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
           onSubmitted: (x) {
             set();
           },
-          focusNode: _textfield_focusnode_list[0],
+          //focusNode: _textfield_focusnode_list[0],
           controller: _textfield_controller_list[0],
         ),
       );
@@ -290,10 +290,10 @@ class Adder extends StatelessWidget implements JsonExtractable {
       return Container(
         padding: EdgeInsets.only(top: 10, left: 20, right: 20),
         child: TextField(
-          autofocus:
-              false, //isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
-          focusNode: fn,
-          //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
+          //autofocus:isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
+          //focusNode: fn,
+          textInputAction:
+              TextInputAction.next, //XXX: sadly this wont work for some reason
           textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
@@ -314,7 +314,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
             fontSize: 18,
           ),
           textAlign: TextAlign.center,
-          onSubmitted: onDone,
+          //onSubmitted: onDone,
           controller: c,
         ),
       );
