@@ -1,5 +1,3 @@
-//TODO: nextView()/DropDownPage braucht noch ein child oÄ womit dann das hinzufügen zb ermöglicht wird (oder ein add-callback-parameter der wieder generic für alle aktiviert werden kann im model hinterlegt)
-
 import 'package:flutter/material.dart';
 import 'package:inspector/classes/data/checkpointdefect.dart';
 import 'package:inspector/classes/data/inspection_location.dart';

@@ -98,6 +98,7 @@ class ChipData {
   final Color? backgroundColor;
   const ChipData({this.label, this.backgroundColor});
   Widget get toChip => Chip(
+        labelStyle: TextStyle(color: Colors.white),
         label: Text(label ?? ""),
         backgroundColor: backgroundColor,
       );

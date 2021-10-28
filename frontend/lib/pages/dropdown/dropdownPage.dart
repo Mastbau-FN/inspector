@@ -7,8 +7,6 @@ import 'package:provider/provider.dart';
 
 import 'dropdownModel.dart';
 
-// TODO drag to refresh
-
 // XXX get to new page with hero transition
 
 /// this builds the main layout from all the pages fully automatically
@@ -34,20 +32,71 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
           title: Text(ddmodel.title),
         ),
         endDrawer: MainDrawer(),
-        body: FutureBuilder<List>(
-            future: Provider.of<DDModel>(context).all,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return ExpandablesListRadio(
-                    children: snapshot.data!
-                        .map((e) => locationDropDown(e, context, ddmodel))
-                        .toList());
-              }
-              return ExpandablesListRadio.fake(3);
-            }),
+        body: _DropDownBody(
+          ddmodel: ddmodel,
+        ),
         floatingActionButton: ddmodel.floatingActionButton,
       ),
     );
+  }
+}
+
+class _DropDownBody<DDModel extends DropDownModel> extends StatefulWidget {
+  final DDModel ddmodel;
+  const _DropDownBody({
+    required this.ddmodel,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_DropDownBody<DDModel>> createState() => _DropDownBodyState<DDModel>();
+}
+
+class _DropDownBodyState<DDModel extends DropDownModel>
+    extends State<_DropDownBody<DDModel>> {
+  Future<List<dynamic>>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    _future = Provider.of<DDModel>(context, listen: false).all;
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List>(
+      future: _future,
+      builder: (context, snapshot) => RefreshIndicator(
+        onRefresh: _refresh,
+        child: _list(snapshot, context),
+      ),
+    );
+  }
+
+  Future<void> _refresh() async {
+    List<Data> freshall =
+        await Provider.of<DDModel>(context, listen: false).all;
+    setState(() {
+      _future = Future.value(freshall);
+    });
+  }
+
+  Widget _list(AsyncSnapshot<List<dynamic>> snapshot, BuildContext context) {
+    if (snapshot.connectionState == ConnectionState.done)
+      return ListView(
+        children: [
+          ExpandablesListRadio(
+              children: snapshot.data!
+                  .map((e) => locationDropDown(e, context, widget.ddmodel))
+                  .toList()),
+        ],
+      );
+    return ExpandablesListRadio.fake(3);
   }
 
   ExpandableCard2 locationDropDown(
