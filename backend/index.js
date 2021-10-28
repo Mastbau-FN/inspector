@@ -26,7 +26,6 @@ const auth = require("./auth/auth");
 const app = express();
 const port = process.env.PORT || 443;
 
-//TODO: check if this worked
 var cors = require('cors');
 app.use(cors({
     origin: ["https://mastbau-fn.github.io"],
@@ -121,7 +120,7 @@ app.use(function (err, req, res, next) {
 if (isInsecure) {
   var httpServer = http.createServer(app);
   httpServer.listen(port, () => {
-    console.warn(`App running on port ${port}. THIS IS INSECURE`); //TODO remove http and force https
+    console.warn(`App running on port ${port}. THIS IS INSECURE`); 
   });
 } else {
   const cert_path = process.env.CERT_PATH;
