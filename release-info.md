@@ -1,6 +1,6 @@
-### release v0.0.2+2
+### release v0.0.2+3
 
-#### changes:
+#### changes
 
 - detail-ansicht stump
 - elemente hinzufügen in jeder Ebene

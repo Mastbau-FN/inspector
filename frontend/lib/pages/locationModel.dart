@@ -55,10 +55,10 @@ class LocationModel extends DropDownModel<InspectionLocation> {
             return ImageView(
               images: data.images,
             );
-
-          return DetailsPage(
+          default:
+            return DetailsPage(
                 title: data.title,
-                details: data.langText,
+                details: data.toJson().toString(),
                 onChanged: (txt) {/*TODO*/});
         }
       }),
