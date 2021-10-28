@@ -47,13 +47,66 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   @override
   Widget? get floatingActionButton => TransformeableActionbutton(
         expandedChild: (onCancel) => Adder(
+          'checkpointdefects',
           onCancel: onCancel,
-          textfield_list: [
-            InputData(hint: "testfeld1", verify: (str) => false),
-            InputData(hint: "testfeld2", verify: (str) => false),
-            InputData(hint: "testfeld3", verify: (str) => false),
-            InputData(hint: "testfeld4", verify: (str) => false),
+          children: [
+            OufnessChooser(),
           ],
+          textfield_list: [
+            InputData("KurzText", hint: "Name"),
+            InputData("LangText", hint: "Beschreibung"),
+          ],
+        ),
+      );
+}
+
+class OufnessChooser extends StatefulWidget implements JsonExtractable {
+  Map<String, dynamic> get json => {};
+  String get name => "oufness";
+
+  @override
+  State<OufnessChooser> createState() => _OufnessChooserState();
+}
+
+class _OufnessChooserState extends State<OufnessChooser> {
+  int? _selected;
+  final List<int> choices = [1, 2, 3];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      children: choices
+          .map((oufness) =>
+              choiceChip(CheckPointDefect.chipd(oufness + 5200), oufness))
+          .toList(),
+    );
+  }
+
+  Widget choiceChip(ChipData? cd, int index) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ChoiceChip(
+          elevation: 4,
+          shadowColor:
+              Theme.of(context).colorScheme.onBackground.withAlpha(100),
+          selectedShadowColor: cd?.backgroundColor,
+          selectedColor: cd?.backgroundColor,
+          backgroundColor: cd?.backgroundColor?.withAlpha(70),
+          avatar: _selected == index
+              ? Icon(
+                  Icons.check,
+                  color: Theme.of(context).colorScheme.surface,
+                )
+              : null,
+          label: Text(
+            cd?.label ?? "none",
+          ),
+          labelStyle: TextStyle(color: Theme.of(context).colorScheme.surface),
+          selected: _selected == index,
+          onSelected: (bool selected) {
+            setState(() {
+              _selected = selected ? index : null;
+            });
+          },
         ),
       );
 }

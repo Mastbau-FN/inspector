@@ -130,14 +130,21 @@ class Backend {
     required String jsonResponseID,
     Map<String, dynamic>? json,
     required D? Function(Map<String, dynamic>) fromJson,
-  }) async =>
-      await getListFromJson(
-        jsonDecode(
-          (await post_JSON(route, json: json))?.body ?? '',
-        ),
-        _generateImageFetcher(fromJson),
-        objName: jsonResponseID,
+  }) async {
+    Map<String, dynamic> _json = {};
+    try {
+      _json = jsonDecode(
+        (await post_JSON(route, json: json))?.body ?? '',
       );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return await getListFromJson(
+      _json,
+      _generateImageFetcher(fromJson),
+      objName: jsonResponseID,
+    );
+  }
 
   // MARK: API
 

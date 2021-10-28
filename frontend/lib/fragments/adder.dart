@@ -11,13 +11,11 @@ class TransformeableActionbutton extends StatefulWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
   final double expandedHeight;
-  final Function(Data?)? onAdd;
 
   final EdgeInsets padding;
 
   const TransformeableActionbutton({
     Key? key,
-    this.onAdd,
     this.collapsedChild = const Icon(Icons.add),
     required this.expandedChild,
     this.padding = const EdgeInsets.all(15),
@@ -122,22 +120,59 @@ class TransformeableActionbuttonState
   Widget withcancel(Function onCancel) => builder(onCancel);
 }*/
 
-//TODO: nicht nur 3 namen sondern wie eingestellt
-class Adder extends StatelessWidget {
-  final Function(Data?)? onSet;
+extension Unique<E, Id> on List<E> {
+  List<E> unique([Id Function(E element)? id, bool inplace = true]) {
+    final ids = Set();
+    var list = inplace ? this : List<E>.from(this);
+    list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
+    return list;
+  }
+}
+
+mixin JsonExtractable on Widget {
+  String get name;
+  Map<String, dynamic> get json;
+}
+
+/*class JsonExtractableBuilder extends JsonExtractable {
+  final String name;
+  final Map<String, dynamic> json;
+  JsonExtractableBuilder
+  @override
+  Widget build(BuildContext context) {
+    throw UnimplementedError();
+  }
+}*/
+
+class Adder extends StatelessWidget implements JsonExtractable {
+  final String name;
+  final Function(Map<String, dynamic>)? onSet;
   final Function()? onCancel;
 
+  final List<JsonExtractable> children;
+
+  /// the data for each [TextField],
+  /// ensure that all [InputData.varName]s are unique
   final List<InputData> textfield_list;
   final List<TextEditingController> _textfield_controller_list;
   final List<FocusNode> _textfield_focusnode_list;
 
-  List<String> names = [];
+  final Map<String, dynamic> json;
 
-  Adder({this.onSet, this.onCancel, this.textfield_list = const []})
-      : this._textfield_controller_list =
+  Adder(
+    this.name, {
+    this.onSet,
+    this.onCancel,
+    this.textfield_list = const [],
+    this.children = const [],
+  })  : assert(textfield_list ==
+            textfield_list
+                .unique((x) => x.varName)), //all varnames need to be unique
+        this._textfield_controller_list =
             textfield_list.map((tf) => TextEditingController()).toList(),
         this._textfield_focusnode_list =
-            textfield_list.map((tf) => FocusNode()).toList();
+            textfield_list.map((tf) => FocusNode()).toList(),
+        this.json = {name: {}};
 
   @override
   Widget build(BuildContext context) {
@@ -178,9 +213,14 @@ class Adder extends StatelessWidget {
       if (textfield_list.every((element) => element.verify(
           //okay the indexOf workaround is pretty bad (O(n^2)), make the every iteretion indexed and it'll be O(n). (but the list shall be rather short so np)
           _textfield_controller_list[textfield_list.indexOf(element)].text))) {
-        onSet?.call(
-          null, /*TODO: generate data or whatever from texts */
-        );
+        for (var i = 0; i < textfield_list.length; i++) {
+          json[name][textfield_list[i].varName] =
+              _textfield_controller_list[i].text;
+        }
+        children.forEach((child) {
+          json[name][child.name] = child.json;
+        });
+        onSet?.call(json);
       } else {
         _alert();
       }
@@ -202,7 +242,7 @@ class Adder extends StatelessWidget {
 
     Container _mainField(void set()) {
       return Container(
-        width: 130,
+        width: MediaQuery.of(context).size.width - 205,
         child: TextField(
           //maxLength: 20,
           textInputAction: TextInputAction.done,
@@ -251,7 +291,7 @@ class Adder extends StatelessWidget {
         padding: EdgeInsets.only(top: 10, left: 20, right: 20),
         child: TextField(
           autofocus:
-              isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
+              false, //isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
           focusNode: fn,
           //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
           textCapitalization: TextCapitalization.words,
@@ -283,6 +323,7 @@ class Adder extends StatelessWidget {
     return Column(
       children: <Widget>[
         Spacer(),
+        ...children,
         ...List.generate(
           textfield_list.length - 1,
           (i) => _input(
@@ -318,7 +359,14 @@ class Adder extends StatelessWidget {
 }
 
 class InputData {
+  /// under which name to store the result
+  final String varName;
+
+  /// the hint the user gets to see
   final String hint;
+
+  /// a function on whether the current [text] is valid (correct set of characters etc)
   final bool Function(String text) verify;
-  const InputData({required this.hint, required this.verify});
+  InputData(this.varName, {required this.hint, this.verify = _defaultver});
+  static bool _defaultver(String str) => str.isNotEmpty;
 }
