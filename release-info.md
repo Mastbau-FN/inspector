@@ -1,4 +1,6 @@
-### release v0.0.1
+### release v0.0.2
 
 #### changes:
-- icon for web
+
+- detail-ansicht stump
+- elemente hinzufügen in jeder Ebene
