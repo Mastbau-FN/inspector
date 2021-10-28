@@ -327,8 +327,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
         ...List.generate(
           textfield_list.length - 1,
           (i) => _input(
-            isBetterthantherest: i ==
-                0, //TODO: its buggy for some reason: crash on backbutton .. something something hero, focusnodes are somehow messed up
+            isBetterthantherest: i == 0,
             hint: textfield_list[i + 1].hint,
             onDone: (name) {
               try {

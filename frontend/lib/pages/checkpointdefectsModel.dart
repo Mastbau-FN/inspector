@@ -61,6 +61,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
           },
           onCancel: onCancel,
           children: [
+            //TODO: height
             OufnessChooser(),
           ],
           textfield_list: [

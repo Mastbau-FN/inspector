@@ -52,7 +52,6 @@ abstract class DropDownModel<DataT extends Data> with ChangeNotifier {
   Widget? floatingActionButton = null;
 }
 
-//TODO alternativ schonmal bissl issue #14:
 Widget nextModel<DDModel extends DropDownModel>(DDModel child) =>
     ChangeNotifierProvider<DDModel>(
       create: (c) => child,
