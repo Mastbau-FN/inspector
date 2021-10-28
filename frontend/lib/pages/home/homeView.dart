@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:mastbau_inspector/pages/locationOverview/locationView.dart';
+import 'package:inspector/pages/locationOverview/locationView.dart';
 
 class HomeView extends StatelessWidget {
   final String title;

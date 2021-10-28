@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownPage.dart';
+import 'package:inspector/classes/data/inspection_location.dart';
+import 'package:inspector/pages/dropdown/dropdownPage.dart';
 
 import 'locationModel.dart';
 

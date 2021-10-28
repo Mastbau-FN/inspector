@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/pages/login/loginModel.dart';
-import 'package:mastbau_inspector/pages/settings/settingsView.dart';
-import 'package:mastbau_inspector/widgets/MyListTile1.dart';
-import 'package:mastbau_inspector/fragments/RandomDogsScrollView.dart';
+import 'package:inspector/pages/login/loginModel.dart';
+import 'package:inspector/pages/settings/settingsView.dart';
+import 'package:inspector/widgets/MyListTile1.dart';
+import 'package:inspector/fragments/RandomDogsScrollView.dart';
 import 'package:provider/provider.dart';
 
 class MainDrawer extends StatelessWidget {

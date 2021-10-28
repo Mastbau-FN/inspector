@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkcategory.g.dart';

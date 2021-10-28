@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
 //should be held up to date with FloatingActionButton
 const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
@@ -291,7 +291,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
         padding: EdgeInsets.only(top: 10, left: 20, right: 20),
         child: TextField(
           autofocus:
-              false, //isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
+              isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
           focusNode: fn,
           //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
           textCapitalization: TextCapitalization.words,

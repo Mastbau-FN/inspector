@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:mastbau_inspector/classes/user.dart';
-import 'package:mastbau_inspector/fragments/ErrorView.dart';
-import 'package:mastbau_inspector/pages/home/homeView.dart';
-import 'package:mastbau_inspector/fragments/loadingscreen/loadingView.dart';
-import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
+import 'package:inspector/classes/user.dart';
+import 'package:inspector/fragments/ErrorView.dart';
+import 'package:inspector/pages/home/homeView.dart';
+import 'package:inspector/fragments/loadingscreen/loadingView.dart';
+import 'package:inspector/pages/locationOverview/locationModel.dart';
 import 'package:provider/provider.dart';
 
 import 'loginModel.dart';
-import 'package:mastbau_inspector/widgets/error.dart';
+import 'package:inspector/widgets/error.dart';
 
 /// Wraps the whole app to provide login if no user is signed in, and provide the credentials for use by children
 ///

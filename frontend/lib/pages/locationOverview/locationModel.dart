@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/backend/api.dart';
-import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
-import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/classes/user.dart';
-import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesModel.dart';
-import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesView.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/backend/api.dart';
+import 'package:inspector/classes/data/checkcategory.dart';
+import 'package:inspector/classes/data/inspection_location.dart';
+import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/classes/user.dart';
+import 'package:inspector/pages/checkcategories/checkcategoriesModel.dart';
+import 'package:inspector/pages/checkcategories/checkcategoriesView.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 import 'package:provider/provider.dart';
 
 import '../imageView.dart';

@@ -1,4 +1,4 @@
-package com.example.mastbau_inspector
+package com.example.inspector
 
 import io.flutter.embedding.android.FlutterActivity
 

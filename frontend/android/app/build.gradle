@@ -33,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.mbgsolutions.mastbau_inspector"
+        applicationId "com.mbgsolutions.inspector"
         minSdkVersion 18
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()

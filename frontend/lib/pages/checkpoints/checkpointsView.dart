@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/checkpoint.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownPage.dart';
+import 'package:inspector/classes/data/checkcategory.dart';
+import 'package:inspector/classes/data/checkpoint.dart';
+import 'package:inspector/pages/dropdown/dropdownPage.dart';
 
 import 'checkpointsModel.dart';
 

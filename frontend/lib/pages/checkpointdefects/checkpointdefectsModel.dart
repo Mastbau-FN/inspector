@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/backend/api.dart';
-import 'package:mastbau_inspector/classes/data/checkpointdefect.dart';
-import 'package:mastbau_inspector/classes/data/checkpoint.dart';
-import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/fragments/adder.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/backend/api.dart';
+import 'package:inspector/classes/data/checkpointdefect.dart';
+import 'package:inspector/classes/data/checkpoint.dart';
+import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/fragments/adder.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   final Backend _b = Backend();

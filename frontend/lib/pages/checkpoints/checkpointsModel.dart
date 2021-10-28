@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/backend/api.dart';
-import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/checkpoint.dart';
-import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/backend/api.dart';
+import 'package:inspector/classes/data/checkcategory.dart';
+import 'package:inspector/classes/data/checkpoint.dart';
+import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
 import '../imageView.dart';
 

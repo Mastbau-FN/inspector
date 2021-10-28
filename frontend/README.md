@@ -1,7 +1,7 @@
 # [DOKU](https://mastbau-fn.github.io/inspector/doc/)
 # Try [here](https://mastbau-fn.github.io/inspector/app/)
 
-# mastbau_inspector
+# inspector
 
 inOffizielles Repo für die Mastbau FN GmBH Inspektions APP
 

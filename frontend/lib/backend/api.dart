@@ -11,12 +11,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:mastbau_inspector/assets/consts.dart';
-import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/checkpoint.dart';
-import 'package:mastbau_inspector/classes/data/checkpointdefect.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/assets/consts.dart';
+import 'package:inspector/classes/data/checkcategory.dart';
+import 'package:inspector/classes/data/checkpoint.dart';
+import 'package:inspector/classes/data/checkpointdefect.dart';
+import 'package:inspector/classes/data/inspection_location.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
@@ -27,6 +27,10 @@ const _getCheckPointDefects_r = '/checkPointDefects/get';
 
 const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
+
+const _addCategory_r = "/categories/set";
+const _addCheckPoint_r = "/checkPoints/set";
+const _addCheckPointDefect_r = "/checkPointDefects/set";
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
