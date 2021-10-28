@@ -4,13 +4,10 @@ import 'package:inspector/backend/api.dart';
 import 'package:inspector/classes/data/checkcategory.dart';
 import 'package:inspector/classes/data/inspection_location.dart';
 import 'package:inspector/classes/listTileData.dart';
-import 'package:inspector/fragments/imageWrap.dart';
-import 'package:inspector/pages/checkpoints/checkpointsModel.dart';
-import 'package:inspector/pages/checkpoints/checkpointsView.dart';
-import 'package:provider/provider.dart';
+import 'package:inspector/pages/checkpointsModel.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
-import '../imageView.dart';
+import 'imageView.dart';
 
 class CategoryModel extends DropDownModel<CheckCategory> {
   final Backend _b = Backend();
@@ -52,10 +49,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return ChangeNotifierProvider<CheckPointsModel>(
-              create: (c) => CheckPointsModel(data),
-              child: CheckPointsView(),
-            );
+            return nextModel(CheckPointsModel(data));
           case 'Fotos':
             return ImageView(
               images: data.images,

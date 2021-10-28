@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:inspector/classes/data/checkpointdefect.dart';
 import 'package:inspector/classes/data/inspection_location.dart';
 import 'package:inspector/classes/listTileData.dart';
-import 'package:inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
 import 'package:inspector/pages/dropdown/dropdownPage.dart';
-import 'package:inspector/pages/locationOverview/locationModel.dart';
+import 'package:inspector/pages/locationModel.dart';
 import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {

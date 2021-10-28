@@ -1,16 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inspector/backend/api.dart';
-import 'package:inspector/classes/data/checkcategory.dart';
 import 'package:inspector/classes/data/inspection_location.dart';
 import 'package:inspector/classes/listTileData.dart';
 import 'package:inspector/classes/user.dart';
-import 'package:inspector/pages/checkcategories/checkcategoriesModel.dart';
-import 'package:inspector/pages/checkcategories/checkcategoriesView.dart';
+import 'package:inspector/pages/checkcategoriesModel.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
-import 'package:provider/provider.dart';
 
-import '../imageView.dart';
+import 'imageView.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation> {
   final Backend _b = Backend();
