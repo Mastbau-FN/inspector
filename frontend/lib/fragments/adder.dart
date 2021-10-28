@@ -131,7 +131,7 @@ extension Unique<E, Id> on List<E> {
 
 mixin JsonExtractable on Widget {
   String get name;
-  Map<String, dynamic> get json;
+  dynamic get json;
 }
 
 /*class JsonExtractableBuilder extends JsonExtractable {

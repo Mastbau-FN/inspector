@@ -49,13 +49,13 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
         expandedChild: (onCancel) => Adder(
           'checkpointdefect',
           onSet: (json) {
+            Map<String, dynamic> defect = json['checkpointdefect'];
             debugPrint("set ${json['checkpointdefect'].toString()}");
-            json['checkpointdefect']['PjNr'] = currentCheckPoint.pjNr;
-            json['checkpointdefect']['E1'] = currentCheckPoint.category_index;
-            json['checkpointdefect']['E2'] = currentCheckPoint.index;
-            json['checkpointdefect']['E3'] = -1;
-            Backend()
-                .setNew(CheckPointDefect.fromJson(json['checkpointdefect']));
+            defect['PjNr'] = currentCheckPoint.pjNr;
+            defect['E1'] = currentCheckPoint.category_index;
+            defect['E2'] = currentCheckPoint.index;
+            defect['E3'] = -1;
+            Backend().setNew(CheckPointDefect.fromJson(defect));
           },
           onCancel: onCancel,
           children: [
@@ -70,23 +70,26 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
 }
 
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
-  Map<String, dynamic> get json => {};
-  String get name => "oufness";
+  dynamic get json => _selected;
+  String get name => "EREArt";
 
+  //thats the state and its a no-no to have it in the widget itself but i need it to return the json
+  int? _selected;
+
+  State<OufnessChooser> _state = _OufnessChooserState();
   @override
-  State<OufnessChooser> createState() => _OufnessChooserState();
+  State<OufnessChooser> createState() => _state;
 }
 
 class _OufnessChooserState extends State<OufnessChooser> {
-  int? _selected;
-  final List<int> choices = [1, 2, 3];
+  final List<int> choices = [5201, 5202, 5203];
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       children: choices
-          .map((oufness) =>
-              choiceChip(CheckPointDefect.chipd(oufness + 5200), oufness))
+          .map(
+              (oufness) => choiceChip(CheckPointDefect.chipd(oufness), oufness))
           .toList(),
     );
   }
@@ -100,7 +103,7 @@ class _OufnessChooserState extends State<OufnessChooser> {
           selectedShadowColor: cd?.backgroundColor,
           selectedColor: cd?.backgroundColor,
           backgroundColor: cd?.backgroundColor?.withAlpha(70),
-          avatar: _selected == index
+          avatar: widget._selected == index
               ? Icon(
                   Icons.check,
                   color: Theme.of(context).colorScheme.surface,
@@ -110,10 +113,10 @@ class _OufnessChooserState extends State<OufnessChooser> {
             cd?.label ?? "none",
           ),
           labelStyle: TextStyle(color: Theme.of(context).colorScheme.surface),
-          selected: _selected == index,
+          selected: widget._selected == index,
           onSelected: (bool selected) {
             setState(() {
-              _selected = selected ? index : null;
+              widget._selected = selected ? index : null;
             });
           },
         ),

@@ -224,7 +224,7 @@ class Backend {
 
   /// sets a new [DataT]
   Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
-    debugPrint(data.toString());
+    print(data?.toJson());
     if (data == null) return null;
     final String route = _addNew_r;
     String identifier;

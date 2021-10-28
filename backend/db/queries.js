@@ -23,7 +23,7 @@ if (!Array.prototype.last) {
 
 const _addfoldername = async (data)=>{
   //TODO: get folder of parent data and add name or something (didnt understand the scheme yet)   .....would probably be even better in sql
-  let data_copy = data;
+  let data_copy = {...data};
 
   //remove highest event
   if (!(data_copy.E2 > 0)) {
@@ -38,6 +38,7 @@ const _addfoldername = async (data)=>{
 
   data.Link = path.join(rootfolder,link+"TODO"+data.name,"no_default_picture_yet")
   data.LinkOrdner = path.join(rootfolder,link+"TODO"+data.name)
+
   return data;
 }
 
@@ -149,7 +150,7 @@ const addNew = async (data) => {
       break;
     case 'defect':
       queryfile = "set/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.Kurztext, ld.LangText, "no_height", ld.ereArt, ld.Link, ld.LinkOrdner];//TODO: height
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth ?? "no_height", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];//TODO: height
       break;
   
     default:
