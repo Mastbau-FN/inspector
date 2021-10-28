@@ -6,9 +6,7 @@ const _getCheckPointDefects_r = "/checkPointDefects/get";
 const _getImageFromHash_r = "/image/get";
 const _uploadImage_r = "/image/set";
 
-const _addCategory_r = "/categories/set";
-const _addCheckPoint_r = "/checkPoints/set";
-const _addCheckPointDefect_r = "/checkPointDefects/set";
+const _addNew_r = "/set";
 
 const fs = require("fs");
 
@@ -72,9 +70,7 @@ app.post("/api/secure" + _getCategories_r, api.getCategories);
 app.post("/api/secure" + _getCheckPoints_r, api.getCheckPoints);
 app.post("/api/secure" + _getCheckPointDefects_r, api.getCheckPointDefects);
 
-app.post("/api/secure" + _addCategory_r, api.addCategory);
-app.post("/api/secure" + _addCheckPoint_r, api.addCheckPoint);
-app.post("/api/secure" + _addCheckPointDefect_r, api.addCheckPointDefect);
+app.post("/api/secure" + _addNew_r, api.addNew);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 app.post(
@@ -109,21 +105,22 @@ app.use(function (req, res, next) {
 
 // MARK : 500
 
+app.use("/api/", function (err, req, res, next) {
+  console.error({err});
+  res.status(500).send({ error: "Something broke!" });
+});
+
 // when an error accurs that should be human readable
 app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("500", { error: err });
 });
 
-app.use("/api/", function (err, req, res, next) {
-  console.error(err);
-  res.status(500).send({ error: "Something broke!" });
-});
 
 if (isInsecure) {
   var httpServer = http.createServer(app);
   httpServer.listen(port, () => {
-    console.warn(`App running on port ${port}. THIS IS INSECURE`); //TODO remove http and force https
+    console.warn(`App running on port ${port}. THIS IS INSECURE`); 
   });
 } else {
   const cert_path = process.env.CERT_PATH;

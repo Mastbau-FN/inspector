@@ -1,12 +1,14 @@
 # getting started
+
 (this all runs from the `backend`dir)
 
 ### Install
+
 - install node (and therefor npm) then run `npm install`
 
-###  create .env file
+### create .env file
 
-fill 
+fill
 <details><summary>example</summary>
 
     ```
@@ -29,4 +31,5 @@ and store (in backend dir)
 #### if neccessary also spin up the postgres database
 
 ### run
-`node index.js`
+
+`npm run tmpserve` or `npm run serve`

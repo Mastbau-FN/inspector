@@ -1,12 +1,9 @@
-//TODO: nextView()/DropDownPage braucht noch ein child oÄ womit dann das hinzufügen zb ermöglicht wird (oder ein add-callback-parameter der wieder generic für alle aktiviert werden kann im model hinterlegt)
-
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/classes/data/checkpointdefect.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
-import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/pages/checkpointdefects/checkpointdefectsModel.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownPage.dart';
-import 'package:mastbau_inspector/pages/locationOverview/locationModel.dart';
+import 'package:inspector/classes/data/checkpointdefect.dart';
+import 'package:inspector/classes/data/inspection_location.dart';
+import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/pages/dropdown/dropdownPage.dart';
+import 'package:inspector/pages/locationModel.dart';
 import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
@@ -49,9 +46,12 @@ abstract class DropDownModel<DataT extends Data> with ChangeNotifier {
       builder: (newcontext) => Text("${tiledata.title} not yet implemeted"),
     ));
   }
+
+  ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
+  /// for adding new [DataT] to this level (or other additional functionality)
+  Widget? floatingActionButton = null;
 }
 
-//TODO alternativ schonmal bissl issue #14:
 Widget nextModel<DDModel extends DropDownModel>(DDModel child) =>
     ChangeNotifierProvider<DDModel>(
       create: (c) => child,

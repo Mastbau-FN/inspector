@@ -6,10 +6,10 @@ class MyCardListTile1 extends StatelessWidget {
   void Function()? onTap;
 
   MyCardListTile1({
-    this.icon = Icons.apps,
+    IconData? icon,
     this.text = "Click mich doch",
     this.onTap,
-  });
+  }) : this.icon = icon ?? Icons.apps;
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:mastbau_inspector/backend/api.dart';
-import 'package:mastbau_inspector/classes/user.dart';
+import 'package:inspector/backend/api.dart';
+import 'package:inspector/classes/user.dart';
 
 class LoginModel extends ChangeNotifier {
   LoginModel();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/widgets/error.dart';
+import 'package:inspector/widgets/error.dart';
 
 class ErrorView extends StatelessWidget {
   final Object? err;

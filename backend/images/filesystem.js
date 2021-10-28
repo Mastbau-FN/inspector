@@ -6,7 +6,7 @@ const pathm = require("path");
 const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally
 
 ///removes the drive and replaces it with our given root path
-const _formatpath = (path) => {
+const formatpath = (path) => {
   const parts = path.split(pathm.sep);
   const drive = parts.shift()[0];
   path = pathm.join(root_path, drive, ...parts);
@@ -14,10 +14,10 @@ const _formatpath = (path) => {
 };
 
 const getImageFrom = (rootpath, link, filename) =>
-  fsp.readFile(_formatpath(pathm.join(rootpath, link, filename)));
+  fsp.readFile(formatpath(pathm.join(rootpath, link, filename)));
 
 const _getAllImagenamesFromPath = async (path) => {
-  path = _formatpath(path);
+  path = formatpath(path);
 
   const dirents = await fsp.readdir(path, { withFileTypes: true });
   return dirents
@@ -37,4 +37,5 @@ const getAllImagenamesFrom = async (rootpath, link) => {
 module.exports = {
   getAllImagenamesFrom,
   getImageFrom,
+  formatpath,
 };

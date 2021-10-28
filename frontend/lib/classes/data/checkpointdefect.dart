@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpointdefect.g.dart';
@@ -52,23 +52,25 @@ class CheckPointDefect extends Data {
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
 
   @override
-  Widget? get extra {
-    switch (ereArt) {
+  Widget? get extra => chipd(ereArt)?.toChip;
+
+  static ChipData? chipd(int? oufness) {
+    switch (oufness) {
       case null:
         return null;
       case 5201:
-        return Chip(
-          label: Text("leicht"),
+        return ChipData(
+          label: "leicht",
           backgroundColor: Colors.green,
         );
       case 5202:
-        return Chip(
-          label: Text("mittel"),
-          backgroundColor: Colors.yellow,
+        return ChipData(
+          label: "mittel",
+          backgroundColor: Colors.orange,
         );
       case 5203:
-        return Chip(
-          label: Text("schwer"),
+        return ChipData(
+          label: "schwer",
           backgroundColor: Colors.red,
         );
 
@@ -89,4 +91,15 @@ class CheckPointDefect extends Data {
   @override
   Map<String, dynamic> toSmallJson() =>
       {'PjNr': pjNr, 'E1': category_index, 'E2': check_index, 'E3': index};
+}
+
+class ChipData {
+  final String? label;
+  final Color? backgroundColor;
+  const ChipData({this.label, this.backgroundColor});
+  Widget get toChip => Chip(
+        labelStyle: TextStyle(color: Colors.white),
+        label: Text(label ?? ""),
+        backgroundColor: backgroundColor,
+      );
 }

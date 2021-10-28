@@ -1,7 +1,6 @@
 
 -- add Categorie (03_Auswahl_Prüfkategorie)
 INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Insp_Stelle") 
-OUTPUT Inserted."E1"
 VALUES (
 $1, /*Projektnummer*/
 $2, /*name (required)*/
@@ -17,5 +16,7 @@ ORDER BY COALESCE("E1",0) DESC LIMIT 1),
 0,
 0,
 NULL
-);
+)
+RETURNING "E1"
+;
 

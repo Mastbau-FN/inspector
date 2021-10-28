@@ -1,16 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:mastbau_inspector/backend/api.dart';
-import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
-import 'package:mastbau_inspector/classes/listTileData.dart';
-import 'package:mastbau_inspector/classes/user.dart';
-import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesModel.dart';
-import 'package:mastbau_inspector/pages/checkcategories/checkcategoriesView.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
-import 'package:provider/provider.dart';
+import 'package:inspector/backend/api.dart';
+import 'package:inspector/classes/data/inspection_location.dart';
+import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/classes/user.dart';
+import 'package:inspector/pages/checkcategoriesModel.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
-import '../imageView.dart';
+import 'imageView.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation> {
   final Backend _b = Backend();
@@ -25,9 +22,18 @@ class LocationModel extends DropDownModel<InspectionLocation> {
 
   @override
   final List<MyListTileData> actions = [
-    MyListTileData(title: _nextViewTitle),
-    MyListTileData(title: "Fotos"),
-    MyListTileData(title: "Infos"),
+    MyListTileData(
+      title: _nextViewTitle,
+      icon: Icons.category,
+    ),
+    MyListTileData(
+      title: "Fotos",
+      icon: Icons.photo_library,
+    ),
+    MyListTileData(
+      title: "Infos",
+      icon: Icons.text_snippet,
+    ),
   ];
 
   @override

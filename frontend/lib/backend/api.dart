@@ -10,12 +10,13 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:mastbau_inspector/assets/consts.dart';
-import 'package:mastbau_inspector/classes/data/checkcategory.dart';
-import 'package:mastbau_inspector/classes/data/checkpoint.dart';
-import 'package:mastbau_inspector/classes/data/checkpointdefect.dart';
-import 'package:mastbau_inspector/classes/data/inspection_location.dart';
-import 'package:mastbau_inspector/pages/dropdown/dropdownModel.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:inspector/assets/consts.dart';
+import 'package:inspector/classes/data/checkcategory.dart';
+import 'package:inspector/classes/data/checkpoint.dart';
+import 'package:inspector/classes/data/checkpointdefect.dart';
+import 'package:inspector/classes/data/inspection_location.dart';
+import 'package:inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
@@ -25,6 +26,9 @@ const _getCheckPoints_r = '/checkPoints/get';
 const _getCheckPointDefects_r = '/checkPointDefects/get';
 
 const _getImageFromHash_r = '/image/get';
+const _uploadImage_r = "/image/set";
+
+const _addNew_r = "/set";
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -128,14 +132,21 @@ class Backend {
     required String jsonResponseID,
     Map<String, dynamic>? json,
     required D? Function(Map<String, dynamic>) fromJson,
-  }) async =>
-      await getListFromJson(
-        jsonDecode(
-          (await post_JSON(route, json: json))?.body ?? '',
-        ),
-        _generateImageFetcher(fromJson),
-        objName: jsonResponseID,
+  }) async {
+    Map<String, dynamic> _json = {};
+    try {
+      _json = jsonDecode(
+        (await post_JSON(route, json: json))?.body ?? '',
       );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return await getListFromJson(
+      _json,
+      _generateImageFetcher(fromJson),
+      objName: jsonResponseID,
+    );
+  }
 
   // MARK: API
 
@@ -210,6 +221,47 @@ class Backend {
         json: checkpoint.toSmallJson(),
         fromJson: CheckPointDefect.fromJson,
       );
+
+  /// sets a new [DataT]
+  Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
+    print(data?.toJson());
+    if (data == null) return null;
+    final String route = _addNew_r;
+    String identifier;
+    switch (typeOf<DataT>()) {
+      case CheckCategory:
+        identifier = 'category';
+        break;
+      case CheckPoint:
+        identifier = 'checkpoint';
+        break;
+      case CheckPointDefect:
+        identifier = 'defect';
+        break;
+      default:
+        debugPrint("yo this type is not supported : ${typeOf<DataT>()}");
+        return null;
+    }
+    var json_data = data.toJson();
+    http.Response? res = await post_JSON(route, json: {
+      'type': identifier,
+      'data': json_data,
+    });
+    debugPrint(res?.body.toString());
+    return null;
+  }
+
+  /// upload a bunch of images //TODO
+  Future uploadFiles(
+    Data data,
+    List<XFile> files,
+    /*TODO*/
+  ) async {
+    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.thingy.E1 etc
+    // data -> body = {thingy: data}
+    post_JSON(_uploadImage_r); //wont work
+    //make multipartrequest or add it to post_json
+  }
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
