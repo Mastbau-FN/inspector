@@ -8,6 +8,7 @@ import 'package:inspector/pages/checkcategoriesModel.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
 import 'imageView.dart';
+import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation> {
   final Backend _b = Backend();
