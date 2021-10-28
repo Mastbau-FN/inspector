@@ -21,24 +21,23 @@ if (!Array.prototype.last) {
   };
 }
 
-const _addfoldername = (data)=>{
+const _addfoldername = async (data)=>{
   //TODO: get folder of parent data and add name or something (didnt understand the scheme yet)   .....would probably be even better in sql
   let data_copy = data;
 
   //remove highest event
-  if (!data_copy.E2) {
+  if (!(data_copy.E2 > 0)) {
     data_copy.E1 = null;
-  } else if(!data_copy.E3) {
+  } else if(!(data_copy.E3 > 0)) {
     data_copy.E2 = null;
   } else {
     data_copy.E3 = null;
   }
   //to then get parent folder
-  const {r,f,i} = getLink(data_copy);
-  console.log(data,data_copy, r,f,i)
+  const {rootfolder, link, mainImg} = await getLink(data_copy);
 
-  data.Link = path.join(r,f+"TODO"+data.name,"no_default_picture_yet")
-  data.LinkOrdner = path.join(r,f+"TODO"+data.name)
+  data.Link = path.join(rootfolder,link+"TODO"+data.name,"no_default_picture_yet")
+  data.LinkOrdner = path.join(rootfolder,link+"TODO"+data.name)
   return data;
 }
 
@@ -132,48 +131,34 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
 
 /**
  *
- * @param {Number} pjNr
- * @param category the new category that shall be added (name, description)
- * @returns a Promise resolving to the new ID (E1)
+ * @param data consisting of type and data
+ * @returns a Promise resolving to the new ID (E1..E3)
  */
-const addCheckCategory = (pjNr, category) => 
-  queryFileWithParams("set/check_categories", [pjNr, ...Object.values(_addfoldername(category))]);
-
-/**
- *
- * @param {Number} pjNr
- * @param {Number} category_index
- * @param check_point the new check_point that shall be added (name, description)
- * @returns a Promise resolving to the new ID (E2)
- */
-const addCheckPoint = (pjNr, category_index, check_point) =>
-  queryFileWithParams("set/check_points", [
-    pjNr,
-    category_index,
-    ...Object.values(_addfoldername(check_point)),
-  ]);
-
-/**
- *
- * @param {Number} pjNr
- * @param {Number} category_index
- * @param {Number} check_point_index
- * @param check_point_defect the new defect that shall be added (name, description, location, oufness)
- * @returns a Promise resolving to the new ID (E3)
- */
-const addCheckPointDefect = (
-  pjNr,
-  category_index,
-  check_point_index,
-  check_point_defect
-) => {
-  check_point_defect.oufness = check_point_defect.oufness ? 5204 : check_point_defect.oufness + 5200; /* 1 -> 5201 Mangel leicht, 2 -> 5202 Mangel mittel, 3 -> 5203 Mangel schwer, undefined -> 5204 ohne Mangel*/
-  return queryFileWithParams("set/check_point_defects", [
-    pjNr,
-    check_point_index,
-    category_index,
-    ...Object.values(_addfoldername(check_point_defect)),
-  ]);
+const addNew = async (data) => {
+  const ld = await _addfoldername(data.data);
+  let params;
+  let queryfile;
+  switch (data.type) {
+    case 'category':
+      queryfile = "set/check_categories";
+      params = [ld.PjNr, ld.Kurztext, ld.LangText, ld.Link, ld.LinkOrdner];
+      break;
+    case 'checkpoint':
+      queryfile = "set/check_points";
+      params = [ld.PjNr, ld.E1, ld.Kurztext, ld.LangText, ld.Link, ld.LinkOrdner];
+      break;
+    case 'defect':
+      queryfile = "set/check_point_defects";
+      params = [ld.PjNr, ld.E1, ld.E2, ld.Kurztext, ld.LangText, "no_height", ld.ereArt, ld.Link, ld.LinkOrdner];//TODO: height
+      break;
+  
+    default:
+      console.log(`someone tried to add ${data.type}`);
+      return;
+  }
+  let res = await queryFileWithParams(queryfile, params);
+  console.log(res);
+  return res;
 }
 
 const convertpath = (winpath) =>
@@ -189,11 +174,12 @@ const getRootFolder = async (pjNr) =>
 const getLink = async (data) => {
 
   let rootfolder = await getRootFolder(data.PjNr);
+  //console.log(rootfolder);
 
   let _link =
     data.Link ??
     (await pool.asyncQuery(
-      ```
+      `
         SELECT 
           "Events"."Link"
         FROM 
@@ -202,23 +188,22 @@ const getLink = async (data) => {
         WHERE (
           ("MGAUFTR"."PjNr" = $1) -- projektnummer
           AND ("Events"."Link" IS NOT NULL) 
-      ``` 
+      `
       //TODO: SECURITY: this is susceptible against SQL-Injection
-      + data.E1 != null ? 'AND ("Events"."E1" = ' + data.E1 + ")" : "" 
-      + data.E2 != null ? 'AND ("Events"."E2" = ' + data.E2 + ")" : "" 
-      + data.E3 != null ? 'AND ("Events"."E3" = ' + data.E3 + ")" : "" 
+      + (data.E1 > 0 ? `AND ("Events"."E1" = ${data.E1})` : "" )
+      + (data.E2 > 0 ? `AND ("Events"."E2" = ${data.E2})` : "" )
+      + (data.E3 > 0 ? `AND ("Events"."E3" = ${data.E3})` : "" )
       +
-      ```
+      `
         )
 
         ORDER BY "Events"."EREArt" DESC, "Events"."E1","Events"."E2","Events"."E3" ASC
         LIMIT 1 -- could be removed but im just interested in a sngle link sooo yeah
         ;
     
-      ```,
+      `,
       [data.PjNr]
-    ).rows[0]); // this could throw if no link is found, TODO: err-handling
-
+    )).rows[0]?.Link ?? ""; // this could throw if no link is found, TODO: err-handling
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
   let mainImg = path.basename(convertpath(_link));
 
@@ -234,9 +219,7 @@ module.exports = {
   getCheckPoints,
   getCheckPointDefects,
 
-  addCheckCategory,
-  addCheckPoint,
-  addCheckPointDefect,
+  addNew,
 };
 
 const hashImages = async (tthis) => {

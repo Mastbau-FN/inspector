@@ -28,9 +28,7 @@ const _getCheckPointDefects_r = '/checkPointDefects/get';
 const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
 
-const _addCategory_r = "/categories/set";
-const _addCheckPoint_r = "/checkPoints/set";
-const _addCheckPointDefect_r = "/checkPointDefects/set";
+const _addNew_r = "/set";
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -228,19 +226,16 @@ class Backend {
   Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
     debugPrint(data.toString());
     if (data == null) return null;
-    String route;
+    final String route = _addNew_r;
     String identifier;
     switch (typeOf<DataT>()) {
       case CheckCategory:
-        route = _addCategory_r;
         identifier = 'category';
         break;
       case CheckPoint:
-        route = _addCheckPoint_r;
         identifier = 'checkpoint';
         break;
       case CheckPointDefect:
-        route = _addCheckPointDefect_r;
         identifier = 'defect';
         break;
       default:
@@ -249,7 +244,8 @@ class Backend {
     }
     var json_data = data.toJson();
     http.Response? res = await post_JSON(route, json: {
-      identifier: json_data,
+      'type': identifier,
+      'data': json_data,
     });
     debugPrint(res?.body.toString());
     return null;

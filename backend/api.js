@@ -61,42 +61,13 @@ const getCheckPointDefects = (req, res, next) => errsafejson(
     res,next
   );
 
-const addCategory = (req, res, next) =>
+const addNew = (req, res, next) =>
   errsafejson(
     async () =>
-      (await queries.addCheckCategory(req.body.PjNr, req.body.category))[0].E1,
-    (e1)=> ({E1: e1}),
+      (await queries.addNew(req.body))[0],
+    (json)=> (json),
     res,next
   );
-
-const addCheckPoint = (req, res, next) =>
-  errsafejson(
-    async () =>
-      (
-        await queries.addCheckCategory(
-          req.body.PjNr,
-          req.body.E1,
-          req.body.checkpoint
-        )
-      )[0].E2,
-    (e2) => ({E2: e2}),
-    res,next
-  );
-
-const addCheckPointDefect = (req, res, next) =>
-errsafejson(
-  async () =>
-    (
-      await queries.addCheckCategory(
-        req.body.PjNr,
-        req.body.E1,
-        req.body.E2,
-        req.body.defect
-      )
-    )[0].E3,
-  (e3) => ({E3: e3}),
-  res,next
-);
 
 const getFileFromHash = async (req, res) => {
   try {
@@ -127,7 +98,5 @@ module.exports = {
   getFileFromHash,
   fileUpload,
 
-  addCategory,
-  addCheckPoint,
-  addCheckPointDefect,
+  addNew,
 };
