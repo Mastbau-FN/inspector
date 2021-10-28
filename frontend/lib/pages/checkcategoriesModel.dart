@@ -4,6 +4,7 @@ import 'package:inspector/backend/api.dart';
 import 'package:inspector/classes/data/checkcategory.dart';
 import 'package:inspector/classes/data/inspection_location.dart';
 import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/fragments/adder.dart';
 import 'package:inspector/pages/checkpointsModel.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
@@ -63,9 +64,22 @@ class CategoryModel extends DropDownModel<CheckCategory> {
   }
 
   @override
-  Widget? get floatingActionButton => FloatingActionButton(
-        child: Icon(Icons.add),
-        tooltip: "neuen Kategorie hinzufügen",
-        onPressed: () {},
+  Widget? get floatingActionButton => TransformeableActionbutton(
+        expandedHeight: 200,
+        expandedChild: (onCancel) => Adder(
+          'checkpoint',
+          onSet: (json) async {
+            Map<String, dynamic> category = json['checkpoint'];
+            category['PjNr'] = currentLocation.pjNr;
+            category['E1'] = -1;
+            await Backend().setNew(CheckCategory.fromJson(category));
+            notifyListeners();
+          },
+          onCancel: onCancel,
+          textfield_list: [
+            InputData("KurzText", hint: "Name"),
+            InputData("LangText", hint: "Beschreibung"),
+          ],
+        ),
       );
 }

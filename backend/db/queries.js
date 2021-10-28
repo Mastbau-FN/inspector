@@ -143,11 +143,11 @@ const addNew = async (data) => {
   switch (data.type) {
     case 'category':
       queryfile = "set/check_categories";
-      params = [ld.PjNr, ld.Kurztext, ld.LangText, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
       break;
     case 'checkpoint':
       queryfile = "set/check_points";
-      params = [ld.PjNr, ld.E1, ld.Kurztext, ld.LangText, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
       break;
     case 'defect':
       queryfile = "set/check_point_defects";

@@ -4,6 +4,7 @@ import 'package:inspector/backend/api.dart';
 import 'package:inspector/classes/data/checkcategory.dart';
 import 'package:inspector/classes/data/checkpoint.dart';
 import 'package:inspector/classes/listTileData.dart';
+import 'package:inspector/fragments/adder.dart';
 import 'package:inspector/pages/checkpointdefectsModel.dart';
 import 'package:inspector/pages/dropdown/dropdownModel.dart';
 
@@ -61,4 +62,25 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
       }),
     );
   }
+
+  @override
+  Widget? get floatingActionButton => TransformeableActionbutton(
+        expandedHeight: 200,
+        expandedChild: (onCancel) => Adder(
+          'checkpoint',
+          onSet: (json) async {
+            Map<String, dynamic> checkpoint = json['checkpoint'];
+            checkpoint['PjNr'] = currentCategory.pjNr;
+            checkpoint['E1'] = currentCategory.index;
+            checkpoint['E2'] = -1;
+            await Backend().setNew(CheckPoint.fromJson(checkpoint));
+            notifyListeners();
+          },
+          onCancel: onCancel,
+          textfield_list: [
+            InputData("KurzText", hint: "Name"),
+            InputData("LangText", hint: "Beschreibung"),
+          ],
+        ),
+      );
 }
