@@ -71,35 +71,38 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-ExpansionPanelRadio make(BuildContext context) =&gt; ExpansionPanelRadio(
-    backgroundColor: color,
-    headerBuilder: (context, isExpanded) =&gt; ListTile(
-          leading: Padding(
-            padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
-            child: ClipOval(
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: previewImg ??
-                    Icon(
-                      Icons.construction,
-                      color: _color(isExpanded, context),
-                    ),
+ExpansionPanelRadio make(BuildContext context) {
+  &#47;&#47;debugPrint(previewImg.toString());
+  return ExpansionPanelRadio(
+      backgroundColor: color,
+      headerBuilder: (context, isExpanded) =&gt; ListTile(
+            leading: Padding(
+              padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
+              child: ClipOval(
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: previewImg ??
+                      Icon(
+                        Icons.construction,
+                        color: _color(isExpanded, context),
+                      ),
+                ),
               ),
             ),
+            trailing: extra,
+            title: Text(
+              title,
+              style: isExpanded
+                  ? Theme.of(context).textTheme.headline5
+                  : Theme.of(context).textTheme.bodyText1,
+            ),
           ),
-          trailing: extra,
-          title: Text(
-            title,
-            style: isExpanded
-                ? Theme.of(context).textTheme.headline5
-                : Theme.of(context).textTheme.bodyText1,
-          ),
-        ),
-    body: Column(
-      children: [...children, SizedBox(height: 10)],
-    ),
-    canTapOnHeader: true,
-    value: key);</code></pre>
+      body: Column(
+        children: [...children, SizedBox(height: 10)],
+      ),
+      canTapOnHeader: true,
+      value: key);
+}</code></pre>
 </section>
 
 
