@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  List<Image?>? images = [];
+  List<Image>? images = [];
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
@@ -26,7 +26,7 @@ abstract class Data implements WithImgHashes {
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
-abstract class DropDownModel<DataT extends Data> with ChangeNotifier {
+abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   /// could be used for the scaffold appbar title
   String get title;
 
