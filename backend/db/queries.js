@@ -160,7 +160,6 @@ const addNew = async (data) => {
     case 'defect':
       queryfile = "set/check_point_defects";
       params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
-      console.log(params)
       break;
   
     default:
@@ -168,7 +167,6 @@ const addNew = async (data) => {
       return;
   }
   let res = await queryFileWithParams(queryfile, params);
-  console.log(res);
   return res;
 }
 
@@ -223,7 +221,6 @@ const getLink = async (data, andSet = true) => {
   const res = { rootfolder, link, mainImg };
 
   if(andSet)_magic_setLink(data,res);
-  console.log(data.E3, data.E3 === 0);
 
   return res;
 };
@@ -316,7 +313,6 @@ const hashImages = async (tthis) => {
   for (thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, mainImg } = await getLink(thingy);
-      console.log({rootfolder,link,mainImg});
 
       // get all *other* image names
       let imageNames = (
