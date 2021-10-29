@@ -69,13 +69,16 @@ class _DropDownBodyState<DDModel extends DropDownModel>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List>(
-      future: _future,
-      builder: (context, snapshot) => RefreshIndicator(
-        onRefresh: _refresh,
-        child: _list(snapshot, context),
-      ),
-    );
+    return Consumer<DDModel>(builder: (context, ddmodel, child) {
+      debugPrint("rebuilt");
+      return FutureBuilder<List>(
+        future: ddmodel.all,
+        builder: (context, snapshot) => RefreshIndicator(
+          onRefresh: _refresh,
+          child: _list(snapshot, context),
+        ),
+      );
+    });
   }
 
   Future<void> _refresh() async {

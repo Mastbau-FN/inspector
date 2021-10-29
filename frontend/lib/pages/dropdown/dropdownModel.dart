@@ -26,7 +26,7 @@ abstract class Data implements WithImgHashes {
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
-abstract class DropDownModel<DataT extends Data> with ChangeNotifier {
+abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   /// could be used for the scaffold appbar title
   String get title;
 
