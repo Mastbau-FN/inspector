@@ -79,7 +79,6 @@ const queryFileWithParams = async (file, params, addHashFunction = true) => {
       return await hashImages(this);
     };
   }
-
   return data.rows;
 };
 
@@ -145,7 +144,8 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @returns a Promise resolving to the new ID (E1..E3)
  */
 const addNew = async (data) => {
-  const ld = await _addfoldername(data.data,await _nextID() +"_"+data.data.KurzText); //TODO: the nextID thingy is rather bad since it results in a race condition (no one is allowed to add new entries between this line and the query below)
+  //const ld = await _addfoldername(data.data,await _nextID() +"_"+data.data.KurzText); //TODO: the nextID thingy is rather bad since it results in a race condition (no one is allowed to add new entries between this line and the query below)
+  let ld = data.data;
   let params;
   let queryfile;
   switch (data.type) {
@@ -159,7 +159,8 @@ const addNew = async (data) => {
       break;
     case 'defect':
       queryfile = "set/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth ?? "no_height", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
+      console.log(params)
       break;
   
     default:
@@ -177,12 +178,20 @@ const convertpath = (winpath) =>
 const getRootFolder = async (pjNr) =>
   path.dirname(
     convertpath(
-      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].Link ?? ""
+      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
     )
   );
 
+Object.prototype.firstNonNull = (names) => {
+  for (const key in names) {
+    if (Object.hasOwnProperty.call(this, key) && this[key] != null) {
+      return names[key];
+    }
+  }
+}
+
 // this function is just power pure
-const getLink = async (data) => {
+const getLink = async (data, andSet = true) => {
 
   let rootfolder = await getRootFolder(data.PjNr);
 
@@ -211,19 +220,65 @@ const getLink = async (data) => {
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
   let mainImg = path.basename(convertpath(_link));
 
-  return { rootfolder, link, mainImg };
+  const res = { rootfolder, link, mainImg };
+
+  if(andSet)_magic_setLink(data,res);
+  console.log(data.E3, data.E3 === 0);
+
+  return res;
 };
 
+
+const __magic_part = (data)=>
+  (data.E1 > 0 
+    ? `AND ("Events"."E1" = $2::int)` 
+      + (data.E2 > 0 
+        ? `AND ("Events"."E2" = $3::int)` 
+          + (data.E3 > 0 
+            ? `AND ("Events"."E3" = $4::int)` 
+              + `AND ("Events"."EREArt" >= 5201 AND "Events"."EREArt" <= 5204)` //all set -> search a Mangel (5201-5204)
+
+            : `AND ("Events"."EREArt" = 5200)` //E3 not set -> search a PruefPunkt (5200)
+            )
+        : `AND ("Events"."EREArt" = 5100)` //E2 not set -> search a Category (5100)
+        )
+    : `AND ("Events"."EventID" = 6097)`//E1 not set -> search for a Location TODO, KP ob das die Korrekte EREArt ist..
+  )
+  +  `AND ($2=$2 AND $3=$3 AND $4=$4)`;
+
+/**
+ * 
+ * this query is used to update the Link and LinkOrdner, by identifying it via its event levels instead of an index
+ * @returns nothing really
+ */
+const _magic_setLink = (data, {link, mainImg})=>pool.asyncQuery(
+  `
+    UPDATE
+     "Events"
+
+     SET "Link" = $6::varchar, "LinkOrdner" = $5::varchar
+
+    WHERE (
+      "Events"."PjNr" = $1 -- projektnummer
+      AND ($6=$6 AND $5=$5) -- so the amount of params match
+      -- AND "Link" IS NULL AND "LinkOrdner" IS NULL 
+  `
+  + __magic_part(data)
+  +`);`,
+
+  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,mainImg)]
+);
 
 const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
   `
     SELECT 
-      "Events"."Link", "Events"."LinkOrdner", "Events"."Index", "Events"."KurzText"
+      "Events".*
     FROM 
       "MGAUFTR" INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 
     WHERE (
       ("MGAUFTR"."PjNr" = $1) -- projektnummer
+      AND ($4=$4) -- so the amount of params match
   `
   + (hasLink 
     ?
@@ -232,11 +287,7 @@ const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
       `
     : ``
   )
-  // if this field is available we check if it matches otherwise query the level above and ignore parameter
-  + (data.E1 > 0 ? `AND ("Events"."E1" = $2)` : `AND ("Events"."EREArt" < 5199) AND ($2 = $2)` )
-  + (data.E2 > 0 ? `AND ("Events"."E2" = $3)` : `AND ("Events"."EREArt" < 5200) AND ($3 = $3)` )
-  + (data.E3 > 0 ? `AND ("Events"."E3" = $4)` : `AND ("Events"."EREArt" < 5201) AND ($4 = $4)` )
-  +
+  + __magic_part(data)+
   `
     )
 
