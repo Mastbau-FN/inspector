@@ -37,7 +37,7 @@ const _removeHighestLevel = (data)=>{
   return data_copy;
 }
 
-const _addfoldername = async (data, newFolder)=>{
+const _addfoldername = async (data)=>{
   
   //let data_copy = _removeHighestLevel(data);
   data.Link = null;
@@ -49,6 +49,14 @@ const _addfoldername = async (data, newFolder)=>{
   data.LinkOrdner = path.join(rootfolder,link)
 
   return data;
+}
+
+Object.prototype.firstNonNull = (names) => {
+  for (const key in names) {
+    if (Object.hasOwnProperty.call(this, key) && this[key] != null) {
+      return names[key];
+    }
+  }
 }
 
 /**
@@ -144,7 +152,6 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @returns a Promise resolving to the new ID (E1..E3)
  */
 const addNew = async (data) => {
-  //const ld = await _addfoldername(data.data,await _nextID() +"_"+data.data.KurzText); //TODO: the nextID thingy is rather bad since it results in a race condition (no one is allowed to add new entries between this line and the query below)
   let ld = data.data;
   let params;
   let queryfile;
@@ -168,7 +175,7 @@ const addNew = async (data) => {
   }
   let res = await queryFileWithParams(queryfile, params);
   const newdata = {...(data.data),...(res[0])}
-  _addfoldername(newdata,await _nextID() +"_"+data.data.KurzText);
+  _addfoldername(newdata);
   return res;
 }
 
@@ -182,13 +189,7 @@ const getRootFolder = async (pjNr) =>
     )
   );
 
-Object.prototype.firstNonNull = (names) => {
-  for (const key in names) {
-    if (Object.hasOwnProperty.call(this, key) && this[key] != null) {
-      return names[key];
-    }
-  }
-}
+
 
 // this function is just power pure
 const getLink = async (data, andSet = true) => {
@@ -229,6 +230,55 @@ const getLink = async (data, andSet = true) => {
 
   return res;
 };
+
+
+
+module.exports = {
+  getLink,
+
+  getValidUser,
+  getInspectionsForUser,
+  getCheckCategoriesForPjNR,
+  getCheckPoints,
+  getCheckPointDefects,
+
+  addNew,
+};
+
+const hashImages = async (tthis) => {
+  for (thingy of tthis) {
+    if (thingy.Link) {
+      let { rootfolder, link, mainImg } = await getLink(thingy);
+
+      // get all *other* image names
+      let imageNames = (
+        await imgfiler.getAllImagenamesFrom(rootfolder, link)
+      ).filter((v) => v != mainImg);
+
+      // append their hashes to the returned obj
+      thingy.images = await Promise.all(
+        imageNames.map(
+          async (name) => await imghasher.memorize(rootfolder, link, name)
+        )
+      );
+
+      // set main image at first index
+      thingy.images.unshift(
+        await imghasher.memorize(rootfolder, link, mainImg)
+      );
+    }
+    // no longer needed
+    delete thingy.Link;
+    //never needed anyways
+    delete thingy.LinkOrdner;
+  }
+
+  //// //selfdestruction muhhahah
+  //// delete data.rows.hashImages;
+
+  return tthis;
+};
+
 
 
 const __magic_part = (data)=>
@@ -300,50 +350,3 @@ const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
   `,
   [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0]
 );
-
-
-module.exports = {
-  getLink,
-
-  getValidUser,
-  getInspectionsForUser,
-  getCheckCategoriesForPjNR,
-  getCheckPoints,
-  getCheckPointDefects,
-
-  addNew,
-};
-
-const hashImages = async (tthis) => {
-  for (thingy of tthis) {
-    if (thingy.Link) {
-      let { rootfolder, link, mainImg } = await getLink(thingy);
-
-      // get all *other* image names
-      let imageNames = (
-        await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      ).filter((v) => v != mainImg);
-
-      // append their hashes to the returned obj
-      thingy.images = await Promise.all(
-        imageNames.map(
-          async (name) => await imghasher.memorize(rootfolder, link, name)
-        )
-      );
-
-      // set main image at first index
-      thingy.images.unshift(
-        await imghasher.memorize(rootfolder, link, mainImg)
-      );
-    }
-    // no longer needed
-    delete thingy.Link;
-    //never needed anyways
-    delete thingy.LinkOrdner;
-  }
-
-  //// //selfdestruction muhhahah
-  //// delete data.rows.hashImages;
-
-  return tthis;
-};
