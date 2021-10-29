@@ -21,8 +21,9 @@ if (!Array.prototype.last) {
   };
 }
 
-const _addfoldername = async (data)=>{
-  
+const _nextID = async() => (await pool.asyncQuery(`SELECT coalesce(max("Index") + 1, 1) AS "Index" FROM "Events";`, null)).rows[0].Index;
+
+const _removeHighestLevel = (data)=>{
   let data_copy = {...data};
 
   //remove highest event
@@ -33,14 +34,29 @@ const _addfoldername = async (data)=>{
   } else {
     data_copy.E3 = null;
   }
-  //to then get parent folder
-  const {rootfolder, link, mainImg} = await getLink(data_copy);
+  return data_copy;
+}
 
-  //TODO: check if this worked
-  data.Link = path.join(rootfolder,link+"TODO"+data.name,"no_default_picture_yet")
-  data.LinkOrdner = path.join(rootfolder,link+"TODO"+data.name)
+const _addfoldername = async (data)=>{
+  
+  //let data_copy = _removeHighestLevel(data);
+  data.Link = null;
+  //to then get parent folder
+  const {rootfolder, link, mainImg} = await getLink(data);
+
+   //ODO: check if this worked
+  data.Link = path.join(rootfolder,link,mainImg)
+  data.LinkOrdner = path.join(rootfolder,link)
 
   return data;
+}
+
+Object.prototype.firstNonNull = (names) => {
+  for (const key in names) {
+    if (Object.hasOwnProperty.call(this, key) && this[key] != null) {
+      return names[key];
+    }
+  }
 }
 
 /**
@@ -71,7 +87,6 @@ const queryFileWithParams = async (file, params, addHashFunction = true) => {
       return await hashImages(this);
     };
   }
-
   return data.rows;
 };
 
@@ -137,7 +152,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @returns a Promise resolving to the new ID (E1..E3)
  */
 const addNew = async (data) => {
-  const ld = await _addfoldername(data.data);
+  let ld = data.data;
   let params;
   let queryfile;
   switch (data.type) {
@@ -151,7 +166,7 @@ const addNew = async (data) => {
       break;
     case 'defect':
       queryfile = "set/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth ?? "no_height", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
       break;
   
     default:
@@ -159,7 +174,8 @@ const addNew = async (data) => {
       return;
   }
   let res = await queryFileWithParams(queryfile, params);
-  console.log(res);
+  const newdata = {...(data.data),...(res[0])}
+  _addfoldername(newdata);
   return res;
 }
 
@@ -169,48 +185,53 @@ const convertpath = (winpath) =>
 const getRootFolder = async (pjNr) =>
   path.dirname(
     convertpath(
-      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].Link ?? ""
+      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
     )
   );
 
-const getLink = async (data) => {
+
+
+// this function is just power pure
+const getLink = async (data, andSet = true) => {
 
   let rootfolder = await getRootFolder(data.PjNr);
-  //console.log(rootfolder);
 
   let _link =
-    data.Link ??
-    (await pool.asyncQuery(
-      `
-        SELECT 
-          "Events"."Link"
-        FROM 
-          "MGAUFTR" INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
-
-        WHERE (
-          ("MGAUFTR"."PjNr" = $1) -- projektnummer
-          AND ("Events"."Link" IS NOT NULL) 
-      `
-      //TODO: SECURITY: this is susceptible against SQL-Injection
-      + (data.E1 > 0 ? `AND ("Events"."E1" = ${data.E1})` : "" )
-      + (data.E2 > 0 ? `AND ("Events"."E2" = ${data.E2})` : "" )
-      + (data.E3 > 0 ? `AND ("Events"."E3" = ${data.E3})` : "" )
-      +
-      `
-        )
-
-        ORDER BY "Events"."EREArt" DESC, "Events"."E1","Events"."E2","Events"."E3" ASC
-        LIMIT 1 -- could be removed but im just interested in a sngle link sooo yeah
-        ;
+    data.Link;
     
-      `,
-      [data.PjNr]
-    )).rows[0]?.Link ?? ""; // this could throw if no link is found, TODO: err-handling
+  if(_link == null){
+    let qres = (await _magic_query(data)).rows[0];
+
+    const _newFolderName = async (data)=>{
+      const _backup = (await _magic_query(data,false)).rows[0];
+      const new_name = (_backup.Index ?? "TODO_INDEX") + "_" + (_backup.KurzText ?? "TODO_KURZTEXT");
+      return new_name;
+    }
+
+
+    _link = path.join(
+      ((qres?.Link ?? qres?.LinkOrdner) == null)                                  //if we dont get a result
+        ? path.join(          
+            (await getLink(_removeHighestLevel(data))).link,                      //try the level above
+            await _newFolderName(data)                                            //and add the new name
+          )               
+        : "" ,                                                                    //else were fine
+      qres?.Link ?? path.join(qres?.LinkOrdner ?? "", "no_default_picture_yet")   //otherwise 
+    );
+  }
+
+    
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
   let mainImg = path.basename(convertpath(_link));
 
-  return { rootfolder, link, mainImg };
+  const res = { rootfolder, link, mainImg };
+
+  if(andSet)_magic_setLink(data,res);
+
+  return res;
 };
+
+
 
 module.exports = {
   getLink,
@@ -227,9 +248,7 @@ module.exports = {
 const hashImages = async (tthis) => {
   for (thingy of tthis) {
     if (thingy.Link) {
-      let rootfolder, link, mainImg;
-      ({ rootfolder, link, mainImg } = await getLink(thingy));
-      ////console.log({rootfolder,link,mainImg});
+      let { rootfolder, link, mainImg } = await getLink(thingy);
 
       // get all *other* image names
       let imageNames = (
@@ -259,3 +278,75 @@ const hashImages = async (tthis) => {
 
   return tthis;
 };
+
+
+
+const __magic_part = (data)=>
+  (data.E1 > 0 
+    ? `AND ("Events"."E1" = $2::int)` 
+      + (data.E2 > 0 
+        ? `AND ("Events"."E2" = $3::int)` 
+          + (data.E3 > 0 
+            ? `AND ("Events"."E3" = $4::int)` 
+              + `AND ("Events"."EREArt" >= 5201 AND "Events"."EREArt" <= 5204)` //all set -> search a Mangel (5201-5204)
+
+            : `AND ("Events"."EREArt" = 5200)` //E3 not set -> search a PruefPunkt (5200)
+            )
+        : `AND ("Events"."EREArt" = 5100)` //E2 not set -> search a Category (5100)
+        )
+    : `AND ("Events"."EventID" = 6097)`//E1 not set -> search for a Location TODO, KP ob das die Korrekte EREArt ist..
+  )
+  +  `AND ($2=$2 AND $3=$3 AND $4=$4)`;
+
+/**
+ * 
+ * this query is used to update the Link and LinkOrdner, by identifying it via its event levels instead of an index
+ * @returns nothing really
+ */
+const _magic_setLink = (data, {link, mainImg})=>pool.asyncQuery(
+  `
+    UPDATE
+     "Events"
+
+     SET "Link" = $6::varchar, "LinkOrdner" = $5::varchar
+
+    WHERE (
+      "Events"."PjNr" = $1 -- projektnummer
+      AND ($6=$6 AND $5=$5) -- so the amount of params match
+      -- AND "Link" IS NULL AND "LinkOrdner" IS NULL 
+  `
+  + __magic_part(data)
+  +`);`,
+
+  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,mainImg)]
+);
+
+const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
+  `
+    SELECT 
+      "Events".*
+    FROM 
+      "MGAUFTR" INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
+
+    WHERE (
+      ("MGAUFTR"."PjNr" = $1) -- projektnummer
+      AND ($4=$4) -- so the amount of params match
+  `
+  + (hasLink 
+    ?
+      `
+        AND ("Events"."Link" IS NOT NULL OR "Events"."LinkOrdner" IS NOT NULL) 
+      `
+    : ``
+  )
+  + __magic_part(data)+
+  `
+    )
+
+    ORDER BY "Events"."EREArt" DESC, "Events"."E1","Events"."E2","Events"."E3" ASC
+    LIMIT 1 -- could be removed but im just interested in a sngle link sooo yeah
+    ;
+
+  `,
+  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0]
+);

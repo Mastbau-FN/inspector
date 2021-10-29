@@ -1,0 +1,195 @@
+
+> express-test@1.0.0 serve
+> node index.js > ../../log && disown
+
+
+> express-test@1.0.0 serve
+> node index.js > ../../log && disown
+
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/T'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/T'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+failed to get image names:  [Error: ENOENT: no such file or directory, scandir '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/administrator/images/S/5800-5899/StO 5843 Wilhelm-Kabus-Straße 21-35/944823_Kabelweg/944825_Spaltmaße/944852_Mangel schwerTODOundefinedTODOundefined'
+}
+Terminated
