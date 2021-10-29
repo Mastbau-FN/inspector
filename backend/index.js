@@ -75,7 +75,7 @@ app.post("/api/secure" + _addNew_r, api.addNew);
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 app.post(
   "/api/secure" + _uploadImage_r,
-  upload.single("img_up"),
+  upload.any(),
   api.fileUpload
 );
 
