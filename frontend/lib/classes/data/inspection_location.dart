@@ -28,7 +28,7 @@ class InspectionLocation extends Data {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Image?>? images;
+  List<Image>? images;
 
   InspectionLocation(
       {this.bauleitung,

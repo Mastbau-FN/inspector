@@ -102,7 +102,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   ExpandableCard2 locationDropDown(
       Data data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
-        previewImg: data.images != null && data.images!.length > 0
+        previewImg: (data.images != null && data.images!.length > 0)
             ? data.images![0]
             : null,
         title: data.title,

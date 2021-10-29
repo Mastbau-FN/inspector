@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  List<Image?>? images = [];
+  List<Image>? images = [];
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
