@@ -39,14 +39,14 @@ const _removeHighestLevel = (data)=>{
 
 const _addfoldername = async (data, newFolder)=>{
   
-  let data_copy = _removeHighestLevel(data);
+  //let data_copy = _removeHighestLevel(data);
   data.Link = null;
   //to then get parent folder
-  const {rootfolder, link, mainImg} = await getLink(data_copy);
+  const {rootfolder, link, mainImg} = await getLink(data);
 
-  //TODO: check if this worked
-  data.Link = path.join(rootfolder,link,newFolder,"no_default_picture_yet")
-  data.LinkOrdner = path.join(rootfolder,link,newFolder)
+   //ODO: check if this worked
+  data.Link = path.join(rootfolder,link,mainImg)
+  data.LinkOrdner = path.join(rootfolder,link)
 
   return data;
 }
@@ -167,6 +167,8 @@ const addNew = async (data) => {
       return;
   }
   let res = await queryFileWithParams(queryfile, params);
+  const newdata = {...(data.data),...(res[0])}
+  _addfoldername(newdata,await _nextID() +"_"+data.data.KurzText);
   return res;
 }
 
@@ -201,19 +203,22 @@ const getLink = async (data, andSet = true) => {
 
     const _newFolderName = async (data)=>{
       const _backup = (await _magic_query(data,false)).rows[0];
-      return (_backup.Index ?? "TODO_INDEX") + "_" + (_backup.KurzText ?? "TODO_KURZTEXT");
+      const new_name = (_backup.Index ?? "TODO_INDEX") + "_" + (_backup.KurzText ?? "TODO_KURZTEXT");
+      return new_name;
     }
+
 
     _link = path.join(
       ((qres?.Link ?? qres?.LinkOrdner) == null)                                  //if we dont get a result
         ? path.join(          
             (await getLink(_removeHighestLevel(data))).link,                      //try the level above
-            await _newFolderName                                                  //and add the new name
+            await _newFolderName(data)                                            //and add the new name
           )               
         : "" ,                                                                    //else were fine
       qres?.Link ?? path.join(qres?.LinkOrdner ?? "", "no_default_picture_yet")   //otherwise 
     );
   }
+
     
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
   let mainImg = path.basename(convertpath(_link));
