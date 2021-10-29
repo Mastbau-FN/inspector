@@ -20,6 +20,8 @@ import 'package:inspector/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 
+import 'package:flat/flat.dart';
+
 const _getProjects_r = '/projects/get';
 const _getCategories_r = '/categories/get';
 const _getCheckPoints_r = '/checkPoints/get';
@@ -29,6 +31,16 @@ const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";
+
+extension _Parser on http.BaseResponse {
+  http.Response? forceRes() {
+    try {
+      return this as http.Response;
+    } catch (e) {
+      return null;
+    }
+  }
+}
 
 /// backend Singleton to provide all functionality related to the backend
 class Backend {
@@ -78,8 +90,12 @@ class Backend {
   }
 
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  Future<http.Response> post(String route,
-      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> post(
+    String route, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
@@ -87,12 +103,31 @@ class Backend {
   }
 
   /// post_JSON to our backend as the user
-  Future<http.Response?> post_JSON(String route,
-      {Map<String, dynamic>? json}) async {
+  Future<http.BaseResponse?> post_JSON(
+    String route, {
+    Map<String, dynamic>? json,
+    List<XFile> multipart_files = const [],
+  }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
     json['user'] = await _c_user;
     try {
+      if (multipart_files.isNotEmpty) {
+        var fullURL = Uri.parse(_baseurl! + route);
+        var mreq = http.MultipartRequest('POST', fullURL)
+          ..files.addAll(
+            List<http.MultipartFile>.from((await Future.wait(
+              multipart_files.map(
+                (xfile) async => await http.MultipartFile.fromPath(
+                    'package', xfile.path,
+                    filename: xfile.name),
+              ),
+            ))
+                .whereType<http.MultipartFile>()),
+          )
+          ..fields.addAll(flatten(json) as Map<String, String>);
+        return mreq.send();
+      }
       return post(route, headers: headers, body: jsonEncode(json));
     } catch (e) {
       return null;
@@ -101,7 +136,8 @@ class Backend {
 
   Future<Image?> _fetchImage(String hash) async {
     http.Response? res =
-        await post_JSON(_getImageFromHash_r, json: {'imghash': hash});
+        (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
+            ?.forceRes();
     if (res == null || res.statusCode != 200) return null;
     return Image.memory(res.bodyBytes);
   }
@@ -138,7 +174,7 @@ class Backend {
     Map<String, dynamic> _json = {};
     try {
       _json = jsonDecode(
-        (await post_JSON(route, json: json))?.body ?? '',
+        (await post_JSON(route, json: json))?.forceRes()?.body ?? '',
       );
     } catch (e) {
       debugPrint(e.toString());
@@ -167,7 +203,7 @@ class Backend {
     if (await isUserLoggedIn(user)) return await this.user;
     await connectionGuard();
     _user = user;
-    var res = await post_JSON('/login');
+    var res = (await post_JSON('/login'))?.forceRes();
     if (res != null && res.statusCode == 200) {
       //success
       var resb = jsonDecode(res.body)['user'];
@@ -245,10 +281,11 @@ class Backend {
         return null;
     }
     var json_data = data.toJson();
-    http.Response? res = await post_JSON(route, json: {
+    http.Response? res = (await post_JSON(route, json: {
       'type': identifier,
       'data': json_data,
-    });
+    }))
+        ?.forceRes();
     debugPrint(res?.body.toString());
     return null;
   }
@@ -259,10 +296,11 @@ class Backend {
     List<XFile> files,
     /*TODO*/
   ) async {
-    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.thingy.E1 etc
-    // data -> body = {thingy: data}
-    post_JSON(_uploadImage_r); //wont work
-    //make multipartrequest or add it to post_json
+    //TODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+    post_JSON(
+      _uploadImage_r,
+      json: data.toJson(),
+    ); //wont work
   }
 }
 

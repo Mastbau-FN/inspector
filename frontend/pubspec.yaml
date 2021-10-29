@@ -22,6 +22,12 @@ environment:
 
 dependencies:
 
+  # to flatten json for multipart requests (uploading images)
+  flat: ^0.4.0
+
+  # show quick messages
+  fluttertoast: ^8.0.8
+
   # image picker duh
   image_picker: ^0.8.4
 
