@@ -70,7 +70,6 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      debugPrint("rebuilt");
       return FutureBuilder<List>(
         future: ddmodel.all,
         builder: (context, snapshot) => RefreshIndicator(

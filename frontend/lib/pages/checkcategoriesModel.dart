@@ -55,6 +55,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
           case 'Fotos':
             return ImageView(
               images: data.images,
+              onNewImages: (files) => Backend().uploadFiles(data, files),
             );
 
           default:

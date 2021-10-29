@@ -54,6 +54,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
           case 'Fotos':
             return ImageView(
               images: data.images,
+              onNewImages: (files) => Backend().uploadFiles(data, files),
             );
           default:
             return DetailsPage(
