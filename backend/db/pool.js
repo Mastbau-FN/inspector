@@ -22,3 +22,7 @@ db.pool.asyncQuery = (querystring, args) =>
 module.exports = {
   db,
 };
+
+//delete whacknesses
+//pool = require("./db/pool")
+//pool.db.pool.query(`DELETE  FROM "Events" WHERE "LinkOrdner" LIKE '%TODO_TEST_1%';`, null).then(e => console.log(e))

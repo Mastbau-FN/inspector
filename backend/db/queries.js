@@ -33,12 +33,13 @@ const _addfoldername = async (data)=>{
   } else {
     data_copy.E3 = null;
   }
+  data.Link = null;
   //to then get parent folder
   const {rootfolder, link, mainImg} = await getLink(data_copy);
 
   //TODO: check if this worked
-  data.Link = path.join(rootfolder,link+"TODO"+data.name,"no_default_picture_yet")
-  data.LinkOrdner = path.join(rootfolder,link+"TODO"+data.name)
+  data.Link = path.join(rootfolder,link,"TODO_TEST_1"+data.KurzText,"no_default_picture_yet")
+  data.LinkOrdner = path.join(rootfolder,link,"TODO_TEST_1"+data.KurzText)
 
   return data;
 }
@@ -179,22 +180,24 @@ const getLink = async (data) => {
   //console.log(rootfolder);
 
   let _link =
-    data.Link ??
-    (await pool.asyncQuery(
+    data.Link;
+    
+  if(_link == null){
+    let qres = (await pool.asyncQuery(
       `
         SELECT 
-          "Events"."Link"
+          "Events"."Link", "Events"."LinkOrdner"
         FROM 
           "MGAUFTR" INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 
         WHERE (
           ("MGAUFTR"."PjNr" = $1) -- projektnummer
-          AND ("Events"."Link" IS NOT NULL) 
+          AND ("Events"."Link" IS NOT NULL OR "Events"."LinkOrdner" IS NOT NULL) 
       `
-      //TODO: SECURITY: this is susceptible against SQL-Injection
-      + (data.E1 > 0 ? `AND ("Events"."E1" = ${data.E1})` : "" )
-      + (data.E2 > 0 ? `AND ("Events"."E2" = ${data.E2})` : "" )
-      + (data.E3 > 0 ? `AND ("Events"."E3" = ${data.E3})` : "" )
+      // if this field is available we check if it matches otherwise query the level above and ignore parameter
+      + (data.E1 > 0 ? `AND ("Events"."E1" = $2)` : `AND ("Events"."EREArt" < 5199) AND ($2 = $2)` )
+      + (data.E2 > 0 ? `AND ("Events"."E2" = $3)` : `AND ("Events"."EREArt" < 5200) AND ($3 = $3)` )
+      + (data.E3 > 0 ? `AND ("Events"."E3" = $4)` : `AND ("Events"."EREArt" < 5201) AND ($4 = $4)` )
       +
       `
         )
@@ -204,8 +207,14 @@ const getLink = async (data) => {
         ;
     
       `,
-      [data.PjNr]
-    )).rows[0]?.Link ?? ""; // this could throw if no link is found, TODO: err-handling
+      [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0]
+    )).rows[0];
+
+    _link = qres?.Link ?? path.join(qres?.LinkOrdner ?? "", "no_default_picture_yet"); // this could throw if no link is found, TODO: err-handling
+  }
+    
+
+
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
   let mainImg = path.basename(convertpath(_link));
 
