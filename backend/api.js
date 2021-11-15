@@ -80,7 +80,8 @@ const getFileFromHash = async (req, res) => {
 };
 
 const fileUpload = async (req, res) => {
-  if (!req.file) {
+  console.log("uploaded files")
+  if (!(req.files || req.file)) {
     res.status(400).json({ reason: "no file uploaded" });
   } else {
     res.status(204).json();
