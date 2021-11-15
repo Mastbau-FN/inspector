@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:inspector/classes/user.dart';
-import 'package:inspector/fragments/ErrorView.dart';
-import 'package:inspector/pages/homeView.dart';
-import 'package:inspector/fragments/loadingscreen/loadingView.dart';
-import 'package:inspector/pages/locationModel.dart';
+import 'package:MBG_Inspektionen/classes/user.dart';
+import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
+import 'package:MBG_Inspektionen/pages/homeView.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/pages/locationModel.dart';
 import 'package:provider/provider.dart';
 
 import 'loginModel.dart';
-import 'package:inspector/widgets/error.dart';
+import 'package:MBG_Inspektionen/widgets/error.dart';
 
 /// Wraps the whole app to provide login if no user is signed in, and provide the credentials for use by children
 ///

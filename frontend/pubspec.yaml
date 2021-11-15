@@ -1,5 +1,5 @@
-name: inspector
-description: Inspector APP für die Mastbau FN GmBH
+name: MBG_Inspektionen
+description: Inspections-APP für die Mastbau FN GmBH
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -21,6 +21,12 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
+
+  # to flatten json for multipart requests (uploading images)
+  flat: ^0.4.0
+
+  # show quick messages
+  fluttertoast: ^8.0.8
 
   # image picker duh
   image_picker: ^0.8.4

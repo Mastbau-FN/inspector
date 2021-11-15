@@ -2,4 +2,4 @@
 
 #### changes
 
-- bilder und stateupdate funzen
+- bildupload funktioniert (unsicher und etwas buggy noch)

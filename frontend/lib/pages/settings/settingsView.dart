@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inspector/pages/login/loginModel.dart';
+import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
 /// a page where the user can change settings. it currently support [Logout]

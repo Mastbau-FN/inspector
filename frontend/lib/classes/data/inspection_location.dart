@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inspector/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'inspection_location.g.dart';

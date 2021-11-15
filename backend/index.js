@@ -56,6 +56,14 @@ const isInsecure = process.env.isInsecure ?? false;
 
 // api-key wall
 app.use("/api/secure/", auth.api_wall);
+
+//TODO: make sure no non-logged in user can access this...
+app.post(
+  "/api/secure" + _uploadImage_r,
+  upload.any(),
+  api.fileUpload
+);
+
 // needs a user to be logged in aka provided via the user param inside the post request
 app.use("/api/secure/", auth.login_wall);
 
@@ -73,11 +81,6 @@ app.post("/api/secure" + _getCheckPointDefects_r, api.getCheckPointDefects);
 app.post("/api/secure" + _addNew_r, api.addNew);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
-app.post(
-  "/api/secure" + _uploadImage_r,
-  upload.single("img_up"),
-  api.fileUpload
-);
 
 app.get("/error", (req, res) => {
   throw Error("failed");
