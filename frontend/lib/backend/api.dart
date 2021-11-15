@@ -110,7 +110,7 @@ class Backend {
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
-    json['user'] = await _c_user;
+    json['user'] = (await _c_user)?.toJson();
     try {
       if (multipart_files.isNotEmpty) {
         var fullURL = Uri.parse(_baseurl! + route);
@@ -125,11 +125,16 @@ class Backend {
             ))
                 .whereType<http.MultipartFile>()),
           )
-          ..fields.addAll(flatten(json) as Map<String, String>);
-        return mreq.send();
+          ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
+          ..fields.addAll(/*flatten()*/ json.map<String, String>(
+              (key, value) => MapEntry(key, value.toString())));
+        debugPrint("gonna send multipart-req with booty ${mreq.fields}");
+        var res = await mreq.send();
+        return res;
       }
       return post(route, headers: headers, body: jsonEncode(json));
     } catch (e) {
+      debugPrint("request failed, cause : ${e}");
       return null;
     }
   }
@@ -291,17 +296,24 @@ class Backend {
   }
 
   /// upload a bunch of images //TODO
-  Future uploadFiles<DataT extends Data>(
+  Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
     List<XFile> files,
   ) async {
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
     debugPrint('uploading images ${files}');
-    post_JSON(
+    var res = await post_JSON(
       _uploadImage_r,
       json: data.toJson(),
       multipart_files: files, //TODO: check what doesnt work yet..
     ); //wont work
+    if (res?.statusCode != 200) {
+      debugPrint(res?.statusCode.toString());
+      debugPrint(res?.contentLength.toString());
+    }
+    return (res.runtimeType == http.Response)
+        ? (res as http.Response?)?.body //TODO meh remove crash und stuff
+        : await (res as http.StreamedResponse?)?.stream.bytesToString();
   }
 }
 

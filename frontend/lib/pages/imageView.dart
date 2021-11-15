@@ -6,14 +6,15 @@ import 'package:image_picker/image_picker.dart';
 
 class ImageView extends StatelessWidget {
   List<Image> _images = [];
-  final Future Function(List<XFile>) onNewImages;
+  final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
-  static Future _defaultAdd(List<XFile> list) async {
+  static Future<String?> _defaultAdd(List<XFile> list) async {
     Fluttertoast.showToast(
       msg: "no callback provided",
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
     );
+    return "";
   }
 
   ImageView(
@@ -41,9 +42,10 @@ class ImageView extends StatelessWidget {
         onPressed: () async {
           //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
           final List<XFile>? new_images = await _picker.pickMultiImage();
-          await onNewImages(new_images ?? []);
+          var resstring = await onNewImages(new_images ?? []);
           Fluttertoast.showToast(
-            msg: "upload finished (no idea of successed or failed tho)",
+            msg: resstring ??
+                "upload finished (no idea of successed or failed tho)",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.CENTER,
           );
