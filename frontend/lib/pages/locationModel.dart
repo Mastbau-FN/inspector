@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:inspector/backend/api.dart';
-import 'package:inspector/classes/data/inspection_location.dart';
-import 'package:inspector/classes/listTileData.dart';
-import 'package:inspector/classes/user.dart';
-import 'package:inspector/pages/checkcategoriesModel.dart';
-import 'package:inspector/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:MBG_Inspektionen/classes/listTileData.dart';
+import 'package:MBG_Inspektionen/classes/user.dart';
+import 'package:MBG_Inspektionen/pages/checkcategoriesModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 
 import 'imageView.dart';
 import 'detailsPage.dart';

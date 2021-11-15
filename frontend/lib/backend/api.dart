@@ -11,12 +11,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:inspector/assets/consts.dart';
-import 'package:inspector/classes/data/checkcategory.dart';
-import 'package:inspector/classes/data/checkpoint.dart';
-import 'package:inspector/classes/data/checkpointdefect.dart';
-import 'package:inspector/classes/data/inspection_location.dart';
-import 'package:inspector/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 

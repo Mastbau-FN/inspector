@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inspector/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 
 //should be held up to date with FloatingActionButton
 const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(

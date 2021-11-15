@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:integration_test/integration_test_driver_extended.dart';
-import 'package:inspector/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/api.dart';
 
-import 'package:inspector/main.dart';
-import 'package:inspector/pages/login/loginView.dart';
-import 'package:inspector/widgets/error.dart';
+import 'package:MBG_Inspektionen/main.dart';
+import 'package:MBG_Inspektionen/pages/login/loginView.dart';
+import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:integration_test/integration_test.dart';
 
 // TODO if tests are wanted/needed , feel free

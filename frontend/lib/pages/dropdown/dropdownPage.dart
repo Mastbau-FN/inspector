@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:inspector/classes/data/checkcategory.dart';
-import 'package:inspector/fragments/MainDrawer.dart';
-import 'package:inspector/widgets/MyListTile1.dart';
-import 'package:inspector/widgets/myExpandablelList.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
+import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
+import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
+import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
 import 'dropdownModel.dart';

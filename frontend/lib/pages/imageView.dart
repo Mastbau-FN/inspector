@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:inspector/fragments/imageWrap.dart';
+import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImageView extends StatelessWidget {

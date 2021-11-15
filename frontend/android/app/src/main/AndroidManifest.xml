@@ -1,11 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.inspector">
+    package="com.mbg-solutions.MBG_Inspektionen">
         <!-- Required to fetch data from the internet. -->
         <uses-permission android:name="android.permission.INTERNET" />
         <!-- Required to get information whether network is available (to sync to backend) -->
         <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
    <application
-        android:label="inspector"
+        android:label="MBG Inspektionen"
         android:icon="@mipmap/launcher_icon">
 
         <activity

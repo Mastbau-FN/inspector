@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
-import 'package:inspector/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpointdefect.g.dart';

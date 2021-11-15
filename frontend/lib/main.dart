@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:inspector/pages/login/loginView.dart';
-import 'package:inspector/theme.dart';
-import 'package:inspector/widgets/error.dart';
+import 'package:MBG_Inspektionen/pages/login/loginView.dart';
+import 'package:MBG_Inspektionen/theme.dart';
+import 'package:MBG_Inspektionen/widgets/error.dart';
 
 Future main() async {
   //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
@@ -14,7 +14,7 @@ Future main() async {
 }
 
 /// how the App is called (shown in AppBar or Tab etc.)
-const String appTitle = 'FN Inspector';
+const String appTitle = 'MBG Inspektionen';
 
 /**
  * Main App entry point
