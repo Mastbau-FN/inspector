@@ -1,3 +1,5 @@
+const pathm = require("path");
+
 const files = require("./filesystem")
 const rootfolder = require("../db/queries").getLink;
 

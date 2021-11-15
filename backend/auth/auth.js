@@ -6,6 +6,7 @@ const api_wall = (req, res, next) => {
     return res.status(401).json({ error: "No auth header given" });
   }
   if (req.headers.authorization != process.env.API_KEY) {
+    console.log("tried auth", req.headers.authorization);
     return res.status(403).json({ error: "NOT AUTHORIZED" });
   }
   next();
@@ -20,6 +21,7 @@ const login_wall = async (req, res, next) => {
     req.user = user;
     next();
   } catch (e) {
+    console.log("someone tried access with", req.body)
     return res.status(403).json({ error: "wrong credentials" });
   }
 };
