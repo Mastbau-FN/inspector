@@ -296,6 +296,7 @@ class Backend {
     List<XFile> files,
   ) async {
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+    debugPrint('uploading images ${files}');
     post_JSON(
       _uploadImage_r,
       json: data.toJson(),
