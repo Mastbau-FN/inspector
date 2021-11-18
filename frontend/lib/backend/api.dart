@@ -151,6 +151,7 @@ class Backend {
       _generateImageFetcher<T extends Data>(
     T? Function(Map<String, dynamic>) jsoner,
   ) {
+    //TODO only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);
@@ -295,7 +296,7 @@ class Backend {
     return null;
   }
 
-  /// upload a bunch of images //TODO
+  /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
     List<XFile> files,
@@ -305,7 +306,7 @@ class Backend {
     var res = await post_JSON(
       _uploadImage_r,
       json: data.toJson(),
-      multipart_files: files, //TODO: check what doesnt work yet..
+      multipart_files: files,
     ); //wont work
     if (res?.statusCode != 200) {
       debugPrint(res?.statusCode.toString());
@@ -324,7 +325,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
   try {
     List<dynamic> str = (objName != null) ? json[objName] : json;
     return List<T>.from(
-        (await Future.wait(str.map((insp) async => await converter(insp))))
+        (await Future.wait(str.map((elem) async => await converter(elem))))
             .whereType<T>());
   } catch (e) {
     debugPrint(e.toString());
