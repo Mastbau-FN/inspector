@@ -57,7 +57,7 @@ const isInsecure = process.env.isInsecure ?? false;
 // api-key wall
 app.use("/api/secure/", auth.api_wall);
 
-//TODO: make sure no non-logged in user can access this...
+//TODO: make sure no non-logged in user cant access this...
 app.post(
   "/api/secure" + _uploadImage_r,
   upload.any(),
