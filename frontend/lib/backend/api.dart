@@ -172,11 +172,22 @@ class Backend {
         first_working_image_index++;
       }
 
+      // data.image_futures =
+
+      // for (var i = first_working_image_index;
+      //     i < data.imagehashes!.length;
+      //     i++) {
+      //   data.image_futures[i - first_working_image_index] =
+      //       _fetchImage(data.imagehashes![i]);
+      // }
+
       data.image_futures = data.imagehashes
           ?.map(
             (hash) => _fetchImage(hash),
           )
-          .toList();
+          .toList()
+          .sublist(first_working_image_index + 1);
+
       return data;
     };
   }
