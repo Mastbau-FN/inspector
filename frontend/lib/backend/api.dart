@@ -151,7 +151,7 @@ class Backend {
       _generateImageFetcher<T extends Data>(
     T? Function(Map<String, dynamic>) jsoner,
   ) {
-    //TODO only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
+    // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);

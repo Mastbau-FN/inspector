@@ -52,8 +52,8 @@ class LocationModel extends DropDownModel<InspectionLocation> {
           case _nextViewTitle:
             return nextModel(CategoryModel(data));
           case 'Fotos':
-            return ImageView(
-              images: data.images,
+            return ImageView.futured(
+              future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );
           default:

@@ -94,19 +94,17 @@ class _DropDownBodyState<DDModel extends DropDownModel>
         children: [
           ExpandablesListRadio(
               children: snapshot.data!
-                  .map((e) => locationDropDown(e, context, widget.ddmodel))
+                  .map((e) => dropDown_element(e, context, widget.ddmodel))
                   .toList()),
         ],
       );
     return ExpandablesListRadio.fake(3);
   }
 
-  ExpandableCard2 locationDropDown(
+  ExpandableCard2 dropDown_element(
       Data data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
-        previewImg: (data.images != null && data.images!.length > 0)
-            ? data.images![0]
-            : null,
+        previewImg: data.mainImage,
         title: data.title,
         extra: data.extra,
         children: ddmodel.actions

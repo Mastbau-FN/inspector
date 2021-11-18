@@ -53,8 +53,8 @@ class CategoryModel extends DropDownModel<CheckCategory> {
           case _nextViewTitle:
             return nextModel(CheckPointsModel(data));
           case 'Fotos':
-            return ImageView(
-              images: data.images,
+            return ImageView.futured(
+              future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );
 
