@@ -46,7 +46,16 @@ app.get("/", (request, response) => {
   response.render("index");
 });
 
-const isInsecure = process.env.isInsecure ?? false;
+//multpart-middleware has to come before login, so the body is already parsed
+app.post(
+  "/api/secure" + _uploadImage_r,
+  auth.api_wall,
+  upload.any(),
+  auth.login_wall,
+  api.fileUpload
+);
+
+const isInsecure = process.env.isInsecure ?? false; //currently unused 
 
 /**
  * everything at this path (/api/secure/) is hidden behind an auth-wall currently requiring the correct authentication header (API-Key)
@@ -56,13 +65,6 @@ const isInsecure = process.env.isInsecure ?? false;
 
 // api-key wall
 app.use("/api/secure/", auth.api_wall);
-
-//TODO: make sure no non-logged in user cant access this...
-app.post(
-  "/api/secure" + _uploadImage_r,
-  upload.any(),
-  api.fileUpload
-);
 
 // needs a user to be logged in aka provided via the user param inside the post request
 app.use("/api/secure/", auth.login_wall);
