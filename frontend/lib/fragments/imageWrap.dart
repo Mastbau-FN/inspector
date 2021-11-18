@@ -18,12 +18,14 @@ class ImageWrap extends StatelessWidget {
                 height: 100,
                 width: 100,
                 child: FutureBuilder(
-                    builder:
-                        (BuildContext context, AsyncSnapshot<Image?> snap) =>
-                            snap.data ??
-                            (snap.hasError
-                                ? Icon(Icons.report_problem)
-                                : LoadingView())),
+                    builder: (BuildContext context,
+                            AsyncSnapshot<Image?> snap) =>
+                        snap.data ??
+                        (snap.hasError
+                            ? Icon(Icons.report_problem)
+                            : LoadingView() //hm this gets also triggered if the snapshot completed, but no image could be parsed
+
+                        )),
               ))
           .toList(),
     );
