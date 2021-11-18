@@ -18,16 +18,33 @@ class ImageWrap extends StatelessWidget {
                 height: 100,
                 width: 100,
                 child: FutureBuilder(
-                    builder: (BuildContext context,
-                            AsyncSnapshot<Image?> snap) =>
-                        snap.data ??
-                        (snap.hasError
-                            ? Icon(Icons.report_problem)
-                            : LoadingView() //hm this gets also triggered if the snapshot completed, but no image could be parsed
+                  future: e,
+                  builder: (BuildContext context, AsyncSnapshot<Image?> snap) =>
+                      snap.data ??
+                      (snap.hasError
+                          ? Icon(Icons.report_problem)
+                          : LoadingView() //hm this gets also triggered if the snapshot completed, but no image could be parsed
 
-                        )),
+                      ),
+                ),
               ))
           .toList(),
+    );
+  }
+}
+
+class ImageData {
+  Image? image;
+}
+
+class ImageView extends StatelessWidget {
+  final ImageData img;
+  const ImageView({required this.img, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: img.image,
     );
   }
 }
