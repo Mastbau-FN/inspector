@@ -155,16 +155,27 @@ class Backend {
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);
-      data?.images = (await Future.wait(
-        List<Future<Image?>>.from(
-          // i could use CachedNetworkImage here, and that would be a nice in-between solution, but the idea is that post_json will handle offline availability in the future
-          data.imagehashes?.map(
-                (hash) => _fetchImage(hash),
-              ) ??
-              [],
-        ),
-      ))
-          .whereType<Image>()
+      if (data == null) return null;
+      if (data.imagehashes == null ||
+          data.imagehashes!.length == 0) //the second check *could* be omitted
+        return data;
+
+      int first_working_image_index = 0;
+      while (first_working_image_index <= data.imagehashes!.length) {
+        try {
+          data.mainImage =
+              await _fetchImage(data.imagehashes![first_working_image_index]);
+          break;
+        } catch (e) {
+          //no image
+        }
+        first_working_image_index++;
+      }
+
+      data.image_futures = data.imagehashes
+          ?.map(
+            (hash) => _fetchImage(hash),
+          )
           .toList();
       return data;
     };
