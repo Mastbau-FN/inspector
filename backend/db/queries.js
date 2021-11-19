@@ -113,7 +113,7 @@ const getValidUser = async (user) => {
  */
 // TODO later: 2000 = inspections, 6097 = auch irgendeine nummer, die als parameter verwendet werden können später
 const getInspectionsForUser = (user) =>
-  queryFileWithParams("get/inspection_locations", [user.KZL, 2000, 6097]);
+  queryFileWithParams("get/inspection_locations", [user.KZL, 2000, 1910]);
 
 /**
  *
