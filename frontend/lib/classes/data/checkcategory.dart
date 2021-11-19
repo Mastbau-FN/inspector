@@ -30,7 +30,11 @@ class CheckCategory extends Data {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Image>? images;
+  List<Future<Image?>>? image_futures;
+  @JsonKey(ignore: true)
+  Future<Image?> mainImage = Future.value(null);
+  @JsonKey(ignore: true)
+  Future<Image?> previewImage = Future.value(null);
 
   CheckCategory(
       {required this.pjNr,

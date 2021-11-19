@@ -5,7 +5,7 @@ import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImageView extends StatelessWidget {
-  List<Image> _images = [];
+  List<Future<Image?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
   static Future<String?> _defaultAdd(List<XFile> list) async {
@@ -17,13 +17,23 @@ class ImageView extends StatelessWidget {
     return "";
   }
 
-  ImageView(
+  ImageView.constant(
       {List<Image?>? images = const [],
       this.columnCount = 4,
       Key? key,
       this.onNewImages = _defaultAdd})
       : super(key: key) {
-    this._images = images?.whereNotNull().toList() ?? [];
+    this._images =
+        images?.whereNotNull().map((e) => Future.value(e)).toList() ?? [];
+  }
+
+  ImageView.futured(
+      {List<Future<Image?>>? future_images = const [],
+      this.columnCount = 4,
+      Key? key,
+      this.onNewImages = _defaultAdd})
+      : super(key: key) {
+    this._images = future_images ?? [];
   }
 
   final ImagePicker _picker = ImagePicker();
@@ -34,7 +44,7 @@ class ImageView extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageWrap(
+      body: ImageWrap.futured(
         images: _images,
       ),
       floatingActionButton: FloatingActionButton(

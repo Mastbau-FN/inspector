@@ -19,6 +19,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
+import '/extension/future.dart';
 
 import 'package:flat/flat.dart';
 
@@ -151,20 +152,39 @@ class Backend {
       _generateImageFetcher<T extends Data>(
     T? Function(Map<String, dynamic>) jsoner,
   ) {
+    // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
       T? data = jsoner(json);
-      data?.images = (await Future.wait(
-        List<Future<Image?>>.from(
-          // i could use CachedNetworkImage here, and that would be a nice in-between solution, but the idea is that post_json will handle offline availability in the future
-          data.imagehashes?.map(
+      if (data == null) return null;
+      if (data.imagehashes == null ||
+          data.imagehashes!.length == 0) //the second check *could* be omitted
+        return data;
+
+      int first_working_image_index = 0;
+      data.mainImage =
+          _fetchImage(data.imagehashes![first_working_image_index]);
+      first_working_image_index++;
+
+      //but we get another image anyway, since we want one that we can show as preview
+      data.previewImage =
+          IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
                 (hash) => _fetchImage(hash),
               ) ??
-              [],
-        ),
-      ))
-          .whereType<Image>()
-          .toList();
+              []);
+      //Future.doWhile(() => fetchdata)
+      //Future.any(data.imagehashes?.map(
+      //      (hash) => _fetchImage(hash),
+      //    ) ??
+      //    []);
+
+      data.image_futures = data.imagehashes
+          ?.map(
+            (hash) => _fetchImage(hash),
+          )
+          .toList()
+          .sublist(first_working_image_index + 1);
+
       return data;
     };
   }
@@ -295,7 +315,7 @@ class Backend {
     return null;
   }
 
-  /// upload a bunch of images //TODO
+  /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
     List<XFile> files,
@@ -305,7 +325,7 @@ class Backend {
     var res = await post_JSON(
       _uploadImage_r,
       json: data.toJson(),
-      multipart_files: files, //TODO: check what doesnt work yet..
+      multipart_files: files,
     ); //wont work
     if (res?.statusCode != 200) {
       debugPrint(res?.statusCode.toString());
@@ -324,7 +344,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
   try {
     List<dynamic> str = (objName != null) ? json[objName] : json;
     return List<T>.from(
-        (await Future.wait(str.map((insp) async => await converter(insp))))
+        (await Future.wait(str.map((elem) async => await converter(elem))))
             .whereType<T>());
   } catch (e) {
     debugPrint(e.toString());

@@ -8,7 +8,10 @@ import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  List<Image>? images = [];
+  Future<Image?> mainImage = Future.value(null);
+  Future<Image?> previewImage = Future.value(null);
+  List<Future<Image?>>? image_futures = [];
+  //Null Function() onNextImageLoaded = () {};
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
@@ -46,6 +49,13 @@ abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
       builder: (newcontext) => Text("${tiledata.title} not yet implemeted"),
     ));
   }
+
+  /*
+  ///used by the backend to inject when a new image was succesfully loaded 
+  Null data_onNextImageLoaded() {
+    notifyListeners();
+  }
+  */
 
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)

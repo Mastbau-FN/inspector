@@ -44,8 +44,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case 'Fotos':
-            return ImageView(
-              images: data.images,
+            return ImageView.futured(
+              future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );
 
