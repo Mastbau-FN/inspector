@@ -104,7 +104,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   ExpandableCard2 dropDown_element(
       Data data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
-        previewImg: data.mainImage,
+        previewImg: data.previewImage,
         title: data.title,
         extra: data.extra,
         children: ddmodel.actions

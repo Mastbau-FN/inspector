@@ -34,6 +34,8 @@ class CheckPointDefect extends Data {
   List<Future<Image?>>? image_futures;
   @JsonKey(ignore: true)
   Image? mainImage;
+  @JsonKey(ignore: true)
+  Image? previewImage;
 
   CheckPointDefect(
       {required this.pjNr,

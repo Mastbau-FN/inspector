@@ -161,10 +161,28 @@ class Backend {
         return data;
 
       int first_working_image_index = 0;
+      //okay actually we try only the first, if its not available we have no mainImg/ a problem with it
+      ////7while (first_working_image_index <= data.imagehashes!.length) {
+      try {
+        data.mainImage =
+            await _fetchImage(data.imagehashes![first_working_image_index]);
+        ////    break;
+      } catch (e) {
+        //no image
+      }
+      first_working_image_index++;
+      ////}
+
+      //but we get another image anyway, since we want one that we can show as preview
       while (first_working_image_index <= data.imagehashes!.length) {
+        if (data.mainImage != null) {
+          data.previewImage = data.mainImage;
+          break;
+        }
         try {
-          data.mainImage =
+          data.previewImage =
               await _fetchImage(data.imagehashes![first_working_image_index]);
+          if (data.previewImage == null) continue;
           break;
         } catch (e) {
           //no image
