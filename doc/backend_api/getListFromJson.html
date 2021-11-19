@@ -76,7 +76,7 @@
   try {
     List&lt;dynamic&gt; str = (objName != null) ? json[objName] : json;
     return List&lt;T&gt;.from(
-        (await Future.wait(str.map((insp) async =&gt; await converter(insp))))
+        (await Future.wait(str.map((elem) async =&gt; await converter(elem))))
             .whereType&lt;T&gt;());
   } catch (e) {
     debugPrint(e.toString());

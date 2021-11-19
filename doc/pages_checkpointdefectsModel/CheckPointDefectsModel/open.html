@@ -85,8 +85,8 @@ void open(
     MaterialPageRoute(builder: (newcontext) {
       switch (tiledata.title) {
         case &#39;Fotos&#39;:
-          return ImageView(
-            images: data.images,
+          return ImageView.futured(
+            future_images: data.image_futures,
             onNewImages: (files) =&gt; Backend().uploadFiles(data, files),
           );
 

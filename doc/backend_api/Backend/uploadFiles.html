@@ -62,7 +62,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>upload a bunch of images //TODO</p>
+  <p>upload a bunch of images</p>
 </section>
 
 
@@ -78,7 +78,7 @@
   var res = await post_JSON(
     _uploadImage_r,
     json: data.toJson(),
-    multipart_files: files, &#47;&#47;TODO: check what doesnt work yet..
+    multipart_files: files,
   ); &#47;&#47;wont work
   if (res?.statusCode != 200) {
     debugPrint(res?.statusCode.toString());

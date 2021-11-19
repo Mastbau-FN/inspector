@@ -81,11 +81,15 @@ ExpansionPanelRadio make(BuildContext context) {
               child: ClipOval(
                 child: AspectRatio(
                   aspectRatio: 1.0,
-                  child: previewImg ??
-                      Icon(
-                        Icons.construction,
-                        color: _color(isExpanded, context),
-                      ),
+                  child: FutureBuilder&lt;Image?&gt;(
+                      future: previewImg,
+                      builder: (context, snapshot) {
+                        return snapshot.data ??
+                            Icon(
+                              Icons.construction,
+                              color: _color(isExpanded, context),
+                            );
+                      }),
                 ),
               ),
             ),
