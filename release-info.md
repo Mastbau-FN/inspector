@@ -1,5 +1,5 @@
-### release v0.0.2+3
+### release v0.0.3
 
 #### changes
 
-- bildupload funktioniert (unsicher und etwas buggy noch)
+- bildupload funktioniert jetzt in sicher
