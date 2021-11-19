@@ -19,6 +19,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
+import '/extension/future.dart';
 
 import 'package:flat/flat.dart';
 
@@ -161,43 +162,21 @@ class Backend {
         return data;
 
       int first_working_image_index = 0;
-      //okay actually we try only the first, if its not available we have no mainImg/ a problem with it
-      ////7while (first_working_image_index <= data.imagehashes!.length) {
-      try {
-        data.mainImage =
-            await _fetchImage(data.imagehashes![first_working_image_index]);
-        ////    break;
-      } catch (e) {
-        //no image
-      }
+      data.mainImage =
+          _fetchImage(data.imagehashes![first_working_image_index]);
       first_working_image_index++;
-      ////}
 
       //but we get another image anyway, since we want one that we can show as preview
-      while (first_working_image_index <= data.imagehashes!.length) {
-        if (data.mainImage != null) {
-          data.previewImage = data.mainImage;
-          break;
-        }
-        try {
-          data.previewImage =
-              await _fetchImage(data.imagehashes![first_working_image_index]);
-          if (data.previewImage == null) continue;
-          break;
-        } catch (e) {
-          //no image
-        }
-        first_working_image_index++;
-      }
-
-      // data.image_futures =
-
-      // for (var i = first_working_image_index;
-      //     i < data.imagehashes!.length;
-      //     i++) {
-      //   data.image_futures[i - first_working_image_index] =
-      //       _fetchImage(data.imagehashes![i]);
-      // }
+      data.previewImage =
+          IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
+                (hash) => _fetchImage(hash),
+              ) ??
+              []);
+      //Future.doWhile(() => fetchdata)
+      //Future.any(data.imagehashes?.map(
+      //      (hash) => _fetchImage(hash),
+      //    ) ??
+      //    []);
 
       data.image_futures = data.imagehashes
           ?.map(

@@ -9,7 +9,7 @@ abstract class ExpandablesRadio extends StatelessWidget {
 }
 
 class ExpandableCard2 extends ExpandablesRadio {
-  final Image? previewImg;
+  final Future<Image?>? previewImg;
   final Color? color;
   final String title;
   final Widget? extra;
@@ -56,11 +56,15 @@ class ExpandableCard2 extends ExpandablesRadio {
                 child: ClipOval(
                   child: AspectRatio(
                     aspectRatio: 1.0,
-                    child: previewImg ??
-                        Icon(
-                          Icons.construction,
-                          color: _color(isExpanded, context),
-                        ),
+                    child: FutureBuilder<Image?>(
+                        future: previewImg,
+                        builder: (context, snapshot) {
+                          return snapshot.data ??
+                              Icon(
+                                Icons.construction,
+                                color: _color(isExpanded, context),
+                              );
+                        }),
                   ),
                 ),
               ),

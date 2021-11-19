@@ -8,8 +8,8 @@ import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Image? mainImage;
-  Image? previewImage;
+  Future<Image?> mainImage = Future.value(null);
+  Future<Image?> previewImage = Future.value(null);
   List<Future<Image?>>? image_futures = [];
   //Null Function() onNextImageLoaded = () {};
 }
