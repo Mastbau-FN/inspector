@@ -105,6 +105,7 @@ class ImageView extends StatelessWidget {
   }
 }
 
+//TODO: also make it possible to delete/set-as-main image (#36)
 class FittedImageContainer extends StatelessWidget {
   const FittedImageContainer({
     Key? key,
