@@ -22,6 +22,7 @@ class ImageWrap extends StatelessWidget {
   //TODO; chose new mainImage -> callback
   @override
   Widget build(BuildContext context) => GridView.builder(
+      padding: const EdgeInsets.all(2.0),
       itemCount: images.length + 1,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columnCount),
@@ -32,17 +33,21 @@ class ImageWrap extends StatelessWidget {
             )
           : (i >= images.length)
               ? Container()
-              : FutureBuilder(
-                  future: images[i],
-                  builder: (BuildContext context, AsyncSnapshot<Image?> snap) =>
-                      (snap.connectionState == ConnectionState.done)
-                          ? ImageView(img: snap.data)
-                          : Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: LoadingView(),
-                            ) //hm this gets also triggered if the snapshot completed, but no image could be parsed
+              : Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: FutureBuilder(
+                      future: images[i],
+                      builder: (BuildContext context,
+                              AsyncSnapshot<Image?> snap) =>
+                          (snap.connectionState == ConnectionState.done)
+                              ? ImageView(img: snap.data)
+                              : Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: LoadingView(),
+                                ) //hm this gets also triggered if the snapshot completed, but no image could be parsed
 
-                  ));
+                      ),
+                ));
 }
 
 class ImageView extends StatelessWidget {
@@ -59,7 +64,17 @@ class ImageView extends StatelessWidget {
     return Container(
       child: Stack(
         children: [
-          img ?? Center(child: Icon(Icons.report_problem)),
+          (img != null)
+              ? Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: img!
+                          .image, //XXX: have a list of imageproviders instead of image widgets
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+              : Center(child: Icon(Icons.report_problem)),
           if (isChosen)
             Positioned(
               child: Icon(
