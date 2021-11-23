@@ -2,4 +2,6 @@
 
 #### changes
 
-- bildupload funktioniert jetzt in sicher
+- bilder werden smooth geladen und können vergrößert werden
+
+- defekte -> mängel
