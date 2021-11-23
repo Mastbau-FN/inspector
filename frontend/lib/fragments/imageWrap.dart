@@ -64,17 +64,7 @@ class ImageView extends StatelessWidget {
     return Container(
       child: Stack(
         children: [
-          (img != null)
-              ? Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: img!
-                          .image, //XXX: have a list of imageproviders instead of image widgets
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                )
-              : Center(child: Icon(Icons.report_problem)),
+          _heroImg(context),
           if (isChosen)
             Positioned(
               child: Icon(
@@ -88,5 +78,70 @@ class ImageView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _heroImg(context) {
+    if (img == null) return Center(child: Icon(Icons.report_problem));
+    var tag = key ?? UniqueKey();
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+      ),
+      child: Hero(
+        tag: tag,
+        child: FittedImageContainer(
+          img: img!,
+        ),
+      ),
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (c) => FullImagePage(
+                  tag: tag,
+                  img: img!,
+                )),
+      ),
+    );
+  }
+}
+
+class FittedImageContainer extends StatelessWidget {
+  const FittedImageContainer({
+    Key? key,
+    required this.img,
+    this.fit = BoxFit.cover,
+  }) : super(key: key);
+
+  final Image img;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: img
+              .image, //XXX: have a list of imageproviders instead of image widgets
+          fit: fit,
+        ),
+      ),
+    );
+  }
+}
+
+class FullImagePage extends StatelessWidget {
+  const FullImagePage({
+    required this.img,
+    required this.tag,
+    Key? key,
+  }) : super(key: key);
+
+  final Image img;
+  final Object tag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: Text("Bild")), body: Hero(child: img, tag: tag));
   }
 }
