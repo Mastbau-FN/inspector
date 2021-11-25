@@ -4,7 +4,7 @@
 
 ### Install
 
-- install node (and therefor npm) then run `npm install`
+- install docker <!--node (and therefor npm) then run `npm install`-->
 
 ### create .env file
 
@@ -32,4 +32,4 @@ and store (in backend dir)
 
 ### run
 
-`npm run tmpserve` or `npm run serve`
+`docker-compose up -d`
