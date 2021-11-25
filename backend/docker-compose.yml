@@ -1,6 +1,12 @@
-version: '0.0.1' 
+version: '3' 
 services:
   node-api-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+          CERT_PATH: ${CERT_PATH}
     ports:
       - "443:443"
+    volumes:
+      - "/etc/letsencrypt"
