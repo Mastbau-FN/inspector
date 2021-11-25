@@ -9,4 +9,4 @@ services:
     ports:
       - "443:443"
     volumes:
-      - "/etc/letsencrypt"
+      - /etc/letsencrypt:/etc/letsencrypt

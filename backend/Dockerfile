@@ -18,8 +18,8 @@ RUN npm install
 COPY . .
 
 #get SSL-Cert
-VOLUME /${CERT_PATH}
-VOLUME /etc/letsencrypt
+#VOLUME /${CERT_PATH}
+#VOLUME /etc/letsencrypt
 
 EXPOSE 443
 CMD [ "node", "index.js" ]
