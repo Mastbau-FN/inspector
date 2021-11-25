@@ -1,0 +1,14 @@
+version: '0.0.1' 
+services:
+  node-api-server:
+    image: "node:17-alpine"
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      -./:/home/node/app
+    expose:
+      - "443"
