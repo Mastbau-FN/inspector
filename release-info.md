@@ -2,6 +2,4 @@
 
 #### changes
 
-- bilder werden smooth geladen und können vergrößert werden
-
-- defekte -> mängel
+- not actually release-worth tbh
