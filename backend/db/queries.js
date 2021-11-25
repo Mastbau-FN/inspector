@@ -2,6 +2,9 @@
 
 //TODO: update-queries (wahrscheinlich nur LangText, der rest ist final)
 
+const useNewID = true //&& false;
+const _ID_ = useNewID ? 1910 : 6097;
+
 const fs = require("fs");
 const fsp = fs.promises;
 
@@ -113,7 +116,7 @@ const getValidUser = async (user) => {
  */
 // TODO later: 2000 = inspections, 6097 = auch irgendeine nummer, die als parameter verwendet werden können später
 const getInspectionsForUser = (user) =>
-  queryFileWithParams("get/inspection_locations", [user.KZL, 2000, 6097]);
+  queryFileWithParams("get/inspection_locations", [user.KZL, 2000, _ID_]);
 
 /**
  *
@@ -185,7 +188,7 @@ const convertpath = (winpath) =>
 const getRootFolder = async (pjNr) =>
   path.dirname(
     convertpath(
-      (await queryFileWithParams("get/root_folder", [pjNr], false))[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
+      (await queryFileWithParams("get/root_folder", [pjNr,_ID_], false))[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
     )
   );
 
