@@ -3,8 +3,11 @@ services:
   node-api-server:
     image: node:17-alpine
     working_dir: /home/node/api
-    ports:
-      - "443:443"
+ # das ist etwas whack, idealerweise würde der postgres-service ebenfalls dockerized sein dann wär das nicht nötig
+    network_mode: host
+ #   ports:
+ #     - "443:443"
+ #     - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - ${CERT_PATH}:${CERT_PATH}
