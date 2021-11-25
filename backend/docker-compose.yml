@@ -1,9 +1,17 @@
 version: '3' 
 services:
   node-api-server:
-    build: .
+    image: node:17-alpine
+    working_dir: /home/node/api
     ports:
       - "443:443"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - ${CERT_PATH}:${CERT_PATH}
+
+      - .:/home/node/api
+    command: sh -c "
+        npm install --quiet 
+        && node index.js
+      "
+
