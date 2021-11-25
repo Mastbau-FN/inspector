@@ -1,6 +1,9 @@
-version: '0.0.1' 
+version: '3' 
 services:
   node-api-server:
     build: .
     ports:
       - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - ${CERT_PATH}:${CERT_PATH}

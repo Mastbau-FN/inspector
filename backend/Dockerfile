@@ -1,5 +1,7 @@
 FROM node:17-alpine
 
+ARG CERT_PATH
+
 # Create app directory
 WORKDIR /home/node/api
 
@@ -14,6 +16,10 @@ RUN npm install
 
 # Bundle app source
 COPY . .
+
+#get SSL-Cert
+#VOLUME /${CERT_PATH}
+#VOLUME /etc/letsencrypt
 
 EXPOSE 443
 CMD [ "node", "index.js" ]
