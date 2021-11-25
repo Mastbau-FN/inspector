@@ -10,6 +10,7 @@ services:
  #     - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
+      - /home/administrator/images:/home/administrator/images
       - ${CERT_PATH}:${CERT_PATH}
 
       - .:/home/node/api
