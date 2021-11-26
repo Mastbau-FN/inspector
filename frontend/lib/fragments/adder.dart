@@ -227,19 +227,21 @@ class Adder extends StatelessWidget implements JsonExtractable {
     }
 
     Widget _paddedButton(IconData icon, Function()? onPressed) => Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: FloatingActionButton(
-            backgroundColor: Theme.of(context).canvasColor,
+          padding: const EdgeInsets.all(5.0),
+          child: IconButton(
+            //TODO: press-feedback (animation)
+            //backgroundColor: Theme.of(context).canvasColor,
             onPressed: () {
               onPressed?.call();
             },
-            child: Icon(
+            icon: Icon(
               icon,
               color: Theme.of(context).primaryColor,
             ),
           ),
         );
 
+    @Deprecated('was kinda ugly and wont be used anymore')
     Container _mainField(void set()) {
       return Container(
         width: MediaQuery.of(context).size.width - 205,
@@ -325,30 +327,29 @@ class Adder extends StatelessWidget implements JsonExtractable {
         Spacer(),
         ...children,
         ...List.generate(
-          textfield_list.length - 1,
+          textfield_list.length,
           (i) => _input(
             isBetterthantherest: i == 0,
-            hint: textfield_list[i + 1].hint,
+            hint: textfield_list[i].hint,
             onDone: (name) {
               try {
                 //TextInputAction.next;
                 FocusScope.of(context)
-                    .requestFocus(_textfield_focusnode_list[i + 2]);
+                    .requestFocus(_textfield_focusnode_list[i + 1]);
               } catch (e) {
                 FocusScope.of(context)
                     .requestFocus(_textfield_focusnode_list[0]);
               }
             },
-            fn: _textfield_focusnode_list[i + 1],
-            c: _textfield_controller_list[i + 1],
+            fn: _textfield_focusnode_list[i],
+            c: _textfield_controller_list[i],
           ),
         ),
-        Container(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             _paddedButton(Icons.cancel, onCancel),
-            if (textfield_list.isNotEmpty) _mainField(set),
+            //if (textfield_list.isNotEmpty) _mainField(set),
             _paddedButton(Icons.check_circle, set),
           ],
         ),
