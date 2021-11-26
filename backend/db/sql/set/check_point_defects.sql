@@ -1,5 +1,5 @@
 -- add Mangel (05_Prüfpunkt_Mängel)
-INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Insp_Stelle") 
+INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Zusatz_Info") 
 VALUES (
 $1, /*Projektnummer*/
 $4, /*name (required)*/
