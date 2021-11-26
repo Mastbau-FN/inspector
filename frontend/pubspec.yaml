@@ -22,6 +22,9 @@ environment:
 
 dependencies:
 
+  # for editing descriptions 
+  flutter_quill: ^2.0.20
+
   # to flatten json for multipart requests (uploading images)
   flat: ^0.4.0
 
