@@ -20,8 +20,10 @@ CheckPointDefect _$CheckPointDefectFromJson(Map<String, dynamic> json) =>
       category_index: json['E1'] as int,
       check_index: json['E2'] as int,
       index: json['E3'] as int,
-    )..imagehashes =
-        (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
+    )
+      ..height = json['Insp_Stelle'] as String?
+      ..imagehashes =
+          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
 Map<String, dynamic> _$CheckPointDefectToJson(CheckPointDefect instance) =>
     <String, dynamic>{
@@ -35,5 +37,6 @@ Map<String, dynamic> _$CheckPointDefectToJson(CheckPointDefect instance) =>
       'E1': instance.category_index,
       'E2': instance.check_index,
       'E3': instance.index,
+      'Insp_Stelle': instance.height,
       'images': instance.imagehashes,
     };
