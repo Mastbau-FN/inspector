@@ -158,19 +158,21 @@ Widget build(BuildContext context) {
   }
 
   Widget _paddedButton(IconData icon, Function()? onPressed) =&gt; Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: FloatingActionButton(
-          backgroundColor: Theme.of(context).canvasColor,
+        padding: const EdgeInsets.all(5.0),
+        child: IconButton(
+          &#47;&#47;TODO: press-feedback (animation)
+          &#47;&#47;backgroundColor: Theme.of(context).canvasColor,
           onPressed: () {
             onPressed?.call();
           },
-          child: Icon(
+          icon: Icon(
             icon,
             color: Theme.of(context).primaryColor,
           ),
         ),
       );
 
+  @Deprecated(&#39;was kinda ugly and wont be used anymore&#39;)
   Container _mainField(void set()) {
     return Container(
       width: MediaQuery.of(context).size.width - 205,
@@ -225,7 +227,7 @@ Widget build(BuildContext context) {
             isBetterthantherest, &#47;&#47;TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
         focusNode: fn,
         &#47;&#47;textInputAction: TextInputAction.next, &#47;&#47;XXX: sadly this wont work for some reason
-        textCapitalization: TextCapitalization.words,
+        textCapitalization: TextCapitalization.sentences,
         decoration: InputDecoration(
           enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(
@@ -256,30 +258,29 @@ Widget build(BuildContext context) {
       Spacer(),
       ...children,
       ...List.generate(
-        textfield_list.length - 1,
+        textfield_list.length,
         (i) =&gt; _input(
           isBetterthantherest: i == 0,
-          hint: textfield_list[i + 1].hint,
+          hint: textfield_list[i].hint,
           onDone: (name) {
             try {
               &#47;&#47;TextInputAction.next;
               FocusScope.of(context)
-                  .requestFocus(_textfield_focusnode_list[i + 2]);
+                  .requestFocus(_textfield_focusnode_list[i + 1]);
             } catch (e) {
               FocusScope.of(context)
                   .requestFocus(_textfield_focusnode_list[0]);
             }
           },
-          fn: _textfield_focusnode_list[i + 1],
-          c: _textfield_controller_list[i + 1],
+          fn: _textfield_focusnode_list[i],
+          c: _textfield_controller_list[i],
         ),
       ),
-      Container(height: 10),
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: &lt;Widget&gt;[
           _paddedButton(Icons.cancel, onCancel),
-          if (textfield_list.isNotEmpty) _mainField(set),
+          &#47;&#47;if (textfield_list.isNotEmpty) _mainField(set),
           _paddedButton(Icons.check_circle, set),
         ],
       ),

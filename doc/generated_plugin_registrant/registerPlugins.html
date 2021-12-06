@@ -65,10 +65,13 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void registerPlugins(Registrar registrar) {
   ConnectivityPlusPlugin.registerWith(registrar);
+  FlutterKeyboardVisibilityPlugin.registerWith(registrar);
   FlutterSecureStorageWeb.registerWith(registrar);
   FluttertoastWebPlugin.registerWith(registrar);
   ImagePickerPlugin.registerWith(registrar);
   SharedPreferencesPlugin.registerWith(registrar);
+  UrlLauncherPlugin.registerWith(registrar);
+  VideoPlayerPlugin.registerWith(registrar);
   registrar.registerMessageHandler();
 }</code></pre>
 </section>
