@@ -6,22 +6,21 @@ part of 'checkpoint.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-CheckPoint _$CheckPointFromJson(Map<String, dynamic> json) {
-  return CheckPoint(
-    pjNr: json['PjNr'] as int,
-    bauleitung: json['Bauleitung'] as String?,
-    kurzText: json['KurzText'] as String?,
-    langText: json['LangText'] as String?,
-    erDate:
-        json['ErDat'] == null ? null : DateTime.parse(json['ErDat'] as String),
-    eventID: json['EventID'] as int?,
-    ereArt: json['EREArt'] as int?,
-    category_index: json['E1'] as int,
-    index: json['E2'] as int,
-    e3: json['E3'] as int?,
-  )..imagehashes =
-      (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
-}
+CheckPoint _$CheckPointFromJson(Map<String, dynamic> json) => CheckPoint(
+      pjNr: json['PjNr'] as int,
+      bauleitung: json['Bauleitung'] as String?,
+      kurzText: json['KurzText'] as String?,
+      langText: json['LangText'] as String?,
+      erDate: json['ErDat'] == null
+          ? null
+          : DateTime.parse(json['ErDat'] as String),
+      eventID: json['EventID'] as int?,
+      ereArt: json['EREArt'] as int?,
+      category_index: json['E1'] as int,
+      index: json['E2'] as int,
+      e3: json['E3'] as int?,
+    )..imagehashes =
+        (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
 Map<String, dynamic> _$CheckPointToJson(CheckPoint instance) =>
     <String, dynamic>{
