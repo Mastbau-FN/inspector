@@ -28,6 +28,9 @@ class CheckPointDefect extends Data {
   @JsonKey(name: 'E3')
   int index;
 
+  @JsonKey(name: "Insp_Stelle")
+  String? height;
+
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
@@ -77,9 +80,12 @@ class CheckPointDefect extends Data {
           label: "schwer",
           backgroundColor: Colors.red,
         );
-
+      case 5204:
       default:
-        return null;
+        return ChipData(
+          label: "ohne",
+          backgroundColor: Colors.grey,
+        );
     }
   }
 

@@ -34,8 +34,9 @@ android {
 
     defaultConfig {
         applicationId "com.mbgsolutions.inspector"
-        minSdkVersion 18
-        targetSdkVersion 30
+    minSdkVersion 21
+    targetSdkVersion 30
+    multiDexEnabled
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

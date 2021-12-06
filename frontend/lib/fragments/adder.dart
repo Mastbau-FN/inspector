@@ -296,7 +296,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
               isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
           focusNode: fn,
           //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
-          textCapitalization: TextCapitalization.words,
+          textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(

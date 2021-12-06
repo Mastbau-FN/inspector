@@ -1,7 +1,5 @@
-### release v0.0.3
+### release v0.0.3+0
 
 #### changes
 
-- bilder werden smooth geladen und können vergrößert werden
-
-- defekte -> mängel
+- solved issue #41

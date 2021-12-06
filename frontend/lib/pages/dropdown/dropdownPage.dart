@@ -91,11 +91,13 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   Widget _list(AsyncSnapshot<List<dynamic>> snapshot, BuildContext context) {
     if (snapshot.connectionState == ConnectionState.done) {
       //debugPrint(snapshot.data?.length.toString());
-      return SingleChildScrollView(
-        child: ExpandablesListRadio(
-            children: snapshot.data!
-                .map((e) => dropDown_element(e, context, widget.ddmodel))
-                .toList()),
+      return ListView(
+        children: [
+          ExpandablesListRadio(
+              children: snapshot.data!
+                  .map((e) => dropDown_element(e, context, widget.ddmodel))
+                  .toList()),
+        ],
       );
     }
     return ExpandablesListRadio.fake(3);

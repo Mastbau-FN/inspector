@@ -76,23 +76,42 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
           },
           onCancel: onCancel,
           children: [
-            //TODO: height
             OufnessChooser(),
+            // HeightField(),
           ],
           textfield_list: [
             InputData("KurzText", hint: "Name"),
             InputData("LangText", hint: "Beschreibung"),
+            InputData("Insp_Stelle", hint: "Position / Höhe"),
           ],
         ),
       );
 }
 
+// class HeightField extends StatelessWidget implements JsonExtractable {
+//   dynamic get json => 3; //_height;
+//   String get name => "Insp_Stelle";
+//   const HeightField({Key? key}) : super(key: key);
+
+//   // //thats the state and its a no-no to have it in the widget itself but i need it to return the json
+//   // int? _height;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return TextField();
+//   }
+// }
+
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
   dynamic get json => _selected;
   String get name => "EREArt";
 
+  static final int _default_none = 5204;
+
+  final List<int> choices = [_default_none, 5201, 5202, 5203];
+
   //thats the state and its a no-no to have it in the widget itself but i need it to return the json
-  int? _selected;
+  int _selected = _default_none;
 
   State<OufnessChooser> _state = _OufnessChooserState();
   @override
@@ -100,12 +119,10 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
 }
 
 class _OufnessChooserState extends State<OufnessChooser> {
-  final List<int> choices = [5201, 5202, 5203];
-
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      children: choices
+      children: widget.choices
           .map(
               (oufness) => choiceChip(CheckPointDefect.chipd(oufness), oufness))
           .toList(),
@@ -134,7 +151,7 @@ class _OufnessChooserState extends State<OufnessChooser> {
           selected: widget._selected == index,
           onSelected: (bool selected) {
             setState(() {
-              widget._selected = selected ? index : null;
+              widget._selected = selected ? index : widget.choices[0];
             });
           },
         ),
