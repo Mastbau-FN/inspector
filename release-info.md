@@ -1,5 +1,5 @@
-### release v0.0.3
+### release v0.0.3+0
 
 #### changes
 
-- not actually release-worth tbh   
+- solved issue #41
