@@ -28,7 +28,7 @@ class CheckPointDefect extends Data {
   @JsonKey(name: 'E3')
   int index;
 
-  @JsonKey(name: "Insp_Stelle")
+  @JsonKey(name: "Zusatz_Info")
   String? height;
 
   @JsonKey(name: 'images')
