@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as q;
 
 class DetailsPage extends StatefulWidget {
   final String title;
@@ -40,6 +41,20 @@ class _DetailsPageState extends State<DetailsPage> {
 
   Widget get _body => _isEditing ? _inEdit : _inShow;
 
-  Widget get _inEdit => TextField();
+  final q.QuillController _controller = q.QuillController.basic();
+
+  Widget get _inEdit => Column(
+        children: [
+          q.QuillToolbar.basic(controller: _controller),
+          Expanded(
+            child: Container(
+              child: q.QuillEditor.basic(
+                controller: _controller,
+                readOnly: false, // true for view only mode
+              ),
+            ),
+          )
+        ],
+      );
   Widget get _inShow => Text(widget.details ?? "");
 }
