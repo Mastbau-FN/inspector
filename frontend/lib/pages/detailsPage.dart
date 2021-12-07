@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 
-class DetailsPage extends StatefulWidget {
+class DetailsPage extends StatelessWidget {
   final String title;
   final bool isRich;
   final String? details;
@@ -28,7 +28,35 @@ class DetailsPage extends StatefulWidget {
         super(key: key);
 
   @override
-  State<DetailsPage> createState() => _DetailsPageState();
+  Widget build(BuildContext context) => isRich ? _RichEditor() : _BasicEditor();
+}
+
+class _BasicEditor extends StatefulWidget {
+  _BasicEditor({Key? key}) : super(key: key);
+
+  @override
+  __BasicEditorState createState() => __BasicEditorState();
+}
+
+class __BasicEditorState extends State<_BasicEditor> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+class _RichEditor extends StatefulWidget {
+  _RichEditor({Key? key}) : super(key: key);
+
+  @override
+  __RichEditorState createState() => __RichEditorState();
+}
+
+class __RichEditorState extends State<_RichEditor> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
 }
 
 class _DetailsPageState extends State<DetailsPage> {
