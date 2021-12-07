@@ -59,6 +59,10 @@ class CheckPointDefect extends Data {
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
 
   @override
+  String? get subtitle =>
+      height != null ? 'Ort: $height' : null; //'kein Ort spezifiziert';
+
+  @override
   Widget? get extra => chipd(ereArt)?.toChip;
 
   static ChipData? chipd(int? oufness) {

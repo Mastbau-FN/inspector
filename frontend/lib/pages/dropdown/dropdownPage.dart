@@ -108,6 +108,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
     return ExpandableCard2(
         previewImg: data.previewImage,
         title: data.title,
+        subtitle: data.subtitle,
         extra: data.extra,
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(

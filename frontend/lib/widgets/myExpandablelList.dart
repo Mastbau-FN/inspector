@@ -12,6 +12,7 @@ class ExpandableCard2 extends ExpandablesRadio {
   final Future<Image?>? previewImg;
   final Color? color;
   final String title;
+  final String? subtitle;
   final Widget? extra;
   final List<Widget> children;
   final Key key;
@@ -19,6 +20,7 @@ class ExpandableCard2 extends ExpandablesRadio {
 
   ExpandableCard2({
     required this.title,
+    this.subtitle,
     this.extra,
     this.previewImg,
     this.children = const [],
@@ -30,6 +32,7 @@ class ExpandableCard2 extends ExpandablesRadio {
   ExpandableCard2._({
     required this.opacity,
     required this.title,
+    this.subtitle,
     this.extra,
     this.previewImg,
     this.children = const [],
@@ -75,6 +78,7 @@ class ExpandableCard2 extends ExpandablesRadio {
                     ? Theme.of(context).textTheme.headline5
                     : Theme.of(context).textTheme.bodyText1,
               ),
+              subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
             ),
         body: Column(
           children: [...children, SizedBox(height: 10)],

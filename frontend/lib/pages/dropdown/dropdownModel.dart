@@ -17,6 +17,7 @@ abstract class WithImgHashes {
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
 abstract class Data implements WithImgHashes {
   String get title;
+  String? get subtitle => null;
 
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
   Widget? get extra => null;
