@@ -130,7 +130,7 @@ extension Unique<E, Id> on List<E> {
 }
 
 mixin JsonExtractable on Widget {
-  String get name;
+  String get name => "";
   dynamic get json;
 }
 
