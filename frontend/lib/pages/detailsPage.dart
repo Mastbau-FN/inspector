@@ -1,5 +1,11 @@
+import 'dart:convert';
+
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
+import 'package:fluttertoast/fluttertoast.dart';
+
+import 'dropdown/dropdownModel.dart';
 
 //das ganze widget ist iwie dumm mit dem switch zwischen String und List<Dynamic> und resultiert in ner menge "!"
 class DetailsPage extends StatefulWidget {
@@ -32,6 +38,14 @@ class DetailsPage extends StatefulWidget {
         this.onChanged = null,
         this.details = null,
         super(key: key);
+
+  ///idea was to make it rich if the string is json decodeable (similar to how its currently done in [CheckPointDefects])
+  // const DetailsPage.dynamic(
+  //     {Key? key,
+  //     required this.title,
+  //     required String details,
+  //     required void Function(String) onChanged})
+  //     : super(key: key);
 
   @override
   State<DetailsPage> createState() => _DetailsPageState();
@@ -115,7 +129,8 @@ class RichEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
         children: [
-          q.QuillToolbar.basic(locale: Locale('de'), controller: _controller),
+          if (isEditing)
+            q.QuillToolbar.basic(locale: Locale('de'), controller: _controller),
           Expanded(
             child: Container(
               child: q.QuillEditor.basic(
@@ -129,3 +144,25 @@ class RichEditor extends StatelessWidget {
 
   final q.QuillController _controller;
 }
+
+// Widget detailBuilder<DataT extends Data>(DataT data, Function<String> onDone) {
+//   return DetailsPage.rich(
+//       title: data.title,
+//       details: jsonDecode('''[
+//                   {
+                    
+//                     "insert": "bleib\\n"
+//                     }
+//                 ]'''),
+//       onChanged: (txt) async {
+//         debugPrint(jsonEncode(txt).toString());
+//         data.langText = jsonEncode(txt).toString();
+//         Fluttertoast.showToast(
+//           msg: await Backend().update(data) ??
+//               "we send the request but we didnt get any response",
+//           toastLength: Toast.LENGTH_SHORT,
+//           gravity: ToastGravity.CENTER,
+//         );
+//         onDone.call();
+//       });
+// }

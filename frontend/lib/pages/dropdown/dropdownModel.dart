@@ -28,6 +28,10 @@ abstract class Data implements WithImgHashes {
   static T? fromJson<T extends Data>(Map<String, dynamic> map) => null;
 }
 
+mixin WithLangText on Data {
+  String? get langText;
+}
+
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
 abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   /// could be used for the scaffold appbar title

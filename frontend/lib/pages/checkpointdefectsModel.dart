@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -51,22 +53,48 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
             );
 
           default:
-            return DetailsPage(
-                title: data.title,
-                details: data.langText,
-                onChanged: (txt) async {
-                  data.langText = txt;
-                  Fluttertoast.showToast(
-                    msg: await _b.update(data) ??
-                        "we send the request but we didnt get any response",
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.CENTER,
-                  );
-                  notifyListeners();
-                });
+            try {
+              //if langtext is already rich display in rich editor
+              return DetailsPage.rich(
+                  title: data.title,
+                  details: jsonDecode(data.langText ?? ""),
+                  onChanged: (txt) {
+                    uploadString(data, jsonEncode(txt).toString());
+                  });
+            } catch (e) {
+              try {
+                //if not convert it to rich if possible and display in rich editor
+                return DetailsPage.rich(
+                    title: data.title,
+                    details:
+                        jsonDecode('[{"insert":"${data.langText ?? ""}\\n"}]'),
+                    onChanged: (txt) {
+                      uploadString(data, jsonEncode(txt).toString());
+                    });
+              } catch (e) {
+                return DetailsPage(
+                    title: data.title,
+                    details: data.langText,
+                    onChanged: (txt) {
+                      uploadString(data, txt);
+                    });
+              }
+            }
         }
       }),
     );
+  }
+
+  void uploadString(CheckPointDefect data, txt) async {
+    debugPrint(txt);
+    data.langText = txt;
+    Fluttertoast.showToast(
+      msg: await _b.update(data) ??
+          "we send the request but we didnt get any response",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+    );
+    notifyListeners();
   }
 
   @override

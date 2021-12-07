@@ -213,7 +213,7 @@ class Backend {
 
   /// since the backend api knows on which level we are by the identifier string, this function gets the identifiers for each kind of [DataT]
   /// it is very import to keep these in sinc with the actual backend
-  String? _getIdentifierFromData<DataT extends Data>(Data data) {
+  String? _getIdentifierFromData<DataT extends Data>(DataT data) {
     switch (typeOf<DataT>()) {
       case CheckCategory:
         return 'category';
