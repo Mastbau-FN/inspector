@@ -60,32 +60,56 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   }
 
   @override
-  Widget? get floatingActionButton => TransformeableActionbutton(
-        expandedHeight: 300,
-        expandedChild: (onCancel) => Adder(
-          'checkpointdefect',
-          onSet: (json) async {
-            Map<String, dynamic> defect = json['checkpointdefect'];
-            debugPrint("set ${json['checkpointdefect'].toString()}");
-            defect['PjNr'] = currentCheckPoint.pjNr;
-            defect['E1'] = currentCheckPoint.category_index;
-            defect['E2'] = currentCheckPoint.index;
-            defect['E3'] = -1;
-            await Backend().setNew(CheckPointDefect.fromJson(defect));
-            notifyListeners();
-          },
-          onCancel: onCancel,
-          children: [
-            OufnessChooser(),
-            // HeightField(),
-          ],
-          textfield_list: [
-            InputData("KurzText", hint: "Name"),
-            InputData("LangText", hint: "Beschreibung"),
-            InputData("Insp_Stelle", hint: "Position / Höhe"),
-          ],
-        ),
-      );
+  Widget? get floatingActionButton {
+    var oufnessChooser = OufnessChooser();
+    return TransformeableActionbutton(
+      expandedHeight: 300,
+      expandedChild: (onCancel) => Adder(
+        'checkpointdefect',
+        onSet: (json) async {
+          Map<String, dynamic> defect = json['checkpointdefect'];
+          debugPrint("set ${json['checkpointdefect'].toString()}");
+          defect['PjNr'] = currentCheckPoint.pjNr;
+          defect['E1'] = currentCheckPoint.category_index;
+          defect['E2'] = currentCheckPoint.index;
+          defect['E3'] = -1;
+
+          // debugPrint(defect[oufnessChooser.name].toString() +
+          //     "?=" +
+          //     OufnessChooser.default_none.toString() +
+          //     ": " +
+          //     (defect[oufnessChooser.name].toString() ==
+          //             OufnessChooser.default_none.toString())
+          //         .toString());
+
+          /// this solves #48
+          defect['KurzText'] = currentCheckPoint.title +
+              ": " +
+              ((defect[oufnessChooser.name].toString() ==
+                      OufnessChooser.default_none.toString())
+                  ? "ohne Mangel"
+                  : ("Mangel " +
+                      (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                              ?.label ??
+                          ""))); //ahhh so thats why we learn functional programming
+
+          await Backend().setNew(CheckPointDefect.fromJson(defect));
+          notifyListeners();
+        },
+        onCancel: onCancel,
+        children: [
+          oufnessChooser,
+          //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
+        ],
+        textfield_list: [
+          // InputData("KurzText", hint: "Name"), //removed according to #48
+          InputData("LangText", hint: "Beschreibung"),
+          InputData("Insp_Stelle",
+              hint: "Position / Höhe"), //added according to 49
+        ],
+      ),
+    );
+  }
 }
 
 // class HeightField extends StatelessWidget implements JsonExtractable {
@@ -102,23 +126,41 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
 //   }
 // }
 
+// class KurzTextCreator extends StatelessWidget implements JsonExtractable {
+//   const KurzTextCreator({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container();
+//   }
+
+//   @override
+//   get json => "Mangel";
+
+//   @override
+//   String get name => "KurzText";
+// }
+
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
   dynamic get json => _selected;
   String get name => "EREArt";
 
-  static final int _default_none = 5204;
+  static final int default_none = 5204;
 
-  final List<int> choices = [_default_none, 5201, 5202, 5203];
+  final List<int> choices = [default_none, 5201, 5202, 5203];
 
-  //thats the state and its a no-no to have it in the widget itself but i need it to return the json
-  int _selected = _default_none;
+  int get _selected => this._state.select;
 
-  State<OufnessChooser> _state = _OufnessChooserState();
+  var _state = _OufnessChooserState();
   @override
-  State<OufnessChooser> createState() => _state;
+  State<OufnessChooser> createState() {
+    return _state = new _OufnessChooserState();
+  }
 }
 
 class _OufnessChooserState extends State<OufnessChooser> {
+  int select = OufnessChooser.default_none;
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -151,7 +193,7 @@ class _OufnessChooserState extends State<OufnessChooser> {
           selected: widget._selected == index,
           onSelected: (bool selected) {
             setState(() {
-              widget._selected = selected ? index : widget.choices[0];
+              select = selected ? index : OufnessChooser.default_none;
             });
           },
         ),
