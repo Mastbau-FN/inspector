@@ -80,9 +80,12 @@ class CheckPointDefect extends Data {
           label: "schwer",
           backgroundColor: Colors.red,
         );
-
+      case 5204:
       default:
-        return null;
+        return ChipData(
+          label: "ohne",
+          backgroundColor: Colors.grey,
+        );
     }
   }
 
