@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 
+//das ganze widget ist iwie dumm mit dem switch zwischen String und List<Dynamic> und resultiert in ner menge "!"
 class DetailsPage extends StatefulWidget {
   final String title;
   final bool isRich;
@@ -40,6 +41,14 @@ class _DetailsPageState extends State<DetailsPage> {
   bool _isEditing = false;
   @override
   Widget build(BuildContext context) {
+    bool _isRich = widget.isRich;
+    PlainEditor? _plain = _isRich
+        ? null
+        : PlainEditor(isEditing: _isEditing, sdetails: widget.details ?? "");
+    RichEditor? _rich = _isRich
+        ? RichEditor(isEditing: _isEditing, richDetails: widget.richDetails!)
+        : null;
+    Widget _body = _isRich ? _rich! : _plain!;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -47,12 +56,11 @@ class _DetailsPageState extends State<DetailsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            debugPrint(_controller.document.toDelta().toJson().toString());
+            //debugPrint(_controller.document.toDelta().toJson().toString());
             if (_isEditing) {
-              widget.isRich
-                  ? widget.onChanged!.call(_basicController.text)
-                  : widget.onRichChanged!
-                      .call(_controller.document.toDelta().toJson());
+              _isRich
+                  ? widget.onRichChanged!.call(_rich!.details)
+                  : widget.onChanged!.call(_plain!.details);
             }
 
             _isEditing ^= true;
@@ -67,41 +75,55 @@ class _DetailsPageState extends State<DetailsPage> {
       ),
     );
   }
+}
 
-  Widget get _body => _isEditing ? _inEdit : _inShow;
-  Widget get _inShow => widget.isRich ? _richShow : _plainShow;
-  Widget get _inEdit => widget.isRich ? _richEdit : _plainEdit;
+class PlainEditor extends StatelessWidget {
+  final bool isEditing;
+  final String sdetails;
+  PlainEditor({Key? key, this.isEditing = false, required this.sdetails})
+      : this._controller = TextEditingController(text: sdetails),
+        super(key: key);
 
-  Widget get _plainShow {
-    return Text(widget.details ?? "");
-  }
+  String get details => _controller.text;
 
-  Widget get _plainEdit => TextFormField(
-        initialValue: widget.details ?? "",
-        controller: _basicController,
+  @override
+  Widget build(BuildContext context) => isEditing ? _inEdit : _inShow;
+  Widget get _inShow => Text(sdetails ?? "");
+
+  Widget get _inEdit => TextFormField(
+        controller: _controller,
       );
 
-  Widget get _richEdit => _rich(inEdit: true);
-  Widget get _richShow => _rich(inEdit: false);
+  TextEditingController _controller;
+}
 
-  Widget _rich({required bool inEdit}) => Column(
+class RichEditor extends StatelessWidget {
+  final bool isEditing;
+  final List<dynamic> richDetails;
+  RichEditor({Key? key, this.isEditing = false, required this.richDetails})
+      : this._controller = q.QuillController(
+          document: q.Document.fromJson(
+              richDetails), //widget.isRich ? widget.details : null,
+          selection: TextSelection.collapsed(offset: 0),
+        ),
+        super(key: key);
+
+  List<dynamic> get details => _controller.document.toDelta().toJson();
+
+  @override
+  Widget build(BuildContext context) => Column(
         children: [
           q.QuillToolbar.basic(locale: Locale('de'), controller: _controller),
           Expanded(
             child: Container(
               child: q.QuillEditor.basic(
                 controller: _controller,
-                readOnly: !inEdit,
+                readOnly: !isEditing,
               ),
             ),
           )
         ],
       );
 
-  TextEditingController get _basicController => TextEditingController();
-  q.QuillController get _controller => q.QuillController(
-        document: q.Document.fromJson(
-            widget.richDetails!), //widget.isRich ? widget.details : null,
-        selection: TextSelection.collapsed(offset: 0),
-      );
+  final q.QuillController _controller;
 }

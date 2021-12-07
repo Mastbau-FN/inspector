@@ -31,10 +31,12 @@ class LocationModel extends DropDownModel<InspectionLocation> {
       title: "Fotos",
       icon: Icons.photo_library,
     ),
-    MyListTileData(
-      title: "Infos",
-      icon: Icons.text_snippet,
-    ),
+
+    ///removed for now since i dont know what to put there, see #53
+    // MyListTileData(
+    //   title: "Infos",
+    //   icon: Icons.text_snippet,
+    // ),
   ];
 
   @override
