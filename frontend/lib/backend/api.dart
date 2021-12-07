@@ -32,6 +32,7 @@ const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";
+const _update_r = "/update"; //TODO: implement this (#31)
 
 extension _Parser on http.BaseResponse {
   http.Response? forceRes() {
@@ -182,8 +183,7 @@ class Backend {
           ?.map(
             (hash) => _fetchImage(hash),
           )
-          .toList()
-          /*.sublist(first_working_image_index + 1)*/;
+          .toList() /*.sublist(first_working_image_index + 1)*/;
 
       return data;
     };
@@ -209,6 +209,40 @@ class Backend {
       _generateImageFetcher(fromJson),
       objName: jsonResponseID,
     );
+  }
+
+  /// since the backend api knows on which level we are by the identifier string, this function gets the identifiers for each kind of [DataT]
+  /// it is very import to keep these in sinc with the actual backend
+  String? _getIdentifierFromData<DataT extends Data>(Data data) {
+    switch (typeOf<DataT>()) {
+      case CheckCategory:
+        return 'category';
+
+      case CheckPoint:
+        return 'checkpoint';
+
+      case CheckPointDefect:
+        return 'defect';
+
+      default:
+        debugPrint("yo this type is not supported : ${typeOf<DataT>()}");
+        return null;
+    }
+  }
+
+  /// sends a [DataT] with the corresponding identifier to the given route
+  Future<http.Response?> _sendDataToRoute<DataT extends Data>(
+      {required DataT? data, required String route}) async {
+    print(data?.toJson());
+    if (data == null) return null;
+    var json_data = data.toJson();
+    http.Response? res = (await post_JSON(route, json: {
+      'type': _getIdentifierFromData(data),
+      'data': json_data,
+    }))
+        ?.forceRes();
+    //debugPrint(res?.body.toString());
+    return res;
   }
 
   // MARK: API
@@ -287,33 +321,14 @@ class Backend {
 
   /// sets a new [DataT]
   Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
-    print(data?.toJson());
-    if (data == null) return null;
-    final String route = _addNew_r;
-    String identifier;
-    switch (typeOf<DataT>()) {
-      case CheckCategory:
-        identifier = 'category';
-        break;
-      case CheckPoint:
-        identifier = 'checkpoint';
-        break;
-      case CheckPointDefect:
-        identifier = 'defect';
-        break;
-      default:
-        debugPrint("yo this type is not supported : ${typeOf<DataT>()}");
-        return null;
-    }
-    var json_data = data.toJson();
-    http.Response? res = (await post_JSON(route, json: {
-      'type': identifier,
-      'data': json_data,
-    }))
-        ?.forceRes();
-    debugPrint(res?.body.toString());
-    return null;
+    var body = (await _sendDataToRoute(data: data, route: _addNew_r))?.body;
+    //XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
+    return body == null ? null : data;
   }
+
+  /// updates a [DataT] and returns the response
+  Future<String?> update<DataT extends Data>(DataT? data) async =>
+      (await _sendDataToRoute(data: data, route: _update_r))?.body;
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(

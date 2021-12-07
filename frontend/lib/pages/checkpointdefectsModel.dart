@@ -6,6 +6,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'detailsPage.dart';
 import 'imageView.dart';
@@ -53,7 +54,16 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
             return DetailsPage(
                 title: data.title,
                 details: data.langText,
-                onChanged: (txt) {/*TODO*/});
+                onChanged: (txt) async {
+                  data.langText = txt;
+                  Fluttertoast.showToast(
+                    msg: await _b.update(data) ??
+                        "we send the request but we didnt get any response",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                  );
+                  notifyListeners();
+                });
         }
       }),
     );

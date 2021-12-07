@@ -91,6 +91,8 @@ class PlainEditor extends StatelessWidget {
   Widget get _inShow => Text(sdetails ?? "");
 
   Widget get _inEdit => TextFormField(
+        minLines: 1,
+        maxLines: 15,
         controller: _controller,
       );
 
