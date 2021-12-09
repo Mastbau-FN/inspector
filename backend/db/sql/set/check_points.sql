@@ -1,5 +1,5 @@
 -- add Prüfpunkt (04_Auswahl_Prüfpunkte)
-INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Insp_Stelle") 
+INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Zusatz_Info", "Autor") 
 VALUES (
 $1, /*Projektnummer*/
 $3, /*name (required)*/
@@ -15,7 +15,8 @@ WHERE "PjNr" = $1 /*required: Projektnummer*/
 AND "E1" = $2 /*required: Wert der Ebene 1*/
 ORDER BY COALESCE("E2",0) DESC LIMIT 1),
 0,
-NULL
+NULL,
+$7 /*Autor/KZL (ersteller des neuen Datenpunktes)*/
 )
 RETURNING "E2"
 ;

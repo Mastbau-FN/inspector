@@ -152,9 +152,10 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
 /**
  *
  * @param data consisting of type and data
+ * @param KZL das kürzel des monteurs der diesen datenpunkt erstellt 
  * @returns a Promise resolving to the new ID (E1..E3)
  */
- const addNew = async (data) => {
+ const addNew = async (data, KZL) => {
    const folder = "set";
   let ld = data.data;
   let params;
@@ -162,15 +163,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
   switch (data.type) {
     case 'category':
       queryfile = folder+"/check_categories";
-      params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL];
       break;
     case 'checkpoint':
       queryfile = folder+"/check_points";
-      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL];
       break;
     case 'defect':
       queryfile = folder+"/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL];
       break;
   
     default:
