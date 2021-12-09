@@ -69,7 +69,7 @@ const addNew = (req, res, next) =>
     res,next
   );
 
-  const addNew = (req, res, next) =>
+const update = (req, res, next) =>
   errsafejson(
     async () =>
       (await queries.update(req.body))[0],
