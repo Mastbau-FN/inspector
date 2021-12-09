@@ -64,7 +64,15 @@ const getCheckPointDefects = (req, res, next) => errsafejson(
 const addNew = (req, res, next) =>
   errsafejson(
     async () =>
-      (await queries.addNew(req.body))[0],
+      (await queries.addNew(req.body,req.user.name))[0],
+    (json)=> (json),
+    res,next
+  );
+
+const update = (req, res, next) =>
+  errsafejson(
+    async () =>
+      (await queries.update(req.body))[0],
     (json)=> (json),
     res,next
   );
@@ -100,4 +108,5 @@ module.exports = {
   fileUpload,
 
   addNew,
+  update,
 };

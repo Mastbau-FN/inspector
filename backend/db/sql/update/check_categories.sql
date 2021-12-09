@@ -1,6 +1,6 @@
 
 -- add Categorie (03_Auswahl_Prüfkategorie)
-INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Zusatz_Info","Autor") 
+INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Insp_Stelle") 
 VALUES (
 $1, /*Projektnummer*/
 $2, /*name (required)*/
@@ -15,8 +15,7 @@ WHERE "PjNr" = $1 /*Projektnummer*/
 ORDER BY COALESCE("E1",0) DESC LIMIT 1),
 0,
 0,
-NULL,
-$6 /*Autor/KZL (ersteller des neuen Datenpunktes)*/
+NULL
 )
 RETURNING "E1"
 ;
