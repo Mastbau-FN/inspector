@@ -102,7 +102,7 @@ class PlainEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => isEditing ? _inEdit : _inShow;
-  Widget get _inShow => Text(sdetails ?? "");
+  Widget get _inShow => Text(sdetails); // ?? "");
 
   Widget get _inEdit => TextFormField(
         minLines: 1,
