@@ -16,6 +16,6 @@ INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
 ("MGAUFTR"."Bauleitung" = $1) -- Monteur Kürzel(KZL) -- hauptparameter
 AND "MGAUFTR"."PjTypID" = $2 -- Projekttyp (2000=Inspektion) for future proofing
-AND ("Events"."EventID" = $3) -- Standardereignis_ID 6097 Übersichtsfoto zum Standort (moch nicht 100% durchblickt)
+AND ("Events"."EventID" = $3) -- Standardereignis_ID 1910 Übersichtsfoto zum Standort (moch nicht 100% durchblickt)
 )
 ORDER BY "MGAUFTR"."AuDatum";

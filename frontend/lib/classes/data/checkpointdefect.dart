@@ -28,7 +28,7 @@ class CheckPointDefect extends Data {
   @JsonKey(name: 'E3')
   int index;
 
-  @JsonKey(name: "Insp_Stelle")
+  @JsonKey(name: "Zusatz_Info")
   String? height;
 
   @JsonKey(name: 'images')
@@ -57,6 +57,10 @@ class CheckPointDefect extends Data {
       kurzText ??
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
+
+  @override
+  String? get subtitle =>
+      height != null ? 'Ort: $height' : null; //'kein Ort spezifiziert';
 
   @override
   Widget? get extra => chipd(ereArt)?.toChip;

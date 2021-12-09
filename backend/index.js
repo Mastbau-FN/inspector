@@ -7,6 +7,7 @@ const _getImageFromHash_r = "/image/get";
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";
+const _update_r = "/update";
 
 const fs = require("fs");
 
@@ -83,6 +84,7 @@ app.post("/api/secure" + _getCheckPoints_r, api.getCheckPoints);
 app.post("/api/secure" + _getCheckPointDefects_r, api.getCheckPointDefects);
 
 app.post("/api/secure" + _addNew_r, api.addNew);
+app.post("/api/secure" + _update_r, api.update);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 
