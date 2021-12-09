@@ -1,5 +1,5 @@
-### release v0.0.3+0
+### release v0.0.3+1
 
 #### changes
 
-- solved issue #41
+- solved issue #49 , 32
