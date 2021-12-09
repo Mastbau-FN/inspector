@@ -3,7 +3,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownPage.dart';
-import 'package:MBG_Inspektionen/pages/locationModel.dart';
+import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
