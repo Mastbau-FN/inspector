@@ -154,21 +154,22 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @param data consisting of type and data
  * @returns a Promise resolving to the new ID (E1..E3)
  */
-const addNew = async (data) => {
+ const addNew = async (data) => {
+   const folder = "set";
   let ld = data.data;
   let params;
   let queryfile;
   switch (data.type) {
     case 'category':
-      queryfile = "set/check_categories";
+      queryfile = folder+"/check_categories";
       params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
       break;
     case 'checkpoint':
-      queryfile = "set/check_points";
+      queryfile = folder+"/check_points";
       params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
       break;
     case 'defect':
-      queryfile = "set/check_point_defects";
+      queryfile = folder+"/check_point_defects";
       params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
       break;
   
@@ -177,9 +178,42 @@ const addNew = async (data) => {
       return;
   }
   let res = await queryFileWithParams(queryfile, params);
-  const newdata = {...(data.data),...(res[0])}
-  _addfoldername(newdata);
   return res;
+}
+
+/**
+ *
+ * this does pretty much the same as addNew
+ * @param data consisting of type and data
+ * @returns a Promise resolving to the new ID (E1..E3)
+ */
+ const update = async (data) => {
+  const folder = "update";
+ let ld = data.data;
+ let params;
+ let queryfile;
+ switch (data.type) {
+   case 'category':
+     queryfile = folder+"/check_categories";
+     params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
+     break;
+   case 'checkpoint':
+     queryfile = folder+"/check_points";
+     params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
+     break;
+   case 'defect':
+     queryfile = folder+"/check_point_defects";
+     params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
+     break;
+ 
+   default:
+     console.log(`someone tried to update ${data.type}`);
+     return;
+ }
+ let res = await queryFileWithParams(queryfile, params);
+ const newdata = {...(data.data),...(res[0])}
+ _addfoldername(newdata);
+ return res;
 }
 
 const convertpath = (winpath) =>
@@ -246,6 +280,7 @@ module.exports = {
   getCheckPointDefects,
 
   addNew,
+  update,
 };
 
 const hashImages = async (tthis) => {

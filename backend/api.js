@@ -69,6 +69,14 @@ const addNew = (req, res, next) =>
     res,next
   );
 
+  const addNew = (req, res, next) =>
+  errsafejson(
+    async () =>
+      (await queries.update(req.body))[0],
+    (json)=> (json),
+    res,next
+  );
+
 const getFileFromHash = async (req, res) => {
   try {
     let img = await imagehandler.getFileFromHash(req.body.imghash);
@@ -100,4 +108,5 @@ module.exports = {
   fileUpload,
 
   addNew,
+  update,
 };
