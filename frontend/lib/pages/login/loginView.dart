@@ -4,7 +4,7 @@ import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/pages/homeView.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
-import 'package:MBG_Inspektionen/pages/locationModel.dart';
+import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
 
 import 'loginModel.dart';

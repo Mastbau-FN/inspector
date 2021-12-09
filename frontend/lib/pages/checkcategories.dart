@@ -2,31 +2,31 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
-import 'package:MBG_Inspektionen/pages/checkpointdefectsModel.dart';
+import 'package:MBG_Inspektionen/pages/checkpoints.dart';
+import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 
-import 'detailsPage.dart';
 import 'imageView.dart';
 
-class CheckPointsModel extends DropDownModel<CheckPoint> {
+class CategoryModel extends DropDownModel<CheckCategory> {
   final Backend _b = Backend();
-  final CheckCategory currentCategory;
+  final InspectionLocation currentLocation;
 
-  static const _nextViewTitle = "Mängel";
+  static const _nextViewTitle = "Prüfpunkte";
 
-  CheckPointsModel(this.currentCategory);
+  CategoryModel(this.currentLocation);
 
-  Future<List<CheckPoint>> get all async =>
-      _b.getAllCheckPointsForCategory(currentCategory);
+  Future<List<CheckCategory>> get all async =>
+      _b.getAllCheckCategoriesForLocation(currentLocation);
 
   @override
   List<MyListTileData> actions = [
     MyListTileData(
       title: _nextViewTitle,
-      icon: Icons.report_problem,
+      icon: Icons.checklist,
     ),
     MyListTileData(
       title: "Fotos",
@@ -39,19 +39,19 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
   ];
 
   @override
-  String get title => currentCategory.title;
+  String get title => '$currentLocation';
 
   @override
   void open(
     BuildContext context,
-    CheckPoint data,
+    CheckCategory data,
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel(CheckPointDefectsModel(data));
+            return nextModel(CheckPointsModel(data));
           case 'Fotos':
             return ImageView.futured(
               future_images: data.image_futures,
@@ -74,11 +74,10 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
         expandedChild: (onCancel) => Adder(
           'checkpoint',
           onSet: (json) async {
-            Map<String, dynamic> checkpoint = json['checkpoint'];
-            checkpoint['PjNr'] = currentCategory.pjNr;
-            checkpoint['E1'] = currentCategory.index;
-            checkpoint['E2'] = -1;
-            await Backend().setNew(CheckPoint.fromJson(checkpoint));
+            Map<String, dynamic> category = json['checkpoint'];
+            category['PjNr'] = currentLocation.pjNr;
+            category['E1'] = -1;
+            await Backend().setNew(CheckCategory.fromJson(category));
             notifyListeners();
           },
           onCancel: onCancel,
