@@ -16,7 +16,7 @@ INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (
 ("MGAUFTR"."Bauleitung" = 'NL') -- Monteur
 AND "MGAUFTR"."PjTypID" = 2000 -- Projekttyp Inspektion, als Variable ablegen
-AND ("Events"."EventID" = 6097) -- Standardereignis_ID Übersichtsfoto zum Standort, als Variable ablegen
+AND ("Events"."EventID" = 1910) -- Standardereignis_ID Übersichtsfoto zum Standort, als Variable ablegen
 )
 ORDER BY "MGAUFTR"."AuDatum";
 
