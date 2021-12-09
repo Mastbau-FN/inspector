@@ -59,12 +59,63 @@ class LocationModel extends DropDownModel<InspectionLocation> {
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );
           default:
-            return DetailsPage(
-                title: data.title,
-                details: data.toJson().toString(),
-                onChanged: (txt) {/*TODO*/});
+            return LocationDetailPage(
+              locationdata: data,
+            );
         }
       }),
     );
   }
+}
+
+class LocationDetailPage extends StatelessWidget {
+  final InspectionLocation locationdata;
+  const LocationDetailPage({required this.locationdata, Key? key})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(
+        title: Text(locationdata.title),
+      ),
+      body: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _previewImg(),
+            _mgauftr(),
+            _standort(),
+          ],
+        ),
+      ));
+
+  ClipOval _previewImg() => ClipOval(
+        child: Container(
+          height: 50,
+          width: 50,
+          child: FutureBuilder<Image?>(
+              future: locationdata.mainImage,
+              builder: (context, snapshot) =>
+                  snapshot.data ?? Icon(Icons.construction)),
+        ),
+      );
+
+  Widget _mgauftr() => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text("${locationdata.pjNr}, ${locationdata.bauleitung}"),
+          Text("${locationdata.pjName}"),
+          Text("${locationdata.pjInfo}"),
+        ],
+      );
+
+  Widget _standort() => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text("${locationdata.stONr}:"),
+          Text("${locationdata.strasse}"),
+          Text("${locationdata.plz}, ${locationdata.ort}"),
+        ],
+      );
 }
