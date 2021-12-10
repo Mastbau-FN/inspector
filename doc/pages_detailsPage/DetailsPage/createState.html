@@ -65,26 +65,21 @@
     </section>
     
 <section class="desc markdown">
-  <p>Creates the mutable state for this widget at a given location in the tree.</p>
-<p>Subclasses should override this method to return a newly created
-instance of their associated <a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> subclass:</p>
-<pre class="language-dart"><code class="language-dart">@override
-State&lt;MyWidget&gt; createState() =&gt; _MyWidgetState();
-</code></pre>
-<p>The framework can call this method multiple times over the lifetime of
-a <code>StatefulWidget</code>. For example, if the widget is inserted into the tree
-in multiple locations, the framework will create a separate <a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> object
-for each location. Similarly, if the widget is removed from the tree and
-later inserted into the tree again, the framework will call <a href="../../pages_detailsPage/DetailsPage/createState.html">createState</a>
-again to create a fresh <a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> object, simplifying the lifecycle of
-<a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> objects.</p>
+  <p>idea was to make it rich if the string is json decodeable (similar to how its currently done in <code>CheckPointDefects</code>)</p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
+  <pre class="language-dart"><code class="language-dart">&#47;&#47; const DetailsPage.dynamic(
+&#47;&#47;     {Key? key,
+&#47;&#47;     required this.title,
+&#47;&#47;     required String details,
+&#47;&#47;     required void Function(String) onChanged})
+&#47;&#47;     : super(key: key);
+
+@override
 State&lt;DetailsPage&gt; createState() =&gt; _DetailsPageState();</code></pre>
 </section>
 
@@ -111,6 +106,7 @@ State&lt;DetailsPage&gt; createState() =&gt; _DetailsPageState();</code></pre>
 
     <li class="section-title"><a href="../../pages_detailsPage/DetailsPage-class.html#constructors">Constructors</a></li>
     <li><a href="../../pages_detailsPage/DetailsPage/DetailsPage.html">DetailsPage</a></li>
+    <li><a href="../../pages_detailsPage/DetailsPage/DetailsPage.rich.html">rich</a></li>
 
 
     <li class="section-title">
@@ -118,8 +114,11 @@ State&lt;DetailsPage&gt; createState() =&gt; _DetailsPageState();</code></pre>
     </li>
     <li><a href="../../pages_detailsPage/DetailsPage/details.html">details</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
+    <li><a href="../../pages_detailsPage/DetailsPage/isRich.html">isRich</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/key.html">key</a></li>
     <li><a href="../../pages_detailsPage/DetailsPage/onChanged.html">onChanged</a></li>
+    <li><a href="../../pages_detailsPage/DetailsPage/onRichChanged.html">onRichChanged</a></li>
+    <li><a href="../../pages_detailsPage/DetailsPage/richDetails.html">richDetails</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
     <li><a href="../../pages_detailsPage/DetailsPage/title.html">title</a></li>
 

@@ -69,32 +69,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;DataT?&gt; setNew&lt;DataT extends Data&gt;(DataT? data) async {
-  print(data?.toJson());
-  if (data == null) return null;
-  final String route = _addNew_r;
-  String identifier;
-  switch (typeOf&lt;DataT&gt;()) {
-    case CheckCategory:
-      identifier = &#39;category&#39;;
-      break;
-    case CheckPoint:
-      identifier = &#39;checkpoint&#39;;
-      break;
-    case CheckPointDefect:
-      identifier = &#39;defect&#39;;
-      break;
-    default:
-      debugPrint(&quot;yo this type is not supported : ${typeOf&lt;DataT&gt;()}&quot;);
-      return null;
-  }
-  var json_data = data.toJson();
-  http.Response? res = (await post_JSON(route, json: {
-    &#39;type&#39;: identifier,
-    &#39;data&#39;: json_data,
-  }))
-      ?.forceRes();
-  debugPrint(res?.body.toString());
-  return null;
+  var body = (await _sendDataToRoute(data: data, route: _addNew_r))?.body;
+  &#47;&#47;XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
+  return body == null ? null : data;
 }</code></pre>
 </section>
 
@@ -145,6 +122,7 @@
     <li><a href="../../backend_api/Backend/post_JSON.html">post_JSON</a></li>
     <li><a href="../../backend_api/Backend/setNew.html">setNew</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
+    <li><a href="../../backend_api/Backend/update.html">update</a></li>
     <li><a href="../../backend_api/Backend/uploadFiles.html">uploadFiles</a></li>
 
     <li class="section-title inherited"><a href="../../backend_api/Backend-class.html#operators">Operators</a></li>
