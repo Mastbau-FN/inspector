@@ -1,5 +1,5 @@
-### release v0.0.3+1+1
+### release v0.0.3+1+2
 
 #### changes
 
-- solved issue #49 (this time hopefully tests won't fail)
+- faster (flutter 2.8)
