@@ -164,13 +164,16 @@ class LocationDetailPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                FloatingActionButton(
-                  child: Icon(Icons.navigation_rounded),
-                  onPressed: () {
-                    MapsLauncher.launchCoordinates(
-                        locationdata.coords!.latitude,
-                        locationdata.coords!.longitude);
-                  },
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FloatingActionButton(
+                    child: Icon(Icons.navigation_rounded),
+                    onPressed: () {
+                      MapsLauncher.launchCoordinates(
+                          locationdata.coords!.latitude,
+                          locationdata.coords!.longitude);
+                    },
+                  ),
                 ),
               ],
             );
