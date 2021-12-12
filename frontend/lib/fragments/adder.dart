@@ -174,6 +174,62 @@ class Adder extends StatelessWidget implements JsonExtractable {
             textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
 
+  Widget _paddedButton(
+          IconData icon, Function()? onPressed, BuildContext context) =>
+      Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: IconButton(
+          //TODO: press-feedback (animation)
+          //backgroundColor: Theme.of(context).canvasColor,
+          onPressed: () {
+            onPressed?.call();
+          },
+          icon: Icon(
+            icon,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+      );
+
+  Widget _input({
+    bool isBetterthantherest = false,
+    required String hint,
+    required Function(String) onDone,
+    required FocusNode fn,
+    required TextEditingController c,
+    required BuildContext context,
+  }) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, left: 20, right: 20),
+      child: TextField(
+        autofocus:
+            isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
+        focusNode: fn,
+        //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                  color:
+                      Theme.of(context).colorScheme.onBackground.withAlpha(50),
+                  width: 1)),
+          hintText: hint,
+          hintStyle: TextStyle(
+            fontWeight: FontWeight.w100,
+            fontSize: 17,
+          ),
+        ),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+        textAlign: TextAlign.center,
+        onSubmitted: onDone,
+        controller: c,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Future<void> _alert() async {
@@ -226,102 +282,6 @@ class Adder extends StatelessWidget implements JsonExtractable {
       }
     }
 
-    Widget _paddedButton(IconData icon, Function()? onPressed) => Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: IconButton(
-            //TODO: press-feedback (animation)
-            //backgroundColor: Theme.of(context).canvasColor,
-            onPressed: () {
-              onPressed?.call();
-            },
-            icon: Icon(
-              icon,
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
-        );
-
-    @Deprecated('was kinda ugly and wont be used anymore')
-    Container _mainField(void set()) {
-      return Container(
-        width: MediaQuery.of(context).size.width - 205,
-        child: TextField(
-          //maxLength: 20,
-          textInputAction: TextInputAction.done,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary, width: 2),
-                borderRadius: BorderRadius.circular(15)),
-            enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onBackground
-                        .withAlpha(50),
-                    width: 1),
-                borderRadius: BorderRadius.circular(15)),
-            hintText: textfield_list[0].hint,
-            hintStyle: TextStyle(
-              fontWeight: FontWeight.w300,
-              fontSize: 19,
-            ),
-          ),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-          textAlign: TextAlign.center,
-          onSubmitted: (x) {
-            set();
-          },
-          focusNode: _textfield_focusnode_list[0],
-          controller: _textfield_controller_list[0],
-        ),
-      );
-    }
-
-    Widget _input({
-      bool isBetterthantherest = false,
-      required String hint,
-      required Function(String) onDone,
-      required FocusNode fn,
-      required TextEditingController c,
-    }) {
-      return Container(
-        padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-        child: TextField(
-          autofocus:
-              isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
-          focusNode: fn,
-          //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
-          textCapitalization: TextCapitalization.sentences,
-          decoration: InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onBackground
-                        .withAlpha(50),
-                    width: 1)),
-            hintText: hint,
-            hintStyle: TextStyle(
-              fontWeight: FontWeight.w100,
-              fontSize: 17,
-            ),
-          ),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-          textAlign: TextAlign.center,
-          onSubmitted: onDone,
-          controller: c,
-        ),
-      );
-    }
-
     return Column(
       children: <Widget>[
         Spacer(),
@@ -343,14 +303,15 @@ class Adder extends StatelessWidget implements JsonExtractable {
             },
             fn: _textfield_focusnode_list[i],
             c: _textfield_controller_list[i],
+            context: context,
           ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            _paddedButton(Icons.cancel, onCancel),
+            _paddedButton(Icons.cancel, onCancel, context),
             //if (textfield_list.isNotEmpty) _mainField(set),
-            _paddedButton(Icons.check_circle, set),
+            _paddedButton(Icons.check_circle, set, context),
           ],
         ),
       ],
