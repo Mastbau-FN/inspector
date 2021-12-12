@@ -11,9 +11,9 @@ on:
 
 name: Release
 
-defaults:
-  run:
-    working-directory: ./frontend
+# defaults:
+#   run:
+#     working-directory: ./frontend
 
 jobs:
 
@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: /home/runner/work/inspector/inspector/.github/actions/setup
+      - uses: ./.github/actions/setup
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
