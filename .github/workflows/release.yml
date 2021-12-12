@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/setup
+      #- uses: Mastbau-FN/inspector/setup
       - name: Build Documentation
         run: |
           flutter pub global activate dartdoc
