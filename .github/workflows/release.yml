@@ -23,9 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: cd .. && ls && pwd && tree
-      - run: cd && ls && pwd && tree
-      #- uses: ~/inspector/.github/actions/setup
+      - uses: ~/work/inspector/inspector/.github/actions/setup
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -44,7 +42,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      #- uses: ../github/actions/setup
+      - uses: Mastbau-FN/inspector/setup
       - name: Build Documentation
         run: |
           flutter pub global activate dartdoc
