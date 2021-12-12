@@ -23,6 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - run: tree
       - uses: ./.github/actions/setup
       - name: run tests and report coverage
         run: flutter test --coverage
