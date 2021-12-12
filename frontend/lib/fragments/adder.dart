@@ -63,7 +63,7 @@ class TransformeableActionbuttonState
         (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
     return WillPopScope(
       onWillPop: () async {
-        if (wasClicked) {
+        if (!wasClicked) {
           return true;
         }
         cancel();
@@ -217,7 +217,10 @@ class Adder extends StatelessWidget implements JsonExtractable {
     onSet?.call(json);
   }
 
-  final _formKey = GlobalKey<FormState>();
+  //XXX: i kinda feel bad about a static key, wouldnt all adders have the same key now?
+  // so never ever have two adders in one context i guess
+  // as seen [here](https://stackoverflow.com/a/64426900) though
+  static final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
