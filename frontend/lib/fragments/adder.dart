@@ -174,62 +174,6 @@ class Adder extends StatelessWidget implements JsonExtractable {
             textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
 
-  Widget _paddedButton(
-          IconData icon, Function()? onPressed, BuildContext context) =>
-      Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: IconButton(
-          //TODO: press-feedback (animation)
-          //backgroundColor: Theme.of(context).canvasColor,
-          onPressed: () {
-            onPressed?.call();
-          },
-          icon: Icon(
-            icon,
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-      );
-
-  Widget _input({
-    bool isBetterthantherest = false,
-    required String hint,
-    required Function(String) onDone,
-    required FocusNode fn,
-    required TextEditingController c,
-    required BuildContext context,
-  }) {
-    return Container(
-      padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-      child: TextField(
-        autofocus:
-            isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
-        focusNode: fn,
-        //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
-        textCapitalization: TextCapitalization.sentences,
-        decoration: InputDecoration(
-          enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                  color:
-                      Theme.of(context).colorScheme.onBackground.withAlpha(50),
-                  width: 1)),
-          hintText: hint,
-          hintStyle: TextStyle(
-            fontWeight: FontWeight.w100,
-            fontSize: 17,
-          ),
-        ),
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-        textAlign: TextAlign.center,
-        onSubmitted: onDone,
-        controller: c,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     Future<void> _alert() async {
@@ -288,33 +232,114 @@ class Adder extends StatelessWidget implements JsonExtractable {
         ...children,
         ...List.generate(
           textfield_list.length,
-          (i) => _input(
-            isBetterthantherest: i == 0,
-            hint: textfield_list[i].hint,
-            onDone: (name) {
-              try {
-                //TextInputAction.next;
-                FocusScope.of(context)
-                    .requestFocus(_textfield_focusnode_list[i + 1]);
-              } catch (e) {
-                FocusScope.of(context)
-                    .requestFocus(_textfield_focusnode_list[0]);
-              }
-            },
-            fn: _textfield_focusnode_list[i],
-            c: _textfield_controller_list[i],
-            context: context,
-          ),
+          (i) => _Input(
+              isBetterthantherest: i == 0,
+              hint: textfield_list[i].hint,
+              onDone: (name) {
+                try {
+                  //TextInputAction.next;
+                  FocusScope.of(context)
+                      .requestFocus(_textfield_focusnode_list[i + 1]);
+                } catch (e) {
+                  FocusScope.of(context)
+                      .requestFocus(_textfield_focusnode_list[0]);
+                }
+              },
+              fn: _textfield_focusnode_list[i],
+              c: _textfield_controller_list[i]),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            _paddedButton(Icons.cancel, onCancel, context),
+            _PaddedButton(
+              icon: Icons.cancel,
+              onPressed: onCancel,
+            ),
             //if (textfield_list.isNotEmpty) _mainField(set),
-            _paddedButton(Icons.check_circle, set, context),
+            _PaddedButton(
+              icon: Icons.check_circle,
+              onPressed: set,
+            ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _PaddedButton extends StatelessWidget {
+  const _PaddedButton({
+    Key? key,
+    required this.icon,
+    required this.onPressed,
+  }) : super(key: key);
+
+  final IconData icon;
+  final Function()? onPressed;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: IconButton(
+          //TODO: press-feedback (animation)
+          //backgroundColor: Theme.of(context).canvasColor,
+          onPressed: () {
+            onPressed?.call();
+          },
+          icon: Icon(
+            icon,
+            color: Theme.of(context).primaryColor,
+          ),
+        ),
+      );
+}
+
+class _Input extends StatelessWidget {
+  const _Input({
+    Key? key,
+    required this.isBetterthantherest,
+    required this.hint,
+    required this.onDone,
+    required this.fn,
+    required this.c,
+  }) : super(key: key);
+
+  final bool isBetterthantherest;
+  final String hint;
+  final Function(String p1) onDone;
+  final FocusNode fn;
+  final TextEditingController c;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, left: 20, right: 20),
+      child: TextField(
+        autofocus:
+            isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
+        focusNode: fn,
+        //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                  color:
+                      Theme.of(context).colorScheme.onBackground.withAlpha(50),
+                  width: 1)),
+          hintText: hint,
+          hintStyle: TextStyle(
+            fontWeight: FontWeight.w100,
+            fontSize: 17,
+          ),
+        ),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+        textAlign: TextAlign.center,
+        onSubmitted: onDone,
+        controller: c,
+      ),
     );
   }
 }
