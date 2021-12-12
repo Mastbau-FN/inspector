@@ -127,33 +127,37 @@ class LocationDetailPage extends StatelessWidget {
         ],
       );
 
-  Widget _map() => Container();
-  // Container(
-  //       height:
-  //           400, //XXX expanded to take available space would be much better than giving a fixed height
-  //       child: FlutterMap(
-  //         options: MapOptions(
-  //           center: latLng.LatLng(51.5, -0.09),
-  //           zoom: 13.0,
-  //         ),
-  //         layers: [
-  //           TileLayerOptions(
-  //               urlTemplate:
-  //                   "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  //               subdomains: ['a', 'b', 'c']),
-  //           MarkerLayerOptions(
-  //             markers: [
-  //               Marker(
-  //                 width: 80.0,
-  //                 height: 80.0,
-  //                 point: latLng.LatLng(51.5, -0.09),
-  //                 builder: (ctx) => Container(
-  //                   child: FlutterLogo(),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ],
-  //       ),
-  //     );
+  Widget _map() => //Container();
+      locationdata.coords == null
+          ? Container(
+              height: 20,
+            )
+          : Container(
+              height:
+                  400, //XXX expanded to take available space would be much better than giving a fixed height
+              child: FlutterMap(
+                options: MapOptions(
+                  center: locationdata.coords!,
+                  zoom: 13.0,
+                ),
+                layers: [
+                  TileLayerOptions(
+                      urlTemplate:
+                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      subdomains: ['a', 'b', 'c']),
+                  MarkerLayerOptions(
+                    markers: [
+                      Marker(
+                        width: 80.0,
+                        height: 80.0,
+                        point: locationdata.coords!,
+                        builder: (ctx) => Container(
+                          child: Icon(Icons.location_on),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
 }

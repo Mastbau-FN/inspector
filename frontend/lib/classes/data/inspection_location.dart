@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
+import "package:latlong2/latlong.dart";
 
 part 'inspection_location.g.dart';
 
@@ -25,6 +26,18 @@ class InspectionLocation extends Data {
   @JsonKey(name: 'Ort')
   final String? ort;
 
+  @JsonKey(
+    name: 'latLng',
+    fromJson: (map) => LatLng.fromJson({
+      'coordinates': [map['lat'], map['lng']]
+    }),
+    toJson: (LatLng latlng) {
+      const coords = latlng.toJson()['coordinates'];
+      return {'lat': coords[0], 'lng': coords[1]};
+    },
+  )
+  final LatLng? coords;
+
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
@@ -34,16 +47,18 @@ class InspectionLocation extends Data {
   @JsonKey(ignore: true)
   Future<Image?> previewImage = Future.value(null);
 
-  InspectionLocation(
-      {this.bauleitung,
-      ////this.defaultpicture,
-      this.ort,
-      this.pjInfo,
-      this.pjName,
-      required this.pjNr,
-      this.plz,
-      required this.stONr,
-      this.strasse});
+  InspectionLocation({
+    this.bauleitung,
+    ////this.defaultpicture,
+    this.ort,
+    this.pjInfo,
+    this.pjName,
+    required this.pjNr,
+    this.plz,
+    required this.stONr,
+    this.strasse,
+    this.coords,
+  });
 
   @override
   String toString() {
