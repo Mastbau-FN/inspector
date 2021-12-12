@@ -8,19 +8,20 @@ on:
     paths:
       - 'release-info.md'
 
-name: Create Release
+name: Release
+
+defaults:
+  run:
+    working-directory: ./frontend
 
 jobs:
-  build-n-release:
-    name: Build and Create Release
+
+  setup:
+    name: Setup Flutter and all dependencies
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     env:
       API_KEY: ${{ secrets.API_KEY}}
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
@@ -28,7 +29,7 @@ jobs:
           java-version: '12.x'
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '2.x'
+          flutter-version: '2.8.x'
       - run: |
           touch .env
           echo "API_KEY=$API_KEY" >> .env
@@ -36,6 +37,13 @@ jobs:
       - name: install dependencies
         run: flutter pub get
 
+
+  test:
+    needs: setup
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -44,14 +52,40 @@ jobs:
         with:
           github-token: ${{secrets.TOKEN_GITHUB}}
 
+  build-doc:
+    needs: test
+    name: Build Docs
+    runs-on: ubuntu-latest
+    env:
+      API_KEY: ${{ secrets.API_KEY}}
+      API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
+
+    steps:
       - name: Build Documentation
         run: |
           flutter pub global activate dartdoc
           flutter pub global run dartdoc
 
-      - name: Build Web-App
-        run: flutter build web
+  build-app:
+    needs: test
+    name: Build Web + Android (apk+aab)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [web, apk, aab]
+    env:
+      API_KEY: ${{ secrets.API_KEY}}
+      API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
+    steps:
+
+      - name: Build
+        run: flutter build ${{matrix.platform}}
+
+  deploy-web:
+    needs: [build-doc,build-app]
+    name: Deploy Web-App and Docs
+    runs-on: ubuntu-latest
       - name: make gh-pages folder for doc as well as the app
         run: |
           mkdir gh-pages
@@ -66,7 +100,12 @@ jobs:
           branch: gh-pages
           folder: frontend/gh-pages
 
-      - name: Read release node
+  release-GH:
+    needs: build-app
+    name: Release to GH
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read release notes
         id: release-info
         uses: juliangruber/read-file-action@v1
         with:
@@ -82,10 +121,6 @@ jobs:
           body: ${{ steps.release-info.outputs.content }}
           draft: false
           prerelease: false
-
-      - name: build apk
-        run: flutter build apk
-
       - name: upload apk
         uses: actions/upload-release-asset@v1
         env:
