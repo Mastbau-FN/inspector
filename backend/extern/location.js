@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const getLocations = async (locationList) => {
+const addLocations = async (locationList) => {
     for (location of locationList) {
         if (!( true 
             && location.Straße
@@ -13,8 +13,8 @@ const getLocations = async (locationList) => {
             queryres = await axios.post(`http://open.mapquestapi.com/geocoding/v1/address?key=${process.env.MAPQUEST_KEY}`, {
                 location: _locationToString(location)
             });
-            
-            location.locations = queryres.results[0].locations;
+            console.log(queryres.data)//TODO:remove
+            location.locations = queryres.data.results[0].locations;
         } catch (error) {
             console.warn(error);
             continue;
@@ -27,8 +27,8 @@ const getLocations = async (locationList) => {
     return locationList;
 };
 
-const getCoords = async (locationList) => {
-    await getLocations(locationList);
+const addCoords = async (locationList) => {
+    await addLocations(locationList);
     for (location of locationList) {
         if (!(location.locations)) continue;
 
@@ -44,8 +44,8 @@ const getCoords = async (locationList) => {
 };
 
 module.exports = {
-    getCoords,
-    getLocations,
+    addCoords,
+    addLocations,
 };
 
 const _locationToString = (location)=>`${location.Straße}, ${location.Straße}, ${location.Straße}`;

@@ -1,5 +1,6 @@
 const queries = require("./db/queries");
 const imagehandler = require("./images/hash");
+const location = require("./extern/location");
 
 //errorhandling
 
@@ -23,9 +24,9 @@ const login = (req, res) => {
 
 const getProjects = (req, res, next) => errsafejson(
     async () =>
-      await (
+      await location.addCoords(await (
         await queries.getInspectionsForUser(req.user)
-      ).hashImages(),
+      ).hashImages()),
     (x)=>({inspections: x}),
     res,next
   );
