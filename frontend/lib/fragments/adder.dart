@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
@@ -60,52 +61,61 @@ class TransformeableActionbuttonState
         Theme.of(context).floatingActionButtonTheme;
     double radius =
         (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
-    return GestureDetector(
-      onTap: popupGroup,
-      child: AnimatedContainer(
-        key: UniqueKey(),
-        //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
-        decoration: BoxDecoration(
-          boxShadow: isClicked
-              ? [
-                  BoxShadow(
-                      color: theme.colorScheme.secondary.withAlpha(30),
-                      blurRadius: radius * .4,
-                      spreadRadius: 0)
-                ]
-              : [],
-          color: isClicked
-              ? theme.cardColor
-              : ftheme.backgroundColor ?? theme.colorScheme.primary,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-        curve: Curves.easeInOutCubic,
-        duration: Duration(milliseconds: transition_ms),
-        height: isClicked
-            ? widget.expandedHeight
-            : ftheme.sizeConstraints?.maxHeight ?? _kSizeConstraints.maxHeight,
-        width: isClicked
-            ? MediaQuery.of(context).size.width -
-                widget.padding.left -
-                widget.padding.right
-            : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
-        child:
-            isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
-                ? Container(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: widget.expandedChild(cancel),
-                    ),
-                  )
-                : /*isClicked
-                ? Container()
-                : */
-                Container(
-                    child: FloatingActionButton(
-                      child: widget.collapsedChild,
-                      onPressed: popupGroup,
-                    ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (wasClicked) {
+          return true;
+        }
+        cancel();
+        return false;
+      },
+      child: GestureDetector(
+        onTap: popupGroup,
+        child: AnimatedContainer(
+          key: UniqueKey(),
+          //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
+          decoration: BoxDecoration(
+            boxShadow: isClicked
+                ? [
+                    BoxShadow(
+                        color: theme.colorScheme.secondary.withAlpha(30),
+                        blurRadius: radius * .4,
+                        spreadRadius: 0)
+                  ]
+                : [],
+            color: isClicked
+                ? theme.cardColor
+                : ftheme.backgroundColor ?? theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          curve: Curves.easeInOutCubic,
+          duration: Duration(milliseconds: transition_ms),
+          height: isClicked
+              ? widget.expandedHeight
+              : ftheme.sizeConstraints?.maxHeight ??
+                  _kSizeConstraints.maxHeight,
+          width: isClicked
+              ? MediaQuery.of(context).size.width -
+                  widget.padding.left -
+                  widget.padding.right
+              : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
+          child: isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
+              ? Container(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: widget.expandedChild(cancel),
                   ),
+                )
+              : /*isClicked
+                  ? Container()
+                  : */
+              Container(
+                  child: FloatingActionButton(
+                    child: widget.collapsedChild,
+                    onPressed: popupGroup,
+                  ),
+                ),
+        ),
       ),
     );
   }
@@ -156,7 +166,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   /// ensure that all [InputData.varName]s are unique
   final List<InputData> textfield_list;
   final List<TextEditingController> _textfield_controller_list;
-  final List<FocusNode> _textfield_focusnode_list;
+  // final List<FocusNode> _textfield_focusnode_list;
 
   final Map<String, Map<String, dynamic>> json;
 
@@ -171,8 +181,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
                 .unique((x) => x.varName)), //all varnames need to be unique
         this._textfield_controller_list =
             textfield_list.map((tf) => TextEditingController()).toList(),
-        this._textfield_focusnode_list =
-            textfield_list.map((tf) => FocusNode()).toList(),
+        // this._textfield_focusnode_list =
+        //     textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
 
   Future<void> _alert(BuildContext context) async {
@@ -191,62 +201,70 @@ class Adder extends StatelessWidget implements JsonExtractable {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    void set() {
-      if (textfield_list.every((element) => element.verify(
-          //okay the indexOf workaround is pretty bad (O(n^2)), make the every iteretion indexed and it'll be O(n). (but the list shall be rather short so np)
-          _textfield_controller_list[textfield_list.indexOf(element)].text))) {
-        for (var i = 0; i < textfield_list.length; i++) {
-          json[name]![textfield_list[i].varName] =
-              _textfield_controller_list[i].text;
-        }
-        children.forEach((child) {
-          json[name]![child.name] = child.json;
-        });
-        onSet?.call(json);
-      } else {
-        _alert(context);
-      }
+  void set(context) {
+    if (!_formKey.currentState!.validate()) {
+      _alert(context);
+      return;
     }
 
-    return Column(
-      children: <Widget>[
-        Spacer(),
-        ...children,
-        ...List.generate(
-          textfield_list.length,
-          (i) => _Input(
-              isBetterthantherest: i == 0,
+    for (var i = 0; i < textfield_list.length; i++) {
+      json[name]![textfield_list[i].varName] =
+          _textfield_controller_list[i].text;
+    }
+    children.forEach((child) {
+      json[name]![child.name] = child.json;
+    });
+    onSet?.call(json);
+  }
+
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: <Widget>[
+          Spacer(),
+          ...children,
+          ...List.generate(
+            textfield_list.length,
+            (i) => _Input(
               hint: textfield_list[i].hint,
-              onDone: (name) {
-                try {
-                  //TextInputAction.next;
-                  FocusScope.of(context)
-                      .requestFocus(_textfield_focusnode_list[i + 1]);
-                } catch (e) {
-                  FocusScope.of(context)
-                      .requestFocus(_textfield_focusnode_list[0]);
-                }
-              },
-              fn: _textfield_focusnode_list[i],
-              c: _textfield_controller_list[i]),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            _PaddedButton(
-              icon: Icons.cancel,
-              onPressed: onCancel,
+              isFirst: i == 0,
+              isLast: i == textfield_list.length - 1,
+              // onDone: (name) {
+              //   try {
+              //     //TextInputAction.next;
+              //     FocusScope.of(context)
+              //         .requestFocus(_textfield_focusnode_list[i + 1]);
+              //   } catch (e) {
+              //     FocusScope.of(context)
+              //         .requestFocus(_textfield_focusnode_list[0]);
+              //   }
+              // },
+              // fn: _textfield_focusnode_list[i],
+              c: _textfield_controller_list[i],
             ),
-            //if (textfield_list.isNotEmpty) _mainField(set),
-            _PaddedButton(
-              icon: Icons.check_circle,
-              onPressed: set,
-            ),
-          ],
-        ),
-      ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _PaddedButton(
+                icon: Icons.cancel,
+                onPressed: onCancel,
+              ),
+              //if (textfield_list.isNotEmpty) _mainField(set),
+              _PaddedButton(
+                icon: Icons.check_circle,
+                onPressed: () {
+                  set(context);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -281,48 +299,62 @@ class _PaddedButton extends StatelessWidget {
 class _Input extends StatelessWidget {
   const _Input({
     Key? key,
-    required this.isBetterthantherest,
+    this.isFirst = false,
+    this.isLast = false,
     required this.hint,
-    required this.onDone,
-    required this.fn,
+    this.validator = InputData.nonempty,
+    // required this.onDone,
+    // required this.fn,
     required this.c,
   }) : super(key: key);
 
-  final bool isBetterthantherest;
+  final String? Function(String? text) validator;
+
+  // String? value;
+
+  final bool isFirst;
+  final bool isLast;
   final String hint;
-  final Function(String p1) onDone;
-  final FocusNode fn;
+  // final Function(String p1) onDone;
+  // final FocusNode fn;
   final TextEditingController c;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-      child: TextField(
-        autofocus:
-            isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
-        focusNode: fn,
-        //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
+      child: TextFormField(
+        // onSaved: (value) {
+        //   this.value = value;
+        // },
         textCapitalization: TextCapitalization.sentences,
-        decoration: InputDecoration(
-          enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                  color:
-                      Theme.of(context).colorScheme.onBackground.withAlpha(50),
-                  width: 1)),
-          hintText: hint,
-          hintStyle: TextStyle(
-            fontWeight: FontWeight.w100,
-            fontSize: 17,
-          ),
-        ),
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-        textAlign: TextAlign.center,
-        onSubmitted: onDone,
+        // decoration: InputDecoration(
+        //   enabledBorder: UnderlineInputBorder(
+        //       borderSide: BorderSide(
+        //           color:
+        //               Theme.of(context).colorScheme.onBackground.withAlpha(50),
+        //           width: 1)),
+        //   hintText: hint,
+        //   hintStyle: TextStyle(
+        //     fontWeight: FontWeight.w100,
+        //     fontSize: 17,
+        //   ),
+        // ),
+        // style: TextStyle(
+        //   fontWeight: FontWeight.bold,
+        //   fontSize: 18,
+        // ),
+        // textAlign: TextAlign.center,
         controller: c,
+        validator: validator,
+        autofocus: isFirst,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: Design.mainBorderRadius,
+          ),
+          labelText: hint,
+        ),
+        textInputAction: isLast ? null : TextInputAction.next,
       ),
     );
   }
@@ -336,7 +368,14 @@ class InputData {
   final String hint;
 
   /// a function on whether the current [text] is valid (correct set of characters etc)
-  final bool Function(String text) verify;
-  InputData(this.varName, {required this.hint, this.verify = _defaultver});
-  static bool _defaultver(String str) => str.isNotEmpty;
+  /// shall return null if correct and an error-string otherwise
+  final String? Function(String? text) verify;
+  InputData(this.varName,
+      {required this.hint, this.verify = defaultVerification});
+
+  static const defaultVerification = nonempty;
+
+  static String? nonempty(String? str) =>
+      (str != null && str.isNotEmpty) ? null : 'gib hier etwas ein';
+  static String? alwaysCorrect(String? str) => null;
 }

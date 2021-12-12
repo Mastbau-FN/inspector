@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:flutter/material.dart';
 
 class MySimpleAlertBox extends StatelessWidget {
@@ -16,7 +17,7 @@ class MySimpleAlertBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: Design.mainBorderRadius,
       ),
       title: Text(title),
       content: SingleChildScrollView(
