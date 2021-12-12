@@ -79,7 +79,7 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException("no network available");
-    if (!canUseMobileNetworkIfPossible &&
+    if (!Consts.canUseMobileNetworkIfPossible &&
         connection == ConnectivityResult.mobile)
       throw NoConnectionToBackendException("mobile network not allowed");
 

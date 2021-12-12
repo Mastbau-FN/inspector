@@ -12,13 +12,16 @@ fill
 <details><summary>example</summary>
 
     ```
+
+    MAPQUEST_KEY=GETUR0WNM4PQU3STK3Y
+
     POSTGRES_HOST=127.0.0.1
     POSTGRES_PORT=5432
     POSTGRES_USER=me
     POSTGRES_PASSWORD=password
     POSTGRES_DATABASE=api
 
-    API_KEY=AE*%kXy2@WqCxNpm+^zz4V*eM93_B3P7
+    API_KEY=CR34T3UR0WN4P1%K3Y
 
     CERT_PATH="/path/to/key_and_cert/"
 

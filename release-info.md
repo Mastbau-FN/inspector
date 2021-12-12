@@ -1,5 +1,5 @@
-### release v0.0.3+1+2
+### release v0.0.4
 
 #### changes
 
-- faster (flutter 2.8)
+- fixed #55: adding new elements now looks better and wont selfcollapse etc

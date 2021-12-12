@@ -1,3 +1,5 @@
+import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 
@@ -59,52 +61,61 @@ class TransformeableActionbuttonState
         Theme.of(context).floatingActionButtonTheme;
     double radius =
         (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
-    return GestureDetector(
-      onTap: popupGroup,
-      child: AnimatedContainer(
-        key: UniqueKey(),
-        //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
-        decoration: BoxDecoration(
-          boxShadow: isClicked
-              ? [
-                  BoxShadow(
-                      color: theme.colorScheme.secondary.withAlpha(30),
-                      blurRadius: radius * .4,
-                      spreadRadius: 0)
-                ]
-              : [],
-          color: isClicked
-              ? theme.cardColor
-              : ftheme.backgroundColor ?? theme.colorScheme.primary,
-          borderRadius: BorderRadius.circular(radius),
-        ),
-        curve: Curves.easeInOutCubic,
-        duration: Duration(milliseconds: transition_ms),
-        height: isClicked
-            ? widget.expandedHeight
-            : ftheme.sizeConstraints?.maxHeight ?? _kSizeConstraints.maxHeight,
-        width: isClicked
-            ? MediaQuery.of(context).size.width -
-                widget.padding.left -
-                widget.padding.right
-            : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
-        child:
-            isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
-                ? Container(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: widget.expandedChild(cancel),
-                    ),
-                  )
-                : /*isClicked
-                ? Container()
-                : */
-                Container(
-                    child: FloatingActionButton(
-                      child: widget.collapsedChild,
-                      onPressed: popupGroup,
-                    ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (!wasClicked) {
+          return true;
+        }
+        cancel();
+        return false;
+      },
+      child: GestureDetector(
+        onTap: popupGroup,
+        child: AnimatedContainer(
+          key: UniqueKey(),
+          //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
+          decoration: BoxDecoration(
+            boxShadow: isClicked
+                ? [
+                    BoxShadow(
+                        color: theme.colorScheme.secondary.withAlpha(30),
+                        blurRadius: radius * .4,
+                        spreadRadius: 0)
+                  ]
+                : [],
+            color: isClicked
+                ? theme.cardColor
+                : ftheme.backgroundColor ?? theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(radius),
+          ),
+          curve: Curves.easeInOutCubic,
+          duration: Duration(milliseconds: transition_ms),
+          height: isClicked
+              ? widget.expandedHeight
+              : ftheme.sizeConstraints?.maxHeight ??
+                  _kSizeConstraints.maxHeight,
+          width: isClicked
+              ? MediaQuery.of(context).size.width -
+                  widget.padding.left -
+                  widget.padding.right
+              : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
+          child: isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
+              ? Container(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: widget.expandedChild(cancel),
                   ),
+                )
+              : /*isClicked
+                  ? Container()
+                  : */
+              Container(
+                  child: FloatingActionButton(
+                    child: widget.collapsedChild,
+                    onPressed: popupGroup,
+                  ),
+                ),
+        ),
       ),
     );
   }
@@ -155,7 +166,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   /// ensure that all [InputData.varName]s are unique
   final List<InputData> textfield_list;
   final List<TextEditingController> _textfield_controller_list;
-  final List<FocusNode> _textfield_focusnode_list;
+  // final List<FocusNode> _textfield_focusnode_list;
 
   final Map<String, Map<String, dynamic>> json;
 
@@ -170,190 +181,185 @@ class Adder extends StatelessWidget implements JsonExtractable {
                 .unique((x) => x.varName)), //all varnames need to be unique
         this._textfield_controller_list =
             textfield_list.map((tf) => TextEditingController()).toList(),
-        this._textfield_focusnode_list =
-            textfield_list.map((tf) => FocusNode()).toList(),
+        // this._textfield_focusnode_list =
+        //     textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
+
+  Future<void> _alert(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      //barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return MySimpleAlertBox(
+          actions: <Widget>[
+            DismissTextButton(),
+          ],
+          bodyLines: ['probier\'s nochmal'],
+          title: 'Irgendwas stimmt hier noch nicht',
+        );
+      },
+    );
+  }
+
+  void set(context) {
+    if (!_formKey.currentState!.validate()) {
+      //removed for now since formdata validate already shows problem
+      //_alert(context);
+      return;
+    }
+
+    for (var i = 0; i < textfield_list.length; i++) {
+      json[name]![textfield_list[i].varName] =
+          _textfield_controller_list[i].text;
+    }
+    children.forEach((child) {
+      json[name]![child.name] = child.json;
+    });
+    onSet?.call(json);
+  }
+
+  //XXX: i kinda feel bad about a static key, wouldnt all adders have the same key now?
+  // so never ever have two adders in one context i guess
+  // as seen [here](https://stackoverflow.com/a/64426900) though
+  static final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    Future<void> _alert() async {
-      return showDialog<void>(
-        context: context,
-        //barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: <Widget>[
+          Spacer(),
+          ...children,
+          ...List.generate(
+            textfield_list.length,
+            (i) => _Input(
+              hint: textfield_list[i].hint,
+              isFirst: i == 0,
+              isLast: i == textfield_list.length - 1,
+              // onDone: (name) {
+              //   try {
+              //     //TextInputAction.next;
+              //     FocusScope.of(context)
+              //         .requestFocus(_textfield_focusnode_list[i + 1]);
+              //   } catch (e) {
+              //     FocusScope.of(context)
+              //         .requestFocus(_textfield_focusnode_list[0]);
+              //   }
+              // },
+              // fn: _textfield_focusnode_list[i],
+              c: _textfield_controller_list[i],
             ),
-            title: Text('Irgendwas stimmt hier noch nicht'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text('probier\'s nochmal'),
-                ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _PaddedButton(
+                icon: Icons.cancel,
+                onPressed: onCancel,
               ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text(
-                  'hm, nagut',
-                  style: TextStyle(color: Theme.of(context).primaryColor),
-                ),
+              //if (textfield_list.isNotEmpty) _mainField(set),
+              _PaddedButton(
+                icon: Icons.check_circle,
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  set(context);
                 },
               ),
             ],
-          );
-        },
-      );
-    }
-
-    void set() {
-      if (textfield_list.every((element) => element.verify(
-          //okay the indexOf workaround is pretty bad (O(n^2)), make the every iteretion indexed and it'll be O(n). (but the list shall be rather short so np)
-          _textfield_controller_list[textfield_list.indexOf(element)].text))) {
-        for (var i = 0; i < textfield_list.length; i++) {
-          json[name]![textfield_list[i].varName] =
-              _textfield_controller_list[i].text;
-        }
-        children.forEach((child) {
-          json[name]![child.name] = child.json;
-        });
-        onSet?.call(json);
-      } else {
-        _alert();
-      }
-    }
-
-    Widget _paddedButton(IconData icon, Function()? onPressed) => Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: IconButton(
-            //TODO: press-feedback (animation)
-            //backgroundColor: Theme.of(context).canvasColor,
-            onPressed: () {
-              onPressed?.call();
-            },
-            icon: Icon(
-              icon,
-              color: Theme.of(context).primaryColor,
-            ),
           ),
-        );
+        ],
+      ),
+    );
+  }
+}
 
-    @Deprecated('was kinda ugly and wont be used anymore')
-    Container _mainField(void set()) {
-      return Container(
-        width: MediaQuery.of(context).size.width - 205,
-        child: TextField(
-          //maxLength: 20,
-          textInputAction: TextInputAction.done,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary, width: 2),
-                borderRadius: BorderRadius.circular(15)),
-            enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onBackground
-                        .withAlpha(50),
-                    width: 1),
-                borderRadius: BorderRadius.circular(15)),
-            hintText: textfield_list[0].hint,
-            hintStyle: TextStyle(
-              fontWeight: FontWeight.w300,
-              fontSize: 19,
-            ),
-          ),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-          textAlign: TextAlign.center,
-          onSubmitted: (x) {
-            set();
+class _PaddedButton extends StatelessWidget {
+  const _PaddedButton({
+    Key? key,
+    required this.icon,
+    required this.onPressed,
+  }) : super(key: key);
+
+  final IconData icon;
+  final Function()? onPressed;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: IconButton(
+          //TODO: press-feedback (animation)
+          //backgroundColor: Theme.of(context).canvasColor,
+          onPressed: () {
+            onPressed?.call();
           },
-          focusNode: _textfield_focusnode_list[0],
-          controller: _textfield_controller_list[0],
+          icon: Icon(
+            icon,
+            color: Theme.of(context).primaryColor,
+          ),
         ),
       );
-    }
+}
 
-    Widget _input({
-      bool isBetterthantherest = false,
-      required String hint,
-      required Function(String) onDone,
-      required FocusNode fn,
-      required TextEditingController c,
-    }) {
-      return Container(
-        padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-        child: TextField(
-          autofocus:
-              isBetterthantherest, //TODO: remove when closed oder so, jedenfalls snackt der sich den fokus
-          focusNode: fn,
-          //textInputAction: TextInputAction.next, //XXX: sadly this wont work for some reason
-          textCapitalization: TextCapitalization.sentences,
-          decoration: InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onBackground
-                        .withAlpha(50),
-                    width: 1)),
-            hintText: hint,
-            hintStyle: TextStyle(
-              fontWeight: FontWeight.w100,
-              fontSize: 17,
-            ),
-          ),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-          textAlign: TextAlign.center,
-          onSubmitted: onDone,
-          controller: c,
-        ),
-      );
-    }
+class _Input extends StatelessWidget {
+  const _Input({
+    Key? key,
+    this.isFirst = false,
+    this.isLast = false,
+    required this.hint,
+    this.validator = InputData.nonempty,
+    // required this.onDone,
+    // required this.fn,
+    required this.c,
+  }) : super(key: key);
 
-    return Column(
-      children: <Widget>[
-        Spacer(),
-        ...children,
-        ...List.generate(
-          textfield_list.length,
-          (i) => _input(
-            isBetterthantherest: i == 0,
-            hint: textfield_list[i].hint,
-            onDone: (name) {
-              try {
-                //TextInputAction.next;
-                FocusScope.of(context)
-                    .requestFocus(_textfield_focusnode_list[i + 1]);
-              } catch (e) {
-                FocusScope.of(context)
-                    .requestFocus(_textfield_focusnode_list[0]);
-              }
-            },
-            fn: _textfield_focusnode_list[i],
-            c: _textfield_controller_list[i],
+  final String? Function(String? text) validator;
+
+  // String? value;
+
+  final bool isFirst;
+  final bool isLast;
+  final String hint;
+  // final Function(String p1) onDone;
+  // final FocusNode fn;
+  final TextEditingController c;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, left: 20, right: 20),
+      child: TextFormField(
+        // onSaved: (value) {
+        //   this.value = value;
+        // },
+        textCapitalization: TextCapitalization.sentences,
+        // decoration: InputDecoration(
+        //   enabledBorder: UnderlineInputBorder(
+        //       borderSide: BorderSide(
+        //           color:
+        //               Theme.of(context).colorScheme.onBackground.withAlpha(50),
+        //           width: 1)),
+        //   hintText: hint,
+        //   hintStyle: TextStyle(
+        //     fontWeight: FontWeight.w100,
+        //     fontSize: 17,
+        //   ),
+        // ),
+        // style: TextStyle(
+        //   fontWeight: FontWeight.bold,
+        //   fontSize: 18,
+        // ),
+        // textAlign: TextAlign.center,
+        controller: c,
+        validator: validator,
+        autofocus: isFirst,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: Design.mainBorderRadius,
           ),
+          labelText: hint,
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            _paddedButton(Icons.cancel, onCancel),
-            //if (textfield_list.isNotEmpty) _mainField(set),
-            _paddedButton(Icons.check_circle, set),
-          ],
-        ),
-      ],
+        textInputAction: isLast ? null : TextInputAction.next,
+      ),
     );
   }
 }
@@ -366,7 +372,14 @@ class InputData {
   final String hint;
 
   /// a function on whether the current [text] is valid (correct set of characters etc)
-  final bool Function(String text) verify;
-  InputData(this.varName, {required this.hint, this.verify = _defaultver});
-  static bool _defaultver(String str) => str.isNotEmpty;
+  /// shall return null if correct and an error-string otherwise
+  final String? Function(String? text) verify;
+  InputData(this.varName,
+      {required this.hint, this.verify = defaultVerification});
+
+  static const defaultVerification = nonempty;
+
+  static String? nonempty(String? str) =>
+      (str != null && str.isNotEmpty) ? null : 'gib hier etwas ein';
+  static String? alwaysCorrect(String? str) => null;
 }
