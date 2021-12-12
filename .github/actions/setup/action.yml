@@ -2,21 +2,18 @@ on:
   workflow_call:
     inputs:
 
-jobs:
-
-  setup:
-    name: Setup Flutter and all dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '12.x'
-      - uses: subosito/flutter-action@v1
-        with:
-          flutter-version: '2.8.x'
-      - run: |
-          touch .env
-          echo "API_KEY=$API_KEY" >> .env
-          echo "API_URL=$API_URL" >> .env
-      - name: install dependencies
-        run: flutter pub get
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.8.x'
+    - run: |
+        touch .env
+        echo "API_KEY=$API_KEY" >> .env
+        echo "API_URL=$API_URL" >> .env
+    - name: install dependencies
+      run: flutter pub get
