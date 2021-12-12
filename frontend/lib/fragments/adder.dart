@@ -203,7 +203,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
 
   void set(context) {
     if (!_formKey.currentState!.validate()) {
-      _alert(context);
+      //removed for now since formdata validate already shows problem
+      //_alert(context);
       return;
     }
 
