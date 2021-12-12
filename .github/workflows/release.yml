@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ./github/actions/setup
+      - uses: ./.github/actions/setup
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -41,6 +41,7 @@ jobs:
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
     steps:
+      - uses: actions/checkout@v2
       - uses: ./github/actions/setup
       - name: Build Documentation
         run: |
@@ -65,6 +66,7 @@ jobs:
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
     steps:
+      - uses: actions/checkout@v2
       - uses: ./github/actions/setup
       - name: Build
         run: flutter build ${{matrix.platform}}
