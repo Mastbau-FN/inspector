@@ -165,52 +165,61 @@ Widget build(BuildContext context) {
       Theme.of(context).floatingActionButtonTheme;
   double radius =
       (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) &#47; 2;
-  return GestureDetector(
-    onTap: popupGroup,
-    child: AnimatedContainer(
-      key: UniqueKey(),
-      &#47;&#47;padding: isClicked ? widget.padding : EdgeInsets.all(0), &#47;&#47;not needed, since the floatingAction Button from scaffold is already padded
-      decoration: BoxDecoration(
-        boxShadow: isClicked
-            ? [
-                BoxShadow(
-                    color: theme.colorScheme.secondary.withAlpha(30),
-                    blurRadius: radius * .4,
-                    spreadRadius: 0)
-              ]
-            : [],
-        color: isClicked
-            ? theme.cardColor
-            : ftheme.backgroundColor ?? theme.colorScheme.primary,
-        borderRadius: BorderRadius.circular(radius),
-      ),
-      curve: Curves.easeInOutCubic,
-      duration: Duration(milliseconds: transition_ms),
-      height: isClicked
-          ? widget.expandedHeight
-          : ftheme.sizeConstraints?.maxHeight ?? _kSizeConstraints.maxHeight,
-      width: isClicked
-          ? MediaQuery.of(context).size.width -
-              widget.padding.left -
-              widget.padding.right
-          : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
-      child:
-          isClicked &#47;*wasClicked*&#47; &#47;&#47;Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
-              ? Container(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: widget.expandedChild(cancel),
-                  ),
-                )
-              : &#47;*isClicked
-              ? Container()
-              : *&#47;
-              Container(
-                  child: FloatingActionButton(
-                    child: widget.collapsedChild,
-                    onPressed: popupGroup,
-                  ),
+  return WillPopScope(
+    onWillPop: () async {
+      if (!wasClicked) {
+        return true;
+      }
+      cancel();
+      return false;
+    },
+    child: GestureDetector(
+      onTap: popupGroup,
+      child: AnimatedContainer(
+        key: UniqueKey(),
+        &#47;&#47;padding: isClicked ? widget.padding : EdgeInsets.all(0), &#47;&#47;not needed, since the floatingAction Button from scaffold is already padded
+        decoration: BoxDecoration(
+          boxShadow: isClicked
+              ? [
+                  BoxShadow(
+                      color: theme.colorScheme.secondary.withAlpha(30),
+                      blurRadius: radius * .4,
+                      spreadRadius: 0)
+                ]
+              : [],
+          color: isClicked
+              ? theme.cardColor
+              : ftheme.backgroundColor ?? theme.colorScheme.primary,
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        curve: Curves.easeInOutCubic,
+        duration: Duration(milliseconds: transition_ms),
+        height: isClicked
+            ? widget.expandedHeight
+            : ftheme.sizeConstraints?.maxHeight ??
+                _kSizeConstraints.maxHeight,
+        width: isClicked
+            ? MediaQuery.of(context).size.width -
+                widget.padding.left -
+                widget.padding.right
+            : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
+        child: isClicked &#47;*wasClicked*&#47; &#47;&#47;Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
+            ? Container(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: widget.expandedChild(cancel),
                 ),
+              )
+            : &#47;*isClicked
+                ? Container()
+                : *&#47;
+            Container(
+                child: FloatingActionButton(
+                  child: widget.collapsedChild,
+                  onPressed: popupGroup,
+                ),
+              ),
+      ),
     ),
   );
 }</code></pre>

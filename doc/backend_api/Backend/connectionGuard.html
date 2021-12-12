@@ -76,7 +76,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
   var connection = await (Connectivity().checkConnectivity());
   if (connection == ConnectivityResult.none)
     throw NoConnectionToBackendException(&quot;no network available&quot;);
-  if (!canUseMobileNetworkIfPossible &amp;&amp;
+  if (!Consts.canUseMobileNetworkIfPossible &amp;&amp;
       connection == ConnectivityResult.mobile)
     throw NoConnectionToBackendException(&quot;mobile network not allowed&quot;);
 

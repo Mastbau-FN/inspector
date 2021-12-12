@@ -58,7 +58,7 @@
 
       <dl class="constructor-summary-list">
         <dt id="InputData" class="callable">
-          <span class="name"><a href="../fragments_adder/InputData/InputData.html">InputData</a></span><span class="signature">(<span class="parameter" id="-param-varName"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">varName</span>, </span><span class="parameter" id="-param-hint">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hint</span>, </span><span class="parameter" id="-param-verify"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">verify</span>(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span></span>) = <span class="default-value">_defaultver</span>}</span>)</span>
+          <span class="name"><a href="../fragments_adder/InputData/InputData.html">InputData</a></span><span class="signature">(<span class="parameter" id="-param-varName"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">varName</span>, </span><span class="parameter" id="-param-hint">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hint</span>, </span><span class="parameter" id="-param-verify"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">verify</span>(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>) = <span class="default-value">defaultVerification</span>}</span>)</span>
         </dt>
         <dd>
            
@@ -116,11 +116,12 @@
 
         <dt id="verify" class="property">
   <span class="name"><a href="../fragments_adder/InputData/verify.html">verify</a></span>
-  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a> Function<span class="signature">(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span></span>)</span></span> 
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>? Function<span class="signature">(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>)</span></span> 
 
 </dt>
 <dd>
-  a function on whether the current <code>text</code> is valid (correct set of characters etc) 
+  a function on whether the current <code>text</code> is valid (correct set of characters etc)
+shall return null if correct and an error-string otherwise 
   <div class="features">final</div>
 
 </dd>
@@ -180,7 +181,59 @@
     </section>
 
 
+    <section class="summary offset-anchor" id="static-methods">
+      <h2>Static Methods</h2>
+      <dl class="callables">
+        <dt id="alwaysCorrect" class="callable">
+  <span class="name"><a href="../fragments_adder/InputData/alwaysCorrect.html">alwaysCorrect</a></span><span class="signature">(<wbr><span class="parameter" id="alwaysCorrect-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  </span>
+  
 
+</dt>
+<dd>
+   
+  
+
+</dd>
+
+        <dt id="nonempty" class="callable">
+  <span class="name"><a href="../fragments_adder/InputData/nonempty.html">nonempty</a></span><span class="signature">(<wbr><span class="parameter" id="nonempty-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  </span>
+  
+
+</dt>
+<dd>
+   
+  
+
+</dd>
+
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="constants">
+      <h2>Constants</h2>
+
+      <dl class="properties">
+        <dt id="defaultVerification" class="constant">
+  <span class="name "><a href="../fragments_adder/InputData/defaultVerification-constant.html">defaultVerification</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>? Function<span class="signature">(<span class="parameter" id="nonempty-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)</span></span>
+  
+
+</dt>
+<dd>
+   
+  
+
+  <div>
+    <span class="signature"><code>nonempty</code></span>
+  </div>
+</dd>
+
+      </dl>
+    </section>
 
   </div> <!-- /.main-content -->
 
@@ -246,7 +299,12 @@
 
 
 
+    <li class="section-title"><a href="../fragments_adder/InputData-class.html#static-methods">Static methods</a></li>
+    <li><a href="../fragments_adder/InputData/alwaysCorrect.html">alwaysCorrect</a></li>
+    <li><a href="../fragments_adder/InputData/nonempty.html">nonempty</a></li>
 
+    <li class="section-title"><a href="../fragments_adder/InputData-class.html#constants">Constants</a></li>
+    <li><a href="../fragments_adder/InputData/defaultVerification-constant.html">defaultVerification</a></li>
 </ol>
 
   </div><!--/.sidebar-offcanvas-->

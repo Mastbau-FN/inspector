@@ -50,20 +50,21 @@
 </h1></div>
 
         <section class="multi-line-signature">
-          <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a> Function<span class="signature">(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">text</span></span>)</span>
+          <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>? Function<span class="signature">(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>)</span>
           <span class="name ">verify</span>
           <div class="features">final</div>
 
         </section>
         
 <section class="desc markdown">
-  <p>a function on whether the current <code>text</code> is valid (correct set of characters etc)</p>
+  <p>a function on whether the current <code>text</code> is valid (correct set of characters etc)
+shall return null if correct and an error-string otherwise</p>
 </section>
 
         
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">final bool Function(String text) verify;
+  <pre class="language-dart"><code class="language-dart">final String? Function(String? text) verify;
 
 </code></pre>
 </section>
@@ -111,7 +112,12 @@
 
 
 
+    <li class="section-title"><a href="../../fragments_adder/InputData-class.html#static-methods">Static methods</a></li>
+    <li><a href="../../fragments_adder/InputData/alwaysCorrect.html">alwaysCorrect</a></li>
+    <li><a href="../../fragments_adder/InputData/nonempty.html">nonempty</a></li>
 
+    <li class="section-title"><a href="../../fragments_adder/InputData-class.html#constants">Constants</a></li>
+    <li><a href="../../fragments_adder/InputData/defaultVerification-constant.html">defaultVerification</a></li>
 </ol>
 
   </div><!--/.sidebar-offcanvas-->
