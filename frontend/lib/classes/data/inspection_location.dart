@@ -28,13 +28,8 @@ class InspectionLocation extends Data {
 
   @JsonKey(
     name: 'latLng',
-    fromJson: (map) => LatLng.fromJson({
-      'coordinates': [map['lat'], map['lng']]
-    }),
-    toJson: (LatLng latlng) {
-      const coords = latlng.toJson()['coordinates'];
-      return {'lat': coords[0], 'lng': coords[1]};
-    },
+    fromJson: _toplevelhelperLatLng_fromJson,
+    toJson: _toplevelhelperLatLng_toJson,
   )
   final LatLng? coords;
 
@@ -84,4 +79,20 @@ class InspectionLocation extends Data {
 
   @override
   Map<String, dynamic> toSmallJson() => {'PjNr': pjNr};
+}
+
+Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
+  if (latlng == null) return {};
+  var coords = latlng.toJson()['coordinates'];
+  return {'lat': coords[0], 'lng': coords[1]};
+}
+
+LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
+  try {
+    return LatLng.fromJson({
+      'coordinates': [map['lat'], map['lng']]
+    });
+  } catch (e) {
+    return null;
+  }
 }
