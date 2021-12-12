@@ -11,7 +11,6 @@ jobs:
       API_KEY: ${{ secrets.API_KEY}}
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
     steps:
-      - run: cd frontend
       - uses: actions/setup-java@v1
         with:
           java-version: '12.x'
