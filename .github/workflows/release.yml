@@ -1,12 +1,13 @@
 on:
-  push:
-    branches:
-      - main
-      - release
-      - 'releases/**'
+  pull_request:
+  # push:
+  #   branches:
+  #     - main
+  #     - release
+  #     - 'releases/**'
     
-    paths:
-      - 'release-info.md'
+  #   paths:
+  #     - 'release-info.md'
 
 name: Release
 
