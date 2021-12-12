@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 
@@ -174,41 +175,24 @@ class Adder extends StatelessWidget implements JsonExtractable {
             textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
 
+  Future<void> _alert(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      //barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return MySimpleAlertBox(
+          actions: <Widget>[
+            DismissTextButton(),
+          ],
+          bodyLines: ['probier\'s nochmal'],
+          title: 'Irgendwas stimmt hier noch nicht',
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    Future<void> _alert() async {
-      return showDialog<void>(
-        context: context,
-        //barrierDismissible: false, // user must tap button!
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            title: Text('Irgendwas stimmt hier noch nicht'),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  Text('probier\'s nochmal'),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text(
-                  'hm, nagut',
-                  style: TextStyle(color: Theme.of(context).primaryColor),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-
     void set() {
       if (textfield_list.every((element) => element.verify(
           //okay the indexOf workaround is pretty bad (O(n^2)), make the every iteretion indexed and it'll be O(n). (but the list shall be rather short so np)
@@ -222,7 +206,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
         });
         onSet?.call(json);
       } else {
-        _alert();
+        _alert(context);
       }
     }
 
