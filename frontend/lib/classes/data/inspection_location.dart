@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import 'package:json_annotation/json_annotation.dart';
+import "package:latlong2/latlong.dart";
 
 part 'inspection_location.g.dart';
 
@@ -25,6 +26,13 @@ class InspectionLocation extends Data {
   @JsonKey(name: 'Ort')
   final String? ort;
 
+  @JsonKey(
+    name: 'latLng',
+    fromJson: _toplevelhelperLatLng_fromJson,
+    toJson: _toplevelhelperLatLng_toJson,
+  )
+  final LatLng? coords;
+
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
@@ -34,16 +42,18 @@ class InspectionLocation extends Data {
   @JsonKey(ignore: true)
   Future<Image?> previewImage = Future.value(null);
 
-  InspectionLocation(
-      {this.bauleitung,
-      ////this.defaultpicture,
-      this.ort,
-      this.pjInfo,
-      this.pjName,
-      required this.pjNr,
-      this.plz,
-      required this.stONr,
-      this.strasse});
+  InspectionLocation({
+    this.bauleitung,
+    ////this.defaultpicture,
+    this.ort,
+    this.pjInfo,
+    this.pjName,
+    required this.pjNr,
+    this.plz,
+    required this.stONr,
+    this.strasse,
+    this.coords,
+  });
 
   @override
   String toString() {
@@ -69,4 +79,20 @@ class InspectionLocation extends Data {
 
   @override
   Map<String, dynamic> toSmallJson() => {'PjNr': pjNr};
+}
+
+Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
+  if (latlng == null) return {};
+  var coords = latlng.toJson()['coordinates'];
+  return {'lat': coords[0], 'lng': coords[1]};
+}
+
+LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
+  try {
+    return LatLng.fromJson({
+      'coordinates': [map['lat'], map['lng']]
+    });
+  } catch (e) {
+    return null;
+  }
 }

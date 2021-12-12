@@ -16,6 +16,8 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       plz: json['PLZ'] as String?,
       stONr: json['StONr'] as int,
       strasse: json['Straße'] as String?,
+      coords: _toplevelhelperLatLng_fromJson(
+          json['latLng'] as Map<String, dynamic>),
     )..imagehashes =
         (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
@@ -29,5 +31,6 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Straße': instance.strasse,
       'PLZ': instance.plz,
       'Ort': instance.ort,
+      'latLng': _toplevelhelperLatLng_toJson(instance.coords),
       'images': instance.imagehashes,
     };
