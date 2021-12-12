@@ -87,6 +87,7 @@ jobs:
     needs: [build-doc,build-app]
     name: Deploy Web-App and Docs
     runs-on: ubuntu-latest
+    steps:
       - name: make gh-pages folder for doc as well as the app
         run: |
           mkdir gh-pages
