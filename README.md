@@ -15,7 +15,7 @@ backend stuff is not included there, but can be seen [here](https://github.com/M
     <details><summary>example</summary>
 
     ```
-    API_KEY=AE*%kXy2@WqCxNpm+^zz4V*eM93_B3P7
+    API_KEY=CR34T3UR0WN4P1%K3Y
     API_URL=http://192.168.178.40:3000/api/secure
 
     ```
