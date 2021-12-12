@@ -2,10 +2,6 @@ on:
   workflow_call:
     inputs:
 
-defaults:
-  run:
-    shell: bash
-
 runs:
   using: "composite"
   steps:
@@ -19,5 +15,7 @@ runs:
         touch .env
         echo "API_KEY=$API_KEY" >> .env
         echo "API_URL=$API_URL" >> .env
+      shell: bash
     - name: install dependencies
       run: flutter pub get
+      shell: bash
