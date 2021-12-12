@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: cd .. && tree
-      - uses: ./.github/actions/setup
+      - uses: Mastbau-FN/inspector/.github/actions/setup
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
