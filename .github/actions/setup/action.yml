@@ -17,5 +17,5 @@ runs:
         echo "API_URL=$API_URL" >> .env
       shell: bash
     - name: install dependencies
-      run: flutter pub get
+      run: cd ${{ github.action_path }} && flutter pub get
       shell: bash
