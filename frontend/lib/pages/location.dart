@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 
 import 'package:flutter_map/flutter_map.dart';
 import "package:latlong2/latlong.dart" as latLng;
@@ -132,32 +133,45 @@ class LocationDetailPage extends StatelessWidget {
           ? Container(
               height: 20,
             )
-          : Container(
-              height:
-                  400, //XXX expanded to take available space would be much better than giving a fixed height
-              child: FlutterMap(
-                options: MapOptions(
-                  center: locationdata.coords!,
-                  zoom: 13.0,
-                ),
-                layers: [
-                  TileLayerOptions(
-                      urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      subdomains: ['a', 'b', 'c']),
-                  MarkerLayerOptions(
-                    markers: [
-                      Marker(
-                        width: 80.0,
-                        height: 80.0,
-                        point: locationdata.coords!,
-                        builder: (ctx) => Container(
-                          child: Icon(Icons.location_on),
-                        ),
+          : Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Container(
+                  height:
+                      400, //XXX expanded to take available space would be much better than giving a fixed height
+                  child: FlutterMap(
+                    options: MapOptions(
+                      center: locationdata.coords!,
+                      zoom: 13.0,
+                    ),
+                    layers: [
+                      TileLayerOptions(
+                          urlTemplate:
+                              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                          subdomains: ['a', 'b', 'c']),
+                      MarkerLayerOptions(
+                        markers: [
+                          Marker(
+                            width: 80.0,
+                            height: 80.0,
+                            point: locationdata.coords!,
+                            builder: (ctx) => Container(
+                              child: Icon(Icons.location_on),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                FloatingActionButton(
+                  child: Icon(Icons.navigation_rounded),
+                  onPressed: () {
+                    MapsLauncher.launchCoordinates(
+                        locationdata.coords!.latitude,
+                        locationdata.coords!.longitude);
+                  },
+                ),
+              ],
             );
 }
