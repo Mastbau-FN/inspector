@@ -158,3 +158,39 @@ jobs:
           asset_path: inspector.apk
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
+
+  release-Playstore:
+    needs: build-app
+    name: Release to the google playstore
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Read release notes
+        id: release-info
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: ./release-info.md
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release_v_${{ github.run_number }}
+          release_name: AutoRelease (v${{ github.run_number }})
+          body: ${{ steps.release-info.outputs.content }}
+          draft: false
+          prerelease: false
+      - name: download apk
+        uses: actions/download-artifact@v2
+        with:
+          name: inspector.apk
+      - name: upload apk
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: inspector.apk
+          asset_name: inspector.apk
+          asset_content_type: application/octet-stream

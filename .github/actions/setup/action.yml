@@ -2,6 +2,11 @@ on:
   workflow_call:
     inputs:
 
+defaults:
+  run:
+    shell: bash
+    working-directory: ${{ github.action_path }}/../../../frontend/
+
 runs:
   using: "composite"
   steps:
