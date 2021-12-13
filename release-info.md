@@ -1,5 +1,5 @@
-### release v1.0.4+1
+### release v1.0.5
 
 #### changes
 
-- automatic release
+- fehlermeldungen und edits
