@@ -163,30 +163,30 @@ jobs:
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
 
-  # release-Playstore:
-  #   needs: build-app
-  #   name: Release to the google playstore
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: download aab
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: appbundle
-  #     - name: rename bundle
-  #       run: mv appbundle bundle.aab
-  #
-  #     - name: create release notes #TODO make this actual notes
-  #       run: |
-  #         mkdir news
-#           touch whatsnew-en-US
-#           cat ./release-info.md >> news/whatsnew-en-US 
-#
-  #     - name: upload aab
-  #       uses: r0adkll/upload-google-play@v1
-  #       with:
-  #         serviceAccountJson: ${{ SERVICE_ACCOUNT_JSON }}
-  #         packageName: com.mastbaufn.inspektionen
-  #         releaseFiles: [bundle.aab]
-  #         track: alpha #TODO: when stable move to production
-  #         inAppUpdatePriority: 2
-  #         whatsNewDirectory: new
+  release-Playstore:
+    needs: build-app
+    name: Release to the google playstore
+    runs-on: ubuntu-latest
+    steps:
+      - name: download aab
+        uses: actions/download-artifact@v2
+        with:
+          name: appbundle
+      - name: rename bundle
+        run: mv appbundle bundle.aab
+  
+      - name: create release notes #TODO make this actual notes
+        run: |
+          mkdir news
+          touch whatsnew-en-US
+          cat ./release-info.md >> news/whatsnew-en-US 
+
+      - name: upload aab
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: com.mastbaufn.inspektionen
+          releaseFiles: [bundle.aab]
+          track: alpha #TODO: when stable move to production
+          inAppUpdatePriority: 2
+          whatsNewDirectory: new
