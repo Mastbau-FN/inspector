@@ -31,6 +31,7 @@ class ErrorText extends StatelessWidget {
               ? 11
               : 0),
           style: TextStyle(color: color),
+          maxLines: 5,
         )
       ],
     );

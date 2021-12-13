@@ -2,14 +2,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-class NoConnectionToBackendException implements Exception {
-  String? cause;
+class NoConnectionToBackendException extends BackendCommunicationException {
   @override
   String toString() {
     return cause ?? 'NoConnectionToBackendException';
   }
 
-  NoConnectionToBackendException(this.cause);
+  NoConnectionToBackendException(String? cause) : super(cause);
 }
 
 class ResponseException implements Exception {
@@ -32,3 +31,13 @@ class ResponseException implements Exception {
 }
 
 class LoginException implements Exception {}
+
+class BackendCommunicationException implements Exception {
+  String? cause;
+  @override
+  String toString() {
+    return cause ?? 'Something went wrong while communicating with the API';
+  }
+
+  BackendCommunicationException(this.cause);
+}
