@@ -22,3 +22,8 @@ runs:
         cd ${{ github.action_path }}/../../../frontend/
         flutter pub get #make sure this path is correct
       shell: bash
+    - name: check
+      run: |
+        cd ${{ github.action_path }}/../../../frontend/
+        ls
+      shell: bash

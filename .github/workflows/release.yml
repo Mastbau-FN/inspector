@@ -170,27 +170,19 @@ jobs:
         uses: juliangruber/read-file-action@v1
         with:
           path: ./release-info.md
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: release_v_${{ github.run_number }}
-          release_name: AutoRelease (v${{ github.run_number }})
-          body: ${{ steps.release-info.outputs.content }}
-          draft: false
-          prerelease: false
-      - name: download apk
+      - name: download aab
         uses: actions/download-artifact@v2
         with:
-          name: inspector.apk
-      - name: upload apk
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          name: inspector.aab
+
+      - name: upload aab
+        uses: r0adkll/upload-google-play@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: inspector.apk
-          asset_name: inspector.apk
-          asset_content_type: application/octet-stream
+          serviceAccountJson: ${{ SERVICE_ACCOUNT_JSON }}
+          packageName: com.mastbaufn.inspektionen
+          releaseFiles: inspector.aab
+          track: alpha #TODO: when stable move to production
+          inAppUpdatePriority: 2
+          userFraction: 0.33
+          whatsNewDirectory: distribution/whatsnew
+          mappingFile: app/build/outputs/mapping/release/mapping.txt
