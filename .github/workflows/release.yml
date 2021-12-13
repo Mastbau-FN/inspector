@@ -73,8 +73,11 @@ jobs:
 
       - name: create key.properties for signing
         run: |
-          touch android/key.properties
-          echo ${{ secrets.KEY_PROPERTIES }} > android/key.properties
+          cd android
+          touch key.properties
+          echo ${{ secrets.KEY_PROPERTIES }} > key.properties
+          ls 
+          pwd
 
       - name: Build ${{matrix.platform}}
         run: flutter build ${{matrix.platform}}
