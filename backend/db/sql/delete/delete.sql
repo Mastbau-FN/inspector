@@ -1,2 +1,6 @@
 DELETE FROM "Events"
-WHERE "Index" = $?; /*über Index den Datensatz identifizieren, dann ist auch egal auf welche Ebene man sich befindet*/
+WHERE WHERE "PjNr" = $1 
+AND "E1" = $? /*neuer Parameter*/
+AND "E2" = $? /*neuer Parameter*/
+AND "E3" = $? /*neuer Parameter*/
+; 
