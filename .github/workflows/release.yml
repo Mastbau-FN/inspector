@@ -111,9 +111,9 @@ jobs:
         with:
           name: doc
 
+      - run: tree .. 
       - name: make gh-pages folder for doc as well as the app
         run: |
-          tree ..
           mkdir gh-pages
           tree ..
           mv ../doc gh-pages/doc
@@ -160,7 +160,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: apk
+          asset_path: app-release.apk
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
 
@@ -173,8 +173,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: appbundle
-      - name: rename bundle
-        run: tree .. && mv appbundle bundle.aab && tree ..
   
       - name: create release notes #TODO make this actual notes
         run: |
@@ -189,7 +187,7 @@ jobs:
         with:
           serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.mastbaufn.inspektionen
-          releaseFiles: bundle.aab
+          releaseFiles: app-release.aab
           track: alpha #TODO: when stable move to production
           inAppUpdatePriority: 2
           whatsNewDirectory: new
