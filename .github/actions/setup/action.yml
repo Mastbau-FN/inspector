@@ -1,0 +1,31 @@
+on:
+  workflow_call:
+    inputs:
+
+## this would be nice
+# defaults:
+#   run:
+#     shell: bash
+#     working-directory: ./frontend
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.8.x'
+    - run: |
+        cd frontend/
+        touch .env
+        echo "API_KEY=$API_KEY" >> .env
+        echo "API_URL=$API_URL" >> .env
+      shell: bash
+    - name: install dependencies
+      run: |
+        cd frontend/
+        flutter pub get #make sure this path is correct
+      shell: bash
+
