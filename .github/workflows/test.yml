@@ -4,7 +4,6 @@ on:
 
 jobs:
   run:
-    if: false #remove this when testing is enabled again
     name: test
     runs-on: ubuntu-latest
     env:

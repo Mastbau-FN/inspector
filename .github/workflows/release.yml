@@ -1,13 +1,13 @@
 on:
-  pull_request:
-  # push:
-  #   branches:
-  #     - main
-  #     - release
-  #     - 'releases/**'
+  pull_request: #TODO: remove
+  push:
+    branches:
+      - main
+      - release
+      - 'releases/**'
     
-  #   paths:
-  #     - 'release-info.md'
+    paths:
+      - 'release-info.md'
 
 name: Release
 
@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
+      - uses: Mastbau-FN/inspector/.github/actions/setup@main
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
+      - uses: Mastbau-FN/inspector/.github/actions/setup@main
       - name: Build Documentation
         run: |
           flutter pub global activate dartdoc
@@ -69,8 +69,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
-      - name: Build
+      - uses: Mastbau-FN/inspector/.github/actions/setup@main
+      - name: Build ${{matrix.platform}}
         run: flutter build ${{matrix.platform}}
 
       # the following isnt DRY enough for my taste but i couldnt find a way to map ${{matrix.platform}}to the corresponding path
@@ -113,10 +113,11 @@ jobs:
 
       - name: make gh-pages folder for doc as well as the app
         run: |
+          tree ..
           mkdir gh-pages
-          tree
-          mv doc gh-pages/doc
-          mv web gh-pages/app
+          tree ..
+          mv ../doc gh-pages/doc
+          mv ../web gh-pages/app
           cd gh-pages && touch .nojekyll 
         # the last command is needed to serve the .env
 
@@ -152,7 +153,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: apk
-      - run: tree
+      - run: tree ..
       - name: upload apk
         uses: actions/upload-release-asset@v1
         env:
@@ -163,7 +164,7 @@ jobs:
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
 
-  release-Playstore:
+  release-playstore:
     needs: build-app
     name: Release to the google playstore
     runs-on: ubuntu-latest
