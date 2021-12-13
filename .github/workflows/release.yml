@@ -114,6 +114,7 @@ jobs:
       - name: make gh-pages folder for doc as well as the app
         run: |
           mkdir gh-pages
+          tree
           mv doc gh-pages/doc
           mv web gh-pages/app
           cd gh-pages && touch .nojekyll 
@@ -151,6 +152,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: apk
+      - run: tree
       - name: upload apk
         uses: actions/upload-release-asset@v1
         env:
