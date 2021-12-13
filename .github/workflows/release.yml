@@ -1,5 +1,5 @@
 on:
-  pull_request: #TODO: remove
+  #pull_request: #TODO: remove
   push:
     branches:
       - main
