@@ -196,15 +196,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  switch (data.type) {
    case 'category':
      queryfile = folder+"/check_categories";
-     params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
+     params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Insp_Stelle]; //Insp_stelle ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
    case 'checkpoint':
      queryfile = folder+"/check_points";
-     params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner];
+     params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Insp_Stelle]; //Insp_stelle ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
    case 'defect':
      queryfile = folder+"/check_point_defects";
-     params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner];
+     params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Insp_Stelle];
      break;
  
    default:
