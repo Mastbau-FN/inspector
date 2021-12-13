@@ -1,5 +1,5 @@
 on:
-  #pull_request: #TODO: remove
+  pull_request: #TODO: remove
   push:
     branches:
       - main
@@ -111,6 +111,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: doc
+  
+      - run: ls -a && ls -a .. && ls -a ../..
 
       - name: make gh-pages folder for doc as well as the app
         run: |
@@ -182,7 +184,7 @@ jobs:
       - name: upload aab
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.mastbaufn.inspektionen
           releaseFiles: app-release.aab
           track: alpha #TODO: when stable move to production
