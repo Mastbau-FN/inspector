@@ -11,14 +11,14 @@ on:
 
 name: Release
 
-defaults:
-  run:
-    working-directory: ./frontend
-
-
 env:
+  working-directory: ./frontend
   API_KEY: ${{secrets.API_KEY}}
   API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
+
+defaults:
+  run:
+    working-directory: ${{ env.working-directory}}
 
 jobs:
 
@@ -66,9 +66,6 @@ jobs:
     strategy:
       matrix:
         platform: [web, apk, appbundle]
-    env:
-      API_KEY: ${{ secrets.API_KEY}}
-      API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
     steps:
       - uses: actions/checkout@v2
@@ -76,11 +73,11 @@ jobs:
       - name: Build
         run: flutter build ${{matrix.platform}}
 
-      - name: upload web artifact
+      - name: upload ${{matrix.platform}} artifact
         uses: actions/upload-artifact@v2
         with:
-          name: web
-          path: ./build/web
+          name: ${{matrix.platform}}
+          path:  ${{ env.working-directory}}/build/web
       - name: upload apk artifact
         uses: actions/upload-artifact@v2
         with:
@@ -90,7 +87,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: inspector.aab
-          path: ./frontend/build/app/outputs/bundle/release/app.aab
+          path: ./frontend/build/app/outputs/bundle/release/app-release.aab
 
   deploy-web:
     needs: [build-doc,build-app]
