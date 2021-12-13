@@ -9,6 +9,7 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 import 'detailsPage.dart';
 import 'imageView.dart';
@@ -53,44 +54,50 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
             );
 
           default:
-            try {
-              //if langtext is already rich display in rich editor
-              return DetailsPage.rich(
-                  title: data.title,
-                  details: jsonDecode(data.langText ?? ""),
-                  onChanged: (txt) {
-                    uploadString(data, jsonEncode(txt).toString());
-                  });
-            } catch (e) {
-              try {
-                //if not convert it to rich if possible and display in rich editor
-                return DetailsPage.rich(
-                    title: data.title,
-                    details:
-                        jsonDecode('[{"insert":"${data.langText ?? ""}\\n"}]'),
-                    onChanged: (txt) {
-                      uploadString(data, jsonEncode(txt).toString());
-                    });
-              } catch (e) {
-                return DetailsPage(
-                    title: data.title,
-                    details: data.langText,
-                    onChanged: (txt) {
-                      uploadString(data, txt);
-                    });
-              }
-            }
+            return Provider<CheckPointDefectsModel>(
+              create: (context) =>
+                  this, //the injector //XXX: sadly this doesnt work for some reason
+              child: Builder(builder: (context) {
+                debugPrint('build new defectsdetails');
+                try {
+                  //if langtext is already rich display in rich editor
+                  return DetailsPage.rich(
+                      title: data.title,
+                      details: jsonDecode(data.langText ?? ""),
+                      onChanged: (txt) {
+                        uploadString(data, jsonEncode(txt).toString());
+                      });
+                } catch (e) {
+                  try {
+                    //if not convert it to rich if possible and display in rich editor
+                    return DetailsPage.rich(
+                        title: data.title,
+                        details: jsonDecode(
+                            '[{"insert":"${data.langText ?? ""}\\n"}]'),
+                        onChanged: (txt) {
+                          uploadString(data, jsonEncode(txt).toString());
+                        });
+                  } catch (e) {
+                    return DetailsPage(
+                        title: data.title,
+                        details: data.langText,
+                        onChanged: (txt) {
+                          uploadString(data, txt);
+                        });
+                  }
+                }
+              }),
+            );
         }
       }),
     );
   }
 
   void uploadString(CheckPointDefect data, txt) async {
-    debugPrint(txt);
     data.langText = txt;
     Fluttertoast.showToast(
       msg: await _b.update(data) ??
-          "we send the request but we didnt get any response",
+          "we sent the request but we didnt get any response",
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
     );

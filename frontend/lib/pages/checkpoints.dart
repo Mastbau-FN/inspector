@@ -60,12 +60,21 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
 
           default:
             return DetailsPage(
+                //for a more advanced solution have a look at [CheckpointdefectsModel]
                 title: data.title,
                 details: data.langText,
-                onChanged: (txt) {/*TODO*/});
+                onChanged: (txt) {
+                  uploadString(data, txt);
+                });
         }
       }),
     );
+  }
+
+  void uploadString(CheckPoint data, txt) async {
+    data.langText = txt;
+    await _b.update(data);
+    notifyListeners();
   }
 
   @override

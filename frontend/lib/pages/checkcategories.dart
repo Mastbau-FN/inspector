@@ -60,12 +60,21 @@ class CategoryModel extends DropDownModel<CheckCategory> {
 
           default:
             return DetailsPage(
+                //if a rich editor is wished for have a look at [CheckpointdefectsModel]
                 title: data.title,
                 details: data.langText,
-                onChanged: (txt) {/*TODO*/});
+                onChanged: (txt) {
+                  uploadString(data, txt);
+                });
         }
       }),
     );
+  }
+
+  void uploadString(CheckCategory data, txt) async {
+    data.langText = txt;
+    await _b.update(data);
+    notifyListeners();
   }
 
   @override
