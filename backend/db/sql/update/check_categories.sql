@@ -1,22 +1,13 @@
-
--- add Categorie (03_Auswahl_Prüfkategorie)
-INSERT INTO "Events" ("PjNr", "KurzText", "LangText", "Link", "LinkOrdner", "EventID", "EREArt", "E1", "E2", "E3", "Insp_Stelle") 
-VALUES (
-$1, /*Projektnummer*/
-$2, /*name (required)*/
-$3, /*description (optional)*/
-$4, /*Link*/
-$5, /*linkOrdner*/
-0, /*erstmal 0, später mehr*/
-5100, /*is Prüfkategorie*/
-(SELECT COALESCE("E1",0) + 1 AS "E1"
-FROM "Events"
-WHERE "PjNr" = $1 /*Projektnummer*/
-ORDER BY COALESCE("E1",0) DESC LIMIT 1),
-0,
-0,
-NULL
-)
-RETURNING "E1"
+-- update Categorie (03_Auswahl_Prüfkategorie)
+UPDATE "Events"  
+SET 
+"PjNr" = $1,
+"KurzText" = §2
+"LangText" =$3
+"Link" = $3,
+"LinkOrdner" = $4
+"Insp_Stelle" = $? /*ggf. neuer Parameter*/
+WHERE
+"EREArt" = 5100 /*Prüfkategorie*/
+AND "E1" = $? /*neuer Parameter*/
 ;
-
