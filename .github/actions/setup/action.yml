@@ -20,5 +20,5 @@ runs:
         echo "API_URL=$API_URL" >> .env
       shell: bash
     - name: install dependencies
-      run: flutter pub get #make sure this path is correct
+      run: pwd && ls && flutter pub get #make sure this path is correct
       shell: bash
