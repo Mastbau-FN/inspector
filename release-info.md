@@ -1,5 +1,5 @@
-### release v0.0.4
+### release v0.0.4+0
 
 #### changes
 
-- fixed #55: adding new elements now looks better and wont selfcollapse etc
+- okay there will be a few releases now with nothing actually new, but im currently working on a ci/cd workflow that will build and release automatically
