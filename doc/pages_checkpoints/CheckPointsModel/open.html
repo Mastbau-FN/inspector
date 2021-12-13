@@ -94,9 +94,12 @@ void open(
 
         default:
           return DetailsPage(
+              &#47;&#47;for a more advanced solution have a look at [CheckpointdefectsModel]
               title: data.title,
               details: data.langText,
-              onChanged: (txt) {&#47;*TODO*&#47;});
+              onChanged: (txt) {
+                uploadString(data, txt);
+              });
       }
     }),
   );
@@ -148,6 +151,7 @@ void open(
     <li><a href="../../pages_checkpoints/CheckPointsModel/open.html">open</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/removeListener.html">removeListener</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
+    <li><a href="../../pages_checkpoints/CheckPointsModel/uploadString.html">uploadString</a></li>
 
     <li class="section-title inherited"><a href="../../pages_checkpoints/CheckPointsModel-class.html#operators">Operators</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
@@ -167,7 +171,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.4+1
+      1.0.5
   </span>
 
   

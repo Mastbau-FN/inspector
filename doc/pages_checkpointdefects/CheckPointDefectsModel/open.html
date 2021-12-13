@@ -91,33 +91,40 @@ void open(
           );
 
         default:
-          try {
-            &#47;&#47;if langtext is already rich display in rich editor
-            return DetailsPage.rich(
-                title: data.title,
-                details: jsonDecode(data.langText ?? &quot;&quot;),
-                onChanged: (txt) {
-                  uploadString(data, jsonEncode(txt).toString());
-                });
-          } catch (e) {
-            try {
-              &#47;&#47;if not convert it to rich if possible and display in rich editor
-              return DetailsPage.rich(
-                  title: data.title,
-                  details:
-                      jsonDecode(&#39;[{&quot;insert&quot;:&quot;${data.langText ?? &quot;&quot;}\\n&quot;}]&#39;),
-                  onChanged: (txt) {
-                    uploadString(data, jsonEncode(txt).toString());
-                  });
-            } catch (e) {
-              return DetailsPage(
-                  title: data.title,
-                  details: data.langText,
-                  onChanged: (txt) {
-                    uploadString(data, txt);
-                  });
-            }
-          }
+          return Provider&lt;CheckPointDefectsModel&gt;(
+            create: (context) =&gt;
+                this, &#47;&#47;the injector &#47;&#47;XXX: sadly this doesnt work for some reason
+            child: Builder(builder: (context) {
+              debugPrint(&#39;build new defectsdetails&#39;);
+              try {
+                &#47;&#47;if langtext is already rich display in rich editor
+                return DetailsPage.rich(
+                    title: data.title,
+                    details: jsonDecode(data.langText ?? &quot;&quot;),
+                    onChanged: (txt) {
+                      uploadString(data, jsonEncode(txt).toString());
+                    });
+              } catch (e) {
+                try {
+                  &#47;&#47;if not convert it to rich if possible and display in rich editor
+                  return DetailsPage.rich(
+                      title: data.title,
+                      details: jsonDecode(
+                          &#39;[{&quot;insert&quot;:&quot;${data.langText ?? &quot;&quot;}\\n&quot;}]&#39;),
+                      onChanged: (txt) {
+                        uploadString(data, jsonEncode(txt).toString());
+                      });
+                } catch (e) {
+                  return DetailsPage(
+                      title: data.title,
+                      details: data.langText,
+                      onChanged: (txt) {
+                        uploadString(data, txt);
+                      });
+                }
+              }
+            }),
+          );
       }
     }),
   );
@@ -189,7 +196,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.4+1
+      1.0.5
   </span>
 
   

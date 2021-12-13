@@ -80,8 +80,10 @@
             .whereType&lt;T&gt;());
   } catch (e) {
     debugPrint(e.toString());
+    throw BackendCommunicationException(
+        &#39;could not parse response: &#39; + e.toString());
   }
-  return [];
+  &#47;&#47;return [];
 }</code></pre>
 </section>
 
@@ -128,7 +130,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.4+1
+      1.0.5
   </span>
 
   
