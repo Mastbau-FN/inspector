@@ -1,3 +1,5 @@
+import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
+import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
@@ -91,6 +93,15 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   Widget _list(AsyncSnapshot<List<dynamic>> snapshot, BuildContext context) {
     if (snapshot.connectionState == ConnectionState.done) {
       //debugPrint(snapshot.data?.length.toString());
+      if (snapshot.hasError) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ErrorText(
+                ' ${snapshot.error ?? ''} \n pls drag down to refresh, something went wrong'),
+          ),
+        );
+      }
       return ListView(
         children: [
           ExpandablesListRadio(
