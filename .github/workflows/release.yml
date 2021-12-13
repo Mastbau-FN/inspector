@@ -18,7 +18,7 @@ env:
 
 defaults:
   run:
-    working-directory: ${{ env.working-directory}}
+    working-directory: ./frontend #make sure it == ${{ env.working-directory}}
 
 jobs:
 
