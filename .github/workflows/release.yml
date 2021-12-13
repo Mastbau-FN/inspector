@@ -164,23 +164,17 @@ jobs:
   #   name: Release to the google playstore
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Read release notes
-  #       id: release-info
-  #       uses: juliangruber/read-file-action@v1
-  #       with:
-  #         path: ./release-info.md
   #     - name: download aab
   #       uses: actions/download-artifact@v2
   #       with:
   #         name: inspector.aab
 
-  #     - name: create release notes
+  #     - name: create release notes #TODO make this actual notes
   #       run: |
   #         mkdir news
-
-
-
+#           touch whatsnew-en-US
+#           cat ./release-info.md >> news/whatsnew-en-US 
+#
   #     - name: upload aab
   #       uses: r0adkll/upload-google-play@v1
   #       with:
