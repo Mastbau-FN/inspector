@@ -29,7 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
-      - run: ls -a #TODO: remove
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -66,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [web, apk, aab]
+        platform: [web, apk, appbundle]
     env:
       API_KEY: ${{ secrets.API_KEY}}
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary

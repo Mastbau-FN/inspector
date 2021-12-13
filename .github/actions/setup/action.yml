@@ -2,6 +2,12 @@ on:
   workflow_call:
     inputs:
 
+## this would be nice
+# defaults:
+#   run:
+#     shell: bash
+#     working-directory: ./frontend
+
 runs:
   using: "composite"
   steps:
@@ -12,7 +18,6 @@ runs:
       with:
         flutter-version: '2.8.x'
     - run: |
-        pwd
         cd frontend/
         touch .env
         echo "API_KEY=$API_KEY" >> .env
@@ -23,8 +28,4 @@ runs:
         cd frontend/
         flutter pub get #make sure this path is correct
       shell: bash
-    - name: check
-      run: |
-        cd frontend/
-        ls -a
-      shell: bash
+
