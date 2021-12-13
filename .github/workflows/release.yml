@@ -81,6 +81,11 @@ jobs:
         with:
           name: web
           path: build/web
+      - name: upload apk artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: inspector.apk
+          path: app/outputs/flutter-apk/app-release.apk
 
   deploy-web:
     needs: [build-doc,build-app]
