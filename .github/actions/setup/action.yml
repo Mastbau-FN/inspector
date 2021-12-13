@@ -11,7 +11,7 @@ runs:
     - uses: subosito/flutter-action@v1
       with:
         flutter-version: '2.8.x'
-    - run: cd ${{ github.action_path }}/../../../frontend
+    - run: pwd && cd ${{ github.action_path }}/../../../frontend/ && pwd
       shell: bash
     - run: |
         pwd
