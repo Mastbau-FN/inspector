@@ -70,6 +70,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Mastbau-FN/inspector/.github/actions/setup@main
+
+      - name: create key.properties for signing
+        run: |
+          touch android/key.properties
+          echo ${{ secrets.KEY_PROPERTIES }} > android/key.properties
+
       - name: Build ${{matrix.platform}}
         run: flutter build ${{matrix.platform}}
 
