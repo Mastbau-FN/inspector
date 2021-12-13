@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      #- uses: Mastbau-FN/inspector/setup
+      - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
       - name: Build Documentation
         run: |
           flutter pub global activate dartdoc
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      #- uses: ../github/actions/setup
+      - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
       - name: Build
         run: flutter build ${{matrix.platform}}
 
