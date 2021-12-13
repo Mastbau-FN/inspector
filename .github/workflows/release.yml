@@ -101,6 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - uses: actions/checkout@v2 # no idea why but apperently this creates a folder structure (i dont need my repo to be checked out tho)
       - name: download web artifact
         uses: actions/download-artifact@v2
         with:
@@ -170,12 +171,11 @@ jobs:
     name: Release to the google playstore
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2 # need release notes
       - name: download aab
         uses: actions/download-artifact@v2
         with:
           name: appbundle
-          
-      - run: tree ..
       - name: create release notes #TODO make this actual notes
         run: |
           cd ..
