@@ -77,19 +77,19 @@ jobs:
       # thats why the 3 following blocks only differ in their path
       # TODO: DRY up 
       - name: upload ${{matrix.platform}} artifact
-        if: ${{matrix.platform==web}}
+        if: ${{matrix.platform=='web'}}
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.platform}}
           path:  ${{ env.working-directory}}/build/web
       - name: upload ${{matrix.platform}} artifact
-        if: ${{matrix.platform==web}}
+        if: ${{matrix.platform=='apk'}}
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.platform}}
           path:  ${{ env.working-directory}}/build/app/outputs/flutter-apk/app-release.apk
       - name: upload ${{matrix.platform}} artifact
-        if: ${{matrix.platform==web}}
+        if: ${{matrix.platform=='appbundle'}}
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.platform}}
