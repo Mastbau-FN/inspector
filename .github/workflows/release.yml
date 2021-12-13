@@ -1,5 +1,5 @@
 on:
-  pull_request: #TODO: remove
+  #pull_request: #ODO: remove
   push:
     branches:
       - main
@@ -70,6 +70,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Mastbau-FN/inspector/.github/actions/setup@main
+
+      - name: create key.properties for signing
+        run: |
+          cd android
+          touch key.properties
+          printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
+          ls 
+          pwd
+
       - name: Build ${{matrix.platform}}
         run: flutter build ${{matrix.platform}}
 
@@ -101,23 +110,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - uses: actions/checkout@v2 # no idea why but apperently this creates a folder structure (i dont need my repo to be checked out tho)
       - name: download web artifact
         uses: actions/download-artifact@v2
         with:
           name: web
+          path: web
 
       - name: download doc artifact
         uses: actions/download-artifact@v2
         with:
           name: doc
+          path: doc
+  
+      - run: ls -a && ls -a .. && ls -a ../..
 
       - name: make gh-pages folder for doc as well as the app
         run: |
-          tree ..
+          cd ..
           mkdir gh-pages
-          tree ..
-          mv ../doc gh-pages/doc
-          mv ../web gh-pages/app
+          mv doc gh-pages/doc
+          mv web gh-pages/app
           cd gh-pages && touch .nojekyll 
         # the last command is needed to serve the .env
 
@@ -125,7 +138,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: frontend/gh-pages
+          folder: gh-pages
 
   release-GH:
     needs: build-app
@@ -153,14 +166,13 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: apk
-      - run: tree ..
       - name: upload apk
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: apk
+          asset_path: app-release.apk
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
 
@@ -169,25 +181,24 @@ jobs:
     name: Release to the google playstore
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2 # need release notes
       - name: download aab
         uses: actions/download-artifact@v2
         with:
           name: appbundle
-      - name: rename bundle
-        run: mv appbundle bundle.aab
-  
       - name: create release notes #TODO make this actual notes
         run: |
+          cd ..
           mkdir news
-          touch whatsnew-en-US
+          touch news/whatsnew-en-US
           cat ./release-info.md >> news/whatsnew-en-US 
 
       - name: upload aab
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJson: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: com.mastbaufn.inspektionen
-          releaseFiles: bundle.aab
-          track: alpha #TODO: when stable move to production
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: com.mbgsolutions.inspector
+          releaseFiles: app-release.aab
+          track: beta #TODO: when stable move to production
           inAppUpdatePriority: 2
-          whatsNewDirectory: new
+          whatsNewDirectory: news
