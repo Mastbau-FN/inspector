@@ -80,17 +80,17 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: web
-          path: build/web
+          path: ./build/web
       - name: upload apk artifact
         uses: actions/upload-artifact@v2
         with:
           name: inspector.apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: frontend/build/app/outputs/flutter-apk/app-release.apk
       - name: upload aab artifact
         uses: actions/upload-artifact@v2
         with:
           name: inspector.aab
-          path: /build/app/outputs/bundle/release/app.aab
+          path: ./frontend/build/app/outputs/bundle/release/app.aab
 
   deploy-web:
     needs: [build-doc,build-app]
