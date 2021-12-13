@@ -25,5 +25,5 @@ runs:
     - name: check
       run: |
         cd ${{ github.action_path }}/../../../frontend/
-        ls
+        ls -a
       shell: bash

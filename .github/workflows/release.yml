@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: Mastbau-FN/inspector/.github/actions/setup@061__release #TODO:change default branch
-      - run: ls #TODO: remove
+      - run: ls -a #TODO: remove
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -175,6 +175,12 @@ jobs:
   #       with:
   #         name: inspector.aab
 
+  #     - name: create release notes
+  #       run: |
+  #         mkdir news
+
+
+
   #     - name: upload aab
   #       uses: r0adkll/upload-google-play@v1
   #       with:
@@ -183,6 +189,4 @@ jobs:
   #         releaseFiles: inspector.aab
   #         track: alpha #TODO: when stable move to production
   #         inAppUpdatePriority: 2
-  #         userFraction: 0.33
-  #         whatsNewDirectory: distribution/whatsnew
-  #         mappingFile: app/build/outputs/mapping/release/mapping.txt
+  #         whatsNewDirectory: new
