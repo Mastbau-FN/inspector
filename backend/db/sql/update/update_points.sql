@@ -9,6 +9,7 @@ SET
 "Insp_Stelle" = $? /*ggf. neuer Parameter?*/
 WHERE
 "EREArt" = 5200 /*Prüfpunkt*/
-AND "E1" = $? /*neuer Parameter*/
+AND ("E1" = $? /*neuer Parameter*/
 AND "E2" = $? /*neuer Parameter*/
+AND "E3" = 0)
 ;
