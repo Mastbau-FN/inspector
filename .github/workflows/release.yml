@@ -106,19 +106,22 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: web
+          path: web
 
       - name: download doc artifact
         uses: actions/download-artifact@v2
         with:
           name: doc
+          path: doc
   
       - run: ls -a && ls -a .. && ls -a ../..
 
       - name: make gh-pages folder for doc as well as the app
         run: |
+          cd ..
           mkdir gh-pages
-          mv ../doc gh-pages/doc
-          mv ../web gh-pages/app
+          mv doc gh-pages/doc
+          mv web gh-pages/app
           cd gh-pages && touch .nojekyll 
         # the last command is needed to serve the .env
 
@@ -126,7 +129,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
-          folder: frontend/gh-pages
+          folder: gh-pages
 
   release-GH:
     needs: build-app
