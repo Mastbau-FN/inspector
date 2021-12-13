@@ -179,6 +179,8 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
       return;
   }
   let res = await queryFileWithParams(queryfile, params);
+  const newdata = {...(data.data),...(res[0])}
+  _addfoldername(newdata);
   return res;
 }
 
@@ -212,8 +214,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      return;
  }
  let res = await queryFileWithParams(queryfile, params);
- const newdata = {...(data.data),...(res[0])}
- _addfoldername(newdata);
+ res.succes = true;
  return res;
 }
 
