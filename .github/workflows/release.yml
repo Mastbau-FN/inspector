@@ -174,13 +174,15 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: appbundle
-  
+          
+      - run: tree ..
       - name: create release notes #TODO make this actual notes
         run: |
-          tree ..
+          cd ..
+          tree
           mkdir news
           touch news/whatsnew-en-US
-          tree ..
+          tree
           cat ./release-info.md >> news/whatsnew-en-US 
 
       - name: upload aab
@@ -191,4 +193,4 @@ jobs:
           releaseFiles: app-release.aab
           track: alpha #TODO: when stable move to production
           inAppUpdatePriority: 2
-          whatsNewDirectory: new
+          whatsNewDirectory: news
