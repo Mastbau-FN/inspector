@@ -114,6 +114,7 @@ jobs:
       - run: tree .. 
       - name: make gh-pages folder for doc as well as the app
         run: |
+          tree ..
           mkdir gh-pages
           tree ..
           mv ../doc gh-pages/doc
