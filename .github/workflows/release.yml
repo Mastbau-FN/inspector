@@ -82,27 +82,27 @@ jobs:
       - name: Build ${{matrix.platform}}
         run: flutter build ${{matrix.platform}}
 
-      # the following isnt DRY enough for my taste but i couldnt find a way to map ${{matrix.platform}}to the corresponding path
-      # thats why the 3 following blocks only differ in their path
-      # TODO: DRY up 
+      - name: map build-type (platform) to path
+        uses: kanga333/variable-mapper@v0.2.2
+        with:
+          key: ${{matrix.platform}}
+          map: |
+            {
+              "web": {
+                "builtpath": "web"
+              },
+              "staging": {
+                "builtpath": "app/outputs/flutter-apk/app-release.apk"
+              },
+              "appbundle": {
+                "builtpath": "app/outputs/bundle/release/app-release.aab"
+              }
+            }
       - name: upload ${{matrix.platform}} artifact
-        if: ${{matrix.platform=='web'}}
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.platform}}
-          path:  ${{ env.working-directory}}/build/web
-      - name: upload ${{matrix.platform}} artifact
-        if: ${{matrix.platform=='apk'}}
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{matrix.platform}}
-          path:  ${{ env.working-directory}}/build/app/outputs/flutter-apk/app-release.apk
-      - name: upload ${{matrix.platform}} artifact
-        if: ${{matrix.platform=='appbundle'}}
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{matrix.platform}}
-          path:  ${{ env.working-directory}}/build/app/outputs/bundle/release/app-release.aab
+          path:  ${{env.working-directory}}/build/${{env.builtpath}}
 
   deploy-web:
     needs: [build-doc,build-app]
