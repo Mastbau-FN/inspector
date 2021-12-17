@@ -6,7 +6,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 
 import 'detailsPage.dart';
 import 'imageView.dart';
@@ -19,7 +19,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
 
   CheckPointsModel(this.currentCategory);
 
-  Future<List<CheckPoint>> get all async =>
+  Future<List<CheckPoint>> get all =>
       _b.getAllCheckPointsForCategory(currentCategory);
 
   @override

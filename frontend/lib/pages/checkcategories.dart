@@ -7,7 +7,7 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 
 import 'imageView.dart';
 
@@ -19,7 +19,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
 
   CategoryModel(this.currentLocation);
 
-  Future<List<CheckCategory>> get all async =>
+  Future<List<CheckCategory>> get all =>
       _b.getAllCheckCategoriesForLocation(currentLocation);
 
   @override

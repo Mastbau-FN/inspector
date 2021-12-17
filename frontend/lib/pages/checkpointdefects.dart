@@ -7,7 +7,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +20,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
 
   CheckPointDefectsModel(this.currentCheckPoint);
 
-  Future<List<CheckPointDefect>> get all async =>
+  Future<List<CheckPointDefect>> get all =>
       _b.getAllDefectsForCheckpoint(currentCheckPoint);
 
   @override
