@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/widgets/rotating.dart';
 import 'package:flutter/material.dart';
 
 import 'mySimpleAlertBox.dart';
@@ -26,7 +27,12 @@ class _TrashButtonState extends State<TrashButton> {
         return MySimpleAlertBox(
           actions: <Widget>[
             DismissTextButton(),
-            TextButton(onPressed: _delete, child: Text('ja, sicher, Löschen!'))
+            TextButton(
+                onPressed: () {
+                  _delete();
+                  Navigator.of(context).pop();
+                },
+                child: Text('ja, sicher, Löschen!'))
           ],
           title: 'Sicher?',
           bodyLines: [
@@ -64,7 +70,7 @@ class _TrashButtonState extends State<TrashButton> {
             switch (snapshot.connectionState) {
               case ConnectionState.waiting:
               case ConnectionState.active:
-                return LoadingView();
+                return Rotating(child: Icon(Icons.delete));
               default:
                 return Icon(Icons.check);
             }

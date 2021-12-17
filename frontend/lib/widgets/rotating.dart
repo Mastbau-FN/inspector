@@ -30,18 +30,16 @@ class _RotatingState extends State<Rotating>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (_, child) {
-            return Transform.rotate(
-              angle: _controller.value * 2 * math.pi,
-              child: child,
-            );
-          },
-          child: widget.child,
-        ),
+    return Center(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (_, child) {
+          return Transform.rotate(
+            angle: _controller.value * 2 * math.pi,
+            child: child,
+          );
+        },
+        child: widget.child,
       ),
     );
   }
