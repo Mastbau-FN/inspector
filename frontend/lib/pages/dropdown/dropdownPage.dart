@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
+import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
@@ -104,10 +105,11 @@ class _DropDownBodyState<DDModel extends DropDownModel>
       }
       return ListView(
         children: [
-          ExpandablesListRadio(
-              children: snapshot.data!
-                  .map((e) => dropDown_element(e, context, widget.ddmodel))
-                  .toList()),
+          if (snapshot.hasData)
+            ExpandablesListRadio(
+                children: snapshot.data!
+                    .map((e) => dropDown_element(e, context, widget.ddmodel))
+                    .toList()),
         ],
       );
     }
@@ -120,7 +122,12 @@ class _DropDownBodyState<DDModel extends DropDownModel>
         previewImg: data.previewImage,
         title: data.title,
         subtitle: data.subtitle,
-        extra: data.extra,
+        extra: Row(
+          children: [
+            data.extra ?? Container(),
+            TrashButton(delete: () => Future.delayed(Duration(seconds: 2)))
+          ],
+        ),
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(
                   text: actionTileData.title,
