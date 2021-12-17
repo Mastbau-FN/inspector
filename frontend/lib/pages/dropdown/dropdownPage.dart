@@ -123,6 +123,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
         title: data.title,
         subtitle: data.subtitle,
         extra: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             data.extra ?? Container(),
             TrashButton(delete: () => Future.delayed(Duration(seconds: 2)))
