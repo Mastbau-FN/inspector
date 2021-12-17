@@ -333,7 +333,7 @@ class Backend {
 
   /// deletes a [DataT] and returns the response
   Future<String?> delete<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(data: data, route: _update_r))?.body;
+      (await _sendDataToRoute(data: data, route: _delete_r))?.body;
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
