@@ -20,8 +20,10 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
       index: json['E1'] as int,
       e2: json['E2'] as int?,
       e3: json['E3'] as int?,
-    )..imagehashes =
-        (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
+    )
+      ..author = json['Autor'] as String?
+      ..imagehashes =
+          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
 Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>
     <String, dynamic>{
@@ -35,5 +37,6 @@ Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>
       'E1': instance.index,
       'E2': instance.e2,
       'E3': instance.e3,
+      'Autor': instance.author,
       'images': instance.imagehashes,
     };

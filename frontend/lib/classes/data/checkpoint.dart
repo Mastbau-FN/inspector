@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpoint.g.dart';
@@ -26,6 +26,9 @@ class CheckPoint extends Data {
   int index;
   @JsonKey(name: 'E3')
   int? e3;
+
+  @JsonKey(name: 'Autor')
+  String? author;
 
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used

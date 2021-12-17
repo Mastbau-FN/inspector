@@ -188,7 +188,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  *
  * this does pretty much the same as addNew
  * @param data consisting of type and data
- * @returns a Promise resolving to the new ID (E1..E3)
+ * @returns  an empty  Promise
  */
  const update = async (data) => {
   const folder = "update";
@@ -216,6 +216,41 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  let res = await queryFileWithParams(queryfile, params);
  res.succes = true;
  return res;
+}
+
+/**
+ *
+ * @param data consisting of type and data where data has to have pjnr and dependent on its type E1-E3
+ * @param KZL das kürzel des monteurs der diesen datenpunkt zu löschen versucht (kommt aud req.body.user)
+ * @returns an empty  Promise
+ */
+  const delete_ = async (data, KZL) => {
+  let ld = data.data;
+
+  /// checks if the given dta fits the type
+  assert(
+    (data.type == 'category'
+      && ld.E1
+      && !ld.E2
+      && !ld.E3
+    )
+    ||
+    (data.type == 'checkpoint'
+      && ld.E1
+      && ld.E2
+      && !ld.E3
+    )
+    ||
+    (data.type == 'defect'
+      && ld.E1
+      && ld.E2
+      && ld.E3
+    )
+  )
+
+  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);
+  res.succes = true;
+  return res;
 }
 
 const convertpath = (winpath) =>

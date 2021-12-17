@@ -10,7 +10,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 
 import 'imageView.dart';
 import 'detailsPage.dart';
@@ -23,7 +23,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
 
   LocationModel({this.user});
 
-  Future<List<InspectionLocation>> get all async =>
+  Future<List<InspectionLocation>> get all =>
       _b.getAllInspectionLocationsForCurrentUser();
 
   @override

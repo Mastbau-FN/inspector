@@ -10,7 +10,8 @@ SELECT "MGAUFTR"."PjNr",
 "Events"."EREArt", -- definiert Art des Ereignisses
 "Events"."E1", -- Ebenendarstellung, erste Ebene Kategorien
 "Events"."E2", -- Ebenendarstellung, zweite Ebene Prüfpunkte
-"Events"."E3" -- Ebenendarstellung, dritte Ebene Mängel
+"Events"."E3", -- Ebenendarstellung, dritte Ebene Mängel
+"Events"."Autor"
 FROM "MGAUFTR"
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
 WHERE (

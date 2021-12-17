@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownModel.dart';
+import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpointdefect.g.dart';
@@ -30,6 +30,9 @@ class CheckPointDefect extends Data {
 
   @JsonKey(name: "Zusatz_Info")
   String? height;
+
+  @JsonKey(name: 'Autor')
+  String? author;
 
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used

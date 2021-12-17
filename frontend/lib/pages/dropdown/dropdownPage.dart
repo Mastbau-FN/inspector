@@ -1,5 +1,8 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
+import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
@@ -7,7 +10,7 @@ import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
-import 'dropdownModel.dart';
+import 'dropdownClasses.dart';
 
 // XXX get to new page with hero transition
 
@@ -104,10 +107,11 @@ class _DropDownBodyState<DDModel extends DropDownModel>
       }
       return ListView(
         children: [
-          ExpandablesListRadio(
-              children: snapshot.data!
-                  .map((e) => dropDown_element(e, context, widget.ddmodel))
-                  .toList()),
+          if (snapshot.hasData)
+            ExpandablesListRadio(
+                children: snapshot.data!
+                    .map((e) => dropDown_element(e, context, widget.ddmodel))
+                    .toList()),
         ],
       );
     }
@@ -120,7 +124,24 @@ class _DropDownBodyState<DDModel extends DropDownModel>
         previewImg: data.previewImage,
         title: data.title,
         subtitle: data.subtitle,
-        extra: data.extra,
+        extra: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            data.extra ?? Container(),
+            FutureBuilder(
+              future: Backend().user,
+              builder:
+                  (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
+                try {
+                  if (snapshot.hasData &&
+                      data.toJson()['Autor'] == snapshot.data?.name)
+                    return TrashButton(delete: () => Backend().delete(data));
+                } catch (e) {}
+                return Container();
+              },
+            ),
+          ],
+        ),
         children: ddmodel.actions
             .map((actionTileData) => MyCardListTile1(
                   text: actionTileData.title,

@@ -33,6 +33,10 @@ mixin WithLangText on Data {
   String? get langText;
 }
 
+mixin WithAuthor on Data {
+  String? get author;
+}
+
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
 abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   /// could be used for the scaffold appbar title

@@ -78,6 +78,14 @@ const update = (req, res, next) =>
     res,next
   );
 
+const delete_ = (req, res, next) =>
+  errsafejson(
+    async () =>
+      (await queries.delete_(req.body))[0],
+    (json)=> (json),
+    res,next
+  );
+
 const getFileFromHash = async (req, res) => {
   try {
     let img = await imagehandler.getFileFromHash(req.body.imghash);
@@ -110,4 +118,5 @@ module.exports = {
 
   addNew,
   update,
+  delete_,
 };
