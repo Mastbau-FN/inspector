@@ -12,6 +12,7 @@ SELECT "MGAUFTR"."PjNr",
 "Events"."E1",
 "Events"."E2",
 "Events"."E3",
+"Events"."Autor",
 "Events"."Zusatz_Info"
 FROM "MGAUFTR"
 INNER JOIN "Events" ON "MGAUFTR"."PjNr" = "Events"."PjNr"
