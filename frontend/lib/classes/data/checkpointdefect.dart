@@ -31,6 +31,9 @@ class CheckPointDefect extends Data {
   @JsonKey(name: "Zusatz_Info")
   String? height;
 
+  @JsonKey(name: 'Autor')
+  String? author;
+
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)

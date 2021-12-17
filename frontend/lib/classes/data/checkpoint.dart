@@ -27,6 +27,9 @@ class CheckPoint extends Data {
   @JsonKey(name: 'E3')
   int? e3;
 
+  @JsonKey(name: 'Autor')
+  String? author;
+
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
