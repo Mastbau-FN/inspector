@@ -8,7 +8,7 @@ import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
-import 'dropdownModel.dart';
+import 'dropdownClasses.dart';
 
 // XXX get to new page with hero transition
 
@@ -126,6 +126,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
           mainAxisSize: MainAxisSize.min,
           children: [
             data.extra ?? Container(),
+            //if (data)
             TrashButton(delete: () => Future.delayed(Duration(seconds: 2)))
           ],
         ),
