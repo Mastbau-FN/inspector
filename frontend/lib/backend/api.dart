@@ -32,7 +32,8 @@ const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";
-const _update_r = "/update"; //TODO: implement this (#31)
+const _update_r = "/update";
+const _delete_r = "/delete"; // issue #36
 
 extension _Parser on http.BaseResponse {
   http.Response? forceRes() {
@@ -328,6 +329,10 @@ class Backend {
 
   /// updates a [DataT] and returns the response
   Future<String?> update<DataT extends Data>(DataT? data) async =>
+      (await _sendDataToRoute(data: data, route: _update_r))?.body;
+
+  /// deletes a [DataT] and returns the response
+  Future<String?> delete<DataT extends Data>(DataT? data) async =>
       (await _sendDataToRoute(data: data, route: _update_r))?.body;
 
   /// upload a bunch of images
