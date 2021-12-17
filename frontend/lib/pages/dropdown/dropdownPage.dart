@@ -1,3 +1,5 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
@@ -126,8 +128,18 @@ class _DropDownBodyState<DDModel extends DropDownModel>
           mainAxisSize: MainAxisSize.min,
           children: [
             data.extra ?? Container(),
-            //if (data)
-            TrashButton(delete: () => Future.delayed(Duration(seconds: 2)))
+            FutureBuilder(
+              future: Backend().user,
+              builder:
+                  (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
+                try {
+                  if (snapshot.hasData &&
+                      data.toJson()['Autor'] == snapshot.data?.name)
+                    return TrashButton(delete: () => Backend().delete(data));
+                } catch (e) {}
+                return Container();
+              },
+            ),
           ],
         ),
         children: ddmodel.actions
