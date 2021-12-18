@@ -27,8 +27,8 @@ const RESOURCES = {
 "assets/packages/fluttertoast/assets/toastify.js": "e7006a0a033d834ef9414d48db3be6fc",
 "assets/packages/youtube_player_flutter/assets/speedometer.webp": "50448630e948b5b3998ae5a5d112622b",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
-"index.html": "78bf8965378eb0320bff46056cd51421",
-"/": "78bf8965378eb0320bff46056cd51421",
+"index.html": "69e771d898cb30d81462db9853af537b",
+"/": "69e771d898cb30d81462db9853af537b",
 "favicon.png": "b0d744ab17e2391c03cb527550c7c3cd"
 };
 
