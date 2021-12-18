@@ -91,7 +91,7 @@ jobs:
               "web": {
                 "builtpath": "web"
               },
-              "staging": {
+              "apk": {
                 "builtpath": "app/outputs/flutter-apk/app-release.apk"
               },
               "appbundle": {
