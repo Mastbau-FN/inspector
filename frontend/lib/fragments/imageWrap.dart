@@ -31,9 +31,11 @@ class ImageWrap extends StatelessWidget {
             .map((image) => ImageItem.fromImage(image, tag: UniqueKey()))
             .toList()),
         builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done)
+            return LoadingView();
           return GridView.builder(
               padding: const EdgeInsets.all(2.0),
-              itemCount: images.length + 1,
+              itemCount: snapshot.data?.length ?? 0,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount,
               ),
@@ -67,7 +69,7 @@ class OpenableImageView extends StatelessWidget {
     required this.allImages,
     Key? key,
     this.chosenIndex = -1,
-  })  : assert(0 <= currentIndex && currentIndex <= (allImages.length)),
+  })  : assert(0 <= currentIndex && currentIndex < (allImages.length)),
         this._isScrollable = true,
         super(key: key);
 
