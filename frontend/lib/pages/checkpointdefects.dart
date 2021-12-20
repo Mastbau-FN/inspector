@@ -12,7 +12,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import 'detailsPage.dart';
-import 'imageView.dart';
+import 'imagePage.dart';
 
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
   final Backend _b = Backend();
@@ -48,7 +48,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case 'Fotos':
-            return ImageView.futured(
+            return ImagePage.futured(
               future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );
