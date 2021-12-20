@@ -95,18 +95,16 @@ class _DropDownBodyState<DDModel extends DropDownModel>
 
   Widget _list(AsyncSnapshot<List<dynamic>> snapshot, BuildContext context) {
     if (snapshot.connectionState == ConnectionState.done) {
-      //debugPrint(snapshot.data?.length.toString());
-      if (snapshot.hasError) {
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ErrorText(
-                ' ${snapshot.error ?? ''} \n pls drag down to refresh, something went wrong'),
-          ),
-        );
-      }
       return ListView(
         children: [
+          if (snapshot.hasError)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ErrorText(
+                    'Something went wrong:\n${snapshot.error ?? ''} \n\nPlease drag down to reload this page'),
+              ),
+            ),
           if (snapshot.hasData)
             ExpandablesListRadio(
                 children: snapshot.data!
