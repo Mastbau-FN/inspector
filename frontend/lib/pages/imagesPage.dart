@@ -1,10 +1,15 @@
+import 'package:MBG_Inspektionen/classes/FuturedImageProvider.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImageView extends StatelessWidget {
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
+
+class ImagesPage extends StatelessWidget {
   List<Future<Image?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
@@ -17,7 +22,7 @@ class ImageView extends StatelessWidget {
     return "";
   }
 
-  ImageView.constant(
+  ImagesPage.constant(
       {List<Image?>? images = const [],
       this.columnCount = 4,
       Key? key,
@@ -27,7 +32,7 @@ class ImageView extends StatelessWidget {
         images?.whereNotNull().map((e) => Future.value(e)).toList() ?? [];
   }
 
-  ImageView.futured(
+  ImagesPage.futured(
       {List<Future<Image?>>? future_images = const [],
       this.columnCount = 4,
       Key? key,
@@ -44,9 +49,7 @@ class ImageView extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageWrap.futured(
-        images: _images,
-      ),
+      body: ImageWrap.futured(images: _images),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add_a_photo),
         onPressed: () async {
