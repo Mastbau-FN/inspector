@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/FuturedImageProvider.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
@@ -52,7 +53,8 @@ class ImageView extends StatelessWidget {
         scrollPhysics: const BouncingScrollPhysics(),
         builder: (BuildContext context, int index) {
           return PhotoViewGalleryPageOptions(
-            imageProvider: _images[index].then((value) => value.image),
+            imageProvider: FuturedImageProvider.fromFunc(
+                () async => (await _images[index])!.image),
             initialScale: PhotoViewComputedScale.contained * 0.8,
             heroAttributes: PhotoViewHeroAttributes(tag: index),
           );

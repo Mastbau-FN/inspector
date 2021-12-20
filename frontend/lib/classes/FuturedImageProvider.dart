@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/diagnostics.dart';
+import 'package:flutter/src/foundation/assertions.dart';
 
 class FuturedImageProvider implements ImageProvider {
-  const FuturedImageProvider(this.futureImage);
+  FuturedImageProvider(this.futureImage);
+  FuturedImageProvider.fromFunc(
+      Future<ImageProvider> Function() futureImageFunc)
+      : this.futureImage = futureImageFunc();
   final Future<ImageProvider> futureImage;
+  ImageStream? _imageStream;
 
   @override
   ImageStream createStream(ImageConfiguration configuration) {
-    // TODO: implement createStream
-    throw UnimplementedError();
+    _imageStream = ImageStream();
+    _setCompleter(configuration);
+    return _imageStream!;
   }
+
+  void _setCompleter(ImageConfiguration configuration) async =>
+      _imageStream!.setCompleter((await futureImage)
+          .resolve(configuration)
+          .completer!); //TODO: das ausrufezeichen hinter dem completer ist gefährlich
 
   @override
   Future<bool> evict(
@@ -18,8 +30,8 @@ class FuturedImageProvider implements ImageProvider {
 
   @override
   ImageStreamCompleter load(Object key, DecoderCallback decode) {
-    // TODO: implement load
-    throw UnimplementedError();
+    return _imageStream!
+        .completer!; //TODO: das ausrufezeichen hinter dem completer ist gefährlich
   }
 
   @override
@@ -35,8 +47,7 @@ class FuturedImageProvider implements ImageProvider {
 
   @override
   ImageStream resolve(ImageConfiguration configuration) {
-    // TODO: implement resolve
-    throw UnimplementedError();
+    return _imageStream!;
   }
 
   @override
@@ -45,3 +56,7 @@ class FuturedImageProvider implements ImageProvider {
       (await futureImage)
           .resolveStreamForKey(configuration, stream, key, handleError);
 }
+
+// class _FutureImageStreamCompleter implements ImageStreamCompleter {
+//   NetworkImage img;
+// }
