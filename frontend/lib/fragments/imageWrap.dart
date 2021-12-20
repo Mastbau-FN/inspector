@@ -141,7 +141,12 @@ class OpenableImageView extends StatelessWidget {
           img: allImages[currentIndex],
         ),
       ),
-      onPressed: () => Navigator.push(
+      onLongPress: () => _onLongPress(context),
+      onPressed: () => _onShortPress(context, tag),
+    );
+  }
+
+  void _onShortPress(context, tag) => Navigator.push(
         context,
         MaterialPageRoute(
             builder: (c) => _isScrollable
@@ -156,9 +161,90 @@ class OpenableImageView extends StatelessWidget {
                     tag: tag,
                     img: allImages[currentIndex],
                   )),
+      );
+
+  Future<void> _onLongPress(context) async {
+    switch (await showDialog<ImageOptions>(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text('Bild-Optionen:'),
+            children: <Widget>[
+              _option(
+                context: context,
+                description: 'Bild dauerhaft entfernen',
+                icon: Icon(
+                  Icons.delete,
+                  color: Colors.red,
+                ),
+                returnCase: ImageOptions.delete,
+              ),
+              _option(
+                context: context,
+                description: 'Bild als Vorschaubild setzen',
+                icon: Icon(
+                  Icons.star,
+                  color: Colors.amber[300],
+                ),
+                returnCase: ImageOptions.setMain,
+              ),
+              _option(
+                context: context,
+                description: 'Bild teilen',
+                icon: Icon(
+                  Icons.share,
+                  color: Colors.blue,
+                ),
+                returnCase: ImageOptions.share,
+              ),
+            ],
+          );
+        })) {
+      case ImageOptions.delete:
+        // ...
+        break;
+      case ImageOptions.setMain:
+        // ...
+        break;
+      case ImageOptions.share:
+        // ...
+        break;
+      case null:
+        // dialog dismissed
+        break;
+    }
+  }
+
+//could be extracted into an standalone widget..
+  SimpleDialogOption _option(
+      {required BuildContext context,
+      Icon icon = const Icon(Icons.circle),
+      required String description,
+      ImageOptions? returnCase}) {
+    return SimpleDialogOption(
+      onPressed: () {
+        Navigator.pop(context, ImageOptions.setMain);
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(description),
+            icon,
+          ],
+        ),
       ),
     );
   }
+}
+
+enum ImageOptions {
+  delete,
+  setMain,
+  share,
+  //XXX: mehr?
 }
 
 //TODO: also make it possible to delete/set-as-main image (#36)
