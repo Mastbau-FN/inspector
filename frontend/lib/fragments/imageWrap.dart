@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
-import 'gallaryWrapper.dart';
+import 'galleryWrapper.dart';
 
 class ImageWrap extends StatelessWidget {
   static final _fetchallfirst = false;
