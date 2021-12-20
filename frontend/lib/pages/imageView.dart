@@ -1,8 +1,12 @@
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class ImageView extends StatelessWidget {
   List<Future<Image?>> _images = [];
@@ -44,8 +48,25 @@ class ImageView extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageWrap.futured(
-        images: _images,
+      body: PhotoViewGallery.builder(
+        scrollPhysics: const BouncingScrollPhysics(),
+        builder: (BuildContext context, int index) {
+          return PhotoViewGalleryPageOptions(
+            imageProvider: null, //_images[index],
+            initialScale: PhotoViewComputedScale.contained * 0.8,
+            //heroAttributes: PhotoViewHeroAttributes(tag: _images[index].id),
+          );
+        },
+        itemCount: _images.length,
+        loadingBuilder: (context, event) => Center(
+          child: Container(
+            width: 20.0,
+            height: 20.0,
+            child: LoadingView(),
+          ),
+        ),
+        onPageChanged:
+            null, //seems interesting but no idea what its supposed to do 4now
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add_a_photo),
