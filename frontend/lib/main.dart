@@ -27,6 +27,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: mbgpalette0,
       ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: mbgpalette0,
+      ),
       home: kIsWeb
           ? WebWrap(
               title: appTitle,
