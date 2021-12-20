@@ -143,6 +143,11 @@ class FullImagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text("Bild")), body: Hero(child: img, tag: tag));
+      appBar: AppBar(title: Text("Bild")),
+      body: Hero(
+        child: img,
+        tag: tag,
+      ),
+    );
   }
 }

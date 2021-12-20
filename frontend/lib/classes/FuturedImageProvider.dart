@@ -13,14 +13,13 @@ class FuturedImageProvider implements ImageProvider {
   @override
   ImageStream createStream(ImageConfiguration configuration) {
     _imageStream ??= ImageStream();
-    _setCompleter(configuration);
+    _setStream(configuration);
     return _imageStream!;
   }
 
-  void _setCompleter(ImageConfiguration configuration) async =>
-      _imageStream!.setCompleter((await futureImage)
-          .resolve(configuration)
-          .completer!); //TODO: das ausrufezeichen hinter dem completer ist gefährlich
+  void _setStream(ImageConfiguration configuration) async {
+    _imageStream = (await futureImage).resolve(configuration);
+  }
 
   @override
   Future<bool> evict(
