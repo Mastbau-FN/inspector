@@ -69,6 +69,14 @@
   Key? key,
   this.chosenOne,
 })  : this.images = images.map((e) =&gt; Future.value(e)).toList(),
+      _allImages = images
+          .map(
+            (e) =&gt; ImageItem.fromImage(
+              e,
+              tag: UniqueKey(),
+            ),
+          )
+          .toList(),
       super(key: key);</code></pre>
 </section>
 
@@ -138,7 +146,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

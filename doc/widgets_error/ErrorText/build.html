@@ -117,15 +117,17 @@ Widget build(BuildContext context) {
       SizedBox(
         width: 5,
       ),
-      Text(
-        &#47;&#47; removes the the &quot;Exception: &quot; if wanted and the string matches
-        error.substring(removeException &amp;&amp;
-                error.length &gt; 10 &amp;&amp;
-                error.substring(0, 11) == &quot;Exception: &quot;
-            ? 11
-            : 0),
-        style: TextStyle(color: color),
-        maxLines: 5,
+      Expanded(
+        child: Text(
+          &#47;&#47; removes the the &quot;Exception: &quot; if wanted and the string matches
+          error.substring(removeException &amp;&amp;
+                  error.length &gt; 10 &amp;&amp;
+                  error.substring(0, 11) == &quot;Exception: &quot;
+              ? 11
+              : 0),
+          style: TextStyle(color: color),
+          maxLines: 5,
+        ),
       )
     ],
   );
@@ -197,7 +199,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

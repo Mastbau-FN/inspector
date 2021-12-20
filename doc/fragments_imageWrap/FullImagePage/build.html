@@ -108,7 +108,16 @@ and</li>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
   return Scaffold(
-      appBar: AppBar(title: Text(&quot;Bild&quot;)), body: Hero(child: img, tag: tag));
+    appBar: AppBar(title: Text(&quot;Bild&quot;)),
+    body: Hero(
+      child: PhotoView(
+        imageProvider: img.image,
+        backgroundDecoration:
+            BoxDecoration(color: Theme.of(context).canvasColor),
+      ),
+      tag: tag,
+    ),
+  );
 }</code></pre>
 </section>
 
@@ -176,7 +185,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

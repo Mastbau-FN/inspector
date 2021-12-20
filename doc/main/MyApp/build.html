@@ -110,7 +110,14 @@ Widget build(BuildContext context) {
   return MaterialApp(
     title: appTitle,
     theme: ThemeData(
-      primarySwatch: mbgpalette0,
+      colorScheme: ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
+    ),
+    darkTheme: ThemeData(
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch:
+            mbgpalette0, &#47;&#47;if someone wonders why this doesnt work, it might be with a future flutter upgrade (https:&#47;&#47;github.com&#47;flutter&#47;flutter&#47;issues&#47;19089)
+        brightness: Brightness.dark,
+      ),
     ),
     home: kIsWeb
         ? WebWrap(
@@ -183,7 +190,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

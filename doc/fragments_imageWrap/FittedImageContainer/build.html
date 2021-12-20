@@ -107,14 +107,22 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return Container(
-    decoration: BoxDecoration(
-      image: DecorationImage(
-        image: img
-            .image, &#47;&#47;XXX: have a list of imageproviders instead of image widgets
-        fit: fit,
-      ),
-    ),
+  return ChangeNotifierProvider.value(
+    value: img,
+    child: Consumer&lt;ImageItem&gt;(builder: (_, img, __) {
+      return Container(
+        child: img.image != null ? null : img.fallBackWidget,
+        decoration: img.image == null
+            ? null
+            : BoxDecoration(
+                image: DecorationImage(
+                  image: img
+                      .image!, &#47;&#47;XXX: have a list of imageproviders instead of image widgets
+                  fit: fit,
+                ),
+              ),
+      );
+    }),
   );
 }</code></pre>
 </section>
@@ -183,7 +191,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

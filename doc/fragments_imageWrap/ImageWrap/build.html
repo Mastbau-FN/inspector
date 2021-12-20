@@ -106,33 +106,34 @@ and</li>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget build(BuildContext context) =&gt; GridView.builder(
-    padding: const EdgeInsets.all(2.0),
-    itemCount: images.length + 1,
-    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columnCount),
-    itemBuilder: (context, i) =&gt; (i == 0)
-        ? ImageView(
-            img: chosenOne,
-            isChosen: true,
-          )
-        : (i &gt;= images.length)
-            ? Container()
-            : Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: FutureBuilder(
-                    future: images[i],
-                    builder: (BuildContext context,
-                            AsyncSnapshot&lt;Image?&gt; snap) =&gt;
-                        (snap.connectionState == ConnectionState.done)
-                            ? ImageView(img: snap.data)
-                            : Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: LoadingView(),
-                              ) &#47;&#47;hm this gets also triggered if the snapshot completed, but no image could be parsed
-
-                    ),
-              ));</code></pre>
+Widget build(BuildContext context) =&gt; FutureBuilder&lt;List&lt;ImageItem&gt;&gt;(
+      future: !_fetchallfirst
+          ? null
+          : Future.wait(images).then((e) =&gt; e
+              .map((image) =&gt; ImageItem.fromImage(image, tag: UniqueKey()))
+              .toList()),
+      builder: (context, snapshot) {
+        if (_fetchallfirst &amp;&amp;
+            snapshot.connectionState != ConnectionState.done)
+          return LoadingView();
+        return GridView.builder(
+            padding: const EdgeInsets.all(2.0),
+            itemCount:
+                !_fetchallfirst ? images.length : snapshot.data?.length ?? 0,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columnCount,
+            ),
+            itemBuilder: (context, i) =&gt; &#47;*(i == 0)
+            ? *&#47;
+                OpenableImageView.scrollable(
+                  currentIndex: i,
+                  chosenIndex:
+                      0, &#47;&#47;TODO: make this dynamic on callback or something for #20
+                  allImages:
+                      !_fetchallfirst ? _allImages : snapshot.data ?? [],
+                ));
+      },
+    );</code></pre>
 </section>
 
 
@@ -201,7 +202,7 @@ Widget build(BuildContext context) =&gt; GridView.builder(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

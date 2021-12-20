@@ -85,7 +85,7 @@ void open(
     MaterialPageRoute(builder: (newcontext) {
       switch (tiledata.title) {
         case &#39;Fotos&#39;:
-          return ImageView.futured(
+          return ImagesPage.futured(
             future_images: data.image_futures,
             onNewImages: (files) =&gt; Backend().uploadFiles(data, files),
           );
@@ -196,7 +196,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   

@@ -87,7 +87,7 @@ void open(
         case _nextViewTitle:
           return nextModel(CategoryModel(data));
         case &#39;Fotos&#39;:
-          return ImageView.futured(
+          return ImagesPage.futured(
             future_images: data.image_futures,
             onNewImages: (files) =&gt; Backend().uploadFiles(data, files),
           );
@@ -165,7 +165,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.5+8
+      1.0.6+9
   </span>
 
   
