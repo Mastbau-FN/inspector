@@ -1,13 +1,6 @@
-
-
 import 'package:flutter/material.dart';
 
-ImageProvider _futuredImageProvider(Future<ImageProvider> futureImg){
-  return 
-}
-
-class FuturedImageProvider implements ImageProvider{
-
+class FuturedImageProvider implements ImageProvider {
   const FuturedImageProvider(this.futureImage);
   final Future<ImageProvider> futureImage;
 
@@ -18,7 +11,10 @@ class FuturedImageProvider implements ImageProvider{
   }
 
   @override
-  Future<bool> evict({ImageCache? cache, ImageConfiguration configuration = ImageConfiguration.empty}) async => (await futureImage).evict();
+  Future<bool> evict(
+          {ImageCache? cache,
+          ImageConfiguration configuration = ImageConfiguration.empty}) async =>
+      (await futureImage).evict();
 
   @override
   ImageStreamCompleter load(Object key, DecoderCallback decode) {
@@ -27,10 +23,15 @@ class FuturedImageProvider implements ImageProvider{
   }
 
   @override
-  Future<ImageCacheStatus?> obtainCacheStatus({required ImageConfiguration configuration, ImageErrorListener? handleError}) async => (await futureImage).obtainCacheStatus(configuration: configuration, handleError: handleError);
+  Future<ImageCacheStatus?> obtainCacheStatus(
+          {required ImageConfiguration configuration,
+          ImageErrorListener? handleError}) async =>
+      (await futureImage).obtainCacheStatus(
+          configuration: configuration, handleError: handleError);
 
   @override
-  Future<Object> obtainKey(ImageConfiguration configuration) async => (await futureImage).obtainCacheStatus(configuration: configuration);
+  Future<Object> obtainKey(ImageConfiguration configuration) async =>
+      (await futureImage).obtainCacheStatus(configuration: configuration);
 
   @override
   ImageStream resolve(ImageConfiguration configuration) {
@@ -39,6 +40,8 @@ class FuturedImageProvider implements ImageProvider{
   }
 
   @override
-  void resolveStreamForKey(ImageConfiguration configuration, ImageStream stream, Object key, ImageErrorListener handleError) async => (await futureImage).resolveStreamForKey(configuration, stream, key, handleError);
-
+  void resolveStreamForKey(ImageConfiguration configuration, ImageStream stream,
+          Object key, ImageErrorListener handleError) async =>
+      (await futureImage)
+          .resolveStreamForKey(configuration, stream, key, handleError);
 }
