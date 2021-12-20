@@ -2,6 +2,8 @@ import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
+import 'gallaryWrapper.dart';
+
 class ImageWrap extends StatelessWidget {
   final Image? chosenOne;
   final List<Future<Image?>> images;
@@ -28,38 +30,48 @@ class ImageWrap extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columnCount,
       ),
-      itemBuilder: (context, i) => (i == 0)
-          ? OpenableImageView(
-              img: chosenOne,
-              isChosen: true,
-            )
-          : (i >= images.length)
-              ? Container()
-              : Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: FutureBuilder(
-                      future: images[i],
-                      builder: (BuildContext context,
-                              AsyncSnapshot<Image?> snap) =>
-                          (snap.connectionState == ConnectionState.done)
-                              ? OpenableImageView(img: snap.data)
-                              : Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: LoadingView(),
-                                ) //hm this gets also triggered if the snapshot completed, but no image could be parsed
-
-                      ),
-                ));
+      itemBuilder: (context, i) => /*(i == 0)
+          ? */
+          OpenableImageView.scrollable(
+            currentIndex: i,
+            chosenIndex:
+                0, //TODO: make this dynamic on callback or something for #20
+            allImages: images,
+          ));
 }
 
 class OpenableImageView extends StatelessWidget {
-  final Image? img;
-  final bool isChosen;
-  const OpenableImageView({
-    required this.img,
+  ///which index has the main image ; -1 means none is chosen
+  final int chosenIndex;
+
+  ///the index of the image that shall be opened
+  final int currentIndex;
+
+  ///an optional List of all images on which we can scroll to
+  final List<ImageItem> allImages;
+
+  ///whether one can slide from one opened widget to another one
+  final bool _isScrollable;
+  const OpenableImageView.scrollable({
+    //which item from this list shall be opened
+    required this.currentIndex,
+    required this.allImages,
     Key? key,
-    this.isChosen = false,
-  }) : super(key: key);
+    this.chosenIndex = -1,
+  })  : assert(0 <= currentIndex && currentIndex <= (allImages?.length ?? 0)),
+        this._isScrollable = (allImages != null),
+        super(key: key);
+
+  /*const*/ OpenableImageView.only({
+    //which item from this list shall be opened
+    required ImageItem image,
+    Key? key,
+    bool isChosen = false,
+  })  : this._isScrollable = false,
+        this.currentIndex = 0,
+        this.chosenIndex = isChosen ? 0 : -1,
+        this.allImages = [image], //todo: make this literal const?
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +79,7 @@ class OpenableImageView extends StatelessWidget {
       child: Stack(
         children: [
           _heroImg(context),
-          if (isChosen)
+          if (chosenIndex == currentIndex)
             Positioned(
               child: Icon(
                 //todo: maybe ad shadow or border to better see it
@@ -83,6 +95,7 @@ class OpenableImageView extends StatelessWidget {
   }
 
   Widget _heroImg(context) {
+    ImageProvider? img = allImages[currentIndex].image;
     if (img == null) return Center(child: Icon(Icons.report_problem));
     var tag = key ?? UniqueKey();
     return TextButton(
@@ -92,16 +105,29 @@ class OpenableImageView extends StatelessWidget {
       child: Hero(
         tag: tag,
         child: FittedImageContainer(
-          img: img!,
+          img: Image(
+            image: img,
+          ),
         ),
       ),
       onPressed: () => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (c) => FullImagePage(
-                  tag: tag,
-                  img: img!,
-                )),
+            builder: (c) => _isScrollable
+                ? GalleryPhotoViewWrapper(
+                    galleryItems: allImages,
+                    backgroundDecoration: const BoxDecoration(
+                      color: Colors.black,
+                    ),
+                    initialIndex: currentIndex,
+                    scrollDirection: Axis.vertical,
+                  )
+                : FullImagePage(
+                    tag: tag,
+                    img: Image(
+                      image: img,
+                    ),
+                  )),
       ),
     );
   }
