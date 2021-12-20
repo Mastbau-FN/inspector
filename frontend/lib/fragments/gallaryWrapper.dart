@@ -81,13 +81,7 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
     final ImageItem item = widget.galleryItems[index];
     return (item.image == null)
         ? PhotoViewGalleryPageOptions.customChild(
-            child: Container(
-                width: 300,
-                height: 300,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: LoadingView(),
-                )),
+            child: item.fallBackWidget,
             childSize: const Size(300, 300),
             initialScale: PhotoViewComputedScale.contained,
             minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
@@ -105,8 +99,10 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
 }
 
 class ImageItem {
+  final Widget fallBackWidget;
   final ImageProvider? image;
   final Object tag;
-  /* const */ ImageItem.fromImage(Image? image, {required this.tag})
+  /* const */ ImageItem.fromImage(Image? image,
+      {required this.tag, this.fallBackWidget = const LoadingView()})
       : this.image = image?.image;
 }

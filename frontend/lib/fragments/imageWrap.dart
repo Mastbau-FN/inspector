@@ -68,7 +68,7 @@ class OpenableImageView extends StatelessWidget {
     Key? key,
     this.chosenIndex = -1,
   })  : assert(0 <= currentIndex && currentIndex <= (allImages.length)),
-        this._isScrollable = (allImages != null),
+        this._isScrollable = true,
         super(key: key);
 
   /*const*/ OpenableImageView.only({
@@ -104,8 +104,6 @@ class OpenableImageView extends StatelessWidget {
   }
 
   Widget _heroImg(context) {
-    ImageProvider? img = allImages[currentIndex].image;
-    if (img == null) return Center(child: Icon(Icons.report_problem));
     var tag = allImages[currentIndex].tag;
     return TextButton(
       style: TextButton.styleFrom(
@@ -114,9 +112,7 @@ class OpenableImageView extends StatelessWidget {
       child: Hero(
         tag: tag,
         child: FittedImageContainer(
-          img: Image(
-            image: img,
-          ),
+          img: allImages[currentIndex],
         ),
       ),
       onPressed: () => Navigator.push(
@@ -125,17 +121,14 @@ class OpenableImageView extends StatelessWidget {
             builder: (c) => _isScrollable
                 ? GalleryPhotoViewWrapper(
                     galleryItems: allImages,
-                    backgroundDecoration: const BoxDecoration(
-                      color: Colors.black,
-                    ),
+                    backgroundDecoration:
+                        BoxDecoration(color: Theme.of(context).canvasColor),
                     initialIndex: currentIndex,
-                    scrollDirection: Axis.vertical,
+                    scrollDirection: Axis.horizontal,
                   )
                 : FullImagePage(
                     tag: tag,
-                    img: Image(
-                      image: img,
-                    ),
+                    img: allImages[currentIndex],
                   )),
       ),
     );
@@ -150,19 +143,26 @@ class FittedImageContainer extends StatelessWidget {
     this.fit = BoxFit.cover,
   }) : super(key: key);
 
-  final Image img;
+  final ImageItem img;
   final BoxFit fit;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: img
-              .image, //XXX: have a list of imageproviders instead of image widgets
-          fit: fit,
-        ),
-      ),
+      child: img.image != null
+          ? null
+          : Center(
+              child: Icon(Icons.report_problem),
+            ),
+      decoration: img.image == null
+          ? null
+          : BoxDecoration(
+              image: DecorationImage(
+                image: img
+                    .image!, //XXX: have a list of imageproviders instead of image widgets
+                fit: fit,
+              ),
+            ),
     );
   }
 }
@@ -174,7 +174,7 @@ class FullImagePage extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final Image img;
+  final ImageItem img;
   final Object tag;
 
   @override
