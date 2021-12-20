@@ -5,6 +5,8 @@ import 'package:photo_view/photo_view.dart';
 import 'gallaryWrapper.dart';
 
 class ImageWrap extends StatelessWidget {
+  static final _fetchallfirst = true; //TODO: this shall be false at some point
+
   final Image? chosenOne;
   final List<Future<Image?>> images;
   final int columnCount;
@@ -24,20 +26,27 @@ class ImageWrap extends StatelessWidget {
 
   //TODO; chose new mainImage -> callback
   @override
-  Widget build(BuildContext context) => GridView.builder(
-      padding: const EdgeInsets.all(2.0),
-      itemCount: images.length + 1,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columnCount,
-      ),
-      itemBuilder: (context, i) => /*(i == 0)
-          ? */
-          OpenableImageView.scrollable(
-            currentIndex: i,
-            chosenIndex:
-                0, //TODO: make this dynamic on callback or something for #20
-            allImages: images,
-          ));
+  Widget build(BuildContext context) => FutureBuilder<List<ImageItem>>(
+        future: Future.wait(images).then((e) => e
+            .map((image) => ImageItem.fromImage(image, tag: UniqueKey()))
+            .toList()),
+        builder: (context, snapshot) {
+          return GridView.builder(
+              padding: const EdgeInsets.all(2.0),
+              itemCount: images.length + 1,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount,
+              ),
+              itemBuilder: (context, i) => /*(i == 0)
+              ? */
+                  OpenableImageView.scrollable(
+                    currentIndex: i,
+                    chosenIndex:
+                        0, //TODO: make this dynamic on callback or something for #20
+                    allImages: snapshot.data ?? [],
+                  ));
+        },
+      );
 }
 
 class OpenableImageView extends StatelessWidget {
@@ -58,7 +67,7 @@ class OpenableImageView extends StatelessWidget {
     required this.allImages,
     Key? key,
     this.chosenIndex = -1,
-  })  : assert(0 <= currentIndex && currentIndex <= (allImages?.length ?? 0)),
+  })  : assert(0 <= currentIndex && currentIndex <= (allImages.length)),
         this._isScrollable = (allImages != null),
         super(key: key);
 
@@ -97,7 +106,7 @@ class OpenableImageView extends StatelessWidget {
   Widget _heroImg(context) {
     ImageProvider? img = allImages[currentIndex].image;
     if (img == null) return Center(child: Icon(Icons.report_problem));
-    var tag = key ?? UniqueKey();
+    var tag = allImages[currentIndex].tag;
     return TextButton(
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
