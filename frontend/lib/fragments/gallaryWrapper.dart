@@ -98,11 +98,22 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   }
 }
 
-class ImageItem {
-  final Widget fallBackWidget;
-  final ImageProvider? image;
+class ImageItem with ChangeNotifier {
+  Widget fallBackWidget;
+  ImageProvider? image;
   final Object tag;
   /* const */ ImageItem.fromImage(Image? image,
-      {required this.tag, this.fallBackWidget = const LoadingView()})
+      {required this.tag,
+      this.fallBackWidget =
+          const Center(child: const Icon(Icons.report_problem))})
       : this.image = image?.image;
+
+  ImageItem.fromFutureImage(Future<Image?> image,
+      {required this.tag, this.fallBackWidget = const LoadingView()}) {
+    image.then((value) {
+      this.image = value?.image;
+      this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      notifyListeners();
+    });
+  }
 }
