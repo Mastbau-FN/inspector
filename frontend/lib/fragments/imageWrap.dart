@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 
 class ImageWrap extends StatelessWidget {
   final Image? chosenOne;
@@ -25,9 +26,10 @@ class ImageWrap extends StatelessWidget {
       padding: const EdgeInsets.all(2.0),
       itemCount: images.length + 1,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columnCount),
+        crossAxisCount: columnCount,
+      ),
       itemBuilder: (context, i) => (i == 0)
-          ? ImageFullView(
+          ? OpenableImageView(
               img: chosenOne,
               isChosen: true,
             )
@@ -40,7 +42,7 @@ class ImageWrap extends StatelessWidget {
                       builder: (BuildContext context,
                               AsyncSnapshot<Image?> snap) =>
                           (snap.connectionState == ConnectionState.done)
-                              ? ImageFullView(img: snap.data)
+                              ? OpenableImageView(img: snap.data)
                               : Padding(
                                   padding: const EdgeInsets.all(20.0),
                                   child: LoadingView(),
@@ -50,10 +52,10 @@ class ImageWrap extends StatelessWidget {
                 ));
 }
 
-class ImageFullView extends StatelessWidget {
+class OpenableImageView extends StatelessWidget {
   final Image? img;
   final bool isChosen;
-  const ImageFullView({
+  const OpenableImageView({
     required this.img,
     Key? key,
     this.isChosen = false,
@@ -145,7 +147,11 @@ class FullImagePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text("Bild")),
       body: Hero(
-        child: img,
+        child: PhotoView(
+          imageProvider: img.image,
+          backgroundDecoration:
+              BoxDecoration(color: Theme.of(context).canvasColor),
+        ),
         tag: tag,
       ),
     );

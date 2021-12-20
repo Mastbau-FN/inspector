@@ -10,7 +10,6 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 class ImagesPage extends StatelessWidget {
-  static final bool _experimental = false;
   List<Future<Image?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
@@ -50,7 +49,7 @@ class ImagesPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageFullView(_images),
+      body: ImageWrap.futured(images: _images),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add_a_photo),
         onPressed: () async {
