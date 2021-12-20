@@ -23,15 +23,17 @@ class ErrorText extends StatelessWidget {
         SizedBox(
           width: 5,
         ),
-        Text(
-          // removes the the "Exception: " if wanted and the string matches
-          error.substring(removeException &&
-                  error.length > 10 &&
-                  error.substring(0, 11) == "Exception: "
-              ? 11
-              : 0),
-          style: TextStyle(color: color),
-          maxLines: 5,
+        Expanded(
+          child: Text(
+            // removes the the "Exception: " if wanted and the string matches
+            error.substring(removeException &&
+                    error.length > 10 &&
+                    error.substring(0, 11) == "Exception: "
+                ? 11
+                : 0),
+            style: TextStyle(color: color),
+            maxLines: 5,
+          ),
         )
       ],
     );
