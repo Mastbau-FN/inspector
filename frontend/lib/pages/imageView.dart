@@ -52,9 +52,9 @@ class ImageView extends StatelessWidget {
         scrollPhysics: const BouncingScrollPhysics(),
         builder: (BuildContext context, int index) {
           return PhotoViewGalleryPageOptions(
-            imageProvider: null, //_images[index],
+            imageProvider: _images[index].then((value) => value.image),
             initialScale: PhotoViewComputedScale.contained * 0.8,
-            //heroAttributes: PhotoViewHeroAttributes(tag: _images[index].id),
+            heroAttributes: PhotoViewHeroAttributes(tag: index),
           );
         },
         itemCount: _images.length,
