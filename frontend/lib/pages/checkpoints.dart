@@ -9,7 +9,7 @@ import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 
 import 'detailsPage.dart';
-import 'imagePage.dart';
+import 'imagesPage.dart';
 
 class CheckPointsModel extends DropDownModel<CheckPoint> {
   final Backend _b = Backend();
@@ -53,7 +53,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
           case _nextViewTitle:
             return nextModel(CheckPointDefectsModel(data));
           case 'Fotos':
-            return ImagePage.futured(
+            return ImagesPage.futured(
               future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );

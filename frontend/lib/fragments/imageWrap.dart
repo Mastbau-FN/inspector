@@ -27,7 +27,7 @@ class ImageWrap extends StatelessWidget {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: columnCount),
       itemBuilder: (context, i) => (i == 0)
-          ? ImageView(
+          ? ImageFullView(
               img: chosenOne,
               isChosen: true,
             )
@@ -40,7 +40,7 @@ class ImageWrap extends StatelessWidget {
                       builder: (BuildContext context,
                               AsyncSnapshot<Image?> snap) =>
                           (snap.connectionState == ConnectionState.done)
-                              ? ImageView(img: snap.data)
+                              ? ImageFullView(img: snap.data)
                               : Padding(
                                   padding: const EdgeInsets.all(20.0),
                                   child: LoadingView(),
@@ -50,10 +50,10 @@ class ImageWrap extends StatelessWidget {
                 ));
 }
 
-class ImageView extends StatelessWidget {
+class ImageFullView extends StatelessWidget {
   final Image? img;
   final bool isChosen;
-  const ImageView({
+  const ImageFullView({
     required this.img,
     Key? key,
     this.isChosen = false,

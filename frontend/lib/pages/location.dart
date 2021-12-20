@@ -12,7 +12,7 @@ import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
 
-import 'imagePage.dart';
+import 'imagesPage.dart';
 import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation> {
@@ -59,7 +59,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
           case _nextViewTitle:
             return nextModel(CategoryModel(data));
           case 'Fotos':
-            return ImagePage.futured(
+            return ImagesPage.futured(
               future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
             );

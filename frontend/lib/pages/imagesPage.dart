@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-class ImagePage extends StatelessWidget {
+class ImagesPage extends StatelessWidget {
   static final bool _experimental = false;
   List<Future<Image?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
@@ -23,7 +23,7 @@ class ImagePage extends StatelessWidget {
     return "";
   }
 
-  ImagePage.constant(
+  ImagesPage.constant(
       {List<Image?>? images = const [],
       this.columnCount = 4,
       Key? key,
@@ -33,7 +33,7 @@ class ImagePage extends StatelessWidget {
         images?.whereNotNull().map((e) => Future.value(e)).toList() ?? [];
   }
 
-  ImagePage.futured(
+  ImagesPage.futured(
       {List<Future<Image?>>? future_images = const [],
       this.columnCount = 4,
       Key? key,
@@ -50,7 +50,7 @@ class ImagePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageWrap(_images),
+      body: ImageFullView(_images),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add_a_photo),
         onPressed: () async {
