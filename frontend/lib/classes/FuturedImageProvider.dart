@@ -12,7 +12,7 @@ class FuturedImageProvider implements ImageProvider {
 
   @override
   ImageStream createStream(ImageConfiguration configuration) {
-    _imageStream = ImageStream();
+    _imageStream ??= ImageStream();
     _setCompleter(configuration);
     return _imageStream!;
   }
@@ -43,10 +43,11 @@ class FuturedImageProvider implements ImageProvider {
 
   @override
   Future<Object> obtainKey(ImageConfiguration configuration) async =>
-      (await futureImage).obtainCacheStatus(configuration: configuration);
+      (await futureImage).obtainKey(configuration);
 
   @override
   ImageStream resolve(ImageConfiguration configuration) {
+    _imageStream ??= ImageStream();
     return _imageStream!;
   }
 
