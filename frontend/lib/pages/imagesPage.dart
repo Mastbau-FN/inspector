@@ -51,7 +51,7 @@ class ImagesPage extends StatelessWidget {
   }
 }
 
-class ImageAddButton extends StatelessWidget {
+class ImageAddButton extends StatefulWidget {
   const ImageAddButton({
     Key? key,
     required ImagePicker picker,
@@ -63,6 +63,13 @@ class ImageAddButton extends StatelessWidget {
   final Future<String?> Function(List<XFile> p1) onNewImages;
 
   @override
+  State<ImageAddButton> createState() => _ImageAddButtonState();
+}
+
+class _ImageAddButtonState extends State<ImageAddButton> {
+  bool expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     return uploadFromSystem();
   }
@@ -72,8 +79,8 @@ class ImageAddButton extends StatelessWidget {
       child: Icon(Icons.add_a_photo),
       onPressed: () async {
         //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
-        final List<XFile>? new_images = await _picker.pickMultiImage();
-        var resstring = await onNewImages(new_images ?? []);
+        final List<XFile>? new_images = await widget._picker.pickMultiImage();
+        var resstring = await widget.onNewImages(new_images ?? []);
         Fluttertoast.showToast(
           msg: resstring ??
               "upload finished (no idea of successed or failed tho)",
