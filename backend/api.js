@@ -65,7 +65,7 @@ const getCheckPointDefects = (req, res, next) => errsafejson(
 const addNew = (req, res, next) =>
   errsafejson(
     async () =>
-      (await queries.addNew(req.body,req.user.name))[0],
+      (await queries.addNew(req.body,req.user.KZL))[0],
     (json)=> (json),
     res,next
   );
