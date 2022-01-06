@@ -14,8 +14,9 @@ class CameraModel with ChangeNotifier {
         ResolutionPreset.medium,
       );
 
-  Future start() async {
-    return (await controller).initialize();
+  Future<CameraController> start() async {
+    (await controller).initialize();
+    return controller;
   }
 
   Future<List<CameraDescription>> all_cameras = availableCameras();

@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/fragments/camera/cameramodel.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,17 +12,11 @@ class CameraMainPreview extends StatelessWidget {
     return Provider<CameraModel>(
       create: (_) => CameraModel(),
       child: FutureBuilder(
-        future: context.watch<CameraModel>().start;
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
+          future: context.watch<CameraModel>().start(),
+          builder: (context, AsyncSnapshot<CameraController> snapshot) =>
+              snapshot.data != null
+                  ? CameraPreview(snapshot.data!)
+                  : LoadingView()),
     );
   }
 }
