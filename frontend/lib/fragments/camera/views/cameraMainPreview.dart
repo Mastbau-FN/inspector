@@ -9,14 +9,19 @@ class CameraMainPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<CameraModel>(
+    return ChangeNotifierProvider<CameraModel>(
       create: (_) => CameraModel(),
-      child: FutureBuilder(
+      child: Builder(builder: (context) {
+        return FutureBuilder(
           future: context.watch<CameraModel>().start(),
           builder: (context, AsyncSnapshot<CameraController> snapshot) =>
-              snapshot.data != null
+              // LoadingView(),
+              snapshot.connectionState == ConnectionState.done &&
+                      snapshot.data != null
                   ? CameraPreview(snapshot.data!)
-                  : LoadingView()),
+                  : LoadingView(),
+        );
+      }),
     );
   }
 }

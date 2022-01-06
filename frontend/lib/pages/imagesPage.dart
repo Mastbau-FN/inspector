@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -68,18 +69,37 @@ class ImageAddButton extends StatefulWidget {
 
 class _ImageAddButtonState extends State<ImageAddButton> {
   bool expanded = false;
+  bool withCamera = false;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (expanded) takeImage,
-        SizedBox(height: 2),
-        if (expanded) uploadFromSystem,
-        SizedBox(height: 8),
-        add,
-      ],
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (withCamera)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: CameraMainPreview()),
+              ),
+            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (expanded) takeImage,
+              SizedBox(height: 2),
+              if (expanded) uploadFromSystem,
+              SizedBox(height: 8),
+              add,
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -88,13 +108,18 @@ class _ImageAddButtonState extends State<ImageAddButton> {
         onPressed: () {
           setState(() {
             expanded ^= true;
+            if (!expanded) withCamera = false;
           });
         },
       );
 
   FloatingActionButton get takeImage => FloatingActionButton(
-        child: Icon(Icons.camera_alt),
-        onPressed: () {},
+        child: Icon(withCamera ? Icons.cancel : Icons.camera_alt),
+        onPressed: () {
+          setState(() {
+            withCamera ^= true;
+          });
+        },
       );
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(

@@ -1,12 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class CameraModel with ChangeNotifier {
-  static final CameraModel _instance = CameraModel._internal();
-  factory CameraModel() => _instance;
-
-  CameraModel._internal() {}
-
+class CameraModel extends ChangeNotifier {
   Future<CameraController> get controller async => CameraController(
         // Get a specific camera from the list of available cameras.
         await currentCamera,
@@ -15,8 +11,9 @@ class CameraModel with ChangeNotifier {
       );
 
   Future<CameraController> start() async {
-    (await controller).initialize();
-    return controller;
+    var c = await controller;
+    await c.initialize();
+    return c;
   }
 
   Future<List<CameraDescription>> all_cameras = availableCameras();
