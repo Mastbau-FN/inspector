@@ -71,23 +71,44 @@ class _ImageAddButtonState extends State<ImageAddButton> {
 
   @override
   Widget build(BuildContext context) {
-    return uploadFromSystem();
-  }
-
-  FloatingActionButton uploadFromSystem() {
-    return FloatingActionButton(
-      child: Icon(Icons.add_a_photo),
-      onPressed: () async {
-        //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
-        final List<XFile>? new_images = await widget._picker.pickMultiImage();
-        var resstring = await widget.onNewImages(new_images ?? []);
-        Fluttertoast.showToast(
-          msg: resstring ??
-              "upload finished (no idea of successed or failed tho)",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-        );
-      },
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (expanded) takeImage,
+        SizedBox(height: 2),
+        if (expanded) uploadFromSystem,
+        SizedBox(height: 8),
+        add,
+      ],
     );
   }
+
+  FloatingActionButton get add => FloatingActionButton(
+        child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
+        onPressed: () {
+          setState(() {
+            expanded ^= true;
+          });
+        },
+      );
+
+  FloatingActionButton get takeImage => FloatingActionButton(
+        child: Icon(Icons.camera_alt),
+        onPressed: () {},
+      );
+
+  FloatingActionButton get uploadFromSystem => FloatingActionButton(
+        child: Icon(Icons.folder),
+        onPressed: () async {
+          //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
+          final List<XFile>? new_images = await widget._picker.pickMultiImage();
+          var resstring = await widget.onNewImages(new_images ?? []);
+          Fluttertoast.showToast(
+            msg: resstring ??
+                "upload finished (no idea of successed or failed tho)",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+          );
+        },
+      );
 }
