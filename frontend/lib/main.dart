@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,6 +11,11 @@ Future main() async {
   // could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
 
   await dotenv.load(fileName: ".env");
+
+  // Ensure that plugin services are initialized so that `availableCameras()`
+  // can be called before `runApp()`
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(GlobalProviders(child: MyApp()));
 }
 

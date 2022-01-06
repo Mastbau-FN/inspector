@@ -52,6 +52,10 @@ class Backend {
   static final Backend _instance = Backend._internal();
   factory Backend() => _instance;
 
+  Backend._internal() {
+    // init
+  }
+
   final _baseurl = dotenv.env['API_URL'];
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
 
@@ -62,10 +66,6 @@ class Backend {
   Future<User?> get _c_user async {
     if (_user != null) return _user;
     return await User.fromStore();
-  }
-
-  Backend._internal() {
-    // init
   }
 
   // MARK: available Helpers
