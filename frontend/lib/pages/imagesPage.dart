@@ -1,9 +1,11 @@
+import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class ImagesPage extends StatelessWidget {
   List<Future<Image?>> _images = [];
@@ -73,32 +75,36 @@ class _ImageAddButtonState extends State<ImageAddButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          if (withCamera)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                child: ClipRRect(
+    return ChangeNotifierProvider(
+      create: (context) => CameraModel(),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (withCamera)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: CameraMainPreview()),
+                    child: CameraPreviewOnly(),
+                  ),
+                ),
               ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (expanded) takeImage(context),
+                SizedBox(height: 2),
+                if (expanded && !withCamera) uploadFromSystem,
+                SizedBox(height: 8),
+                add,
+              ],
             ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (expanded) takeImage,
-              SizedBox(height: 2),
-              if (expanded && !withCamera) uploadFromSystem,
-              SizedBox(height: 8),
-              add,
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -113,10 +119,19 @@ class _ImageAddButtonState extends State<ImageAddButton> {
         },
       );
 
-  FloatingActionButton get takeImage => FloatingActionButton(
+  FloatingActionButton takeImage(context) => FloatingActionButton(
         child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
-        onPressed: () {
+        onPressed: () async {
           if (withCamera) {
+            final file =
+                await Provider.of<CameraModel>(context, listen: false).shoot();
+            var resstring = await widget.onNewImages([file]);
+            Fluttertoast.showToast(
+              msg: resstring ??
+                  "upload finished (no idea of successed or failed tho)",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+            );
           } else {
             setState(() {
               withCamera = true;
