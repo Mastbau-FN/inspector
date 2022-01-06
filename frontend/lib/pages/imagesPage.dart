@@ -93,7 +93,7 @@ class _ImageAddButtonState extends State<ImageAddButton> {
             children: [
               if (expanded) takeImage,
               SizedBox(height: 2),
-              if (expanded) uploadFromSystem,
+              if (expanded && !withCamera) uploadFromSystem,
               SizedBox(height: 8),
               add,
             ],
@@ -114,11 +114,14 @@ class _ImageAddButtonState extends State<ImageAddButton> {
       );
 
   FloatingActionButton get takeImage => FloatingActionButton(
-        child: Icon(withCamera ? Icons.cancel : Icons.camera_alt),
+        child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
         onPressed: () {
-          setState(() {
-            withCamera ^= true;
-          });
+          if (withCamera) {
+          } else {
+            setState(() {
+              withCamera = true;
+            });
+          }
         },
       );
 
