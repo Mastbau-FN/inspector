@@ -1,13 +1,8 @@
-import 'package:MBG_Inspektionen/classes/FuturedImageProvider.dart';
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
-
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 
 class ImagesPage extends StatelessWidget {
   List<Future<Image?>> _images = [];
@@ -50,20 +45,42 @@ class ImagesPage extends StatelessWidget {
         title: Text('Bilder'),
       ),
       body: ImageWrap.futured(images: _images),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add_a_photo),
-        onPressed: () async {
-          //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
-          final List<XFile>? new_images = await _picker.pickMultiImage();
-          var resstring = await onNewImages(new_images ?? []);
-          Fluttertoast.showToast(
-            msg: resstring ??
-                "upload finished (no idea of successed or failed tho)",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-          );
-        },
-      ),
+      floatingActionButton:
+          ImageAddButton(picker: _picker, onNewImages: onNewImages),
+    );
+  }
+}
+
+class ImageAddButton extends StatelessWidget {
+  const ImageAddButton({
+    Key? key,
+    required ImagePicker picker,
+    required this.onNewImages,
+  })  : _picker = picker,
+        super(key: key);
+
+  final ImagePicker _picker;
+  final Future<String?> Function(List<XFile> p1) onNewImages;
+
+  @override
+  Widget build(BuildContext context) {
+    return uploadFromSystem();
+  }
+
+  FloatingActionButton uploadFromSystem() {
+    return FloatingActionButton(
+      child: Icon(Icons.add_a_photo),
+      onPressed: () async {
+        //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
+        final List<XFile>? new_images = await _picker.pickMultiImage();
+        var resstring = await onNewImages(new_images ?? []);
+        Fluttertoast.showToast(
+          msg: resstring ??
+              "upload finished (no idea of successed or failed tho)",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+        );
+      },
     );
   }
 }
