@@ -74,38 +74,40 @@ class _ImageAddButtonState extends State<ImageAddButton> {
   bool withCamera = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext ocontext) {
     return ChangeNotifierProvider(
-      create: (context) => CameraModel(),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (withCamera)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: CameraPreviewOnly(),
+      create: (ocontext) => CameraModel(),
+      child: Builder(builder: (context) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (withCamera)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: CameraPreviewOnly(),
+                    ),
                   ),
                 ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (expanded) takeImage(context),
+                  SizedBox(height: 2),
+                  if (expanded && !withCamera) uploadFromSystem,
+                  SizedBox(height: 8),
+                  add,
+                ],
               ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (expanded) takeImage(context),
-                SizedBox(height: 2),
-                if (expanded && !withCamera) uploadFromSystem,
-                SizedBox(height: 8),
-                add,
-              ],
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -127,6 +129,7 @@ class _ImageAddButtonState extends State<ImageAddButton> {
                 listen: false); //TODO: irgendwie passiert hier nichts..
             XFile file = await model.shoot();
             var resstring = await widget.onNewImages([file]);
+            debugPrint(resstring);
             Fluttertoast.showToast(
               msg: resstring ??
                   "upload finished (no idea whether successed or failed tho)",

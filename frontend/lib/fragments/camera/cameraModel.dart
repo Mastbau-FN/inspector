@@ -12,13 +12,15 @@ class CameraModel extends ChangeNotifier {
   CameraController? controller;
 
   Future<CameraController> start({bool reuse = true}) async {
-    var controller = await new_controller;
-    await controller.initialize();
-    return controller;
+    controller = await new_controller;
+    await controller!.initialize();
+    return controller!;
   }
 
   Future<XFile> shoot() async {
-    if (controller == null) await start();
+    if (controller == null) {
+      await start();
+    }
     return await controller!.takePicture();
   }
 
