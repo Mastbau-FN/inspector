@@ -119,16 +119,17 @@ class _ImageAddButtonState extends State<ImageAddButton> {
         },
       );
 
-  FloatingActionButton takeImage(context) => FloatingActionButton(
+  FloatingActionButton takeImage(BuildContext context) => FloatingActionButton(
         child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
         onPressed: () async {
           if (withCamera) {
-            final file =
-                await Provider.of<CameraModel>(context, listen: false).shoot();
+            CameraModel model = Provider.of<CameraModel>(context,
+                listen: false); //TODO: irgendwie passiert hier nichts..
+            XFile file = await model.shoot();
             var resstring = await widget.onNewImages([file]);
             Fluttertoast.showToast(
               msg: resstring ??
-                  "upload finished (no idea of successed or failed tho)",
+                  "upload finished (no idea whether successed or failed tho)",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.CENTER,
             );
