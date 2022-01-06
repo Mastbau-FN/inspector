@@ -5,39 +5,22 @@ class CameraModel with ChangeNotifier {
   static final CameraModel _instance = CameraModel._internal();
   factory CameraModel() => _instance;
 
-  CameraModel._internal() {
-    asyncinit();
-  }
+  CameraModel._internal() {}
 
-  void asyncinit() async {
-    all_cameras = await availableCameras();
-
-    camerasready = true;
-    notifyListeners();
-  }
-
-  CameraController? get controller => currentCamera != null
-      ? CameraController(
-          // Get a specific camera from the list of available cameras.
-          currentCamera!,
-          // Define the resolution to use.
-          ResolutionPreset.medium,
-        )
-      : null;
-
-  bool camerasready = false;
+  Future<CameraController> get controller async => CameraController(
+        // Get a specific camera from the list of available cameras.
+        await currentCamera,
+        // Define the resolution to use.
+        ResolutionPreset.medium,
+      );
 
   Future start() async {
-    await Future.doWhile(() async {
-      if (controller != null) return true;
-      await Future.delayed(Duration(microseconds: 200));
-      return controller != null;
-    });
+    return (await controller).initialize();
   }
 
-  List<CameraDescription>? all_cameras;
+  Future<List<CameraDescription>> all_cameras = availableCameras();
 
-  CameraDescription? get mainCamera => all_cameras?.first;
+  Future<CameraDescription> get mainCamera async => (await all_cameras).first;
 
-  CameraDescription? get currentCamera => mainCamera; //XXX
+  Future<CameraDescription> get currentCamera => mainCamera; //XXX
 }
