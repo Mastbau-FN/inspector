@@ -67,6 +67,11 @@
   &#47;&#47; could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
 
   await dotenv.load(fileName: &quot;.env&quot;);
+
+  &#47;&#47; Ensure that plugin services are initialized so that `availableCameras()`
+  &#47;&#47; can be called before `runApp()`
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(GlobalProviders(child: MyApp()));
 }</code></pre>
 </section>
@@ -117,7 +122,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.6+9
+      1.0.10+10
   </span>
 
   

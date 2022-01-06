@@ -112,20 +112,8 @@ Widget build(BuildContext context) {
       title: Text(&#39;Bilder&#39;),
     ),
     body: ImageWrap.futured(images: _images),
-    floatingActionButton: FloatingActionButton(
-      child: Icon(Icons.add_a_photo),
-      onPressed: () async {
-        &#47;&#47;XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
-        final List&lt;XFile&gt;? new_images = await _picker.pickMultiImage();
-        var resstring = await onNewImages(new_images ?? []);
-        Fluttertoast.showToast(
-          msg: resstring ??
-              &quot;upload finished (no idea of successed or failed tho)&quot;,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-        );
-      },
-    ),
+    floatingActionButton:
+        ImageAddButton(picker: _picker, onNewImages: onNewImages),
   );
 }</code></pre>
 </section>
@@ -195,7 +183,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.6+9
+      1.0.10+10
   </span>
 
   
