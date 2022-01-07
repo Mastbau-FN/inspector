@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -101,18 +102,38 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
 class ImageItem with ChangeNotifier {
   Widget fallBackWidget;
   ImageProvider? image;
-  final Object tag;
+  Object tag;
+  @deprecated
   /* const */ ImageItem.fromImage(Image? image,
       {required this.tag,
       this.fallBackWidget =
           const Center(child: const Icon(Icons.report_problem))})
       : this.image = image?.image;
 
+  /* const */ ImageItem.fromImageData(ImageData? imaged,
+      {this.fallBackWidget =
+          const Center(child: const Icon(Icons.report_problem))})
+      : this.image = imaged?.image.image,
+        this.tag = imaged?.id ?? UniqueKey();
+
+  @deprecated
   ImageItem.fromFutureImage(Future<Image?> image,
       {required this.tag, this.fallBackWidget = const LoadingView()}) {
     image.then((value) {
       this.image = value?.image;
       this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      notifyListeners();
+    });
+  }
+
+  ImageItem.fromFutureImageData(
+    Future<ImageData?> image, {
+    fallBackWidget = const LoadingView(),
+  })  : this.tag = UniqueKey(),
+        this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
+    image.then((value) {
+      this.image = value?.image.image;
+      if (value != null) this.tag = value.id;
       notifyListeners();
     });
   }

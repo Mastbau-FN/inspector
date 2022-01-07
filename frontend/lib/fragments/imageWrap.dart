@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
@@ -9,36 +10,23 @@ class ImageWrap extends StatelessWidget {
   static final _fetchallfirst = false;
 
   final Image? chosenOne;
-  final List<Future<Image?>> images;
+  final List<Future<ImageData?>> images;
   final int columnCount;
   ImageWrap.constant({
-    List<Image> images = const [],
+    List<ImageData> images = const [],
     this.columnCount = 4,
     Key? key,
     this.chosenOne,
   })  : this.images = images.map((e) => Future.value(e)).toList(),
-        _allImages = images
-            .map(
-              (e) => ImageItem.fromImage(
-                e,
-                tag: UniqueKey(),
-              ),
-            )
-            .toList(),
+        _allImages = images.map((e) => ImageItem.fromImageData(e)).toList(),
         super(key: key);
   ImageWrap.futured({
     required this.images,
     this.columnCount = 4,
     Key? key,
     this.chosenOne,
-  })  : _allImages = images
-            .map(
-              (e) => ImageItem.fromFutureImage(
-                e,
-                tag: UniqueKey(),
-              ),
-            )
-            .toList(),
+  })  : _allImages =
+            images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
         super(key: key);
 
   final List<ImageItem> _allImages;
@@ -48,9 +36,8 @@ class ImageWrap extends StatelessWidget {
   Widget build(BuildContext context) => FutureBuilder<List<ImageItem>>(
         future: !_fetchallfirst
             ? null
-            : Future.wait(images).then((e) => e
-                .map((image) => ImageItem.fromImage(image, tag: UniqueKey()))
-                .toList()),
+            : Future.wait(images).then((e) =>
+                e.map((image) => ImageItem.fromImageData(image)).toList()),
         builder: (context, snapshot) {
           if (_fetchallfirst &&
               snapshot.connectionState != ConnectionState.done)

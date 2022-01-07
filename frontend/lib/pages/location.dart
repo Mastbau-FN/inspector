@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
@@ -101,10 +102,10 @@ class LocationDetailPage extends StatelessWidget {
         child: Container(
           height: 100,
           width: 100,
-          child: FutureBuilder<Image?>(
+          child: FutureBuilder<ImageData?>(
               future: locationdata.mainImage,
               builder: (context, snapshot) =>
-                  snapshot.data ?? Icon(Icons.construction)),
+                  snapshot.data?.image ?? Icon(Icons.construction)),
         ),
       );
 

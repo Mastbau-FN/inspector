@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class ImagesPage extends StatelessWidget {
-  List<Future<Image?>> _images = [];
+  List<Future<ImageData?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
   static Future<String?> _defaultAdd(List<XFile> list) async {
@@ -21,7 +22,7 @@ class ImagesPage extends StatelessWidget {
   }
 
   ImagesPage.constant(
-      {List<Image?>? images = const [],
+      {List<ImageData?>? images = const [],
       this.columnCount = 4,
       Key? key,
       this.onNewImages = _defaultAdd})
@@ -31,7 +32,7 @@ class ImagesPage extends StatelessWidget {
   }
 
   ImagesPage.futured(
-      {List<Future<Image?>>? future_images = const [],
+      {List<Future<ImageData?>>? future_images = const [],
       this.columnCount = 4,
       Key? key,
       this.onNewImages = _defaultAdd})
