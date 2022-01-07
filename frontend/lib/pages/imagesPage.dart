@@ -55,7 +55,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       this.columnCount = 4,
       Key? key,
       this.onNewImages = _defaultAdd,
-      this.onDelete = _default,
+      this.onDelete = _defaultDelete,
       this.onStar = _default,
       this.onShare = _default})
       : super(key: key) {
