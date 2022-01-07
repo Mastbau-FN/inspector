@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -142,12 +143,13 @@ class Backend {
     }
   }
 
-  Future<Image?> _fetchImage(String hash) async {
+  Future<ImageData?> _fetchImage(String hash) async {
     http.Response? res =
         (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
             ?.forceRes();
     if (res == null || res.statusCode != 200) return null;
-    return Image.memory(res.bodyBytes);
+    return ImageData(Image.memory(res.bodyBytes),
+        id: hash); //TODO ? jetzt werden den images durchgehend ihre hashes zugeordnet, aber reicht das? darüber müssen die bilder auf dem server erreicht werden können,(siehe zB #39). Kurzfristig hilft es wahrscheinlich die hashes langlebiger zu machen aber auf dauer muss da eine bessere Lösung her
   }
 
   Future<T?> Function(Map<String, dynamic>)
