@@ -1,22 +1,38 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
 import 'galleryWrapper.dart';
 
-class ImageWrap extends StatelessWidget {
+class ImageWrap<T extends Object> extends StatelessWidget {
   static final _fetchallfirst = false;
 
-  final Image? chosenOne;
-  final List<Future<ImageData?>> images;
+  static _default(Object _) {
+    Fluttertoast.showToast(
+      msg: "Not Available",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+    );
+  }
+
+  final Function(T) onDelete;
+  final Function(T) onStar;
+  final Function(T) onShare;
+
+  final ImageData<T>? chosenOne;
+  final List<Future<ImageData<T>?>> images;
   final int columnCount;
   ImageWrap.constant({
-    List<ImageData> images = const [],
+    List<ImageData<T>> images = const [],
     this.columnCount = 4,
     Key? key,
     this.chosenOne,
+    this.onDelete = _default,
+    this.onStar = _default,
+    this.onShare = _default,
   })  : this.images = images.map((e) => Future.value(e)).toList(),
         _allImages = images.map((e) => ImageItem.fromImageData(e)).toList(),
         super(key: key);
@@ -25,15 +41,18 @@ class ImageWrap extends StatelessWidget {
     this.columnCount = 4,
     Key? key,
     this.chosenOne,
+    this.onDelete = _default,
+    this.onStar = _default,
+    this.onShare = _default,
   })  : _allImages =
             images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
         super(key: key);
 
-  final List<ImageItem> _allImages;
+  final List<ImageItem<T>> _allImages;
 
   //TODO; chose new mainImage -> callback
   @override
-  Widget build(BuildContext context) => FutureBuilder<List<ImageItem>>(
+  Widget build(BuildContext context) => FutureBuilder<List<ImageItem<T>>>(
         future: !_fetchallfirst
             ? null
             : Future.wait(images).then((e) =>
@@ -51,7 +70,10 @@ class ImageWrap extends StatelessWidget {
               ),
               itemBuilder: (context, i) => /*(i == 0)
               ? */
-                  OpenableImageView.scrollable(
+                  OpenableImageView<T>.scrollable(
+                    onDelete: onDelete,
+                    onShare: onShare,
+                    onStar: onStar,
                     currentIndex: i,
                     chosenIndex:
                         0, //TODO: make this dynamic on callback or something for #20
@@ -62,7 +84,19 @@ class ImageWrap extends StatelessWidget {
       );
 }
 
-class OpenableImageView extends StatelessWidget {
+class OpenableImageView<T extends Object> extends StatelessWidget {
+  static _default(_) {
+    Fluttertoast.showToast(
+      msg: "Not Available",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+    );
+  }
+
+  final Function(T) onDelete;
+  final Function(T) onStar;
+  final Function(T) onShare;
+
   ///which index has the main image ; -1 means none is chosen
   final int chosenIndex;
 
@@ -70,7 +104,7 @@ class OpenableImageView extends StatelessWidget {
   final int currentIndex;
 
   ///an optional List of all images on which we can scroll to
-  final List<ImageItem> allImages;
+  final List<ImageItem<T>> allImages;
 
   ///whether one can slide from one opened widget to another one
   final bool _isScrollable;
@@ -80,15 +114,21 @@ class OpenableImageView extends StatelessWidget {
     required this.allImages,
     Key? key,
     this.chosenIndex = -1,
+    this.onDelete = _default,
+    this.onStar = _default,
+    this.onShare = _default,
   })  : assert(0 <= currentIndex && currentIndex < (allImages.length)),
         this._isScrollable = true,
         super(key: key);
 
   /*const*/ OpenableImageView.only({
     //which item from this list shall be opened
-    required ImageItem image,
+    required ImageItem<T> image,
     Key? key,
     bool isChosen = false,
+    this.onDelete = _default,
+    this.onStar = _default,
+    this.onShare = _default,
   })  : this._isScrollable = false,
         this.currentIndex = 0,
         this.chosenIndex = isChosen ? 0 : -1,
@@ -117,7 +157,7 @@ class OpenableImageView extends StatelessWidget {
   }
 
   Widget _heroImg(context) {
-    var tag = allImages[currentIndex].tag;
+    Object tag = allImages[currentIndex].tag;
     return TextButton(
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
@@ -128,7 +168,7 @@ class OpenableImageView extends StatelessWidget {
           img: allImages[currentIndex],
         ),
       ),
-      onLongPress: () => _onLongPress(context),
+      onLongPress: () => _onLongPress(context, tag),
       onPressed: () => _onShortPress(context, tag),
     );
   }
@@ -150,7 +190,7 @@ class OpenableImageView extends StatelessWidget {
                   )),
       );
 
-  Future<void> _onLongPress(context) async {
+  Future<void> _onLongPress(context, tag) async {
     switch (await showDialog<ImageOptions>(
         context: context,
         builder: (BuildContext context) {
@@ -188,13 +228,13 @@ class OpenableImageView extends StatelessWidget {
           );
         })) {
       case ImageOptions.delete:
-        // ...
+        onDelete(tag);
         break;
       case ImageOptions.setMain:
-        // ...
+        onStar(tag);
         break;
       case ImageOptions.share:
-        // ...
+        onShare(tag);
         break;
       case null:
         // dialog dismissed

@@ -99,7 +99,7 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   }
 }
 
-class ImageItem with ChangeNotifier {
+class ImageItem<T extends Object> with ChangeNotifier {
   Widget fallBackWidget;
   ImageProvider? image;
   Object tag;
@@ -110,7 +110,7 @@ class ImageItem with ChangeNotifier {
           const Center(child: const Icon(Icons.report_problem))})
       : this.image = image?.image;
 
-  /* const */ ImageItem.fromImageData(ImageData? imaged,
+  /* const */ ImageItem.fromImageData(ImageData<T>? imaged,
       {this.fallBackWidget =
           const Center(child: const Icon(Icons.report_problem))})
       : this.image = imaged?.image.image,
@@ -127,7 +127,7 @@ class ImageItem with ChangeNotifier {
   }
 
   ImageItem.fromFutureImageData(
-    Future<ImageData?> image, {
+    Future<ImageData<T>?> image, {
     fallBackWidget = const LoadingView(),
   })  : this.tag = UniqueKey(),
         this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {

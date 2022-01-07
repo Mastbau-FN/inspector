@@ -36,6 +36,8 @@ const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
 
+const _deleteImageByHash_r = "/deleteImgH"; // issue #36
+
 extension _Parser on http.BaseResponse {
   http.Response? forceRes() {
     try {
@@ -336,6 +338,12 @@ class Backend {
   /// deletes a [DataT] and returns the response
   Future<String?> delete<DataT extends Data>(DataT? data) async =>
       (await _sendDataToRoute(data: data, route: _delete_r))?.body;
+
+  /// deletes an image specified by its hash and returns the response
+  Future<String?> deleteImageByHash(String hash) async =>
+      (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+          ?.forceRes()
+          ?.body;
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(

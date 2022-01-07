@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
@@ -8,8 +9,8 @@ import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class ImagesPage extends StatelessWidget {
-  List<Future<ImageData?>> _images = [];
+class ImagesPage<T extends Object> extends StatelessWidget {
+  List<Future<ImageData<T>?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
   static Future<String?> _defaultAdd(List<XFile> list) async {
@@ -21,21 +22,55 @@ class ImagesPage extends StatelessWidget {
     return "";
   }
 
+  static _default(Object _) {
+    Fluttertoast.showToast(
+      msg: "Not Available",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+    );
+  }
+
+  static _defaultDelete(Object id) async {
+    try {
+      Fluttertoast.showToast(
+        msg: (await Backend().deleteImageByHash(id as String)).toString(),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: e.toString(),
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+      );
+    }
+  }
+
+  final Function(T) onDelete;
+  final Function(T) onStar;
+  final Function(T) onShare;
+
   ImagesPage.constant(
-      {List<ImageData?>? images = const [],
+      {List<ImageData<T>?>? images = const [],
       this.columnCount = 4,
       Key? key,
-      this.onNewImages = _defaultAdd})
+      this.onNewImages = _defaultAdd,
+      this.onDelete = _default,
+      this.onStar = _default,
+      this.onShare = _default})
       : super(key: key) {
     this._images =
         images?.whereNotNull().map((e) => Future.value(e)).toList() ?? [];
   }
 
   ImagesPage.futured(
-      {List<Future<ImageData?>>? future_images = const [],
+      {List<Future<ImageData<T>?>>? future_images = const [],
       this.columnCount = 4,
       Key? key,
-      this.onNewImages = _defaultAdd})
+      this.onNewImages = _defaultAdd,
+      this.onDelete = _defaultDelete,
+      this.onStar = _default,
+      this.onShare = _default})
       : super(key: key) {
     this._images = future_images ?? [];
   }
@@ -48,7 +83,12 @@ class ImagesPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageWrap.futured(images: _images),
+      body: ImageWrap<T>.futured(
+        images: _images,
+        onDelete: onDelete,
+        onShare: onShare,
+        onStar: onStar,
+      ),
       floatingActionButton:
           ImageAddButton(picker: _picker, onNewImages: onNewImages),
     );
