@@ -10,6 +10,8 @@ const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete";
 
+const _deleteImageByHash_r = "/deleteImgH"; // issue #39
+
 const fs = require("fs");
 
 var http = require("http");
@@ -87,6 +89,8 @@ app.post("/api/secure" + _getCheckPointDefects_r, api.getCheckPointDefects);
 app.post("/api/secure" + _addNew_r, api.addNew);
 app.post("/api/secure" + _update_r, api.update);
 app.post("/api/secure" + _delete_r, api.delete_);
+
+app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 

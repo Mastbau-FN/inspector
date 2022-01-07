@@ -18,6 +18,14 @@ const getFileFromHash = async (hash) => {
   );
 };
 
+const getPathFromHash = async (hash) => {
+  return {
+    rootpath: cache.get(hash + "r"),
+    link:     cache.get(hash + "l"),
+    filename: cache.get(hash + "f")
+  }
+};
+
 const memorize = async (rootpath, link, filename) => {
   let key = await bcript.hash(rootpath + link + filename, 1);
 
@@ -33,5 +41,6 @@ const memorize = async (rootpath, link, filename) => {
 
 module.exports = {
   getFileFromHash,
+  getPathFromHash,
   memorize,
 };

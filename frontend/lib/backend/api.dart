@@ -36,7 +36,7 @@ const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
 
-const _deleteImageByHash_r = "/deleteImgH"; // issue #36
+const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 
 extension _Parser on http.BaseResponse {
   http.Response? forceRes() {
