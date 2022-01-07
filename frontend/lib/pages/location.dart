@@ -10,7 +10,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'imagesPage.dart';
 import 'detailsPage.dart';

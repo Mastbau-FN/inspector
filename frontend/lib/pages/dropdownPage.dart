@@ -10,7 +10,7 @@ import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
-import 'dropdownClasses.dart';
+import '../classes/dropdownClasses.dart';
 
 // XXX get to new page with hero transition
 

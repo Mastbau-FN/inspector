@@ -1,7 +1,7 @@
 import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 //should be held up to date with FloatingActionButton
 const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(

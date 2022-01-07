@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownPage.dart';
+import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
 
 class HomeView extends StatelessWidget {

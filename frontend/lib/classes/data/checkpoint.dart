@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpoint.g.dart';

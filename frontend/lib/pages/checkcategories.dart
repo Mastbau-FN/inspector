@@ -7,7 +7,7 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'imagesPage.dart';
 
