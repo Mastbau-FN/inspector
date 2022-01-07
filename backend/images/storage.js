@@ -3,6 +3,7 @@ const pathm = require("path");
 const files = require("./filesystem")
 const rootfolder = require("../db/queries").getLink;
 
+const fs = require("fs");
 const multer = require("multer");
 const mstorage = multer.diskStorage({
 
@@ -10,7 +11,9 @@ const mstorage = multer.diskStorage({
   destination: (req, file, cb) => {
     rootfolder(req.body).then((rf) => {
       console.log("multi-upload",rf);
-      cb(null, files.formatpath(pathm.join(rf.rootfolder, rf.link)));
+      const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
+      fs.mkdirSync(path, { recursive: true });
+      cb(null, path);
     });
   },
   filename: (req, file, cb) => {
