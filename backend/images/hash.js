@@ -2,9 +2,10 @@ const imgfiler = require("./filesystem");
 
 const bcript = require("bcrypt");
 
+// XXX: for #92 use https://www.npmjs.com/package/data-store
 const NanoCache = require("nano-cache");
 var cache = new NanoCache({
-  ttl: 3600000,//one hour //604800000, // store data in memory for exactly one week
+  ttl: 604800000, // store data in memory for exactly one week
   limit: 5, // a hashed image may only be queried 5 times //maybe once would be better
   bytes: NanoCache.SIZE.GB, // cache memory usage must not exceed 1GB
 });
