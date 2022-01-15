@@ -1,3 +1,4 @@
 #### changes
 
-- app now has its own camera from which it uploads images directly
+- alles nutzt den RichTextEditor
+- man kann bilder sowie ganzen datenpunkte, die man selbst erstellt hat wieder löschen
