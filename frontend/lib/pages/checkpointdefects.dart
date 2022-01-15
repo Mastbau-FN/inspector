@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -7,7 +8,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
@@ -55,37 +56,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
 
           default:
             return Provider<CheckPointDefectsModel>(
+              //TODO: wozu ist hier der provider?
               create: (context) =>
                   this, //the injector //XXX: sadly this doesnt work for some reason
               child: Builder(builder: (context) {
                 debugPrint('build new defectsdetails');
-                try {
-                  //if langtext is already rich display in rich editor
-                  return DetailsPage.rich(
-                      title: data.title,
-                      details: jsonDecode(data.langText ?? ""),
-                      onChanged: (txt) {
-                        uploadString(data, jsonEncode(txt).toString());
-                      });
-                } catch (e) {
-                  try {
-                    //if not convert it to rich if possible and display in rich editor
-                    return DetailsPage.rich(
-                        title: data.title,
-                        details: jsonDecode(
-                            '[{"insert":"${data.langText ?? ""}\\n"}]'),
-                        onChanged: (txt) {
-                          uploadString(data, jsonEncode(txt).toString());
-                        });
-                  } catch (e) {
-                    return DetailsPage(
-                        title: data.title,
-                        details: data.langText,
-                        onChanged: (txt) {
-                          uploadString(data, txt);
-                        });
-                  }
-                }
+                return createRichIfPossibleEditor(data, uploadString);
               }),
             );
         }

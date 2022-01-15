@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'dropdown/dropdownClasses.dart';
+import '../classes/dropdownClasses.dart';
 
 //das ganze widget ist iwie dumm mit dem switch zwischen String und List<Dynamic> und resultiert in ner menge "!"
 class DetailsPage extends StatefulWidget {

@@ -10,7 +10,7 @@ import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
-import 'dropdownClasses.dart';
+import '../classes/dropdownClasses.dart';
 
 // XXX get to new page with hero transition
 
@@ -21,7 +21,8 @@ import 'dropdownClasses.dart';
 /// ```
 /// this will create the page for choosing the next [CheckCategory]
 /// the given model must implement [DropDownModel]!
-class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
+class DropDownPage<DataT extends Data, DDModel extends DropDownModel<DataT>>
+    extends StatelessWidget {
   const DropDownPage({Key? key}) : super(key: key);
 
   @override
@@ -37,7 +38,7 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
           title: Text(ddmodel.title),
         ),
         endDrawer: MainDrawer(),
-        body: _DropDownBody(
+        body: _DropDownBody<DataT, DDModel>(
           ddmodel: ddmodel,
         ),
         floatingActionButton: ddmodel.floatingActionButton,
@@ -46,7 +47,8 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
   }
 }
 
-class _DropDownBody<DDModel extends DropDownModel> extends StatefulWidget {
+class _DropDownBody<DataT extends Data, DDModel extends DropDownModel<DataT>>
+    extends StatefulWidget {
   final DDModel ddmodel;
   const _DropDownBody({
     required this.ddmodel,
@@ -54,12 +56,14 @@ class _DropDownBody<DDModel extends DropDownModel> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<_DropDownBody<DDModel>> createState() => _DropDownBodyState<DDModel>();
+  State<_DropDownBody<DataT, DDModel>> createState() =>
+      _DropDownBodyState<DataT, DDModel>();
 }
 
-class _DropDownBodyState<DDModel extends DropDownModel>
-    extends State<_DropDownBody<DDModel>> {
-  Future<List<dynamic>>? _future;
+class _DropDownBodyState<DataT extends Data,
+        DDModel extends DropDownModel<DataT>>
+    extends State<_DropDownBody<DataT, DDModel>> {
+  Future<List<DataT>>? _future;
 
   @override
   void initState() {
@@ -75,7 +79,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      return FutureBuilder<List>(
+      return FutureBuilder<List<DataT>>(
         future: ddmodel.all,
         builder: (context, snapshot) => RefreshIndicator(
           onRefresh: _refresh,
@@ -86,14 +90,14 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   }
 
   Future<void> _refresh() async {
-    List<Data> freshall =
+    List<DataT> freshall =
         await Provider.of<DDModel>(context, listen: false).all;
     setState(() {
       _future = Future.value(freshall);
     });
   }
 
-  Widget _list(AsyncSnapshot<List<dynamic>> snapshot, BuildContext context) {
+  Widget _list(AsyncSnapshot<List<DataT>> snapshot, BuildContext context) {
     if (snapshot.connectionState == ConnectionState.done) {
       return ListView(
         children: [
@@ -117,7 +121,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   }
 
   ExpandableCard2 dropDown_element(
-      Data data, BuildContext context, DDModel ddmodel) {
+      DataT data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
         previewImg: data.previewImage,
         title: data.title,
@@ -130,10 +134,15 @@ class _DropDownBodyState<DDModel extends DropDownModel>
               future: Backend().user,
               builder:
                   (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
+                //assert(data.runtimeType==DataT);
                 try {
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
-                    return TrashButton(delete: () => Backend().delete(data));
+                    return TrashButton(
+                      delete: () => Backend()
+                          .delete<DataT>(data), //.then((value) => null),
+                      confirm_name: data.title,
+                    );
                 } catch (e) {}
                 return Container();
               },

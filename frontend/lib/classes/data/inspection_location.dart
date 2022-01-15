@@ -1,5 +1,6 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 import "package:latlong2/latlong.dart";
 
@@ -8,7 +9,7 @@ part 'inspection_location.g.dart';
 /// stores all the data needed for a specific location in a type-safe way
 
 @JsonSerializable()
-class InspectionLocation extends Data {
+class InspectionLocation extends Data with WithImgHashes {
   @JsonKey(name: 'PjNr')
   final int pjNr;
   @JsonKey(name: 'PjName')
@@ -36,11 +37,11 @@ class InspectionLocation extends Data {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<Image?>>? image_futures;
+  List<Future<ImageData?>>? image_futures;
   @JsonKey(ignore: true)
-  Future<Image?> mainImage = Future.value(null);
+  Future<ImageData?> mainImage = Future.value(null);
   @JsonKey(ignore: true)
-  Future<Image?> previewImage = Future.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
 
   InspectionLocation({
     this.bauleitung,

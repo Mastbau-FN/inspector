@@ -1,3 +1,5 @@
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -7,7 +9,7 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'imagesPage.dart';
 
@@ -51,7 +53,8 @@ class CategoryModel extends DropDownModel<CheckCategory> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel(CheckPointsModel(data));
+            return nextModel<CheckPoint, CheckPointsModel>(
+                CheckPointsModel(data));
           case 'Fotos':
             return ImagesPage.futured(
               future_images: data.image_futures,
@@ -59,13 +62,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
             );
 
           default:
-            return DetailsPage(
-                //if a rich editor is wished for have a look at [CheckpointdefectsModel]
-                title: data.title,
-                details: data.langText,
-                onChanged: (txt) {
-                  uploadString(data, txt);
-                });
+            return createRichIfPossibleEditor(data, uploadString);
         }
       }),
     );

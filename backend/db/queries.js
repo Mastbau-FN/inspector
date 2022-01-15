@@ -305,6 +305,12 @@ const getLink = async (data, andSet = true) => {
   return res;
 };
 
+const deleteImgByHash = async (hash)=>{
+  let p = imghasher.getPathFromHash(hash);
+  //TODO: errorhandling
+  let ret = await fsp.rename( imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename)), path.join(p.rootpath, p.link, './.deleted/' , p.filename));
+  return {response: ret}
+}
 
 
 module.exports = {
@@ -318,6 +324,9 @@ module.exports = {
 
   addNew,
   update,
+  delete_,
+
+  deleteImgByHash,
 };
 
 const hashImages = async (tthis) => {

@@ -5,12 +5,16 @@ import 'package:flutter/material.dart';
 import 'mySimpleAlertBox.dart';
 
 class TrashButton extends StatefulWidget {
-  const TrashButton(
-      {Key? key, required this.delete, this.confirmation_needed = true})
-      : super(key: key);
+  const TrashButton({
+    Key? key,
+    required this.delete,
+    this.confirmation_needed = true,
+    this.confirm_name,
+  }) : super(key: key);
 
   final Future Function() delete;
   final bool confirmation_needed;
+  final String? confirm_name;
 
   @override
   State<TrashButton> createState() => _TrashButtonState();
@@ -36,7 +40,7 @@ class _TrashButtonState extends State<TrashButton> {
           ],
           title: 'Sicher?',
           bodyLines: [
-            'wirklich Löschen?',
+            '${widget.confirm_name != null ? '"' + widget.confirm_name! + '"' : ''} wirklich Löschen?',
             'diese Aktion ist entgültig und nicht wiederherstellbar'
           ],
         );

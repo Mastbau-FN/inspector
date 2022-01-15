@@ -1,11 +1,12 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkpoint.g.dart';
 
 @JsonSerializable()
-class CheckPoint extends Data {
+class CheckPoint extends Data with WithLangText, WithImgHashes, WithAuthor {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
@@ -33,11 +34,11 @@ class CheckPoint extends Data {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<Image?>>? image_futures;
+  List<Future<ImageData?>>? image_futures;
   @JsonKey(ignore: true)
-  Future<Image?> mainImage = Future.value(null);
+  Future<ImageData?> mainImage = Future.value(null);
   @JsonKey(ignore: true)
-  Future<Image?> previewImage = Future.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
 
   CheckPoint(
       {required this.pjNr,

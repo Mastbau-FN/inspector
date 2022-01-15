@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,12 +17,12 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
 
-import 'package:flat/flat.dart';
+const _debugAllResponses = true;
 
 const _getProjects_r = '/projects/get';
 const _getCategories_r = '/categories/get';
@@ -34,6 +35,8 @@ const _uploadImage_r = "/image/set";
 const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
+
+const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 
 extension _Parser on http.BaseResponse {
   http.Response? forceRes() {
@@ -102,7 +105,14 @@ class Backend {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
-    return http.post(fullURL, headers: headers, body: body, encoding: encoding);
+    var ret = await http.post(
+      fullURL,
+      headers: headers,
+      body: body,
+      encoding: encoding,
+    );
+    //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
+    return ret;
   }
 
   /// post_JSON to our backend as the user
@@ -142,12 +152,13 @@ class Backend {
     }
   }
 
-  Future<Image?> _fetchImage(String hash) async {
+  Future<ImageData?> _fetchImage(String hash) async {
     http.Response? res =
         (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
             ?.forceRes();
     if (res == null || res.statusCode != 200) return null;
-    return Image.memory(res.bodyBytes);
+    return ImageData(Image.memory(res.bodyBytes),
+        id: hash); //TODO ? jetzt werden den images durchgehend ihre hashes zugeordnet, aber reicht das? darüber müssen die bilder auf dem server erreicht werden können,(siehe zB #39). Kurzfristig hilft es wahrscheinlich die hashes langlebiger zu machen aber auf dauer muss da eine bessere Lösung her
   }
 
   Future<T?> Function(Map<String, dynamic>)
@@ -234,7 +245,7 @@ class Backend {
   /// sends a [DataT] with the corresponding identifier to the given route
   Future<http.Response?> _sendDataToRoute<DataT extends Data>(
       {required DataT? data, required String route}) async {
-    print(data?.toJson());
+    debugPrint(data?.toJson().toString());
     if (data == null) return null;
     var json_data = data.toJson();
     http.Response? res = (await post_JSON(route, json: {
@@ -242,7 +253,7 @@ class Backend {
       'data': json_data,
     }))
         ?.forceRes();
-    //debugPrint(res?.body.toString());
+    debugPrint(res?.body.toString());
     return res;
   }
 
@@ -334,6 +345,12 @@ class Backend {
   /// deletes a [DataT] and returns the response
   Future<String?> delete<DataT extends Data>(DataT? data) async =>
       (await _sendDataToRoute(data: data, route: _delete_r))?.body;
+
+  /// deletes an image specified by its hash and returns the response
+  Future<String?> deleteImageByHash(String hash) async =>
+      (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+          ?.forceRes()
+          ?.body;
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(

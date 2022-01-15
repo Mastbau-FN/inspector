@@ -1,16 +1,17 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
-import 'package:MBG_Inspektionen/pages/dropdown/dropdownPage.dart';
+import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Future<Image?> mainImage = Future.value(null);
-  Future<Image?> previewImage = Future.value(null);
-  List<Future<Image?>>? image_futures = [];
+  Future<ImageData?> mainImage = Future.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
+  List<Future<ImageData?>>? image_futures = [];
   //Null Function() onNextImageLoaded = () {};
 }
 
@@ -71,10 +72,11 @@ abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   Widget? floatingActionButton = null;
 }
 
-Widget nextModel<DDModel extends DropDownModel>(DDModel child) =>
+Widget nextModel<DataT extends Data, DDModel extends DropDownModel<DataT>>(
+        DDModel child) =>
     ChangeNotifierProvider<DDModel>(
       create: (c) => child,
-      child: DropDownPage<DDModel>(),
+      child: DropDownPage<DataT, DDModel>(),
     );
 
 Type typeOf<T>() => T;
