@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -37,11 +38,11 @@ class CheckPointDefect extends Data {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<Image?>>? image_futures;
+  List<Future<ImageData?>>? image_futures;
   @JsonKey(ignore: true)
-  Future<Image?> mainImage = Future.value(null);
+  Future<ImageData?> mainImage = Future.value(null);
   @JsonKey(ignore: true)
-  Future<Image?> previewImage = Future.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
 
   CheckPointDefect(
       {required this.pjNr,
