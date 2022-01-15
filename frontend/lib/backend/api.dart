@@ -238,7 +238,7 @@ class Backend {
   /// sends a [DataT] with the corresponding identifier to the given route
   Future<http.Response?> _sendDataToRoute<DataT extends Data>(
       {required DataT? data, required String route}) async {
-    print(data?.toJson());
+    debugPrint(data?.toJson().toString());
     if (data == null) return null;
     var json_data = data.toJson();
     http.Response? res = (await post_JSON(route, json: {
@@ -246,7 +246,7 @@ class Backend {
       'data': json_data,
     }))
         ?.forceRes();
-    //debugPrint(res?.body.toString());
+    debugPrint(res?.body.toString());
     return res;
   }
 
