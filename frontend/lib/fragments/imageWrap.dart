@@ -228,12 +228,15 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
           );
         })) {
       case ImageOptions.delete:
+        debugPrint("image Deleted");
         onDelete(tag);
         break;
       case ImageOptions.setMain:
+        debugPrint("image set to be main");
         onStar(tag);
         break;
       case ImageOptions.share:
+        debugPrint("image shared");
         onShare(tag);
         break;
       case null:
@@ -250,7 +253,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
       ImageOptions? returnCase}) {
     return SimpleDialogOption(
       onPressed: () {
-        Navigator.pop(context, ImageOptions.setMain);
+        Navigator.pop(context, returnCase);
       },
       child: Padding(
         padding: const EdgeInsets.all(4.0),

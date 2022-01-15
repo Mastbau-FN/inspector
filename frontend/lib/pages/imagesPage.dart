@@ -13,6 +13,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   List<Future<ImageData<T>?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
+
   static Future<String?> _defaultAdd(List<XFile> list) async {
     Fluttertoast.showToast(
       msg: "no callback provided",
@@ -167,7 +168,7 @@ class _ImageAddButtonState extends State<ImageAddButton> {
         onPressed: () async {
           if (withCamera) {
             CameraModel model = Provider.of<CameraModel>(context,
-                listen: false); //TODO: irgendwie passiert hier nichts..
+                listen: false); //done?: irgendwie passiert hier nichts..
             XFile file = await model.shoot();
             var resstring = await widget.onNewImages([file]);
             debugPrint(resstring);
