@@ -34,7 +34,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   static _defaultDelete(Object id) async {
     try {
       Fluttertoast.showToast(
-        msg: (await Backend().deleteImageByHash(id as String)).toString(),
+        msg: (await Backend().deleteImageByHash(id.toString())).toString(),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
       );
