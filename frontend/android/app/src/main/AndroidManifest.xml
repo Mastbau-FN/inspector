@@ -9,6 +9,7 @@
         android:icon="@mipmap/launcher_icon">
 
         <activity
+            android:exported="true" <!-- apparently wird das ab android 12 benötigt idk -->
             android:name=".MainActivity"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
