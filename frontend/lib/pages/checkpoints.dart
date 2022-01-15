@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -51,7 +52,8 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel(CheckPointDefectsModel(data));
+            return nextModel<CheckPointDefect, CheckPointDefectsModel>(
+                CheckPointDefectsModel(data));
           case 'Fotos':
             return ImagesPage.futured(
               future_images: data.image_futures,

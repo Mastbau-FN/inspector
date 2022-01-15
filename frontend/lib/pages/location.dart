@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel(CategoryModel(data));
+            return nextModel<CheckCategory, CategoryModel>(CategoryModel(data));
           case 'Fotos':
             return ImagesPage.futured(
               future_images: data.image_futures,

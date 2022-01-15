@@ -63,7 +63,7 @@ class _DropDownBody<DataT extends Data, DDModel extends DropDownModel<DataT>>
 class _DropDownBodyState<DataT extends Data,
         DDModel extends DropDownModel<DataT>>
     extends State<_DropDownBody<DataT, DDModel>> {
-  Future<List<dynamic>>? _future;
+  Future<List<DataT>>? _future;
 
   @override
   void initState() {
@@ -134,12 +134,12 @@ class _DropDownBodyState<DataT extends Data,
               future: Backend().user,
               builder:
                   (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
-                //debugPrint(data.runtimeType.toString());
+                //assert(data.runtimeType==DataT);
                 try {
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend().delete(data),
+                      delete: () => Backend().delete<DataT>(data),
                       confirm_name: data.title,
                     );
                 } catch (e) {}
