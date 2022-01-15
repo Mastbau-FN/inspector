@@ -90,7 +90,7 @@ class _DropDownBodyState<DataT extends Data,
   }
 
   Future<void> _refresh() async {
-    List<Data> freshall =
+    List<DataT> freshall =
         await Provider.of<DDModel>(context, listen: false).all;
     setState(() {
       _future = Future.value(freshall);
