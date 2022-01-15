@@ -6,7 +6,7 @@ import 'package:json_annotation/json_annotation.dart';
 part 'checkpoint.g.dart';
 
 @JsonSerializable()
-class CheckPoint extends Data {
+class CheckPoint extends Data with WithLangText, WithImgHashes, WithAuthor {
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
