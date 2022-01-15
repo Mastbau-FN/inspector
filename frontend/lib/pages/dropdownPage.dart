@@ -133,7 +133,10 @@ class _DropDownBodyState<DDModel extends DropDownModel>
                 try {
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
-                    return TrashButton(delete: () => Backend().delete(data));
+                    return TrashButton(
+                      delete: () => Backend().delete(data),
+                      confirm_name: data.title,
+                    );
                 } catch (e) {}
                 return Container();
               },
