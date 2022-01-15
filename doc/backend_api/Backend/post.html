@@ -80,7 +80,14 @@
   headers = headers ?? {};
   headers.addAll({HttpHeaders.authorizationHeader: _api_key});
   var fullURL = Uri.parse(_baseurl! + route);
-  return http.post(fullURL, headers: headers, body: body, encoding: encoding);
+  var ret = await http.post(
+    fullURL,
+    headers: headers,
+    body: body,
+    encoding: encoding,
+  );
+  &#47;&#47;if (_debugAllResponses) debugPrint(ret.statusCode.toString());&#47;&#47;gibt momentan n 404, wird wohl zeit das backend zu deployen
+  return ret;
 }</code></pre>
 </section>
 
@@ -120,6 +127,7 @@
     <li class="section-title"><a href="../../backend_api/Backend-class.html#instance-methods">Methods</a></li>
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
     <li><a href="../../backend_api/Backend/delete.html">delete</a></li>
+    <li><a href="../../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
     <li><a href="../../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></li>
     <li><a href="../../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></li>
     <li><a href="../../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></li>
@@ -153,7 +161,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.10+10
+      1.0.11+11
   </span>
 
   

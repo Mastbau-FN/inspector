@@ -68,7 +68,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>when pressed on a tile in the <a href="../../pages_dropdown_dropdownPage/DropDownPage-class.html">DropDownPage</a> this will be invoked</p>
+  <p>when pressed on a tile in the <a href="../../pages_dropdownPage/DropDownPage-class.html">DropDownPage</a> this will be invoked</p>
 </section>
 
 
@@ -92,37 +92,12 @@ void open(
 
         default:
           return Provider&lt;CheckPointDefectsModel&gt;(
+            &#47;&#47;TODO: wozu ist hier der provider?
             create: (context) =&gt;
                 this, &#47;&#47;the injector &#47;&#47;XXX: sadly this doesnt work for some reason
             child: Builder(builder: (context) {
               debugPrint(&#39;build new defectsdetails&#39;);
-              try {
-                &#47;&#47;if langtext is already rich display in rich editor
-                return DetailsPage.rich(
-                    title: data.title,
-                    details: jsonDecode(data.langText ?? &quot;&quot;),
-                    onChanged: (txt) {
-                      uploadString(data, jsonEncode(txt).toString());
-                    });
-              } catch (e) {
-                try {
-                  &#47;&#47;if not convert it to rich if possible and display in rich editor
-                  return DetailsPage.rich(
-                      title: data.title,
-                      details: jsonDecode(
-                          &#39;[{&quot;insert&quot;:&quot;${data.langText ?? &quot;&quot;}\\n&quot;}]&#39;),
-                      onChanged: (txt) {
-                        uploadString(data, jsonEncode(txt).toString());
-                      });
-                } catch (e) {
-                  return DetailsPage(
-                      title: data.title,
-                      details: data.langText,
-                      onChanged: (txt) {
-                        uploadString(data, txt);
-                      });
-                }
-              }
+              return createRichIfPossibleEditor(data, uploadString);
             }),
           );
       }
@@ -196,7 +171,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.10+10
+      1.0.11+11
   </span>
 
   

@@ -68,7 +68,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>when pressed on a tile in the <a href="../../pages_dropdown_dropdownPage/DropDownPage-class.html">DropDownPage</a> this will be invoked</p>
+  <p>when pressed on a tile in the <a href="../../pages_dropdownPage/DropDownPage-class.html">DropDownPage</a> this will be invoked</p>
 </section>
 
 
@@ -85,7 +85,8 @@ void open(
     MaterialPageRoute(builder: (newcontext) {
       switch (tiledata.title) {
         case _nextViewTitle:
-          return nextModel(CheckPointsModel(data));
+          return nextModel&lt;CheckPoint, CheckPointsModel&gt;(
+              CheckPointsModel(data));
         case &#39;Fotos&#39;:
           return ImagesPage.futured(
             future_images: data.image_futures,
@@ -93,13 +94,7 @@ void open(
           );
 
         default:
-          return DetailsPage(
-              &#47;&#47;if a rich editor is wished for have a look at [CheckpointdefectsModel]
-              title: data.title,
-              details: data.langText,
-              onChanged: (txt) {
-                uploadString(data, txt);
-              });
+          return createRichIfPossibleEditor(data, uploadString);
       }
     }),
   );
@@ -171,7 +166,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.10+10
+      1.0.11+11
   </span>
 
   

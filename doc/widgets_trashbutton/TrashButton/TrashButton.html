@@ -53,7 +53,8 @@
       <span class="name ">TrashButton</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-key">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>, </span></li>
 <li><span class="parameter" id="-param-delete"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a></span> <span class="parameter-name">delete</span>(<ol class="parameter-list"></ol>
 ), </span></li>
-<li><span class="parameter" id="-param-confirmation_needed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">confirmation_needed</span> = <span class="default-value">true</span>}</span></li>
+<li><span class="parameter" id="-param-confirmation_needed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">confirmation_needed</span> = <span class="default-value">true</span>, </span></li>
+<li><span class="parameter" id="-param-confirm_name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">confirm_name</span>}</span></li>
 </ol>)
     </section>
 
@@ -63,9 +64,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">const TrashButton(
-    {Key? key, required this.delete, this.confirmation_needed = true})
-    : super(key: key);</code></pre>
+  <pre class="language-dart"><code class="language-dart">const TrashButton({
+  Key? key,
+  required this.delete,
+  this.confirmation_needed = true,
+  this.confirm_name,
+}) : super(key: key);</code></pre>
 </section>
 
 
@@ -96,6 +100,7 @@
     <li class="section-title">
       <a href="../../widgets_trashbutton/TrashButton-class.html#instance-properties">Properties</a>
     </li>
+    <li><a href="../../widgets_trashbutton/TrashButton/confirm_name.html">confirm_name</a></li>
     <li><a href="../../widgets_trashbutton/TrashButton/confirmation_needed.html">confirmation_needed</a></li>
     <li><a href="../../widgets_trashbutton/TrashButton/delete.html">delete</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
@@ -132,7 +137,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.10+10
+      1.0.11+11
   </span>
 
   

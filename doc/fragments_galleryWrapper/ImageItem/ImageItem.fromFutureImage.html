@@ -31,8 +31,8 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../fragments_galleryWrapper/fragments_galleryWrapper-library.html">galleryWrapper</a></li>
-    <li><a href="../../fragments_galleryWrapper/ImageItem-class.html">ImageItem</a></li>
-    <li class="self-crumb">ImageItem.fromFutureImage constructor</li>
+    <li><a href="../../fragments_galleryWrapper/ImageItem-class.html">ImageItem<span class="signature">&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;</span></a></li>
+    <li class="self-crumb"><span class="deprecated">ImageItem.fromFutureImage</span> constructor</li>
   </ol>
   <div class="self-name">ImageItem.fromFutureImage</div>
   <form class="search navbar-right" role="search">
@@ -45,12 +45,17 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-constructor">ImageItem.fromFutureImage</span> constructor 
+<h1><span class="kind-constructor">ImageItem&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;.fromFutureImage</span> constructor 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
     <section class="multi-line-signature">
-      <span class="name ">ImageItem.fromFutureImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="fromFutureImage-param-image"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span> <span class="parameter-name">image</span>, </span></li>
+      <div>
+        <ol class="annotation-list">
+          <li>@<a href="https://api.flutter.dev/flutter/dart-core/deprecated-constant.html">deprecated</a></li>
+        </ol>
+      </div>
+      <span class="name deprecated">ImageItem&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;.fromFutureImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="fromFutureImage-param-image"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span> <span class="parameter-name">image</span>, </span></li>
 <li><span class="parameter" id="fromFutureImage-param-tag">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">tag</span>, </span></li>
 <li><span class="parameter" id="fromFutureImage-param-fallBackWidget"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span> <span class="parameter-name">fallBackWidget</span> = <span class="default-value">const LoadingView()</span>}</span></li>
 </ol>)
@@ -62,7 +67,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">ImageItem.fromFutureImage(Future&lt;Image?&gt; image,
+  <pre class="language-dart"><code class="language-dart">@deprecated
+ImageItem.fromFutureImage(Future&lt;Image?&gt; image,
     {required this.tag, this.fallBackWidget = const LoadingView()}) {
   image.then((value) {
     this.image = value?.image;
@@ -85,8 +91,8 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../../index.html">MBG_Inspektionen</a></li>
   <li><a href="../../fragments_galleryWrapper/fragments_galleryWrapper-library.html">galleryWrapper</a></li>
-  <li><a href="../../fragments_galleryWrapper/ImageItem-class.html">ImageItem</a></li>
-  <li class="self-crumb">ImageItem.fromFutureImage constructor</li>
+  <li><a href="../../fragments_galleryWrapper/ImageItem-class.html">ImageItem<span class="signature">&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;</span></a></li>
+  <li class="self-crumb"><span class="deprecated">ImageItem.fromFutureImage</span> constructor</li>
 </ol>
 
 
@@ -94,8 +100,10 @@
     <ol>
 
     <li class="section-title"><a href="../../fragments_galleryWrapper/ImageItem-class.html#constructors">Constructors</a></li>
-    <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromFutureImage.html">fromFutureImage</a></li>
-    <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromImage.html">fromImage</a></li>
+    <li><a class="deprecated" href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromFutureImage.html">fromFutureImage</a></li>
+    <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromFutureImageData.html">fromFutureImageData</a></li>
+    <li><a class="deprecated" href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromImage.html">fromImage</a></li>
+    <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromImageData.html">fromImageData</a></li>
 
 
     <li class="section-title">
@@ -134,7 +142,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.10+10
+      1.0.11+11
   </span>
 
   
