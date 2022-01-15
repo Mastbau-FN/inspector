@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -61,13 +62,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
             );
 
           default:
-            return DetailsPage(
-                //if a rich editor is wished for have a look at [CheckpointdefectsModel]
-                title: data.title,
-                details: data.langText,
-                onChanged: (txt) {
-                  uploadString(data, txt);
-                });
+            return createRichIfPossibleEditor(data, uploadString);
         }
       }),
     );
