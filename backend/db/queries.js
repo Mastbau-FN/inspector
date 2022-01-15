@@ -324,6 +324,7 @@ module.exports = {
 
   addNew,
   update,
+  delete_,
 
   deleteImgByHash,
 };

@@ -139,7 +139,8 @@ class _DropDownBodyState<DataT extends Data,
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend().delete<DataT>(data),
+                      delete: () => Backend()
+                          .delete<DataT>(data), //.then((value) => null),
                       confirm_name: data.title,
                     );
                 } catch (e) {}
