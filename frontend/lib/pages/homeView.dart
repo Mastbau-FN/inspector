@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
@@ -21,6 +22,6 @@ class LocationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropDownPage<LocationModel>();
+    return DropDownPage<InspectionLocation, LocationModel>();
   }
 }

@@ -72,10 +72,11 @@ abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   Widget? floatingActionButton = null;
 }
 
-Widget nextModel<DDModel extends DropDownModel>(DDModel child) =>
+Widget nextModel<DataT extends Data, DDModel extends DropDownModel<DataT>>(
+        DDModel child) =>
     ChangeNotifierProvider<DDModel>(
       create: (c) => child,
-      child: DropDownPage<DDModel>(),
+      child: DropDownPage<DataT, DDModel>(),
     );
 
 Type typeOf<T>() => T;

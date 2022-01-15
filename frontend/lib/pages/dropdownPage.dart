@@ -21,7 +21,8 @@ import '../classes/dropdownClasses.dart';
 /// ```
 /// this will create the page for choosing the next [CheckCategory]
 /// the given model must implement [DropDownModel]!
-class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
+class DropDownPage<DataT extends Data, DDModel extends DropDownModel<DataT>>
+    extends StatelessWidget {
   const DropDownPage({Key? key}) : super(key: key);
 
   @override
@@ -37,7 +38,7 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
           title: Text(ddmodel.title),
         ),
         endDrawer: MainDrawer(),
-        body: _DropDownBody(
+        body: _DropDownBody<DataT, DDModel>(
           ddmodel: ddmodel,
         ),
         floatingActionButton: ddmodel.floatingActionButton,
@@ -46,7 +47,8 @@ class DropDownPage<DDModel extends DropDownModel> extends StatelessWidget {
   }
 }
 
-class _DropDownBody<DDModel extends DropDownModel> extends StatefulWidget {
+class _DropDownBody<DataT extends Data, DDModel extends DropDownModel<DataT>>
+    extends StatefulWidget {
   final DDModel ddmodel;
   const _DropDownBody({
     required this.ddmodel,
@@ -54,11 +56,13 @@ class _DropDownBody<DDModel extends DropDownModel> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<_DropDownBody<DDModel>> createState() => _DropDownBodyState<DDModel>();
+  State<_DropDownBody<DataT, DDModel>> createState() =>
+      _DropDownBodyState<DataT, DDModel>();
 }
 
-class _DropDownBodyState<DDModel extends DropDownModel>
-    extends State<_DropDownBody<DDModel>> {
+class _DropDownBodyState<DataT extends Data,
+        DDModel extends DropDownModel<DataT>>
+    extends State<_DropDownBody<DataT, DDModel>> {
   Future<List<dynamic>>? _future;
 
   @override
@@ -75,7 +79,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      return FutureBuilder<List>(
+      return FutureBuilder<List<DataT>>(
         future: ddmodel.all,
         builder: (context, snapshot) => RefreshIndicator(
           onRefresh: _refresh,
@@ -93,7 +97,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
     });
   }
 
-  Widget _list(AsyncSnapshot<List<dynamic>> snapshot, BuildContext context) {
+  Widget _list(AsyncSnapshot<List<DataT>> snapshot, BuildContext context) {
     if (snapshot.connectionState == ConnectionState.done) {
       return ListView(
         children: [
@@ -117,7 +121,7 @@ class _DropDownBodyState<DDModel extends DropDownModel>
   }
 
   ExpandableCard2 dropDown_element(
-      Data data, BuildContext context, DDModel ddmodel) {
+      DataT data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
         previewImg: data.previewImage,
         title: data.title,
