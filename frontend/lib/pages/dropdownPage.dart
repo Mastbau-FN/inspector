@@ -134,6 +134,7 @@ class _DropDownBodyState<DataT extends Data,
               future: Backend().user,
               builder:
                   (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
+                //debugPrint(data.runtimeType.toString());
                 try {
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
