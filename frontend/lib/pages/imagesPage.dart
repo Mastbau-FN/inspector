@@ -139,10 +139,26 @@ class _ImageAddButtonState extends State<ImageAddButton>
 
   void collapse() {
     controller.reverse();
+
+    closeCam();
     Future.delayed(animationDuration, () {
       setState(() {
         expanded = false;
       });
+    });
+  }
+
+  void openCam() {
+    debugPrint("opened camera");
+    setState(() {
+      withCamera = true;
+    });
+  }
+
+  void closeCam() {
+    debugPrint("closed camera");
+    setState(() {
+      withCamera = false;
     });
   }
 
@@ -183,11 +199,13 @@ class _ImageAddButtonState extends State<ImageAddButton>
                       children: [
                         if (expanded && !withCamera)
                           Transform.translate(
+                            //transformHitTests: true,
                             offset: Offset(0, animation.value * -130),
                             child: uploadFromSystem,
                           ),
                         if (expanded)
                           Transform.translate(
+                            //transformHitTests: true,
                             offset: Offset(0, animation.value * -70),
                             child: takeImage(context),
                           ),
@@ -206,16 +224,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
 
   FloatingActionButton get add => FloatingActionButton(
         child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
-        onPressed: () {
-          setState(() {
-            if (!expanded) {
-              expand();
-              withCamera = false;
-            } else {
-              collapse();
-            }
-          });
-        },
+        onPressed: expanded ? collapse : expand,
       );
 
   FloatingActionButton takeImage(BuildContext context) => FloatingActionButton(
@@ -234,9 +243,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
               gravity: ToastGravity.CENTER,
             );
           } else {
-            setState(() {
-              withCamera = true;
-            });
+            openCam();
           }
         },
       );
