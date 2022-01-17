@@ -92,8 +92,12 @@ class ImagesPage<T extends Object> extends StatelessWidget {
         onShare: onShare,
         onStar: onStar,
       ),
-      floatingActionButton:
-          ImageAddButton(picker: _picker, onNewImages: onNewImages),
+      floatingActionButton: ChangeNotifierProvider(
+        create: (ocontext) => CameraModel(),
+        child: Builder(builder: (context) {
+          return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+        }),
+      ),
     );
   }
 }
@@ -167,58 +171,53 @@ class _ImageAddButtonState extends State<ImageAddButton>
 
   @override
   Widget build(BuildContext ocontext) {
-    return ChangeNotifierProvider(
-      create: (ocontext) => CameraModel(),
-      child: Builder(builder: (context) {
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: 8.0 * animation.value,
-                sigmaY: 8.0 * animation.value,
-              ),
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (withCamera)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: CameraPreviewOnly(),
-                          ),
-                        ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: 8.0 * animation.value,
+            sigmaY: 8.0 * animation.value,
+          ),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (withCamera)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: CameraPreviewOnly(),
                       ),
-                    Stack(
-                      //mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (expanded && !withCamera)
-                          Transform.translate(
-                            //transformHitTests: true,
-                            offset: Offset(0, animation.value * -130),
-                            child: uploadFromSystem,
-                          ),
-                        if (expanded)
-                          Transform.translate(
-                            //transformHitTests: true,
-                            offset: Offset(0, animation.value * -70),
-                            child: takeImage(context),
-                          ),
-                        add,
-                      ],
                     ),
+                  ),
+                Stack(
+                  //mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (expanded && !withCamera)
+                      Transform.translate(
+                        //transformHitTests: true,
+                        offset: Offset(0, animation.value * -130),
+                        child: uploadFromSystem,
+                      ),
+                    if (expanded)
+                      Transform.translate(
+                        //transformHitTests: true,
+                        offset: Offset(0, animation.value * -70),
+                        child: takeImage(context),
+                      ),
+                    add,
                   ],
                 ),
-              ),
+              ],
             ),
-          ],
-        );
-      }),
+          ),
+        ),
+      ],
     );
   }
 
