@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -90,8 +94,12 @@ class ImagesPage<T extends Object> extends StatelessWidget {
         onShare: onShare,
         onStar: onStar,
       ),
-      floatingActionButton:
-          ImageAddButton(picker: _picker, onNewImages: onNewImages),
+      floatingActionButton: ChangeNotifierProvider(
+        create: (ocontext) => CameraModel(),
+        child: Builder(builder: (context) {
+          return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+        }),
+      ),
     );
   }
 }
@@ -111,80 +119,181 @@ class ImageAddButton extends StatefulWidget {
   State<ImageAddButton> createState() => _ImageAddButtonState();
 }
 
-class _ImageAddButtonState extends State<ImageAddButton> {
+class _ImageAddButtonState extends State<ImageAddButton>
+    with SingleTickerProviderStateMixin {
+  static const animationDuration = Duration(milliseconds: 200);
+
+  late Animation<double> animation;
+  late AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(duration: animationDuration, vsync: this);
+    animation = Tween<double>(begin: 0, end: 1).animate(controller)
+      ..addListener(() {
+        setState(() {
+          // The state that has changed here is the animation object’s value.
+        });
+      });
+  }
+
+  void expand() {
+    controller.forward();
+    expanded = true;
+  }
+
+  void collapse() {
+    controller.reverse();
+
+    closeCam();
+    Future.delayed(animationDuration, () {
+      setState(() {
+        expanded = false;
+        uploadingImage = false;
+      });
+    });
+  }
+
+  void openCam() {
+    debugPrint("opened camera");
+    setState(() {
+      withCamera = true;
+    });
+  }
+
+  void closeCam() {
+    debugPrint("closed camera");
+    setState(() {
+      withCamera = false;
+    });
+  }
+
   bool expanded = false;
   bool withCamera = false;
+  bool uploadingImage = false;
 
   @override
   Widget build(BuildContext ocontext) {
-    return ChangeNotifierProvider(
-      create: (ocontext) => CameraModel(),
-      child: Builder(builder: (context) {
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (withCamera)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: CameraPreviewOnly(),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: 8.0 * animation.value,
+            sigmaY: 8.0 * animation.value,
+          ),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (withCamera)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Consumer<CameraModel>(
+                          builder: (context, model, child) =>
+                              model.latestPic == null
+                                  ? CameraPreviewOnly()
+                                  : Image.file(
+                                      File(model.latestPic!.path),
+                                      fit: BoxFit.fitWidth,
+                                    ),
+                        ),
+                      ),
                     ),
                   ),
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  //mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (expanded && !withCamera)
+                      Transform.translate(
+                        //transformHitTests: true,
+                        offset: Offset(0, animation.value * -130),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top:
+                                  160), //needed for hitTesting to work after transform
+                          child: uploadFromSystem,
+                        ),
+                      ),
+                    if (expanded)
+                      Transform.translate(
+                        //transformHitTests: true,
+                        offset: Offset(0, animation.value * -70),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top:
+                                  100), //needed for hitTesting to work after transform
+                          child: Consumer<CameraModel>(
+                            builder: (context, model, child) =>
+                                takeImage(context, model),
+                          ),
+                        ),
+                      ),
+                    add,
+                  ],
                 ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (expanded) takeImage(context),
-                  SizedBox(height: 2),
-                  if (expanded && !withCamera) uploadFromSystem,
-                  SizedBox(height: 8),
-                  add,
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
-        );
-      }),
+        ),
+      ],
     );
+  }
+
+  void shoot(BuildContext context) async {
+    CameraModel model = Provider.of<CameraModel>(context, listen: false);
+    await model.shoot();
+    debugPrint("photo taken");
+  }
+
+  void discardShot(context) =>
+      Provider.of<CameraModel>(context, listen: false).discardPic();
+
+  void uploadShot(context) async {
+    setState(() {
+      uploadingImage = true;
+    });
+    XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
+    var resstring = pic != null
+        ? await widget.onNewImages([pic])
+        : "sorry no image to upload";
+    debugPrint(resstring);
+    Fluttertoast.showToast(
+      msg: resstring ??
+          "upload finished (no idea whether successed or failed tho)",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+    );
+    collapse();
   }
 
   FloatingActionButton get add => FloatingActionButton(
         child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
-        onPressed: () {
-          setState(() {
-            expanded ^= true;
-            if (!expanded) withCamera = false;
-          });
-        },
+        onPressed: expanded ? collapse : expand,
       );
 
-  FloatingActionButton takeImage(BuildContext context) => FloatingActionButton(
-        child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
-        onPressed: () async {
-          if (withCamera) {
-            CameraModel model = Provider.of<CameraModel>(context,
-                listen: false); //done?: irgendwie passiert hier nichts..
-            XFile file = await model.shoot();
-            var resstring = await widget.onNewImages([file]);
-            debugPrint(resstring);
-            Fluttertoast.showToast(
-              msg: resstring ??
-                  "upload finished (no idea whether successed or failed tho)",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
+  Widget takeImage(BuildContext context, CameraModel model) =>
+      !withCamera || model.latestPic == null
+          ? FloatingActionButton(
+              child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
+              onPressed: withCamera ? () => shoot(context) : openCam,
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                uploadPhoto,
+                SizedBox(height: 5),
+                discardPhoto,
+              ],
             );
-          } else {
-            setState(() {
-              withCamera = true;
-            });
-          }
-        },
-      );
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
         child: Icon(Icons.folder),
@@ -200,4 +309,14 @@ class _ImageAddButtonState extends State<ImageAddButton> {
           );
         },
       );
+
+  FloatingActionButton get discardPhoto => FloatingActionButton(
+      backgroundColor: Colors.red,
+      child: Icon(Icons.replay),
+      onPressed: () => discardShot(context));
+
+  FloatingActionButton get uploadPhoto => FloatingActionButton(
+      backgroundColor: Colors.green,
+      child: uploadingImage ? LoadingView() : Icon(Icons.check),
+      onPressed: () => uploadShot(context));
 }
