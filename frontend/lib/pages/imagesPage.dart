@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -148,6 +150,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
     Future.delayed(animationDuration, () {
       setState(() {
         expanded = false;
+        uploadingImage = false;
       });
     });
   }
@@ -168,6 +171,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
 
   bool expanded = false;
   bool withCamera = false;
+  bool uploadingImage = false;
 
   @override
   Widget build(BuildContext ocontext) {
@@ -191,24 +195,46 @@ class _ImageAddButtonState extends State<ImageAddButton>
                       padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
-                        child: CameraPreviewOnly(),
+                        child: Consumer<CameraModel>(
+                          builder: (context, model, child) =>
+                              model.latestPic == null
+                                  ? CameraPreviewOnly()
+                                  : Image.file(
+                                      File(model.latestPic!.path),
+                                      fit: BoxFit.fitWidth,
+                                    ),
+                        ),
                       ),
                     ),
                   ),
                 Stack(
+                  alignment: Alignment.bottomRight,
                   //mainAxisSize: MainAxisSize.min,
                   children: [
                     if (expanded && !withCamera)
                       Transform.translate(
                         //transformHitTests: true,
                         offset: Offset(0, animation.value * -130),
-                        child: uploadFromSystem,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top:
+                                  160), //needed for hitTesting to work after transform
+                          child: uploadFromSystem,
+                        ),
                       ),
                     if (expanded)
                       Transform.translate(
                         //transformHitTests: true,
                         offset: Offset(0, animation.value * -70),
-                        child: takeImage(context),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top:
+                                  100), //needed for hitTesting to work after transform
+                          child: Consumer<CameraModel>(
+                            builder: (context, model, child) =>
+                                takeImage(context, model),
+                          ),
+                        ),
                       ),
                     add,
                   ],
@@ -221,31 +247,53 @@ class _ImageAddButtonState extends State<ImageAddButton>
     );
   }
 
+  void shoot(BuildContext context) async {
+    CameraModel model = Provider.of<CameraModel>(context, listen: false);
+    await model.shoot();
+    debugPrint("photo taken");
+  }
+
+  void discardShot(context) =>
+      Provider.of<CameraModel>(context, listen: false).discardPic();
+
+  void uploadShot(context) async {
+    setState(() {
+      uploadingImage = true;
+    });
+    XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
+    var resstring = pic != null
+        ? await widget.onNewImages([pic])
+        : "sorry no image to upload";
+    debugPrint(resstring);
+    Fluttertoast.showToast(
+      msg: resstring ??
+          "upload finished (no idea whether successed or failed tho)",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+    );
+    collapse();
+  }
+
   FloatingActionButton get add => FloatingActionButton(
         child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
         onPressed: expanded ? collapse : expand,
       );
 
-  FloatingActionButton takeImage(BuildContext context) => FloatingActionButton(
-        child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
-        onPressed: () async {
-          if (withCamera) {
-            CameraModel model = Provider.of<CameraModel>(context,
-                listen: false); //done?: irgendwie passiert hier nichts..
-            XFile file = await model.shoot();
-            var resstring = await widget.onNewImages([file]);
-            debugPrint(resstring);
-            Fluttertoast.showToast(
-              msg: resstring ??
-                  "upload finished (no idea whether successed or failed tho)",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
+  Widget takeImage(BuildContext context, CameraModel model) =>
+      !withCamera || model.latestPic == null
+          ? FloatingActionButton(
+              child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
+              onPressed: withCamera ? () => shoot(context) : openCam,
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                uploadPhoto,
+                SizedBox(height: 5),
+                discardPhoto,
+              ],
             );
-          } else {
-            openCam();
-          }
-        },
-      );
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
         child: Icon(Icons.folder),
@@ -261,4 +309,14 @@ class _ImageAddButtonState extends State<ImageAddButton>
           );
         },
       );
+
+  FloatingActionButton get discardPhoto => FloatingActionButton(
+      backgroundColor: Colors.red,
+      child: Icon(Icons.replay),
+      onPressed: () => discardShot(context));
+
+  FloatingActionButton get uploadPhoto => FloatingActionButton(
+      backgroundColor: Colors.green,
+      child: uploadingImage ? LoadingView() : Icon(Icons.check),
+      onPressed: () => uploadShot(context));
 }

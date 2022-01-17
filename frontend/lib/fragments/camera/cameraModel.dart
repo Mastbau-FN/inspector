@@ -17,11 +17,23 @@ class CameraModel extends ChangeNotifier {
     return controller!;
   }
 
+  XFile? _latestPic;
+
+  XFile? get latestPic => _latestPic;
+  void discardPic() {
+    debugPrint("discarded picture");
+    _latestPic = null;
+    notifyListeners();
+  }
+
   Future<XFile> shoot() async {
     if (controller == null) {
+      debugPrint("we need a new cameraController");
       await start();
     }
-    return await controller!.takePicture();
+    _latestPic = await controller!.takePicture();
+    notifyListeners();
+    return latestPic!;
   }
 
   Future<List<CameraDescription>> all_cameras = availableCameras();
