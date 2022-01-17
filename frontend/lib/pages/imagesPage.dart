@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
@@ -111,7 +113,39 @@ class ImageAddButton extends StatefulWidget {
   State<ImageAddButton> createState() => _ImageAddButtonState();
 }
 
-class _ImageAddButtonState extends State<ImageAddButton> {
+class _ImageAddButtonState extends State<ImageAddButton>
+    with SingleTickerProviderStateMixin {
+  static const animationDuration = Duration(milliseconds: 200);
+
+  late Animation<double> animation;
+  late AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(duration: animationDuration, vsync: this);
+    animation = Tween<double>(begin: 0, end: 1).animate(controller)
+      ..addListener(() {
+        setState(() {
+          // The state that has changed here is the animation object’s value.
+        });
+      });
+  }
+
+  void expand() {
+    controller.forward();
+    expanded = true;
+  }
+
+  void collapse() {
+    controller.reverse();
+    Future.delayed(animationDuration, () {
+      setState(() {
+        expanded = false;
+      });
+    });
+  }
+
   bool expanded = false;
   bool withCamera = false;
 
@@ -120,34 +154,51 @@ class _ImageAddButtonState extends State<ImageAddButton> {
     return ChangeNotifierProvider(
       create: (ocontext) => CameraModel(),
       child: Builder(builder: (context) {
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (withCamera)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: CameraPreviewOnly(),
-                    ),
-                  ),
-                ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (expanded) takeImage(context),
-                  SizedBox(height: 2),
-                  if (expanded && !withCamera) uploadFromSystem,
-                  SizedBox(height: 8),
-                  add,
-                ],
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 8.0 * animation.value,
+                sigmaY: 8.0 * animation.value,
               ),
-            ],
-          ),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (withCamera)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: CameraPreviewOnly(),
+                          ),
+                        ),
+                      ),
+                    Stack(
+                      //mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (expanded && !withCamera)
+                          Transform.translate(
+                            offset: Offset(0, animation.value * -130),
+                            child: uploadFromSystem,
+                          ),
+                        if (expanded)
+                          Transform.translate(
+                            offset: Offset(0, animation.value * -70),
+                            child: takeImage(context),
+                          ),
+                        add,
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       }),
     );
@@ -157,8 +208,12 @@ class _ImageAddButtonState extends State<ImageAddButton> {
         child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
         onPressed: () {
           setState(() {
-            expanded ^= true;
-            if (!expanded) withCamera = false;
+            if (!expanded) {
+              expand();
+              withCamera = false;
+            } else {
+              collapse();
+            }
           });
         },
       );

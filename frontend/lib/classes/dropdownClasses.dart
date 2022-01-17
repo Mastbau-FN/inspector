@@ -74,8 +74,8 @@ abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
 
 Widget nextModel<DataT extends Data, DDModel extends DropDownModel<DataT>>(
         DDModel child) =>
-    ChangeNotifierProvider<DDModel>(
-      create: (c) => child,
+    ChangeNotifierProvider<DDModel>.value(
+      value: child,
       child: DropDownPage<DataT, DDModel>(),
     );
 
