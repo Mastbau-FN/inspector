@@ -1,7 +1,8 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
@@ -11,11 +12,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   static final _fetchallfirst = false;
 
   static _default(Object _) {
-    Fluttertoast.showToast(
-      msg: "Not Available",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast("Not Available");
   }
 
   final Function(T) onDelete;
@@ -86,11 +83,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
 class OpenableImageView<T extends Object> extends StatelessWidget {
   static _default(_) {
-    Fluttertoast.showToast(
-      msg: "Not Available",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast("Not Available");
   }
 
   final Function(T) onDelete;
@@ -137,27 +130,34 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Stack(
-        children: [
-          _heroImg(context),
-          if (chosenIndex == currentIndex)
-            Positioned(
-              child: Icon(
-                //todo: maybe ad shadow or border to better see it
-                Icons.star,
-                color: Colors.amber,
-              ),
-              left: 8,
-              top: 8,
-            ),
-        ],
-      ),
+    return ChangeNotifierProvider.value(
+      value: allImages[currentIndex],
+      child: Builder(builder: (context) {
+        return Container(
+          child: Stack(
+            children: [
+              Consumer<ImageItem>(builder: (context, imgModel, _) {
+                return _heroImg(context, imgModel);
+              }),
+              if (chosenIndex == currentIndex)
+                Positioned(
+                  child: Icon(
+                    //todo: maybe ad shadow or border to better see it
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  left: 8,
+                  top: 8,
+                ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
-  Widget _heroImg(context) {
-    Object tag = allImages[currentIndex].tag;
+  Widget _heroImg(context, img) {
+    Object tag = img.tag;
     return TextButton(
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
@@ -165,7 +165,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
       child: Hero(
         tag: tag,
         child: FittedImageContainer(
-          img: allImages[currentIndex],
+          img: img,
         ),
       ),
       onLongPress: () => _onLongPress(context, tag),
@@ -229,6 +229,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
         })) {
       case ImageOptions.delete:
         debugPrint("image Deleted");
+        debugPrint(tag);
         onDelete(tag);
         break;
       case ImageOptions.setMain:
