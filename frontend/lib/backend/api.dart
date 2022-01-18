@@ -37,6 +37,7 @@ const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
 
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
+const _setMainImageByHash_r = "/setMainImgH"; // issue #20
 
 extension _Parser on http.BaseResponse {
   http.Response? forceRes() {
@@ -244,13 +245,16 @@ class Backend {
 
   /// sends a [DataT] with the corresponding identifier to the given route
   Future<http.Response?> _sendDataToRoute<DataT extends Data>(
-      {required DataT? data, required String route}) async {
+      {required DataT? data,
+      required String route,
+      Map<String, dynamic> other = const {}}) async {
     debugPrint(data?.toJson().toString());
     if (data == null) return null;
     var json_data = data.toJson();
     http.Response? res = (await post_JSON(route, json: {
       'type': _getIdentifierFromData(data),
       'data': json_data,
+      ...other
     }))
         ?.forceRes();
     debugPrint(res?.body.toString());
@@ -350,6 +354,18 @@ class Backend {
   Future<String?> deleteImageByHash(String hash) async =>
       (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
           ?.forceRes()
+          ?.body;
+
+  /// sets an image specified by its hash as the new main image
+  Future<String?> setMainImageByHash<DataT extends Data>(
+          DataT? data, String hash) async =>
+      (await _sendDataToRoute(
+        data: data,
+        route: _setMainImageByHash_r,
+        other: {
+          'hash': hash,
+        },
+      ))
           ?.body;
 
   /// upload a bunch of images
