@@ -3,6 +3,7 @@ const imagehandler = require("./images/hash");
 const location = require("./extern/location");
 
 const imghasher = require("./images/hash");
+const path = require("path");
 
 //errorhandling
 
@@ -97,7 +98,8 @@ const deleteImgByHash = (req, res, next) =>
   );
 
   const setMainImgByHash = (req, res, next) => {
-    req.body.data.Link = imghasher.getPathFromHash(hash).filename; // gut möglich, dass der link hier noch prepended werden muss
+    const pathparts = imghasher.getPathFromHash(hash);
+    req.body.data.Link = path.join(pathparts.Link,pathparts.filename); // LinkOrdner+/+filename
     return update(req,res,next);
   }
 
