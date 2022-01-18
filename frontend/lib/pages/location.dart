@@ -64,6 +64,8 @@ class LocationModel extends DropDownModel<InspectionLocation> {
             return ImagesPage.futured(
               future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
+              onStar: (hash) => Backend().setMainImageByHash(data,
+                  hash.toString()), //TODO: this wont work since its currently not editable #101
             );
           default:
             return LocationDetailPage(
