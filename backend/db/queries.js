@@ -83,9 +83,11 @@ const getQueryString = async (name) => {
  * @param {List} params
  * @returns a Promise resolving the data given by sql query name (uses {getQueryString}) with given parameters
  */
-const queryFileWithParams = async (file, params, addHashFunction = true) => {
+const queryFileWithParams = async (file, params, addHashFunction = true, debug=false) => {
   let query = await getQueryString(file);
   let data = await pool.asyncQuery(query, params);
+
+  if(debug)console.log(data)
 
   if (addHashFunction) {
     data.rows.hashImages = async function () {
@@ -216,7 +218,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      return;
  }
  let res = await queryFileWithParams(queryfile, params);
- res.succes = true;
+ res.success = true;
  return res;
 }
 
@@ -250,8 +252,10 @@ const delete_ = async (data, KZL) => {
     )
   )
 
-  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);
-  res.succes = true;
+  //console.log([ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL])
+  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]).id;//, false,true);
+  // console.log(res)
+  res.success = true;
   return res;
 }
 
