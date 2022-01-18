@@ -15,6 +15,8 @@ const pool = require("./pool").db.pool;
 const imghasher = require("../images/hash");
 const imgfiler = require("../images/filesystem");
 
+var assert = require('assert');
+
 // MARK: Helpers
 
 //adding .last() for arrays
@@ -224,7 +226,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @param KZL das kürzel des monteurs der diesen datenpunkt zu löschen versucht (kommt aud req.body.user)
  * @returns an empty  Promise
  */
-  const delete_ = async (data, KZL) => {
+const delete_ = async (data, KZL) => {
   let ld = data.data;
 
   /// checks if the given dta fits the type
@@ -307,8 +309,12 @@ const getLink = async (data, andSet = true) => {
 
 const deleteImgByHash = async (hash)=>{
   let p = imghasher.getPathFromHash(hash);
+  console.log(p)
   //TODO: errorhandling
-  let ret = await fsp.rename( imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename)), path.join(p.rootpath, p.link, './.deleted/' , p.filename));
+  const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
+  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/' , p.filename));
+  console.log(oldpath,newpath)
+  let ret = await fsp.rename( oldpath , newpath );
   return {response: ret}
 }
 

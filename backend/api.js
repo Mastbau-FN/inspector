@@ -89,7 +89,7 @@ const delete_ = (req, res, next) =>
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
     async () =>
-      (await queries.deleteImgByHash(req.body))[0],
+      (await queries.deleteImgByHash(req.body.hash))[0],
     (json)=> (json),
     res,next
   );
