@@ -97,7 +97,7 @@ const deleteImgByHash = (req, res, next) =>
   );
 
   const setMainImgByHash = (req, res, next) => {
-    req.body.data.Link = imghasher.getPathFromHash(hash);
+    req.body.data.Link = imghasher.getPathFromHash(hash).filename; // gut möglich, dass der link hier noch prepended werden muss
     return update(req,res,next);
   }
 
