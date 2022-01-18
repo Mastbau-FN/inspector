@@ -53,6 +53,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
             return ImagesPage.futured(
               future_images: data.image_futures,
               onNewImages: (files) => Backend().uploadFiles(data, files),
+              onStar: (hash) =>
+                  Backend().setMainImageByHash(data, hash.toString()),
             );
 
           default:

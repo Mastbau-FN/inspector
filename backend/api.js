@@ -1,6 +1,8 @@
 const queries = require("./db/queries");
-const imagehandler = require("./images/hash");
 const location = require("./extern/location");
+
+const imghasher = require("./images/hash");
+const path = require("path");
 
 //errorhandling
 
@@ -94,9 +96,16 @@ const deleteImgByHash = (req, res, next) =>
     res,next
   );
 
+  const setMainImgByHash = (req, res, next) => {
+    const pathparts = imghasher.getPathFromHash(req.body.hash);
+    //console.log(pathparts)
+    req.body.data.Link = path.join(pathparts.link,pathparts.filename); // LinkOrdner+/+filename
+    return update(req,res,next);
+  }
+
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imagehandler.getFileFromHash(req.body.imghash);
+    let img = await imghasher.getFileFromHash(req.body.imghash);
     res.writeHead(200, { "Content-type": "image/jpg" });
     res.end(img);
   } catch (e) {
@@ -129,4 +138,5 @@ module.exports = {
   delete_,
 
   deleteImgByHash,
+  setMainImgByHash,
 };
