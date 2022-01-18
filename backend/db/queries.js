@@ -309,11 +309,13 @@ const getLink = async (data, andSet = true) => {
 
 const deleteImgByHash = async (hash)=>{
   let p = imghasher.getPathFromHash(hash);
-  console.log(p)
+  //console.log(p)
   //TODO: errorhandling
   const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
-  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/' , p.filename));
-  console.log(oldpath,newpath)
+  const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
+  await fsp.mkdir(newDir)
+  const newpath = imgfiler.formatpath(newDir , p.filename);
+  //console.log(oldpath,newpath)
   let ret = await fsp.rename( oldpath , newpath );
   return {response: ret}
 }

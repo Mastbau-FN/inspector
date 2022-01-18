@@ -19,8 +19,8 @@ const getFileFromHash = async (hash) => {
 };
 
 const getPathFromHash = (hash) => {
-  console.log(hash);
-  console.log(cache.stats());
+  // console.log(hash);
+  // console.log(cache.stats());
   return {
     rootpath: cache.get(hash + "r"),
     link:     cache.get(hash + "l"),
