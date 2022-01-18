@@ -2,6 +2,8 @@ const queries = require("./db/queries");
 const imagehandler = require("./images/hash");
 const location = require("./extern/location");
 
+const imghasher = require("./images/hash");
+
 //errorhandling
 
 const errsafejson = async (statement, jsonmaker, res, next) => {
@@ -94,6 +96,11 @@ const deleteImgByHash = (req, res, next) =>
     res,next
   );
 
+  const setMainImgByHash = (req, res, next) => {
+    req.body.data.Link = imghasher.getPathFromHash(hash);
+    return update(req,res,next);
+  }
+
 const getFileFromHash = async (req, res) => {
   try {
     let img = await imagehandler.getFileFromHash(req.body.imghash);
@@ -129,4 +136,5 @@ module.exports = {
   delete_,
 
   deleteImgByHash,
+  setMainImgByHash,
 };
