@@ -83,9 +83,11 @@ const getQueryString = async (name) => {
  * @param {List} params
  * @returns a Promise resolving the data given by sql query name (uses {getQueryString}) with given parameters
  */
-const queryFileWithParams = async (file, params, addHashFunction = true) => {
+const queryFileWithParams = async (file, params, addHashFunction = true, debug=false) => {
   let query = await getQueryString(file);
   let data = await pool.asyncQuery(query, params);
+
+  if(debug)console.log(data)
 
   if (addHashFunction) {
     data.rows.hashImages = async function () {
@@ -250,7 +252,8 @@ const delete_ = async (data, KZL) => {
     )
   )
 
-  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);
+  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);//, false,true);
+  // console.log(res)
   res.succes = true;
   return res;
 }
