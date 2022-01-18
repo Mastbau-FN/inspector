@@ -1,7 +1,8 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
@@ -11,11 +12,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   static final _fetchallfirst = false;
 
   static _default(Object _) {
-    Fluttertoast.showToast(
-      msg: "Not Available",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast("Not Available");
   }
 
   final Function(T) onDelete;
@@ -86,11 +83,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
 class OpenableImageView<T extends Object> extends StatelessWidget {
   static _default(_) {
-    Fluttertoast.showToast(
-      msg: "Not Available",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast("Not Available");
   }
 
   final Function(T) onDelete;

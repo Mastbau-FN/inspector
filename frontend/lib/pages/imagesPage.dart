@@ -6,9 +6,10 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -19,35 +20,17 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final int columnCount;
 
   static Future<String?> _defaultAdd(List<XFile> list) async {
-    Fluttertoast.showToast(
-      msg: "no callback provided",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast("no callback provided");
     return "";
   }
 
-  static _default(Object _) {
-    Fluttertoast.showToast(
-      msg: "Not Available",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
-  }
+  static _default(Object _) => showToast("Not Available");
 
   static _defaultDelete(Object id) async {
     try {
-      Fluttertoast.showToast(
-        msg: (await Backend().deleteImageByHash(id.toString())).toString(),
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-      );
+      showToast((await Backend().deleteImageByHash(id.toString())).toString());
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: e.toString(),
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-      );
+      showToast(e.toString());
     }
   }
 
@@ -265,12 +248,8 @@ class _ImageAddButtonState extends State<ImageAddButton>
         ? await widget.onNewImages([pic])
         : "sorry no image to upload";
     debugPrint(resstring);
-    Fluttertoast.showToast(
-      msg: resstring ??
-          "upload finished (no idea whether successed or failed tho)",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast(resstring ??
+        "upload finished (no idea whether successed or failed tho)");
     collapse();
   }
 
@@ -301,12 +280,8 @@ class _ImageAddButtonState extends State<ImageAddButton>
           //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
           final List<XFile>? new_images = await widget._picker.pickMultiImage();
           var resstring = await widget.onNewImages(new_images ?? []);
-          Fluttertoast.showToast(
-            msg: resstring ??
-                "upload finished (no idea of successed or failed tho)",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-          );
+          showToast(resstring ??
+              "upload finished (no idea of successed or failed tho)");
         },
       );
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -9,7 +10,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:provider/provider.dart';
 
 import 'detailsPage.dart';
@@ -71,12 +72,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
 
   void uploadString(CheckPointDefect data, txt) async {
     data.langText = txt;
-    Fluttertoast.showToast(
-      msg: await _b.update(data) ??
-          "we sent the request but we didnt get any response",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-    );
+    showToast(await _b.update(data) ??
+        "we sent the request but we didnt get any response");
     notifyListeners();
   }
 

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../classes/dropdownClasses.dart';
 

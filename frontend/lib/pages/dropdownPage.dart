@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
+
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
@@ -139,8 +141,8 @@ class _DropDownBodyState<DataT extends Data,
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend()
-                          .delete<DataT>(data), //.then((value) => null),
+                      delete: () => Backend().delete<DataT>(data).then(
+                          (value) => showToast(value ?? "delete unseccessful")),
                       confirm_name: data.title,
                     );
                 } catch (e) {}
