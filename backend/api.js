@@ -98,7 +98,7 @@ const deleteImgByHash = (req, res, next) =>
   );
 
   const setMainImgByHash = (req, res, next) => {
-    const pathparts = imghasher.getPathFromHash(hash);
+    const pathparts = imghasher.getPathFromHash(req.body.hash);
     req.body.data.Link = path.join(pathparts.Link,pathparts.filename); // LinkOrdner+/+filename
     return update(req,res,next);
   }
