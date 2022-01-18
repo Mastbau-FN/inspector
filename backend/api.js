@@ -1,5 +1,4 @@
 const queries = require("./db/queries");
-const imagehandler = require("./images/hash");
 const location = require("./extern/location");
 
 const imghasher = require("./images/hash");
@@ -105,7 +104,7 @@ const deleteImgByHash = (req, res, next) =>
 
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imagehandler.getFileFromHash(req.body.imghash);
+    let img = await imghasher.getFileFromHash(req.body.imghash);
     res.writeHead(200, { "Content-type": "image/jpg" });
     res.end(img);
   } catch (e) {
