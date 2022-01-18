@@ -130,27 +130,34 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Stack(
-        children: [
-          _heroImg(context),
-          if (chosenIndex == currentIndex)
-            Positioned(
-              child: Icon(
-                //todo: maybe ad shadow or border to better see it
-                Icons.star,
-                color: Colors.amber,
-              ),
-              left: 8,
-              top: 8,
-            ),
-        ],
-      ),
+    return ChangeNotifierProvider.value(
+      value: allImages[currentIndex],
+      child: Builder(builder: (context) {
+        return Container(
+          child: Stack(
+            children: [
+              Consumer<ImageItem>(builder: (context, imgModel, _) {
+                return _heroImg(context, imgModel);
+              }),
+              if (chosenIndex == currentIndex)
+                Positioned(
+                  child: Icon(
+                    //todo: maybe ad shadow or border to better see it
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  left: 8,
+                  top: 8,
+                ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
-  Widget _heroImg(context) {
-    Object tag = allImages[currentIndex].tag;
+  Widget _heroImg(context, img) {
+    Object tag = img.tag;
     return TextButton(
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
@@ -158,7 +165,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
       child: Hero(
         tag: tag,
         child: FittedImageContainer(
-          img: allImages[currentIndex],
+          img: img,
         ),
       ),
       onLongPress: () => _onLongPress(context, tag),
@@ -222,6 +229,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
         })) {
       case ImageOptions.delete:
         debugPrint("image Deleted");
+        debugPrint(tag);
         onDelete(tag);
         break;
       case ImageOptions.setMain:

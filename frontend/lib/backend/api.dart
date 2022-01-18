@@ -347,10 +347,12 @@ class Backend {
       (await _sendDataToRoute(data: data, route: _delete_r))?.body;
 
   /// deletes an image specified by its hash and returns the response
-  Future<String?> deleteImageByHash(String hash) async =>
-      (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
-          ?.forceRes()
-          ?.body;
+  Future<String?> deleteImageByHash(String hash) async {
+    debugPrint(hash);
+    return (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+        ?.forceRes()
+        ?.body;
+  }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
