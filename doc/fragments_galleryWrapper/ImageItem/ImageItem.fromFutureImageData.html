@@ -69,6 +69,7 @@
   image.then((value) {
     this.image = value?.image.image;
     if (value != null) this.tag = value.id;
+    debugPrint(this.tag.toString());
     notifyListeners();
   });
 }</code></pre>
@@ -138,7 +139,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.11+11
+      1.0.13+13
   </span>
 
   

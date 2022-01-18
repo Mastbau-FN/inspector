@@ -117,8 +117,12 @@ Widget build(BuildContext context) {
       onShare: onShare,
       onStar: onStar,
     ),
-    floatingActionButton:
-        ImageAddButton(picker: _picker, onNewImages: onNewImages),
+    floatingActionButton: ChangeNotifierProvider(
+      create: (ocontext) =&gt; CameraModel(),
+      child: Builder(builder: (context) {
+        return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+      }),
+    ),
   );
 }</code></pre>
 </section>
@@ -191,7 +195,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.11+11
+      1.0.13+13
   </span>
 
   

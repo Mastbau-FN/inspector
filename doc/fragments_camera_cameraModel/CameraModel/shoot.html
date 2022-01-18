@@ -66,9 +66,12 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;XFile&gt; shoot() async {
   if (controller == null) {
+    debugPrint(&quot;we need a new cameraController&quot;);
     await start();
   }
-  return await controller!.takePicture();
+  _latestPic = await controller!.takePicture();
+  notifyListeners();
+  return latestPic!;
 }</code></pre>
 </section>
 
@@ -105,12 +108,14 @@
     <li><a href="../../fragments_camera_cameraModel/CameraModel/currentCamera.html">currentCamera</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/hasListeners.html">hasListeners</a></li>
+    <li><a href="../../fragments_camera_cameraModel/CameraModel/latestPic.html">latestPic</a></li>
     <li><a href="../../fragments_camera_cameraModel/CameraModel/mainCamera.html">mainCamera</a></li>
     <li><a href="../../fragments_camera_cameraModel/CameraModel/new_controller.html">new_controller</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
 
     <li class="section-title"><a href="../../fragments_camera_cameraModel/CameraModel-class.html#instance-methods">Methods</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
+    <li><a href="../../fragments_camera_cameraModel/CameraModel/discardPic.html">discardPic</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/notifyListeners.html">notifyListeners</a></li>
@@ -137,7 +142,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.11+11
+      1.0.13+13
   </span>
 
   

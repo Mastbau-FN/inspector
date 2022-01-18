@@ -107,22 +107,29 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return Container(
-    child: Stack(
-      children: [
-        _heroImg(context),
-        if (chosenIndex == currentIndex)
-          Positioned(
-            child: Icon(
-              &#47;&#47;todo: maybe ad shadow or border to better see it
-              Icons.star,
-              color: Colors.amber,
-            ),
-            left: 8,
-            top: 8,
-          ),
-      ],
-    ),
+  return ChangeNotifierProvider.value(
+    value: allImages[currentIndex],
+    child: Builder(builder: (context) {
+      return Container(
+        child: Stack(
+          children: [
+            Consumer&lt;ImageItem&gt;(builder: (context, imgModel, _) {
+              return _heroImg(context, imgModel);
+            }),
+            if (chosenIndex == currentIndex)
+              Positioned(
+                child: Icon(
+                  &#47;&#47;todo: maybe ad shadow or border to better see it
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                left: 8,
+                top: 8,
+              ),
+          ],
+        ),
+      );
+    }),
   );
 }</code></pre>
 </section>
@@ -196,7 +203,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.11+11
+      1.0.13+13
   </span>
 
   

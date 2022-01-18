@@ -65,8 +65,8 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget nextModel&lt;DataT extends Data, DDModel extends DropDownModel&lt;DataT&gt;&gt;(
         DDModel child) =&gt;
-    ChangeNotifierProvider&lt;DDModel&gt;(
-      create: (c) =&gt; child,
+    ChangeNotifierProvider&lt;DDModel&gt;.value(
+      value: child,
       child: DropDownPage&lt;DataT, DDModel&gt;(),
     );</code></pre>
 </section>
@@ -122,7 +122,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.11+11
+      1.0.13+13
   </span>
 
   

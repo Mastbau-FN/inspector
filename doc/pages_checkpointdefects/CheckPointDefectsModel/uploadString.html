@@ -68,12 +68,8 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void uploadString(CheckPointDefect data, txt) async {
   data.langText = txt;
-  Fluttertoast.showToast(
-    msg: await _b.update(data) ??
-        &quot;we sent the request but we didnt get any response&quot;,
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.CENTER,
-  );
+  showToast(await _b.update(data) ??
+      &quot;we sent the request but we didnt get any response&quot;);
   notifyListeners();
 }</code></pre>
 </section>
@@ -143,7 +139,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.11+11
+      1.0.13+13
   </span>
 
   
