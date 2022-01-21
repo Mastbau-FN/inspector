@@ -23,6 +23,7 @@ import '/classes/user.dart';
 import '/extension/future.dart';
 
 import './offlineProvider.dart' as OP;
+import './helpers.dart' as Helper;
 
 const _getProjects_r = '/projects/get';
 const _getCategories_r = '/categories/get';
@@ -255,25 +256,6 @@ class Backend {
     );
   }
 
-  /// since the backend api knows on which level we are by the identifier string, this function gets the identifiers for each kind of [DataT]
-  /// it is very import to keep these in sinc with the actual backend
-  String? _getIdentifierFromData<DataT extends Data>(DataT data) {
-    switch (typeOf<DataT>()) {
-      case CheckCategory:
-        return 'category';
-
-      case CheckPoint:
-        return 'checkpoint';
-
-      case CheckPointDefect:
-        return 'defect';
-
-      default:
-        debugPrint("yo this type is not supported : ${typeOf<DataT>()}");
-        return null;
-    }
-  }
-
   /// sends a [DataT] with the corresponding identifier to the given route
   Future<http.Response?> _sendDataToRoute<DataT extends Data>(
       {required DataT? data,
@@ -283,7 +265,7 @@ class Backend {
     if (data == null) return null;
     var json_data = data.toJson();
     http.Response? res = (await post_JSON(route, json: {
-      'type': _getIdentifierFromData(data),
+      'type': Helper.getIdentifierFromData(data),
       'data': json_data,
       ...other
     }))
