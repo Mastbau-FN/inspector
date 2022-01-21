@@ -24,8 +24,6 @@ import '/extension/future.dart';
 
 import './offlineProvider.dart' as OP;
 
-const _debugAllResponses = true;
-
 const _getProjects_r = '/projects/get';
 const _getCategories_r = '/categories/get';
 const _getCheckPoints_r = '/checkPoints/get';
