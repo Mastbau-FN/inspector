@@ -18,10 +18,20 @@ class SettingsView extends StatelessWidget {
         children: [
           Logout(
             logoutcontext: logoutcontext,
-          )
+          ),
+          DeleteCachedImages(),
         ],
       ),
     );
+  }
+}
+
+class DeleteCachedImages extends StatelessWidget {
+  const DeleteCachedImages({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(onPressed: () {}, child: Text("Lokale Bilder löschen"));
   }
 }
 

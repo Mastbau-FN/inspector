@@ -33,3 +33,5 @@ Future<Image?> readImage(String name) async {
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await _localFile(name));
 }
+
+deleteAll() async => Directory(await _localPath).delete();

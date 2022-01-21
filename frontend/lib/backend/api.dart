@@ -407,6 +407,9 @@ class Backend {
         ? (res as http.Response?)?.body //TODO meh remove crash und stuff
         : await (res as http.StreamedResponse?)?.stream.bytesToString();
   }
+
+  /// removes all locally stored images via [OP]
+  final deleteCache = OP.deleteAll;
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
