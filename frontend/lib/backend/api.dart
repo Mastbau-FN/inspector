@@ -22,6 +22,8 @@ import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
 
+import './offlineProvider.dart' as OP;
+
 const _debugAllResponses = true;
 
 const _getProjects_r = '/projects/get';
@@ -153,13 +155,17 @@ class Backend {
     }
   }
 
-  Future<ImageData?> _fetchImage(String hash) async {
+  Stream<ImageData?> _fetchImage(String hash) async* {
+    yield ImageData(await OP.readImage(hash), id: hash);
     http.Response? res =
         (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
             ?.forceRes();
-    if (res == null || res.statusCode != 200) return null;
-    return ImageData(Image.memory(res.bodyBytes),
-        id: hash); //TODO ? jetzt werden den images durchgehend ihre hashes zugeordnet, aber reicht das? darüber müssen die bilder auf dem server erreicht werden können,(siehe zB #39). Kurzfristig hilft es wahrscheinlich die hashes langlebiger zu machen aber auf dauer muss da eine bessere Lösung her
+    if (res == null || res.statusCode != 200)
+      yield null;
+    else {
+      final imgFile = File((await OP.storeImage(res.bodyBytes, hash)).path);
+      yield ImageData(Image.file(imgFile), id: hash);
+    }
   }
 
   Future<T?> Function(Map<String, dynamic>)
