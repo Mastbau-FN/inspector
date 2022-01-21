@@ -56,12 +56,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
             return nextModel<CheckPointDefect, CheckPointDefectsModel>(
                 CheckPointDefectsModel(data));
           case 'Fotos':
-            return ImagesPage.futured(
-              future_images: data.image_futures,
-              onNewImages: (files) => Backend().uploadFiles(data, files),
-              onStar: (hash) =>
-                  Backend().setMainImageByHash(data, hash.toString()),
-            );
+            return standard_statefulImageView(data, this);
 
           default:
             return createRichIfPossibleEditor(data, uploadString);

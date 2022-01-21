@@ -22,7 +22,7 @@ import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
 
-const _debugAllResponses = true;
+import './offlineProvider.dart' as OP;
 
 const _getProjects_r = '/projects/get';
 const _getCategories_r = '/categories/get';
@@ -84,7 +84,7 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException("no network available");
-    if (!Consts.canUseMobileNetworkIfPossible &&
+    if (!Options.canUseMobileNetworkIfPossible &&
         connection == ConnectivityResult.mobile)
       throw NoConnectionToBackendException("mobile network not allowed");
 
@@ -153,23 +153,53 @@ class Backend {
     }
   }
 
-  Future<ImageData?> _fetchImage(String hash) async {
-    http.Response? res =
-        (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-            ?.forceRes();
-    if (res == null || res.statusCode != 200) return null;
-    return ImageData(Image.memory(res.bodyBytes),
-        id: hash); //TODO ? jetzt werden den images durchgehend ihre hashes zugeordnet, aber reicht das? darüber müssen die bilder auf dem server erreicht werden können,(siehe zB #39). Kurzfristig hilft es wahrscheinlich die hashes langlebiger zu machen aber auf dauer muss da eine bessere Lösung her
+  //final _imageStreamController = BehaviorSubject<String>();
+  Stream<ImageData?> _fetchImage(String hash) async* {
+    bool cacheHit = false;
+    try {
+      final img = await OP.readImage(hash);
+      if (img == null) throw Exception("no img cached");
+      yield ImageData(img, id: hash);
+      cacheHit = true;
+    } catch (e) {
+      //yield null;
+    }
+    if (!cacheHit || Options.preferRemoteImages) {
+      http.Response? res =
+          (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
+              ?.forceRes();
+      if (res == null || res.statusCode != 200)
+        yield null;
+      else {
+        try {
+          await OP.storeImage(res.bodyBytes, hash);
+          yield ImageData(
+            (await OP.readImage(hash))!,
+            id: hash,
+          );
+        } catch (e) {
+          debugPrint("failed to load webimg: " + e.toString());
+        }
+        //XXX: this could be a really bad workaround to make the streams useable as broadcaststreams
+        // while (Options.infinitelyreloadPictures) {
+        //   await Future.delayed(Duration(seconds: 5));
+        //   yield ImageData(
+        //     (await OP.readImage(hash))!,
+        //     id: hash,
+        //   );
+        // }
+      }
+    }
   }
 
-  Future<T?> Function(Map<String, dynamic>)
-      _generateImageFetcher<T extends Data>(
-    T? Function(Map<String, dynamic>) jsoner,
+  Future<DataT?> Function(Map<String, dynamic>)
+      _generateImageFetcher<DataT extends Data>(
+    DataT? Function(Map<String, dynamic>) jsoner,
   ) {
     // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
-      T? data = jsoner(json);
+      DataT? data = jsoner(json);
       if (data == null) return null;
       if (data.imagehashes == null ||
           data.imagehashes!.length == 0) //the second check *could* be omitted
@@ -181,20 +211,21 @@ class Backend {
       first_working_image_index++;
 
       //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage =
-          IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
-                (hash) => _fetchImage(hash),
-              ) ??
-              []);
+      data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
+            (hash) => _fetchImage(hash)
+                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+          ) ??
+          []);
       //Future.doWhile(() => fetchdata)
       //Future.any(data.imagehashes?.map(
       //      (hash) => _fetchImage(hash),
       //    ) ??
       //    []);
 
-      data.image_futures = data.imagehashes
+      data.image_streams = data.imagehashes
           ?.map(
-            (hash) => _fetchImage(hash),
+            (hash) => _fetchImage(hash)
+                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
 
@@ -388,6 +419,9 @@ class Backend {
         ? (res as http.Response?)?.body //TODO meh remove crash und stuff
         : await (res as http.StreamedResponse?)?.stream.bytesToString();
   }
+
+  /// removes all locally stored images via [OP]
+  final deleteCache = OP.deleteAll;
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

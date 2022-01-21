@@ -29,10 +29,8 @@ const getPathFromHash = (hash) => {
 };
 
 const memorize = async (rootpath, link, filename) => {
-  let key = await bcript.hash(rootpath + link + filename, 1);
-  //console.log(key);
-
-  ////console.log({rootpath,link,filename});
+  // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
+  let key = await bcript.hash(rootpath + link + filename, '$2b$10$DNz2TF9EXMD2EENXEEE9t.');
 
   //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
   cache.set(key + "r", rootpath);

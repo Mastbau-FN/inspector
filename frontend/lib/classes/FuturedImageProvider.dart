@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/diagnostics.dart';
-import 'package:flutter/src/foundation/assertions.dart';
 
 class FuturedImageProvider implements ImageProvider {
   FuturedImageProvider(this.futureImage);

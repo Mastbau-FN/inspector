@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
-class Consts {
+class Options {
   static const canUseMobileNetworkIfPossible = true;
+  static const preferRemoteImages = true;
+  static const debugAllResponses = false;
+  static const infinitelyreloadPictures = true;
 }
 
 class Design {

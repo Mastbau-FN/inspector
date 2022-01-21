@@ -134,7 +134,23 @@ class ImageItem<T extends Object> with ChangeNotifier {
     image.then((value) {
       this.image = value?.image.image;
       if (value != null) this.tag = value.id;
-      debugPrint(this.tag.toString());
+      // debugPrint(this.tag.toString());
+      notifyListeners();
+    });
+  }
+
+  ImageItem.fromImageDataStream(
+    Stream<ImageData<T>?> image, {
+    fallBackWidget = const LoadingView(),
+  })  : this.tag = UniqueKey(),
+        this.fallBackWidget = const LoadingView() {
+    image.forEach((value) {
+      this.image = value?.image.image;
+      if (value != null)
+        this.tag = value.id;
+      else
+        this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      // debugPrint(this.tag.toString());
       notifyListeners();
     });
   }

@@ -61,12 +61,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
           case _nextViewTitle:
             return nextModel<CheckCategory, CategoryModel>(CategoryModel(data));
           case 'Fotos':
-            return ImagesPage.futured(
-              future_images: data.image_futures,
-              onNewImages: (files) => Backend().uploadFiles(data, files),
-              onStar: (hash) => Backend().setMainImageByHash(data,
-                  hash.toString()), //TODO: this wont work since its currently not editable #101
-            );
+            return standard_statefulImageView(data, this);
           default:
             return LocationDetailPage(
               locationdata: data,
@@ -105,8 +100,8 @@ class LocationDetailPage extends StatelessWidget {
         child: Container(
           height: 100,
           width: 100,
-          child: FutureBuilder<ImageData?>(
-              future: locationdata.mainImage,
+          child: StreamBuilder<ImageData?>(
+              stream: locationdata.mainImage,
               builder: (context, snapshot) =>
                   snapshot.data?.image ?? Icon(Icons.construction)),
         ),
