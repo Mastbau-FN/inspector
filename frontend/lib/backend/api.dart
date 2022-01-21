@@ -171,7 +171,9 @@ class Backend {
       final xfile = (await OP.storeImage(res.bodyBytes, hash));
       final imgFile = xfile == null ? null : File(xfile.path);
       try {
-        yield imgFile == null ? null : ImageData(Image.file(imgFile), id: hash);
+        final image =
+            imgFile == null ? null : ImageData(Image.file(imgFile), id: hash);
+        yield image;
       } catch (e) {}
     }
   }

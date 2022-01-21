@@ -12,17 +12,18 @@ Future<File> _localFile(String name) async =>
     File('${await _localPath}/${name}');
 
 Future<XFile?> storeImage(Uint8List imgBytes, String name) async {
-  final file = await _localFile(name);
+  var file = await _localFile(name);
 
   // Write the file
   try {
-    await file.create();
+    (await file.exists()) ? file : await file.create();
     await file.writeAsBytes(imgBytes); //warum gehst du nicht :(
-    //return XFile(file.path);
+    return XFile(file.path);
   } catch (e) {
     return null;
   }
 }
 
-Future<Image> readImage(String name) async =>
-    Image.file(await _localFile(name));
+Future<Image> readImage(String name) async => Image.network(
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Bild_21_-_Verbot_der_%C3%9Cberschreitung_bestimmter_Fahrgeschwindigkeiten_-_30_km%2C_StVO_1953.svg/1024px-Bild_21_-_Verbot_der_%C3%9Cberschreitung_bestimmter_Fahrgeschwindigkeiten_-_30_km%2C_StVO_1953.svg.png');
+    // Image.file(await _localFile(name));
