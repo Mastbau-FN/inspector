@@ -51,7 +51,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
         switch (tiledata.title) {
           case 'Fotos':
             return ImagesPage.futured(
-              future_images: data.image_futures,
+              future_images: data.image_streams,
               onNewImages: (files) => Backend().uploadFiles(data, files),
               onStar: (hash) =>
                   Backend().setMainImageByHash(data, hash.toString()),

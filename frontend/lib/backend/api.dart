@@ -156,7 +156,12 @@ class Backend {
   }
 
   Stream<ImageData?> _fetchImage(String hash) async* {
-    yield ImageData(await OP.readImage(hash), id: hash);
+    try {
+      yield ImageData(await OP.readImage(hash), id: hash);
+    } catch (e) {
+      yield null;
+    }
+
     http.Response? res =
         (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
             ?.forceRes();
@@ -168,14 +173,14 @@ class Backend {
     }
   }
 
-  Future<T?> Function(Map<String, dynamic>)
-      _generateImageFetcher<T extends Data>(
-    T? Function(Map<String, dynamic>) jsoner,
+  Future<DataT?> Function(Map<String, dynamic>)
+      _generateImageFetcher<DataT extends Data>(
+    DataT? Function(Map<String, dynamic>) jsoner,
   ) {
     // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       //debugPrint(json.toString() + '\n');
-      T? data = jsoner(json);
+      DataT? data = jsoner(json);
       if (data == null) return null;
       if (data.imagehashes == null ||
           data.imagehashes!.length == 0) //the second check *could* be omitted
@@ -187,18 +192,17 @@ class Backend {
       first_working_image_index++;
 
       //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage =
-          IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
-                (hash) => _fetchImage(hash),
-              ) ??
-              []);
+      data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
+            (hash) => _fetchImage(hash),
+          ) ??
+          []);
       //Future.doWhile(() => fetchdata)
       //Future.any(data.imagehashes?.map(
       //      (hash) => _fetchImage(hash),
       //    ) ??
       //    []);
 
-      data.image_futures = data.imagehashes
+      data.image_streams = data.imagehashes
           ?.map(
             (hash) => _fetchImage(hash),
           )

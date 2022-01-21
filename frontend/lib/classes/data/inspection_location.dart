@@ -37,7 +37,7 @@ class InspectionLocation extends Data with WithImgHashes {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<ImageData?>>? image_futures;
+  List<Future<ImageData?>>? image_streams;
   @JsonKey(ignore: true)
   Future<ImageData?> mainImage = Future.value(null);
   @JsonKey(ignore: true)
