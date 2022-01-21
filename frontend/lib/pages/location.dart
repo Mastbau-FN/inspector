@@ -61,12 +61,7 @@ class LocationModel extends DropDownModel<InspectionLocation> {
           case _nextViewTitle:
             return nextModel<CheckCategory, CategoryModel>(CategoryModel(data));
           case 'Fotos':
-            return ImagesPage.streamed(
-              imageStreams: data.image_streams,
-              onNewImages: (files) => Backend().uploadFiles(data, files),
-              onStar: (hash) => Backend().setMainImageByHash(data,
-                  hash.toString()), //TODO: this wont work since its currently not editable #101
-            );
+            return standard_statefulImageView(data, this);
           default:
             return LocationDetailPage(
               locationdata: data,

@@ -10,6 +10,7 @@ import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:provider/provider.dart';
 
 import 'imagesPage.dart';
 
@@ -56,13 +57,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
             return nextModel<CheckPoint, CheckPointsModel>(
                 CheckPointsModel(data));
           case 'Fotos':
-            return ImagesPage.streamed(
-              imageStreams: data.image_streams,
-              onNewImages: (files) => Backend().uploadFiles(data, files),
-              onStar: (hash) =>
-                  Backend().setMainImageByHash(data, hash.toString()),
-            );
-
+            return standard_statefulImageView(data, this);
           default:
             return createRichIfPossibleEditor(data, uploadString);
         }

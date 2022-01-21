@@ -1,4 +1,7 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/pages/imagesPage.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
@@ -77,6 +80,34 @@ Widget nextModel<DataT extends Data, DDModel extends DropDownModel<DataT>>(
     ChangeNotifierProvider<DDModel>.value(
       value: child,
       child: DropDownPage<DataT, DDModel>(),
+    );
+
+Widget standard_statefulImageView<DataT extends Data,
+        DDModel extends DropDownModel<DataT>>(DataT data, DDModel model) =>
+    ChangeNotifierProvider<DDModel>.value(
+      value: model,
+      child: Builder(builder: (context) {
+        return Consumer<DDModel>(builder: (context, model, child) {
+          return ImagesPage.streamed(
+            imageStreams: data.image_streams,
+            //s ?.map((e) => e.asBroadcastStream())
+            // .toList(),
+            onNewImages: (files) =>
+                Backend().uploadFiles(data, files).then((value) {
+              model.notifyListeners();
+              if (value != null) showToast(value);
+              return value;
+            }),
+            onStar: (hash) => Backend()
+                .setMainImageByHash(data, hash.toString())
+                .then((value) {
+              if (value != null && value != "") showToast(value);
+              model.notifyListeners();
+              return value;
+            }),
+          );
+        });
+      }),
     );
 
 Type typeOf<T>() => T;
