@@ -20,7 +20,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   final Function(T) onShare;
 
   final ImageData<T>? chosenOne;
-  final List<Future<ImageData<T>?>> images;
+  final List<Stream<ImageData<T>?>> images;
   final int columnCount;
   ImageWrap.constant({
     List<ImageData<T>> images = const [],
@@ -30,9 +30,10 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
-  })  : this.images = images.map((e) => Future.value(e)).toList(),
+  })  : this.images = images.map((e) => Stream.value(e)).toList(),
         _allImages = images.map((e) => ImageItem.fromImageData(e)).toList(),
         super(key: key);
+
   ImageWrap.futured({
     required this.images,
     this.columnCount = 4,
@@ -42,15 +43,27 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onStar = _default,
     this.onShare = _default,
   })  : _allImages =
-            images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
+            images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
+        super(key: key);
+
+  ImageWrap.streamed({
+    required this.images,
+    this.columnCount = 4,
+    Key? key,
+    this.chosenOne,
+    this.onDelete = _default,
+    this.onStar = _default,
+    this.onShare = _default,
+  })  : _allImages =
+            images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
         super(key: key);
 
   final List<ImageItem<T>> _allImages;
 
   //TODO; chose new mainImage -> callback
   @override
-  Widget build(BuildContext context) => FutureBuilder<List<ImageItem<T>>>(
-        future: !_fetchallfirst
+  Widget build(BuildContext context) => StreamBuilder<List<ImageItem<T>>>(
+        stream: !_fetchallfirst
             ? null
             : Future.wait(images).then((e) =>
                 e.map((image) => ImageItem.fromImageData(image)).toList()),
