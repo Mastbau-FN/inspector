@@ -22,6 +22,6 @@ class LocationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropDownPage<InspectionLocation, LocationModel>();
+    return DropDownPage<InspectionLocation, Null, LocationModel>();
   }
 }

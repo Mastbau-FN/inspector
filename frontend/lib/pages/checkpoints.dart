@@ -13,16 +13,10 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'detailsPage.dart';
 import 'imagesPage.dart';
 
-class CheckPointsModel extends DropDownModel<CheckPoint> {
-  final Backend _b = Backend();
-  final CheckCategory currentCategory;
+class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
+  CheckPointsModel(CheckCategory p) : super(p);
 
   static const _nextViewTitle = "Mängel";
-
-  CheckPointsModel(this.currentCategory);
-
-  Future<List<CheckPoint>> get all =>
-      _b.getAllCheckPointsForCategory(currentCategory);
 
   @override
   List<MyListTileData> actions = [
@@ -41,9 +35,6 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
   ];
 
   @override
-  String get title => currentCategory.title;
-
-  @override
   void open(
     BuildContext context,
     CheckPoint data,
@@ -53,22 +44,16 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel<CheckPointDefect, CheckPointDefectsModel>(
-                CheckPointDefectsModel(data));
+            return nextModel<CheckPointDefect, CheckPoint,
+                CheckPointDefectsModel>(CheckPointDefectsModel(data));
           case 'Fotos':
             return standard_statefulImageView(data, this);
 
           default:
-            return createRichIfPossibleEditor(data, uploadString);
+            return createRichIfPossibleEditor(data, update);
         }
       }),
     );
-  }
-
-  void uploadString(CheckPoint data, txt) async {
-    data.langText = txt;
-    await _b.update(data);
-    notifyListeners();
   }
 
   @override
@@ -78,8 +63,8 @@ class CheckPointsModel extends DropDownModel<CheckPoint> {
           'checkpoint',
           onSet: (json) async {
             Map<String, dynamic> checkpoint = json['checkpoint'];
-            checkpoint['PjNr'] = currentCategory.pjNr;
-            checkpoint['E1'] = currentCategory.index;
+            checkpoint['PjNr'] = currentData.pjNr;
+            checkpoint['E1'] = currentData.index;
             checkpoint['E2'] = -1;
             await Backend().setNew(CheckPoint.fromJson(checkpoint));
             notifyListeners();

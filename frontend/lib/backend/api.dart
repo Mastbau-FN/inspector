@@ -25,10 +25,8 @@ import '/extension/future.dart';
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
 
-const _getProjects_r = '/projects/get';
-const _getCategories_r = '/categories/get';
-const _getCheckPoints_r = '/checkPoints/get';
-const _getCheckPointDefects_r = '/checkPointDefects/get';
+String routesFromData<DataT extends Data>(DataT? data) =>
+    '/${Helper.getIdentifierFromData(data)}/get';
 
 const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
@@ -235,11 +233,12 @@ class Backend {
   }
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
-  Future<List<D>> _getAllForNextLevel<D extends Data>({
+  Future<List<ChildData>>
+      _getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
     required String route,
     required String jsonResponseID,
     Map<String, dynamic>? json,
-    required D? Function(Map<String, dynamic>) fromJson,
+    required ChildData? Function(Map<String, dynamic>) fromJson,
   }) async {
     Map<String, dynamic> _json = {};
     try {
@@ -310,43 +309,21 @@ class Backend {
     debugPrint('user logged out');
   }
 
-  /// gets all the [InspectionLocation]s for the currently logged in [user]
-  Future<List<InspectionLocation>> getAllInspectionLocationsForCurrentUser() =>
-      _getAllForNextLevel(
-        route: _getProjects_r,
-        jsonResponseID: 'inspections',
-        fromJson: InspectionLocation.fromJson,
-      );
-
-  /// gets all the [CheckCategory]s for the given [InspectionLocation]
-  Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
-          InspectionLocation location) =>
-      _getAllForNextLevel(
-        route: _getCategories_r,
-        jsonResponseID: 'categories',
-        json: location.toSmallJson(),
-        fromJson: CheckCategory.fromJson,
-      );
-
-  /// gets all the [CheckPoint]s corresponding to a given [CheckCategory]
-  Future<List<CheckPoint>> getAllCheckPointsForCategory(
-          CheckCategory category) =>
-      _getAllForNextLevel(
-        route: _getCheckPoints_r,
-        jsonResponseID: 'checkpoints',
-        json: category.toSmallJson(),
-        fromJson: CheckPoint.fromJson,
-      );
-
-  /// gets all the [CheckPointDefect]s for the given [CheckPoint]
-  Future<List<CheckPointDefect>> getAllDefectsForCheckpoint(
-          CheckPoint checkpoint) =>
-      _getAllForNextLevel(
-        route: _getCheckPointDefects_r,
-        jsonResponseID: 'checkpointdefects',
-        json: checkpoint.toSmallJson(),
-        fromJson: CheckPointDefect.fromJson,
-      );
+  /// gets all the [ChildData]points for the given [ParentData]
+  /// if no [ParentData] is given it defaults to root
+  Future<List<ChildData>>
+      getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
+    ParentData data,
+  ) {
+    final childType = Helper.getIdentifierFromData<ChildData>(null);
+    if (childType == null) throw Exception('type not supported');
+    return _getAllForNextLevel(
+      route: routesFromData<ChildData>(null),
+      jsonResponseID: childType,
+      json: data?.toSmallJson(),
+      fromJson: (json) => Data.fromJson<ChildData>(json),
+    );
+  }
 
   /// sets a new [DataT]
   Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
@@ -416,7 +393,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
         (await Future.wait(str.map((elem) async => await converter(elem))))
             .whereType<T>());
   } catch (e) {
-    debugPrint(e.toString());
+    debugPrint('could not parse response: ' + e.toString());
     throw BackendCommunicationException(
         'could not parse response: ' + e.toString());
   }

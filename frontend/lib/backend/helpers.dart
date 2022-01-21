@@ -3,6 +3,7 @@
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +19,9 @@ String? getIdentifierFromData<DataT extends Data>(DataT? data) {
 
     case CheckPointDefect:
       return 'defect';
+
+    case InspectionLocation:
+      return 'location';
 
     default:
       debugPrint("yo this type is not supported : ${typeOf<DataT>()}");

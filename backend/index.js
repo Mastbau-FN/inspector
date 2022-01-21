@@ -1,8 +1,3 @@
-const _getProjects_r = "/projects/get";
-const _getCategories_r = "/categories/get";
-const _getCheckPoints_r = "/checkPoints/get";
-const _getCheckPointDefects_r = "/checkPointDefects/get";
-
 const _getImageFromHash_r = "/image/get";
 const _uploadImage_r = "/image/set";
 
@@ -28,16 +23,33 @@ const multer = require("multer");
 const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
+
+const identifiers = {
+  location: "location",
+  category: "category",
+  checkpoint: "checkpoint",
+  defect: "defect",
+};
+
+const datapointRoutes = [
+  { route: `/${identifiers.location}/get`, api: api.getProjects },
+  { route: `/${identifiers.category}/get`, api: api.getCategories },
+  { route: `/${identifiers.checkpoint}/get`, api: api.getCheckPoints },
+  { route: `/${identifiers.defect}/get`, api: api.getCheckPointDefects },
+];
+
 const auth = require("./auth/auth");
 
 const app = express();
 const port = process.env.PORT || 443;
 
-var cors = require('cors');
-app.use(cors({
+var cors = require("cors");
+app.use(
+  cors({
     origin: ["https://mastbau-fn.github.io"],
     credentials: true,
-}));
+  })
+);
 
 app.use(express.json());
 app.use(
@@ -62,7 +74,7 @@ app.post(
   api.fileUpload
 );
 
-const isInsecure = process.env.isInsecure ?? false; //currently unused 
+const isInsecure = process.env.isInsecure ?? false; //currently unused
 
 /**
  * everything at this path (/api/secure/) is hidden behind an auth-wall currently requiring the correct authentication header (API-Key)
@@ -82,10 +94,9 @@ app.use("/", logger.logreq);
 
 app.post("/api/secure/login", api.login);
 
-app.post("/api/secure" + _getProjects_r, api.getProjects);
-app.post("/api/secure" + _getCategories_r, api.getCategories);
-app.post("/api/secure" + _getCheckPoints_r, api.getCheckPoints);
-app.post("/api/secure" + _getCheckPointDefects_r, api.getCheckPointDefects);
+datapointRoutes.forEach((datapointRoute) =>
+  app.post("/api/secure" + datapointRoute.route, datapointRoute.api)
+);
 
 app.post("/api/secure" + _addNew_r, api.addNew);
 app.post("/api/secure" + _update_r, api.update);
@@ -123,7 +134,7 @@ app.use(function (req, res, next) {
 // MARK : 500
 
 app.use("/api/", function (err, req, res, next) {
-  console.error({err});
+  console.error({ err });
   res.status(500).send({ error: "Something broke!" });
 });
 
@@ -133,11 +144,10 @@ app.use(function (err, req, res, next) {
   res.render("500", { error: err });
 });
 
-
 if (isInsecure) {
   var httpServer = http.createServer(app);
   httpServer.listen(port, () => {
-    console.warn(`App running on port ${port}. THIS IS INSECURE`); 
+    console.warn(`App running on port ${port}. THIS IS INSECURE`);
   });
 } else {
   const cert_path = process.env.CERT_PATH;

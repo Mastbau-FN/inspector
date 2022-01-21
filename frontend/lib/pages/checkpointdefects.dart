@@ -1,8 +1,4 @@
-import 'dart:convert';
-
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
-import 'package:MBG_Inspektionen/helpers/toast.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
@@ -13,17 +9,9 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'package:provider/provider.dart';
 
-import 'detailsPage.dart';
-import 'imagesPage.dart';
-
-class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
-  final Backend _b = Backend();
-  final CheckPoint currentCheckPoint;
-
-  CheckPointDefectsModel(this.currentCheckPoint);
-
-  Future<List<CheckPointDefect>> get all =>
-      _b.getAllDefectsForCheckpoint(currentCheckPoint);
+class CheckPointDefectsModel
+    extends DropDownModel<CheckPointDefect, CheckPoint> {
+  CheckPointDefectsModel(CheckPoint data) : super(data);
 
   @override
   List<MyListTileData> actions = [
@@ -36,9 +24,6 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
       icon: Icons.photo_library,
     ),
   ];
-
-  @override
-  String get title => currentCheckPoint.title;
 
   @override
   void open(
@@ -59,19 +44,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
                   this, //the injector //XXX: sadly this doesnt work for some reason
               child: Builder(builder: (context) {
                 debugPrint('build new defectsdetails');
-                return createRichIfPossibleEditor(data, uploadString);
+                return createRichIfPossibleEditor(data, update);
               }),
             );
         }
       }),
     );
-  }
-
-  void uploadString(CheckPointDefect data, txt) async {
-    data.langText = txt;
-    showToast(await _b.update(data) ??
-        "we sent the request but we didnt get any response");
-    notifyListeners();
   }
 
   @override
@@ -84,9 +62,9 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
         onSet: (json) async {
           Map<String, dynamic> defect = json['checkpointdefect'];
           debugPrint("set ${json['checkpointdefect'].toString()}");
-          defect['PjNr'] = currentCheckPoint.pjNr;
-          defect['E1'] = currentCheckPoint.category_index;
-          defect['E2'] = currentCheckPoint.index;
+          defect['PjNr'] = currentData.pjNr;
+          defect['E1'] = currentData.category_index;
+          defect['E2'] = currentData.index;
           defect['E3'] = -1;
 
           // debugPrint(defect[oufnessChooser.name].toString() +
@@ -98,7 +76,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
           //         .toString());
 
           /// this solves #48
-          defect['KurzText'] = currentCheckPoint.title +
+          defect['KurzText'] = currentData.title +
               ": " +
               ((defect[oufnessChooser.name].toString() ==
                       OufnessChooser.default_none.toString())
