@@ -153,6 +153,7 @@ class Backend {
     }
   }
 
+  //final _imageStreamController = BehaviorSubject<String>();
   Stream<ImageData?> _fetchImage(String hash) async* {
     bool cacheHit = false;
     try {
@@ -176,7 +177,9 @@ class Backend {
             (await OP.readImage(hash))!,
             id: hash,
           );
-        } catch (e) {}
+        } catch (e) {
+          debugPrint("failed to load webimg: " + e.toString());
+        }
         //XXX: this could be a really bad workaround to make the streams useable as broadcaststreams
         // while (Options.infinitelyreloadPictures) {
         //   await Future.delayed(Duration(seconds: 5));

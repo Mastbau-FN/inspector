@@ -11,24 +11,25 @@ Future<String> get _localPath async =>
 Future<File> _localFile(String name) async =>
     File('${await _localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
 
-Future<XFile?> storeImage(Uint8List imgBytes, String name) async {
+Future<File?> storeImage(Uint8List imgBytes, String name) async {
   var file = await _localFile(name);
 
   // Write the file
   try {
-    (await file.exists()) ? file : await file.create();
-    await file.writeAsBytes(imgBytes); //warum gehst du nicht :(
-    debugPrint(file.path);
-    return XFile(file.path);
+    file = (await file.exists()) ? file : await file.create();
+    file = await file.writeAsBytes(imgBytes); //u good?
+    debugPrint('saved ${file}');
+    return file;
   } catch (e) {
-    debugPrint("failed to store image: " + e.toString());
+    debugPrint("!!! failed to store image: " + e.toString());
     return null;
   }
 }
 
 Future<Image?> readImage(String name) async {
-  if (await (await _localFile(name)).exists())
-    throw Exception("file doesnt exist");
+  final file = (await _localFile(name));
+  if (file.existsSync() && file.lengthSync() > 5)
+    throw Exception("file ${file} doesnt exist");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await _localFile(name));
