@@ -320,7 +320,8 @@ class Backend {
       route: routesFromData<ChildData>(null),
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
-      fromJson: (json) => Data.fromJson<ChildData>(json),
+      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(
+          json), //TODO: sadly this doesnt work rn, since its not using thild overriden functions but the super one
     );
   }
 

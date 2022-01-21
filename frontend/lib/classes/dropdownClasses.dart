@@ -29,7 +29,7 @@ abstract class Data implements WithImgHashes {
   Map<String, dynamic> toJson();
   Map<String, dynamic> toSmallJson();
 
-  // sadly https://github.com/dart-lang/language/issues/356
+  //XXX: sadly https://github.com/dart-lang/language/issues/356
   static T? fromJson<T extends Data>(Map<String, dynamic> map) => null;
 }
 
