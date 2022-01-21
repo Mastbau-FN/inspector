@@ -85,12 +85,7 @@ void open(
     MaterialPageRoute(builder: (newcontext) {
       switch (tiledata.title) {
         case &#39;Fotos&#39;:
-          return ImagesPage.futured(
-            future_images: data.image_futures,
-            onNewImages: (files) =&gt; Backend().uploadFiles(data, files),
-            onStar: (hash) =&gt;
-                Backend().setMainImageByHash(data, hash.toString()),
-          );
+          return standard_statefulImageView(data, this);
 
         default:
           return Provider&lt;CheckPointDefectsModel&gt;(
@@ -173,7 +168,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.13+13
+      1.0.14+14
   </span>
 
   

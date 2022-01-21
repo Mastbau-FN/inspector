@@ -87,12 +87,7 @@ void open(
         case _nextViewTitle:
           return nextModel&lt;CheckCategory, CategoryModel&gt;(CategoryModel(data));
         case &#39;Fotos&#39;:
-          return ImagesPage.futured(
-            future_images: data.image_futures,
-            onNewImages: (files) =&gt; Backend().uploadFiles(data, files),
-            onStar: (hash) =&gt; Backend().setMainImageByHash(data,
-                hash.toString()), &#47;&#47;TODO: this wont work since its currently not editable #101
-          );
+          return standard_statefulImageView(data, this);
         default:
           return LocationDetailPage(
             locationdata: data,
@@ -167,7 +162,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.13+13
+      1.0.14+14
   </span>
 
   

@@ -80,7 +80,7 @@
   this.onDelete = _default,
   this.onStar = _default,
   this.onShare = _default,
-})  : this.images = images.map((e) =&gt; Future.value(e)).toList(),
+})  : this.images = images.map((e) =&gt; Stream.value(e)).toList(),
       _allImages = images.map((e) =&gt; ImageItem.fromImageData(e)).toList(),
       super(key: key);</code></pre>
 </section>
@@ -109,6 +109,7 @@
     <li class="section-title"><a href="../../fragments_imageWrap/ImageWrap-class.html#constructors">Constructors</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/ImageWrap.constant.html">constant</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/ImageWrap.futured.html">futured</a></li>
+    <li><a href="../../fragments_imageWrap/ImageWrap/ImageWrap.streamed.html">streamed</a></li>
 
 
     <li class="section-title">
@@ -154,7 +155,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.13+13
+      1.0.14+14
   </span>
 
   

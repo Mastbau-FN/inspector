@@ -106,19 +106,11 @@ and</li>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget build(BuildContext context) =&gt; FutureBuilder&lt;List&lt;ImageItem&lt;T&gt;&gt;&gt;(
-      future: !_fetchallfirst
-          ? null
-          : Future.wait(images).then((e) =&gt;
-              e.map((image) =&gt; ImageItem.fromImageData(image)).toList()),
-      builder: (context, snapshot) {
-        if (_fetchallfirst &amp;&amp;
-            snapshot.connectionState != ConnectionState.done)
-          return LoadingView();
+Widget build(BuildContext context) =&gt; Builder(
+      builder: (context) {
         return GridView.builder(
             padding: const EdgeInsets.all(2.0),
-            itemCount:
-                !_fetchallfirst ? images.length : snapshot.data?.length ?? 0,
+            itemCount: images.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: columnCount,
             ),
@@ -130,9 +122,9 @@ Widget build(BuildContext context) =&gt; FutureBuilder&lt;List&lt;ImageItem&lt;T
                   onStar: onStar,
                   currentIndex: i,
                   chosenIndex:
-                      0, &#47;&#47;TODO: make this dynamic on callback or something for #20
-                  allImages:
-                      !_fetchallfirst ? _allImages : snapshot.data ?? [],
+                      0, &#47;&#47;&#47;&#47; make this dynamic on callback or something for #20
+                  &#47;&#47; instead solve #36 and move chosen image to front
+                  allImages: _allImages,
                 ));
       },
     );</code></pre>
@@ -162,6 +154,7 @@ Widget build(BuildContext context) =&gt; FutureBuilder&lt;List&lt;ImageItem&lt;T
     <li class="section-title"><a href="../../fragments_imageWrap/ImageWrap-class.html#constructors">Constructors</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/ImageWrap.constant.html">constant</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/ImageWrap.futured.html">futured</a></li>
+    <li><a href="../../fragments_imageWrap/ImageWrap/ImageWrap.streamed.html">streamed</a></li>
 
 
     <li class="section-title">
@@ -207,7 +200,7 @@ Widget build(BuildContext context) =&gt; FutureBuilder&lt;List&lt;ImageItem&lt;T
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.13+13
+      1.0.14+14
   </span>
 
   
