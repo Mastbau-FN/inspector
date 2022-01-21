@@ -9,8 +9,6 @@ import 'package:provider/provider.dart';
 import 'galleryWrapper.dart';
 
 class ImageWrap<T extends Object> extends StatelessWidget {
-  static final _fetchallfirst = false;
-
   static _default(Object _) {
     showToast("Not Available");
   }
@@ -62,19 +60,11 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
   //TODO; chose new mainImage -> callback
   @override
-  Widget build(BuildContext context) => StreamBuilder<List<ImageItem<T>>>(
-        stream: !_fetchallfirst
-            ? null
-            : Future.wait(images).then((e) =>
-                e.map((image) => ImageItem.fromImageData(image)).toList()),
-        builder: (context, snapshot) {
-          if (_fetchallfirst &&
-              snapshot.connectionState != ConnectionState.done)
-            return LoadingView();
+  Widget build(BuildContext context) => Builder(
+        builder: (context) {
           return GridView.builder(
               padding: const EdgeInsets.all(2.0),
-              itemCount:
-                  !_fetchallfirst ? images.length : snapshot.data?.length ?? 0,
+              itemCount: images.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount,
               ),
@@ -87,8 +77,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
                     currentIndex: i,
                     chosenIndex:
                         0, //TODO: make this dynamic on callback or something for #20
-                    allImages:
-                        !_fetchallfirst ? _allImages : snapshot.data ?? [],
+                    allImages: _allImages,
                   ));
         },
       );

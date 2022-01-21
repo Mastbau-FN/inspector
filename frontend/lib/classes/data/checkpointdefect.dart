@@ -39,11 +39,11 @@ class CheckPointDefect extends Data
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<ImageData?>>? image_streams;
+  List<Stream<ImageData?>>? image_streams;
   @JsonKey(ignore: true)
-  Future<ImageData?> mainImage = Future.value(null);
+  Stream<ImageData?> mainImage = Stream.value(null);
   @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
+  Stream<ImageData?> previewImage = Stream.value(null);
 
   CheckPointDefect(
       {required this.pjNr,
