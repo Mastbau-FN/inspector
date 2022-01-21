@@ -15,6 +15,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class ImagesPage<T extends Object> extends StatelessWidget {
+  ChangeNotifier changeModel = ChangeNotifier();
+
   List<Stream<ImageData<T>?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
@@ -45,8 +47,10 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       this.onNewImages = _defaultAdd,
       this.onDelete = _defaultDelete,
       this.onStar = _default,
-      this.onShare = _default})
-      : super(key: key) {
+      this.onShare = _default,
+      ChangeNotifier? changeModel})
+      : this.changeModel = changeModel ?? ChangeNotifier(),
+        super(key: key) {
     this._images =
         images?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
   }
@@ -58,8 +62,10 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       this.onNewImages = _defaultAdd,
       this.onDelete = _defaultDelete,
       this.onStar = _default,
-      this.onShare = _default})
-      : super(key: key) {
+      this.onShare = _default,
+      ChangeNotifier? changeModel})
+      : this.changeModel = changeModel ?? ChangeNotifier(),
+        super(key: key) {
     this._images =
         future_images?.map((e) => Stream.fromFuture(e)).toList() ?? [];
   }
@@ -71,8 +77,10 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       this.onNewImages = _defaultAdd,
       this.onDelete = _defaultDelete,
       this.onStar = _default,
-      this.onShare = _default})
-      : super(key: key) {
+      this.onShare = _default,
+      ChangeNotifier? changeModel})
+      : this.changeModel = changeModel ?? ChangeNotifier(),
+        super(key: key) {
     this._images = imageStreams ?? [];
   }
 
@@ -84,11 +92,36 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       appBar: AppBar(
         title: Text('Bilder'),
       ),
-      body: ImageWrap<T>.futured(
-        images: _images,
-        onDelete: onDelete,
-        onShare: onShare,
-        onStar: onStar,
+      body: ChangeNotifierProvider.value(
+        value: changeModel,
+        child: Builder(builder: (context) {
+          if (changeModel == null) {
+            return ImageWrap<T>.futured(
+              images: _images,
+              onDelete: onDelete,
+              onShare: onShare,
+              onStar: onStar,
+            );
+          }
+          return Consumer<ChangeNotifier>(builder: (context, snap, child) {
+            //das workaround hier fühlt sich ganz ganz komisch an, aber naja es funktioniert zumindest so halb
+            return ImageWrap<T>.futured(
+              images: _images,
+              onDelete: (v) => onDelete(v).then((v) {
+                changeModel?.notifyListeners();
+                return v;
+              }),
+              onShare: (v) => onShare(v).then((v) {
+                changeModel?.notifyListeners();
+                return v;
+              }),
+              onStar: (v) => onStar(v).then((v) {
+                changeModel?.notifyListeners();
+                return v;
+              }),
+            );
+          });
+        }),
       ),
       floatingActionButton: ChangeNotifierProvider(
         create: (ocontext) => CameraModel(),
