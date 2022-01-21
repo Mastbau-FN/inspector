@@ -37,11 +37,11 @@ class InspectionLocation extends Data with WithImgHashes {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Stream<ImageData?>>? image_streams;
+  List<Future<ImageData?>>? image_streams;
   @JsonKey(ignore: true)
-  Stream<ImageData?> mainImage = Stream.value(null);
+  Future<ImageData?> mainImage = Future.value(null);
   @JsonKey(ignore: true)
-  Stream<ImageData?> previewImage = Stream.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
 
   InspectionLocation({
     this.bauleitung,
