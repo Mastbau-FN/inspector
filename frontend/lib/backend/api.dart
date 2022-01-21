@@ -200,7 +200,7 @@ class Backend {
 
       //but we get another image anyway, since we want one that we can show as preview
       data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
-            (hash) => _fetchImage(hash),
+            (hash) => _fetchImage(hash), //.asBroadcastStream(),
           ) ??
           []);
       //Future.doWhile(() => fetchdata)
@@ -211,7 +211,7 @@ class Backend {
 
       data.image_streams = data.imagehashes
           ?.map(
-            (hash) => _fetchImage(hash),
+            (hash) => _fetchImage(hash), //.asBroadcastStream(),
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
 

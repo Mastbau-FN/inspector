@@ -51,10 +51,19 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect> {
         switch (tiledata.title) {
           case 'Fotos':
             return ImagesPage.streamed(
+              changeModel: this,
               imageStreams: data.image_streams,
-              onNewImages: (files) => Backend().uploadFiles(data, files),
-              onStar: (hash) =>
-                  Backend().setMainImageByHash(data, hash.toString()),
+              onNewImages: (files) =>
+                  Backend().uploadFiles(data, files).then((value) {
+                notifyListeners();
+                return value;
+              }),
+              onStar: (hash) => Backend()
+                  .setMainImageByHash(data, hash.toString())
+                  .then((value) {
+                notifyListeners();
+                return value;
+              }),
             );
 
           default:

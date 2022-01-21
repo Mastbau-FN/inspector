@@ -143,7 +143,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
     Stream<ImageData<T>?> image, {
     fallBackWidget = const LoadingView(),
   })  : this.tag = UniqueKey(),
-        this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
+        this.fallBackWidget = Center(child: LoadingView()) {
     image.forEach((value) {
       this.image = value?.image.image;
       if (value != null) this.tag = value.id;
