@@ -86,7 +86,7 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException("no network available");
-    if (!Consts.canUseMobileNetworkIfPossible &&
+    if (!Options.canUseMobileNetworkIfPossible &&
         connection == ConnectivityResult.mobile)
       throw NoConnectionToBackendException("mobile network not allowed");
 
@@ -156,25 +156,29 @@ class Backend {
   }
 
   Stream<ImageData?> _fetchImage(String hash) async* {
+    bool cacheHit = false;
     try {
       final img = await OP.readImage(hash);
-      yield (img == null) ? null : ImageData(img, id: hash);
+      if (img == null) throw Exception("no img cached");
+      yield ImageData(img, id: hash);
+      cacheHit = true;
     } catch (e) {
       yield null;
     }
-
-    http.Response? res =
-        (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-            ?.forceRes();
-    if (res == null || res.statusCode != 200)
-      yield null;
-    else {
-      try {
-        yield ImageData(
-          Image.file(File((await OP.storeImage(res.bodyBytes, hash))!.path)),
-          id: hash,
-        );
-      } catch (e) {}
+    if (!cacheHit || Options.preferRemoteImages) {
+      http.Response? res =
+          (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
+              ?.forceRes();
+      if (res == null || res.statusCode != 200)
+        yield null;
+      else {
+        try {
+          yield ImageData(
+            Image.file(File((await OP.storeImage(res.bodyBytes, hash))!.path)),
+            id: hash,
+          );
+        } catch (e) {}
+      }
     }
   }
 

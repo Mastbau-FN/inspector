@@ -134,7 +134,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
     image.then((value) {
       this.image = value?.image.image;
       if (value != null) this.tag = value.id;
-      debugPrint(this.tag.toString());
+      // debugPrint(this.tag.toString());
       notifyListeners();
     });
   }
@@ -147,7 +147,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
     image.forEach((value) {
       this.image = value?.image.image;
       if (value != null) this.tag = value.id;
-      debugPrint(this.tag.toString());
+      // debugPrint(this.tag.toString());
       notifyListeners();
     });
   }
