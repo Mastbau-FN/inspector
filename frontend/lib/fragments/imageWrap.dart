@@ -1,5 +1,4 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 
@@ -58,7 +57,6 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
   final List<ImageItem<T>> _allImages;
 
-  //TODO; chose new mainImage -> callback
   @override
   Widget build(BuildContext context) => Builder(
         builder: (context) {
@@ -76,7 +74,8 @@ class ImageWrap<T extends Object> extends StatelessWidget {
                     onStar: onStar,
                     currentIndex: i,
                     chosenIndex:
-                        0, //TODO: make this dynamic on callback or something for #20
+                        0, //// make this dynamic on callback or something for #20
+                    // instead solve #36 and move chosen image to front
                     allImages: _allImages,
                   ));
         },

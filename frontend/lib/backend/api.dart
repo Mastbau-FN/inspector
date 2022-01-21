@@ -168,8 +168,11 @@ class Backend {
     if (res == null || res.statusCode != 200)
       yield null;
     else {
-      final imgFile = File((await OP.storeImage(res.bodyBytes, hash)).path);
-      yield ImageData(Image.file(imgFile), id: hash);
+      final xfile = (await OP.storeImage(res.bodyBytes, hash));
+      final imgFile = xfile == null ? null : File(xfile.path);
+      try {
+        yield imgFile == null ? null : ImageData(Image.file(imgFile), id: hash);
+      } catch (e) {}
     }
   }
 
