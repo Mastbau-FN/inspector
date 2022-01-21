@@ -26,6 +26,10 @@ Future<XFile?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
-Future<Image?> readImage(String name) async =>
-//TODO: was wenn keine datei da lesbar ist? -> return null
-    Image.file(await _localFile(name));
+Future<Image?> readImage(String name) async {
+  if (await (await _localFile(name)).exists())
+    throw Exception("file doesnt exist");
+  //TODO: was wenn keine datei da lesbar ist? -> return null
+  // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
+  return Image.file(await _localFile(name));
+}

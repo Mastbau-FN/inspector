@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Options {
   static const canUseMobileNetworkIfPossible = true;
-  static const preferRemoteImages = false;
+  static const preferRemoteImages = true;
 }
 
 class Design {
