@@ -161,7 +161,7 @@ class Backend {
       yield ImageData(img, id: hash);
       cacheHit = true;
     } catch (e) {
-      yield null;
+      //yield null;
     }
     if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res =
@@ -171,11 +171,20 @@ class Backend {
         yield null;
       else {
         try {
+          await OP.storeImage(res.bodyBytes, hash);
           yield ImageData(
-            Image.file(File((await OP.storeImage(res.bodyBytes, hash))!.path)),
+            (await OP.readImage(hash))!,
             id: hash,
           );
         } catch (e) {}
+        //XXX: this could be a really bad workaround to make the streams useable as broadcaststreams
+        // while (Options.infinitelyreloadPictures) {
+        //   await Future.delayed(Duration(seconds: 5));
+        //   yield ImageData(
+        //     (await OP.readImage(hash))!,
+        //     id: hash,
+        //   );
+        // }
       }
     }
   }
@@ -200,7 +209,8 @@ class Backend {
 
       //but we get another image anyway, since we want one that we can show as preview
       data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
-            (hash) => _fetchImage(hash).asBroadcastStream(),
+            (hash) => _fetchImage(hash)
+                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           ) ??
           []);
       //Future.doWhile(() => fetchdata)
@@ -211,7 +221,8 @@ class Backend {
 
       data.image_streams = data.imagehashes
           ?.map(
-            (hash) => _fetchImage(hash).asBroadcastStream(),
+            (hash) => _fetchImage(hash)
+                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
 
