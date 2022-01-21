@@ -155,20 +155,25 @@ class Backend {
     }
   }
 
-  Future<ImageData?> _fetchImage(String hash) async {
+  Stream<ImageData?> _fetchImage(String hash) async* {
+    bool cacheHit = false;
     try {
       final img = await OP.readImage(hash);
       if (img == null) throw Exception("no img cached");
-      return ImageData(img, id: hash);
+      yield ImageData(img, id: hash);
+      cacheHit = true;
     } catch (e) {
+      yield null;
+    }
+    if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res =
           (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
               ?.forceRes();
       if (res == null || res.statusCode != 200)
-        return null;
+        yield null;
       else {
         try {
-          return ImageData(
+          yield ImageData(
             Image.file(File((await OP.storeImage(res.bodyBytes, hash))!.path)),
             id: hash,
           );
@@ -196,11 +201,10 @@ class Backend {
       first_working_image_index++;
 
       //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage =
-          IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
-                (hash) => _fetchImage(hash),
-              ) ??
-              []);
+      data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
+            (hash) => _fetchImage(hash),
+          ) ??
+          []);
       //Future.doWhile(() => fetchdata)
       //Future.any(data.imagehashes?.map(
       //      (hash) => _fetchImage(hash),

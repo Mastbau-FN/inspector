@@ -15,7 +15,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class ImagesPage<T extends Object> extends StatelessWidget {
-  List<Future<ImageData<T>?>> _images = [];
+  List<Stream<ImageData<T>?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
 
@@ -48,7 +48,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       this.onShare = _default})
       : super(key: key) {
     this._images =
-        images?.whereNotNull().map((e) => Future.value(e)).toList() ?? [];
+        images?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
   }
 
   ImagesPage.futured(
@@ -60,11 +60,12 @@ class ImagesPage<T extends Object> extends StatelessWidget {
       this.onStar = _default,
       this.onShare = _default})
       : super(key: key) {
-    this._images = future_images ?? [];
+    this._images =
+        future_images?.map((e) => Stream.fromFuture(e)).toList() ?? [];
   }
 
   ImagesPage.streamed(
-      {List<Future<ImageData<T>?>>? imageStreams = const [],
+      {List<Stream<ImageData<T>?>>? imageStreams = const [],
       this.columnCount = 4,
       Key? key,
       this.onNewImages = _defaultAdd,

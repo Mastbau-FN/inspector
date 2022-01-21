@@ -139,17 +139,16 @@ class ImageItem<T extends Object> with ChangeNotifier {
     });
   }
 
-  // @deprecated
-  // ImageItem.fromImageDataStream(
-  //   Stream<ImageData<T>?> image, {
-  //   fallBackWidget = const LoadingView(),
-  // })  : this.tag = UniqueKey(),
-  //       this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
-  //   image.forEach((value) {
-  //     this.image = value?.image.image;
-  //     if (value != null) this.tag = value.id;
-  //     // debugPrint(this.tag.toString());
-  //     notifyListeners();
-  //   });
-  // }
+  ImageItem.fromImageDataStream(
+    Stream<ImageData<T>?> image, {
+    fallBackWidget = const LoadingView(),
+  })  : this.tag = UniqueKey(),
+        this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
+    image.forEach((value) {
+      this.image = value?.image.image;
+      if (value != null) this.tag = value.id;
+      // debugPrint(this.tag.toString());
+      notifyListeners();
+    });
+  }
 }
