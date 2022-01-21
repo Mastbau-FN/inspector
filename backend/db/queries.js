@@ -17,7 +17,7 @@ const imgfiler = require("../images/filesystem");
 
 var assert = require('assert');
 
-const identifiers = require('./misc/identifiers').identifiers;
+const identifiers = require('../misc/identifiers').identifiers;
 
 // MARK: Helpers
 
