@@ -318,7 +318,7 @@ class Backend {
     if (childTypeStr == null) throw Exception('type not supported');
     return _getAllForNextLevel(
       route: routesFromData<ChildData>(null),
-      jsonResponseID: childTypeStr,
+      jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
       fromJson: (json) => Data.fromJson<ChildData>(json),
     );
