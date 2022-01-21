@@ -24,12 +24,7 @@ const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
 
-const identifiers = {
-  location: "location",
-  category: "category",
-  checkpoint: "checkpoint",
-  defect: "defect",
-};
+const identifiers = require('./misc/identifiers').identifiers;
 
 const datapointRoutes = [
   { route: `/${identifiers.location}/get`, api: api.getProjects },

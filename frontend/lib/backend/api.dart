@@ -15,8 +15,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
-import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
@@ -242,8 +240,9 @@ class Backend {
   }) async {
     Map<String, dynamic> _json = {};
     try {
+      final res = (await post_JSON(route, json: json))?.forceRes()?.body;
       _json = jsonDecode(
-        (await post_JSON(route, json: json))?.forceRes()?.body ?? '',
+        res ?? '',
       );
     } catch (e) {
       debugPrint(e.toString());
@@ -315,11 +314,11 @@ class Backend {
       getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
     ParentData data,
   ) {
-    final childType = Helper.getIdentifierFromData<ChildData>(null);
-    if (childType == null) throw Exception('type not supported');
+    final childTypeStr = Helper.getIdentifierFromData<ChildData>(null);
+    if (childTypeStr == null) throw Exception('type not supported');
     return _getAllForNextLevel(
       route: routesFromData<ChildData>(null),
-      jsonResponseID: childType,
+      jsonResponseID: childTypeStr,
       json: data?.toSmallJson(),
       fromJson: (json) => Data.fromJson<ChildData>(json),
     );

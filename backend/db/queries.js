@@ -17,6 +17,8 @@ const imgfiler = require("../images/filesystem");
 
 var assert = require('assert');
 
+const identifiers = require('./misc/identifiers').identifiers;
+
 // MARK: Helpers
 
 //adding .last() for arrays
@@ -165,15 +167,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
   let params;
   let queryfile;
   switch (data.type) {
-    case 'category':
+    case identifiers.category:
       queryfile = folder+"/check_categories";
       params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL];
       break;
-    case 'checkpoint':
+    case identifiers.checkpoint:
       queryfile = folder+"/check_points";
       params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL];
       break;
-    case 'defect':
+    case identifiers.defect:
       queryfile = folder+"/check_point_defects";
       params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL];
       break;
@@ -200,15 +202,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  let params;
  let queryfile;
  switch (data.type) {
-   case 'category':
+   case identifiers.category:
      queryfile = folder+"/check_categories";
      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
-   case 'checkpoint':
+   case identifiers.checkpoint:
      queryfile = folder+"/check_points";
      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
-   case 'defect':
+   case identifiers.defect:
      queryfile = folder+"/check_point_defects";
      params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
      break;
@@ -233,19 +235,19 @@ const delete_ = async (data, KZL) => {
 
   /// checks if the given dta fits the type
   assert(
-    (data.type == 'category'
+    (data.type == identifiers.category
       && ld.E1
       && !ld.E2
       && !ld.E3
     )
     ||
-    (data.type == 'checkpoint'
+    (data.type == identifiers.checkpoint
       && ld.E1
       && ld.E2
       && !ld.E3
     )
     ||
-    (data.type == 'defect'
+    (data.type == identifiers.defect
       && ld.E1
       && ld.E2
       && ld.E3
