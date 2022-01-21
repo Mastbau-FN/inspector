@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CameraModel extends ChangeNotifier {
   Future<CameraController> get new_controller async => CameraController(

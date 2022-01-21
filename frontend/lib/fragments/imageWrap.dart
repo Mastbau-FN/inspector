@@ -1,5 +1,4 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +8,6 @@ import 'package:provider/provider.dart';
 import 'galleryWrapper.dart';
 
 class ImageWrap<T extends Object> extends StatelessWidget {
-  static final _fetchallfirst = false;
-
   static _default(Object _) {
     showToast("Not Available");
   }
@@ -20,7 +17,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   final Function(T) onShare;
 
   final ImageData<T>? chosenOne;
-  final List<Future<ImageData<T>?>> images;
+  final List<Stream<ImageData<T>?>> images;
   final int columnCount;
   ImageWrap.constant({
     List<ImageData<T>> images = const [],
@@ -30,9 +27,10 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
-  })  : this.images = images.map((e) => Future.value(e)).toList(),
+  })  : this.images = images.map((e) => Stream.value(e)).toList(),
         _allImages = images.map((e) => ImageItem.fromImageData(e)).toList(),
         super(key: key);
+
   ImageWrap.futured({
     required this.images,
     this.columnCount = 4,
@@ -42,26 +40,29 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onStar = _default,
     this.onShare = _default,
   })  : _allImages =
-            images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
+            images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
+        super(key: key);
+
+  ImageWrap.streamed({
+    required this.images,
+    this.columnCount = 4,
+    Key? key,
+    this.chosenOne,
+    this.onDelete = _default,
+    this.onStar = _default,
+    this.onShare = _default,
+  })  : _allImages =
+            images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
         super(key: key);
 
   final List<ImageItem<T>> _allImages;
 
-  //TODO; chose new mainImage -> callback
   @override
-  Widget build(BuildContext context) => FutureBuilder<List<ImageItem<T>>>(
-        future: !_fetchallfirst
-            ? null
-            : Future.wait(images).then((e) =>
-                e.map((image) => ImageItem.fromImageData(image)).toList()),
-        builder: (context, snapshot) {
-          if (_fetchallfirst &&
-              snapshot.connectionState != ConnectionState.done)
-            return LoadingView();
+  Widget build(BuildContext context) => Builder(
+        builder: (context) {
           return GridView.builder(
               padding: const EdgeInsets.all(2.0),
-              itemCount:
-                  !_fetchallfirst ? images.length : snapshot.data?.length ?? 0,
+              itemCount: images.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: columnCount,
               ),
@@ -73,9 +74,9 @@ class ImageWrap<T extends Object> extends StatelessWidget {
                     onStar: onStar,
                     currentIndex: i,
                     chosenIndex:
-                        0, //TODO: make this dynamic on callback or something for #20
-                    allImages:
-                        !_fetchallfirst ? _allImages : snapshot.data ?? [],
+                        0, //// make this dynamic on callback or something for #20
+                    // instead solve #36 and move chosen image to front
+                    allImages: _allImages,
                   ));
         },
       );
