@@ -253,13 +253,13 @@ class Backend {
   }) async {
     assert((await user) != null,
         'no one is logged in so we refuse to get any data');
-    String _id = id ?? (await user)!.name;
+    String _id = id ?? json?['local_id'] ?? (await user)!.name;
     Map<String, dynamic> _json = {};
     try {
       final res = (await post_JSON(
         route,
         json: json,
-        timeout: Duration(seconds: 2),
+        timeout: Duration(seconds: 5),
       ))
           ?.forceRes()
           ?.body;
@@ -285,7 +285,6 @@ class Backend {
     );
     for (var data in datapoints) {
       String childId = await OP.storeData(data, forId: _id);
-      //TODO:store list of child-ids somewhere (preferably in ChildData itself) to be able to use it for next level
     }
     return datapoints;
   }

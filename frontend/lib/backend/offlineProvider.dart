@@ -57,11 +57,12 @@ String _getCollectionNameForData<DataT extends Data>(String parentId) {
 
 /// permanently stores a DataT in its corresponding collection
 Future<String> storeData<DataT extends Data>(DataT data,
-    {required String forId}) async {
+    {required String forId, bool addId = true}) async {
   final collectionName = _getCollectionNameForData<DataT>(forId);
   final id = db.collection(collectionName).doc().id;
-
-  db.collection(collectionName).doc(id).set(data.toJson());
+  var json = data.toJson();
+  if (addId) json['local_id'] = id;
+  db.collection(collectionName).doc(id).set(json);
   return forId + '-' + id;
 }
 

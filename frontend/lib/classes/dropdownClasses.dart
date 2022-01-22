@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
@@ -9,6 +10,8 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
+
+import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
@@ -32,7 +35,22 @@ abstract class Data implements WithImgHashes {
   Map<String, dynamic> toSmallJson();
 
   //XXX: sadly https://github.com/dart-lang/language/issues/356
-  static T? fromJson<T extends Data>(Map<String, dynamic> map) => null;
+  static T? fromJson<T extends Data>(Map<String, dynamic> map) {
+    //whacker workaround
+    //XXX: alle subclassen müssen hier eingetragen werden
+    switch (typeOf<T>()) {
+      case InspectionLocation:
+        return InspectionLocation.fromJson(map) as T;
+      case CheckCategory:
+        return CheckCategory.fromJson(map) as T;
+      case CheckPoint:
+        return CheckPoint.fromJson(map) as T;
+      case CheckPointDefect:
+        return CheckPointDefect.fromJson(map) as T;
+      default:
+        return null;
+    }
+  }
 }
 
 mixin WithLangText on Data {
