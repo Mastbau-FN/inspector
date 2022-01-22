@@ -94,21 +94,21 @@ class Backend {
   }
 
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  Future<http.Response> post(
-    String route, {
-    Map<String, String>? headers,
-    Object? body,
-    Encoding? encoding,
-  }) async {
+  Future<http.Response> post(String route,
+      {Map<String, String>? headers,
+      Object? body,
+      Encoding? encoding,
+      Duration? timeout}) async {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
-    var ret = await http.post(
+    final req = http.post(
       fullURL,
       headers: headers,
       body: body,
       encoding: encoding,
     );
+    var ret = (timeout == null) ? await req : await req.timeout(timeout);
     //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
     return ret;
   }
@@ -118,6 +118,7 @@ class Backend {
     String route, {
     Map<String, dynamic>? json,
     List<XFile> multipart_files = const [],
+    Duration? timeout,
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
@@ -140,10 +141,17 @@ class Backend {
           ..fields.addAll(/*flatten()*/ json.map<String, String>(
               (key, value) => MapEntry(key, value.toString())));
         debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-        var res = await mreq.send();
+        var res = (timeout == null)
+            ? await mreq.send()
+            : await mreq.send().timeout(timeout);
         return res;
       }
-      return post(route, headers: headers, body: jsonEncode(json));
+      return post(
+        route,
+        headers: headers,
+        body: jsonEncode(json),
+        timeout: timeout,
+      );
     } catch (e) {
       debugPrint("request failed, cause : ${e}");
       return null;
