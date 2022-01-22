@@ -30,7 +30,7 @@ const getProjects = (req, res, next) =>
   errsafejson(
     async () =>
       await location.addCoords(
-        await (await queries.getInspectionsForUser(req.user)).hashImages()
+        await (await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds()
       ),
     (x) => {
       var ret = {};
@@ -46,7 +46,7 @@ const getCategories = (req, res, next) =>
     async () =>
       await (
         await queries.getCheckCategoriesForPjNR(req.body.PjNr)
-      ).hashImages(),
+      ).hashImagesAndCreateIds(),
     (x) => {
       var ret = {};
       ret[`${identifiers.category}s`] = x;
@@ -61,7 +61,7 @@ const getCheckPoints = (req, res, next) =>
     async () =>
       await (
         await queries.getCheckPoints(req.body.PjNr, req.body.E1)
-      ).hashImages(),
+      ).hashImagesAndCreateIds(),
     (x) => {
       var ret = {};
       ret[`${identifiers.checkpoint}s`] = x;
@@ -80,7 +80,7 @@ const getCheckPointDefects = (req, res, next) =>
           req.body.E1,
           req.body.E2
         )
-      ).hashImages(),
+      ).hashImagesAndCreateIds(),
     (x) => {
       var ret = {};
       ret[`${identifiers.defect}s`] = x;

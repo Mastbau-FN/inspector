@@ -92,8 +92,8 @@ const queryFileWithParams = async (file, params, addHashFunction = true, debug=f
   if(debug)console.log(data)
 
   if (addHashFunction) {
-    data.rows.hashImages = async function () {
-      return await hashImages(this);
+    data.rows.hashImagesAndCreateIds = async function () {
+      return await hashImagesAndCreateIds(this);
     };
   }
   return data.rows;
@@ -347,7 +347,7 @@ module.exports = {
   deleteImgByHash,
 };
 
-const hashImages = async (tthis) => {
+const hashImagesAndCreateIds = async (tthis) => {
   for (thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, mainImg } = await getLink(thingy);
@@ -369,6 +369,7 @@ const hashImages = async (tthis) => {
         await imghasher.memorize(rootfolder, link, mainImg)
       );
     }
+    thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
     delete thingy.Link;
     //never needed anyways
@@ -376,7 +377,7 @@ const hashImages = async (tthis) => {
   }
 
   //// //selfdestruction muhhahah
-  //// delete data.rows.hashImages;
+  //// delete data.rows.hashImagesAndCreateIds;
 
   return tthis;
 };

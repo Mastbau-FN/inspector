@@ -22,7 +22,7 @@ const addLocations = async (locationList) => {
     }
   
     //// //selfdestruction muhhahah
-    //// delete data.rows.hashImages;
+    //// delete data.rows.hashImagesAndCreateIds;
   
     return locationList;
 };
