@@ -285,6 +285,7 @@ class Backend {
     );
     for (var data in datapoints) {
       String childId = await OP.storeData(data, forId: _id);
+      debugPrint("stored new child with id: " + childId);
     }
     return datapoints;
   }
