@@ -73,7 +73,9 @@ class Backend {
 
   /// checks whether a connection to the backend is possible
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
-  Future connectionGuard() async {
+  Future connectionGuard({
+    Duration? timeout,
+  }) async {
     if (_baseurl == null)
       throw NoConnectionToBackendException("no url provided");
 
@@ -87,18 +89,20 @@ class Backend {
 
     try {
       // check if we can reach our api
-      await post_JSON('/login');
+      await post_JSON('/login', timeout: timeout);
     } catch (e) {
       throw NoConnectionToBackendException("couldn't reach $_baseurl");
     }
   }
 
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  Future<http.Response> post(String route,
-      {Map<String, String>? headers,
-      Object? body,
-      Encoding? encoding,
-      Duration? timeout}) async {
+  Future<http.Response> post(
+    String route, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+    Duration? timeout,
+  }) async {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
@@ -245,15 +249,31 @@ class Backend {
     required String jsonResponseID,
     Map<String, dynamic>? json,
     required ChildData? Function(Map<String, dynamic>) fromJson,
+    String? id,
   }) async {
     Map<String, dynamic> _json = {};
     try {
-      final res = (await post_JSON(route, json: json))?.forceRes()?.body;
+      final res = (await post_JSON(
+        route,
+        json: json,
+        timeout: Duration(seconds: 2),
+      ))
+          ?.forceRes()
+          ?.body;
       _json = jsonDecode(
         res ?? '',
       );
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("couldnt reach API: " + e.toString());
+      try {
+        return (await OP
+                    .getAllChildrenFrom<ChildData>(id ?? (await user)!.name))
+                ?.whereType<ChildData>()
+                .toList() ??
+            [];
+      } catch (e) {
+        debugPrint("also couldnt read data from disk..: " + e.toString());
+      }
     }
     return await getListFromJson(
       _json,

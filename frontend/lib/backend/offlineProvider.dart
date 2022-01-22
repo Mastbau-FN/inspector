@@ -83,10 +83,9 @@ Future deleteData<DataT extends Data>(String id,
 
 /// this is probably the most used in this project
 /// it returns all [Data] ([ChildData]) -points that correspond to the [ParentData] with given [id]
-Future<List<ChildData?>?>
-    getAllChildrenFrom<ChildData extends Data, ParentData extends Data>(
-        String id) async {
-  final collectionName = _getCollectionNameForData<ParentData>(id);
+Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
+    String id) async {
+  final collectionName = _getCollectionNameForData<ChildData>(id);
   final items = await db.collection(collectionName).get();
   return items?.values
       .map((data) => Data.fromJson<ChildData>(data ?? {}))
