@@ -7,6 +7,8 @@ part 'checkpoint.g.dart';
 
 @JsonSerializable()
 class CheckPoint extends Data with WithLangText, WithImgHashes, WithAuthor {
+  @JsonKey(name: 'local_id')
+  String? id;
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')

@@ -23,6 +23,8 @@ abstract class Data implements WithImgHashes {
   String get title;
   String? get subtitle => null;
 
+  String? id;
+
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
   Widget? get extra => null;
 
