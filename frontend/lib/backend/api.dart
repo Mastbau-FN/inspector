@@ -251,6 +251,9 @@ class Backend {
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
   }) async {
+    assert((await user) != null,
+        'no one is logged in so we refuse to get any data');
+    String _id = id ?? (await user)!.name;
     Map<String, dynamic> _json = {};
     try {
       final res = (await post_JSON(
@@ -266,20 +269,25 @@ class Backend {
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
       try {
-        return (await OP
-                    .getAllChildrenFrom<ChildData>(id ?? (await user)!.name))
+        return (await OP.getAllChildrenFrom<ChildData>(_id))
                 ?.whereType<ChildData>()
                 .toList() ??
             [];
       } catch (e) {
         debugPrint("also couldnt read data from disk..: " + e.toString());
+        return [];
       }
     }
-    return await getListFromJson(
+    final datapoints = await getListFromJson(
       _json,
       _generateImageFetcher(fromJson),
       objName: jsonResponseID,
     );
+    for (var data in datapoints) {
+      String childId = await OP.storeData(data, forId: _id);
+      //TODO:store list of child-ids somewhere (preferably in ChildData itself) to be able to use it for next level
+    }
+    return datapoints;
   }
 
   /// sends a [DataT] with the corresponding identifier to the given route
