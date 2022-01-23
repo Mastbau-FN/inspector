@@ -1,4 +1,5 @@
 # [DOKU](https://mastbau-fn.github.io/inspector/doc/)
+
 # Try [here](https://mastbau-fn.github.io/inspector/app/)
 
 # inspector
@@ -28,7 +29,6 @@ create a .env file in the frontend dir containing a field `API_KEY=xxx`
 
 - `flutter pub run build_runner build --delete-conflicting-outputs` to run code gen (probably optional)
 - `flutter build` {apk, web, ..}
-
 
 ### Sign
 

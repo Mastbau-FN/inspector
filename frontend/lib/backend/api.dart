@@ -15,21 +15,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
-import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
 
 import './offlineProvider.dart' as OP;
+import './helpers.dart' as Helper;
 
-const _debugAllResponses = true;
-
-const _getProjects_r = '/projects/get';
-const _getCategories_r = '/categories/get';
-const _getCheckPoints_r = '/checkPoints/get';
-const _getCheckPointDefects_r = '/checkPointDefects/get';
+String routesFromData<DataT extends Data>(DataT? data) =>
+    '/${Helper.getIdentifierFromData(data)}/get';
 
 const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
@@ -78,7 +73,9 @@ class Backend {
 
   /// checks whether a connection to the backend is possible
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
-  Future connectionGuard() async {
+  Future connectionGuard({
+    Duration? timeout,
+  }) async {
     if (_baseurl == null)
       throw NoConnectionToBackendException("no url provided");
 
@@ -92,7 +89,7 @@ class Backend {
 
     try {
       // check if we can reach our api
-      await post_JSON('/login');
+      await post_JSON('/login', timeout: timeout);
     } catch (e) {
       throw NoConnectionToBackendException("couldn't reach $_baseurl");
     }
@@ -104,16 +101,18 @@ class Backend {
     Map<String, String>? headers,
     Object? body,
     Encoding? encoding,
+    Duration? timeout,
   }) async {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
-    var ret = await http.post(
+    final req = http.post(
       fullURL,
       headers: headers,
       body: body,
       encoding: encoding,
     );
+    var ret = (timeout == null) ? await req : await req.timeout(timeout);
     //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
     return ret;
   }
@@ -123,6 +122,7 @@ class Backend {
     String route, {
     Map<String, dynamic>? json,
     List<XFile> multipart_files = const [],
+    Duration? timeout,
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
@@ -145,16 +145,24 @@ class Backend {
           ..fields.addAll(/*flatten()*/ json.map<String, String>(
               (key, value) => MapEntry(key, value.toString())));
         debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-        var res = await mreq.send();
+        var res = (timeout == null)
+            ? await mreq.send()
+            : await mreq.send().timeout(timeout);
         return res;
       }
-      return post(route, headers: headers, body: jsonEncode(json));
+      return post(
+        route,
+        headers: headers,
+        body: jsonEncode(json),
+        timeout: timeout,
+      );
     } catch (e) {
       debugPrint("request failed, cause : ${e}");
       return null;
     }
   }
 
+  //final _imageStreamController = BehaviorSubject<String>();
   Stream<ImageData?> _fetchImage(String hash) async* {
     bool cacheHit = false;
     try {
@@ -163,7 +171,7 @@ class Backend {
       yield ImageData(img, id: hash);
       cacheHit = true;
     } catch (e) {
-      yield null;
+      //yield null;
     }
     if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res =
@@ -173,11 +181,22 @@ class Backend {
         yield null;
       else {
         try {
+          await OP.storeImage(res.bodyBytes, hash);
           yield ImageData(
-            Image.file(File((await OP.storeImage(res.bodyBytes, hash))!.path)),
+            (await OP.readImage(hash))!,
             id: hash,
           );
-        } catch (e) {}
+        } catch (e) {
+          debugPrint("failed to load webimg: " + e.toString());
+        }
+        //XXX: this could be a really bad workaround to make the streams useable as broadcaststreams
+        // while (Options.infinitelyreloadPictures) {
+        //   await Future.delayed(Duration(seconds: 5));
+        //   yield ImageData(
+        //     (await OP.readImage(hash))!,
+        //     id: hash,
+        //   );
+        // }
       }
     }
   }
@@ -202,7 +221,8 @@ class Backend {
 
       //but we get another image anyway, since we want one that we can show as preview
       data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
-            (hash) => _fetchImage(hash),
+            (hash) => _fetchImage(hash)
+                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           ) ??
           []);
       //Future.doWhile(() => fetchdata)
@@ -213,7 +233,8 @@ class Backend {
 
       data.image_streams = data.imagehashes
           ?.map(
-            (hash) => _fetchImage(hash),
+            (hash) => _fetchImage(hash)
+                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
 
@@ -222,44 +243,51 @@ class Backend {
   }
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
-  Future<List<D>> _getAllForNextLevel<D extends Data>({
+  Future<List<ChildData>>
+      _getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
     required String route,
     required String jsonResponseID,
     Map<String, dynamic>? json,
-    required D? Function(Map<String, dynamic>) fromJson,
+    required ChildData? Function(Map<String, dynamic>) fromJson,
+    String? id,
   }) async {
+    assert((await user) != null,
+        'no one is logged in so we refuse to get any data');
+    String _id = id ?? json?['local_id'] ?? (await user)!.name;
     Map<String, dynamic> _json = {};
     try {
+      final res = (await post_JSON(
+        route,
+        json: json,
+        timeout: Duration(seconds: 5),
+      ))
+          ?.forceRes()
+          ?.body;
       _json = jsonDecode(
-        (await post_JSON(route, json: json))?.forceRes()?.body ?? '',
+        res ?? '',
       );
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("couldnt reach API: " + e.toString());
+      try {
+        return (await OP.getAllChildrenFrom<ChildData>(_id))
+                ?.whereType<ChildData>()
+                .toList() ??
+            [];
+      } catch (e) {
+        debugPrint("also couldnt read data from disk..: " + e.toString());
+        return [];
+      }
     }
-    return await getListFromJson(
+    final datapoints = await getListFromJson(
       _json,
       _generateImageFetcher(fromJson),
       objName: jsonResponseID,
     );
-  }
-
-  /// since the backend api knows on which level we are by the identifier string, this function gets the identifiers for each kind of [DataT]
-  /// it is very import to keep these in sinc with the actual backend
-  String? _getIdentifierFromData<DataT extends Data>(DataT data) {
-    switch (typeOf<DataT>()) {
-      case CheckCategory:
-        return 'category';
-
-      case CheckPoint:
-        return 'checkpoint';
-
-      case CheckPointDefect:
-        return 'defect';
-
-      default:
-        debugPrint("yo this type is not supported : ${typeOf<DataT>()}");
-        return null;
+    for (var data in datapoints) {
+      String childId = await OP.storeData(data, forId: _id);
+      debugPrint("stored new child with id: " + childId);
     }
+    return datapoints;
   }
 
   /// sends a [DataT] with the corresponding identifier to the given route
@@ -271,7 +299,7 @@ class Backend {
     if (data == null) return null;
     var json_data = data.toJson();
     http.Response? res = (await post_JSON(route, json: {
-      'type': _getIdentifierFromData(data),
+      'type': Helper.getIdentifierFromData(data),
       'data': json_data,
       ...other
     }))
@@ -316,43 +344,22 @@ class Backend {
     debugPrint('user logged out');
   }
 
-  /// gets all the [InspectionLocation]s for the currently logged in [user]
-  Future<List<InspectionLocation>> getAllInspectionLocationsForCurrentUser() =>
-      _getAllForNextLevel(
-        route: _getProjects_r,
-        jsonResponseID: 'inspections',
-        fromJson: InspectionLocation.fromJson,
-      );
-
-  /// gets all the [CheckCategory]s for the given [InspectionLocation]
-  Future<List<CheckCategory>> getAllCheckCategoriesForLocation(
-          InspectionLocation location) =>
-      _getAllForNextLevel(
-        route: _getCategories_r,
-        jsonResponseID: 'categories',
-        json: location.toSmallJson(),
-        fromJson: CheckCategory.fromJson,
-      );
-
-  /// gets all the [CheckPoint]s corresponding to a given [CheckCategory]
-  Future<List<CheckPoint>> getAllCheckPointsForCategory(
-          CheckCategory category) =>
-      _getAllForNextLevel(
-        route: _getCheckPoints_r,
-        jsonResponseID: 'checkpoints',
-        json: category.toSmallJson(),
-        fromJson: CheckPoint.fromJson,
-      );
-
-  /// gets all the [CheckPointDefect]s for the given [CheckPoint]
-  Future<List<CheckPointDefect>> getAllDefectsForCheckpoint(
-          CheckPoint checkpoint) =>
-      _getAllForNextLevel(
-        route: _getCheckPointDefects_r,
-        jsonResponseID: 'checkpointdefects',
-        json: checkpoint.toSmallJson(),
-        fromJson: CheckPointDefect.fromJson,
-      );
+  /// gets all the [ChildData]points for the given [ParentData]
+  /// if no [ParentData] is given it defaults to root
+  Future<List<ChildData>>
+      getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
+    ParentData data,
+  ) {
+    final childTypeStr = Helper.getIdentifierFromData<ChildData>(null);
+    if (childTypeStr == null) throw Exception('type not supported');
+    return _getAllForNextLevel(
+      route: routesFromData<ChildData>(null),
+      jsonResponseID: childTypeStr + 's',
+      json: data?.toSmallJson(),
+      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(
+          json), //TODO: sadly this doesnt work rn, since its not using thild overriden functions but the super one
+    );
+  }
 
   /// sets a new [DataT]
   Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
@@ -422,7 +429,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
         (await Future.wait(str.map((elem) async => await converter(elem))))
             .whereType<T>());
   } catch (e) {
-    debugPrint(e.toString());
+    debugPrint('could not parse response: ' + e.toString());
     throw BackendCommunicationException(
         'could not parse response: ' + e.toString());
   }

@@ -23,7 +23,8 @@ import '../classes/dropdownClasses.dart';
 /// ```
 /// this will create the page for choosing the next [CheckCategory]
 /// the given model must implement [DropDownModel]!
-class DropDownPage<DataT extends Data, DDModel extends DropDownModel<DataT>>
+class DropDownPage<ChildData extends WithLangText, ParentData extends Data?,
+        DDModel extends DropDownModel<ChildData, ParentData>>
     extends StatelessWidget {
   const DropDownPage({Key? key}) : super(key: key);
 
@@ -40,7 +41,7 @@ class DropDownPage<DataT extends Data, DDModel extends DropDownModel<DataT>>
           title: Text(ddmodel.title),
         ),
         endDrawer: MainDrawer(),
-        body: _DropDownBody<DataT, DDModel>(
+        body: _DropDownBody<ChildData, ParentData, DDModel>(
           ddmodel: ddmodel,
         ),
         floatingActionButton: ddmodel.floatingActionButton,
@@ -49,7 +50,8 @@ class DropDownPage<DataT extends Data, DDModel extends DropDownModel<DataT>>
   }
 }
 
-class _DropDownBody<DataT extends Data, DDModel extends DropDownModel<DataT>>
+class _DropDownBody<ChildData extends WithLangText, ParentData extends Data?,
+        DDModel extends DropDownModel<ChildData, ParentData>>
     extends StatefulWidget {
   final DDModel ddmodel;
   const _DropDownBody({
@@ -58,14 +60,16 @@ class _DropDownBody<DataT extends Data, DDModel extends DropDownModel<DataT>>
   }) : super(key: key);
 
   @override
-  State<_DropDownBody<DataT, DDModel>> createState() =>
-      _DropDownBodyState<DataT, DDModel>();
+  State<_DropDownBody<ChildData, ParentData, DDModel>> createState() =>
+      _DropDownBodyState<ChildData, ParentData, DDModel>();
 }
 
-class _DropDownBodyState<DataT extends Data,
-        DDModel extends DropDownModel<DataT>>
-    extends State<_DropDownBody<DataT, DDModel>> {
-  Future<List<DataT>>? _future;
+class _DropDownBodyState<
+        ChildData extends WithLangText,
+        ParentData extends Data?,
+        DDModel extends DropDownModel<ChildData, ParentData>>
+    extends State<_DropDownBody<ChildData, ParentData, DDModel>> {
+  Future<List<ChildData>>? _future;
 
   @override
   void initState() {
@@ -81,7 +85,7 @@ class _DropDownBodyState<DataT extends Data,
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      return FutureBuilder<List<DataT>>(
+      return FutureBuilder<List<ChildData>>(
         future: ddmodel.all,
         builder: (context, snapshot) => RefreshIndicator(
           onRefresh: _refresh,
@@ -92,14 +96,14 @@ class _DropDownBodyState<DataT extends Data,
   }
 
   Future<void> _refresh() async {
-    List<DataT> freshall =
+    List<ChildData> freshall =
         await Provider.of<DDModel>(context, listen: false).all;
     setState(() {
       _future = Future.value(freshall);
     });
   }
 
-  Widget _list(AsyncSnapshot<List<DataT>> snapshot, BuildContext context) {
+  Widget _list(AsyncSnapshot<List<ChildData>> snapshot, BuildContext context) {
     if (snapshot.connectionState == ConnectionState.done) {
       return ListView(
         children: [
@@ -123,7 +127,7 @@ class _DropDownBodyState<DataT extends Data,
   }
 
   ExpandableCard2 dropDown_element(
-      DataT data, BuildContext context, DDModel ddmodel) {
+      ChildData data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
         previewImg: data.previewImage,
         title: data.title,
@@ -141,7 +145,7 @@ class _DropDownBodyState<DataT extends Data,
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend().delete<DataT>(data).then(
+                      delete: () => Backend().delete<ChildData>(data).then(
                           (value) => showToast(value ?? "delete unseccessful")),
                       confirm_name: data.title,
                     );

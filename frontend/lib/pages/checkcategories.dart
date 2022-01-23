@@ -13,16 +13,10 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'imagesPage.dart';
 
-class CategoryModel extends DropDownModel<CheckCategory> {
-  final Backend _b = Backend();
-  final InspectionLocation currentLocation;
-
+class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
   static const _nextViewTitle = "Prüfpunkte";
 
-  CategoryModel(this.currentLocation);
-
-  Future<List<CheckCategory>> get all =>
-      _b.getAllCheckCategoriesForLocation(currentLocation);
+  CategoryModel(InspectionLocation location) : super(location);
 
   @override
   List<MyListTileData> actions = [
@@ -41,9 +35,6 @@ class CategoryModel extends DropDownModel<CheckCategory> {
   ];
 
   @override
-  String get title => '$currentLocation';
-
-  @override
   void open(
     BuildContext context,
     CheckCategory data,
@@ -53,27 +44,16 @@ class CategoryModel extends DropDownModel<CheckCategory> {
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel<CheckPoint, CheckPointsModel>(
+            return nextModel<CheckPoint, CheckCategory, CheckPointsModel>(
                 CheckPointsModel(data));
           case 'Fotos':
-            return ImagesPage.streamed(
-              imageStreams: data.image_streams,
-              onNewImages: (files) => Backend().uploadFiles(data, files),
-              onStar: (hash) =>
-                  Backend().setMainImageByHash(data, hash.toString()),
-            );
+            return standard_statefulImageView(data, this);
 
           default:
-            return createRichIfPossibleEditor(data, uploadString);
+            return createRichIfPossibleEditor(data, update);
         }
       }),
     );
-  }
-
-  void uploadString(CheckCategory data, txt) async {
-    data.langText = txt;
-    await _b.update(data);
-    notifyListeners();
   }
 
   @override
@@ -83,7 +63,7 @@ class CategoryModel extends DropDownModel<CheckCategory> {
           'checkpoint',
           onSet: (json) async {
             Map<String, dynamic> category = json['checkpoint'];
-            category['PjNr'] = currentLocation.pjNr;
+            category['PjNr'] = currentData.pjNr;
             category['E1'] = -1;
             await Backend().setNew(CheckCategory.fromJson(category));
             notifyListeners();

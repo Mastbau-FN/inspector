@@ -9,6 +9,8 @@ part 'checkpointdefect.g.dart';
 @JsonSerializable()
 class CheckPointDefect extends Data
     with WithLangText, WithImgHashes, WithAuthor {
+  @JsonKey(name: 'local_id')
+  String? id;
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')
