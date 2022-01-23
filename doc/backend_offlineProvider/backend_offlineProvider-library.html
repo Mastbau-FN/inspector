@@ -55,6 +55,23 @@
 
 
 
+    <section class="summary offset-anchor" id="properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="db" class="property">
+  <span class="name"><a href="../backend_offlineProvider/db.html">db</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/localstore/1.2.1/localstore/Localstore-class.html">Localstore</a></span> 
+
+</dt>
+<dd>
+   
+  <div class="features">final</div>
+
+</dd>
+
+      </dl>
+    </section>
 
     <section class="summary offset-anchor" id="functions">
       <h2>Functions</h2>
@@ -73,6 +90,33 @@
 
 </dd>
 
+        <dt id="deleteData" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/deleteData.html">deleteData</a></span><span class="signature">&lt;<wbr><span class="type-parameter">DataT extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="deleteData-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span>, </span><span class="parameter" id="deleteData-param-parentId">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">parentId</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  deletes a DataT via its <code>id</code> and corresponding <code>parentId</code> 
+  
+
+</dd>
+
+        <dt id="getAllChildrenFrom" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/getAllChildrenFrom.html">getAllChildrenFrom</a></span><span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="getAllChildrenFrom-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData?</span>&gt;</span>?</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  this is probably the most used in this project
+it returns all <a href="../classes_dropdownClasses/Data-class.html">Data</a> (<code>ChildData</code>) -points that correspond to the <a href="https://api.flutter.dev/flutter/rendering/ParentData-class.html">ParentData</a> with given <code>id</code> 
+  
+
+</dd>
+
         <dt id="readImage" class="callable">
   <span class="name"><a href="../backend_offlineProvider/readImage.html">readImage</a></span><span class="signature">(<wbr><span class="parameter" id="readImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span>
@@ -82,6 +126,32 @@
 </dt>
 <dd>
    
+  
+
+</dd>
+
+        <dt id="retrieveData" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/retrieveData.html">retrieveData</a></span><span class="signature">&lt;<wbr><span class="type-parameter">DataT extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="retrieveData-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span>, </span><span class="parameter" id="retrieveData-param-parentId">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">parentId</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">DataT?</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  retrieves a DataT via its <code>id</code> and corresponding <code>parentId</code> 
+  
+
+</dd>
+
+        <dt id="storeData" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/storeData.html">storeData</a></span><span class="signature">&lt;<wbr><span class="type-parameter">DataT extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="storeData-param-data"><span class="type-annotation">DataT</span> <span class="parameter-name">data</span>, </span><span class="parameter" id="storeData-param-forId">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">forId</span>, </span><span class="parameter" id="storeData-param-addId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">addId</span> = <span class="default-value">true</span>, </span><span class="parameter" id="storeData-param-override"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">override</span> = <span class="default-value">true</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  permanently stores a DataT in its corresponding collection 
   
 
 </dd>
@@ -147,6 +217,7 @@
       <li><a href="../fragments_galleryWrapper/fragments_galleryWrapper-library.html">galleryWrapper</a></li>
       <li><a href="../widgets_whack_or_depricated_generalDropDown/widgets_whack_or_depricated_generalDropDown-library.html">generalDropDown</a></li>
       <li><a href="../generated_plugin_registrant/generated_plugin_registrant-library.html">generated_plugin_registrant</a></li>
+      <li><a href="../backend_helpers/backend_helpers-library.html">helpers</a></li>
       <li><a href="../pages_homeView/pages_homeView-library.html">homeView</a></li>
       <li><a href="../classes_imageData/classes_imageData-library.html">imageData</a></li>
       <li><a href="../pages_imagesPage/pages_imagesPage-library.html">imagesPage</a></li>
@@ -183,10 +254,16 @@
 
 
 
+  <li class="section-title"><a href="../backend_offlineProvider/backend_offlineProvider-library.html#properties">Properties</a></li>
+  <li><a href="../backend_offlineProvider/db.html">db</a></li>
 
   <li class="section-title"><a href="../backend_offlineProvider/backend_offlineProvider-library.html#functions">Functions</a></li>
   <li><a href="../backend_offlineProvider/deleteAll.html">deleteAll</a></li>
+  <li><a href="../backend_offlineProvider/deleteData.html">deleteData</a></li>
+  <li><a href="../backend_offlineProvider/getAllChildrenFrom.html">getAllChildrenFrom</a></li>
   <li><a href="../backend_offlineProvider/readImage.html">readImage</a></li>
+  <li><a href="../backend_offlineProvider/retrieveData.html">retrieveData</a></li>
+  <li><a href="../backend_offlineProvider/storeData.html">storeData</a></li>
   <li><a href="../backend_offlineProvider/storeImage.html">storeImage</a></li>
 
 
@@ -200,7 +277,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

@@ -79,7 +79,7 @@
         (await Future.wait(str.map((elem) async =&gt; await converter(elem))))
             .whereType&lt;T&gt;());
   } catch (e) {
-    debugPrint(e.toString());
+    debugPrint(&#39;could not parse response: &#39; + e.toString());
     throw BackendCommunicationException(
         &#39;could not parse response: &#39; + e.toString());
   }
@@ -115,6 +115,7 @@
 
   <li class="section-title"><a href="../backend_api/backend_api-library.html#functions">Functions</a></li>
   <li><a href="../backend_api/getListFromJson.html">getListFromJson</a></li>
+  <li><a href="../backend_api/routesFromData.html">routesFromData</a></li>
 
 
 
@@ -130,7 +131,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

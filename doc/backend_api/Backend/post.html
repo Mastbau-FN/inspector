@@ -56,7 +56,8 @@
 <span class="name ">post</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="post-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span></li>
 <li><span class="parameter" id="post-param-headers">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> <span class="parameter-name">headers</span>, </span></li>
 <li><span class="parameter" id="post-param-body"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a>?</span> <span class="parameter-name">body</span>, </span></li>
-<li><span class="parameter" id="post-param-encoding"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-convert/Encoding-class.html">Encoding</a>?</span> <span class="parameter-name">encoding</span>}</span></li>
+<li><span class="parameter" id="post-param-encoding"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-convert/Encoding-class.html">Encoding</a>?</span> <span class="parameter-name">encoding</span>, </span></li>
+<li><span class="parameter" id="post-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>}</span></li>
 </ol>)
 
       
@@ -76,16 +77,18 @@
   Map&lt;String, String&gt;? headers,
   Object? body,
   Encoding? encoding,
+  Duration? timeout,
 }) async {
   headers = headers ?? {};
   headers.addAll({HttpHeaders.authorizationHeader: _api_key});
   var fullURL = Uri.parse(_baseurl! + route);
-  var ret = await http.post(
+  final req = http.post(
     fullURL,
     headers: headers,
     body: body,
     encoding: encoding,
   );
+  var ret = (timeout == null) ? await req : await req.timeout(timeout);
   &#47;&#47;if (_debugAllResponses) debugPrint(ret.statusCode.toString());&#47;&#47;gibt momentan n 404, wird wohl zeit das backend zu deployen
   return ret;
 }</code></pre>
@@ -129,10 +132,7 @@
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
     <li><a href="../../backend_api/Backend/delete.html">delete</a></li>
     <li><a href="../../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
-    <li><a href="../../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></li>
-    <li><a href="../../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></li>
-    <li><a href="../../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></li>
-    <li><a href="../../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
+    <li><a href="../../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>
@@ -163,7 +163,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

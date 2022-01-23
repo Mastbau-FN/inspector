@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the getAllCheckCategoriesForLocation method from the Backend class, for the Dart programming language.">
-  <title>getAllCheckCategoriesForLocation method - Backend class - api library - Dart API</title>
+  <meta name="description" content="API docs for the getNextDatapoint method from the Backend class, for the Dart programming language.">
+  <title>getNextDatapoint method - Backend class - api library - Dart API</title>
 
 
   
@@ -32,9 +32,9 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../backend_api/backend_api-library.html">api</a></li>
     <li><a href="../../backend_api/Backend-class.html">Backend</a></li>
-    <li class="self-crumb">getAllCheckCategoriesForLocation method</li>
+    <li class="self-crumb">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt; method</li>
   </ol>
-  <div class="self-name">getAllCheckCategoriesForLocation</div>
+  <div class="self-name">getNextDatapoint</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -45,15 +45,15 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-method">getAllCheckCategoriesForLocation</span> method 
+<h1><span class="kind-method">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt;</span> method 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
     <section class="multi-line-signature">
       
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span>&gt;</span></span>&gt;</span></span>
-<span class="name ">getAllCheckCategoriesForLocation</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="getAllCheckCategoriesForLocation-param-location"><span class="type-annotation"><a href="../../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">location</span></span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
+<span class="name ">getNextDatapoint</span>&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="getNextDatapoint-param-data"><span class="type-annotation">ParentData</span> <span class="parameter-name">data</span></span></li>
 </ol>)
 
       
@@ -61,21 +61,28 @@
     </section>
     
 <section class="desc markdown">
-  <p>gets all the <a href="../../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a>s for the given <a href="../../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></p>
+  <p>gets all the <code>ChildData</code>points for the given <code>ParentData</code>
+if no <code>ParentData</code> is given it defaults to root</p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CheckCategory&gt;&gt; getAllCheckCategoriesForLocation(
-        InspectionLocation location) =&gt;
-    _getAllForNextLevel(
-      route: _getCategories_r,
-      jsonResponseID: &#39;categories&#39;,
-      json: location.toSmallJson(),
-      fromJson: CheckCategory.fromJson,
-    );</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;ChildData&gt;&gt;
+    getNextDatapoint&lt;ChildData extends Data, ParentData extends Data?&gt;(
+  ParentData data,
+) {
+  final childTypeStr = Helper.getIdentifierFromData&lt;ChildData&gt;(null);
+  if (childTypeStr == null) throw Exception(&#39;type not supported&#39;);
+  return _getAllForNextLevel(
+    route: routesFromData&lt;ChildData&gt;(null),
+    jsonResponseID: childTypeStr + &#39;s&#39;,
+    json: data?.toSmallJson(),
+    fromJson: (json) =&gt; &#47;*Child*&#47; Data.fromJson&lt;ChildData&gt;(
+        json), &#47;&#47;TODO: sadly this doesnt work rn, since its not using thild overriden functions but the super one
+  );
+}</code></pre>
 </section>
 
 
@@ -92,7 +99,7 @@
   <li><a href="../../index.html">MBG_Inspektionen</a></li>
   <li><a href="../../backend_api/backend_api-library.html">api</a></li>
   <li><a href="../../backend_api/Backend-class.html">Backend</a></li>
-  <li class="self-crumb">getAllCheckCategoriesForLocation method</li>
+  <li class="self-crumb">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt; method</li>
 </ol>
 
 
@@ -116,10 +123,7 @@
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
     <li><a href="../../backend_api/Backend/delete.html">delete</a></li>
     <li><a href="../../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
-    <li><a href="../../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></li>
-    <li><a href="../../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></li>
-    <li><a href="../../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></li>
-    <li><a href="../../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
+    <li><a href="../../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>
@@ -150,7 +154,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

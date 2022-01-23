@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the all property from the CheckPointDefectsModel class, for the Dart programming language.">
-  <title>all property - CheckPointDefectsModel class - checkpointdefects library - Dart API</title>
+  <meta name="description" content="API docs for the update method from the DropDownModel class, for the Dart programming language.">
+  <title>update method - DropDownModel class - dropdownClasses library - Dart API</title>
 
 
   
@@ -30,11 +30,11 @@
   <button id="sidenav-left-toggle" type="button">&nbsp;</button>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
-    <li class="self-crumb">all property</li>
+    <li><a href="../../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel-class.html">DropDownModel<span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends Data?</span>&gt;</span></a></li>
+    <li class="self-crumb">update method</li>
   </ol>
-  <div class="self-name">all</div>
+  <div class="self-name">update</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -45,33 +45,33 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-property">all</span> property 
+<h1><span class="kind-method">update</span> method 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
+    <section class="multi-line-signature">
+      
 
-        
-<section id="getter">
+<span class="returntype">void</span>
+<span class="name ">update</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="update-param-data"><span class="type-annotation">ChildData</span> <span class="parameter-name">data</span>, </span></li>
+<li><span class="parameter" id="update-param-txt"><span class="type-annotation">dynamic</span> <span class="parameter-name">txt</span></span></li>
+</ol>)
 
-<section class="multi-line-signature">
-  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span>&gt;</span></span>&gt;</span></span>
-  <span class="name ">all</span>
-  <div class="features">override</div>
+      
 
-</section>
-
-
-<section class="desc markdown">
-  <p>returns a <code>List</code> of all the <a href="../../classes_dropdownClasses/Data-class.html">Data</a> for this Model</p>
-</section>
+    </section>
+    
 
 
+    
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CheckPointDefect&gt;&gt; get all =&gt;
-    _b.getAllDefectsForCheckpoint(currentCheckPoint);</code></pre>
-</section>
-
+  <pre class="language-dart"><code class="language-dart">void update(ChildData data, txt) async {
+  data.langText = txt;
+  showToast(await Backend().update(data) ??
+      &quot;we sent the request but we didnt get any response&quot;);
+  notifyListeners();
+}</code></pre>
 </section>
 
 
@@ -86,42 +86,42 @@
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../../index.html">MBG_Inspektionen</a></li>
-  <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
-  <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
-  <li class="self-crumb">all property</li>
+  <li><a href="../../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
+  <li><a href="../../classes_dropdownClasses/DropDownModel-class.html">DropDownModel<span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends Data?</span>&gt;</span></a></li>
+  <li class="self-crumb">update method</li>
 </ol>
 
 
-    <h5>CheckPointDefectsModel class</h5>
+    <h5>DropDownModel class</h5>
     <ol>
 
-    <li class="section-title"><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html#constructors">Constructors</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/CheckPointDefectsModel.html">CheckPointDefectsModel</a></li>
+    <li class="section-title"><a href="../../classes_dropdownClasses/DropDownModel-class.html#constructors">Constructors</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/DropDownModel.html">DropDownModel</a></li>
 
 
     <li class="section-title">
-      <a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html#instance-properties">Properties</a>
+      <a href="../../classes_dropdownClasses/DropDownModel-class.html#instance-properties">Properties</a>
     </li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/actions.html">actions</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/all.html">all</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/currentCheckPoint.html">currentCheckPoint</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/floatingActionButton.html">floatingActionButton</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/actions.html">actions</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/currentData.html">currentData</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/floatingActionButton.html">floatingActionButton</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/hasListeners.html">hasListeners</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/title.html">title</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/title.html">title</a></li>
 
-    <li class="section-title"><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html#instance-methods">Methods</a></li>
+    <li class="section-title"><a href="../../classes_dropdownClasses/DropDownModel-class.html#instance-methods">Methods</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/notifyListeners.html">notifyListeners</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/open.html">open</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/open.html">open</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/removeListener.html">removeListener</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
-    <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/uploadString.html">uploadString</a></li>
+    <li><a href="../../classes_dropdownClasses/DropDownModel/update.html">update</a></li>
 
-    <li class="section-title inherited"><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html#operators">Operators</a></li>
+    <li class="section-title inherited"><a href="../../classes_dropdownClasses/DropDownModel-class.html#operators">Operators</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
 
 
@@ -139,7 +139,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

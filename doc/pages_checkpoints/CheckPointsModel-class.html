@@ -58,7 +58,7 @@
         <dd><ul class="gt-separated dark clazz-relationships">
           <li><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></li>
           <li><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier-class.html">ChangeNotifier</a></li>
-          <li><a href="../classes_dropdownClasses/DropDownModel-class.html">DropDownModel</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span>&gt;</span></li>
+          <li><a href="../classes_dropdownClasses/DropDownModel-class.html">DropDownModel</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span>, <span class="type-parameter"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span>&gt;</span></li>
           <li>CheckPointsModel</li>
         </ul></dd>
 
@@ -74,7 +74,7 @@
 
       <dl class="constructor-summary-list">
         <dt id="CheckPointsModel" class="callable">
-          <span class="name"><a href="../pages_checkpoints/CheckPointsModel/CheckPointsModel.html">CheckPointsModel</a></span><span class="signature">(<span class="parameter" id="-param-currentCategory"><span class="type-annotation"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> <span class="parameter-name">currentCategory</span></span>)</span>
+          <span class="name"><a href="../pages_checkpoints/CheckPointsModel/CheckPointsModel.html">CheckPointsModel</a></span><span class="signature">(<span class="parameter" id="-param-p"><span class="type-annotation"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> <span class="parameter-name">p</span></span>)</span>
         </dt>
         <dd>
            
@@ -97,25 +97,25 @@
 
 </dd>
 
-        <dt id="all" class="property">
-  <span class="name"><a href="../pages_checkpoints/CheckPointsModel/all.html">all</a></span>
+        <dt id="all" class="property inherited">
+  <span class="name"><a href="../classes_dropdownClasses/DropDownModel/all.html">all</a></span>
   <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span>&gt;</span></span>&gt;</span></span> 
 
 </dt>
-<dd>
+<dd class="inherited">
   returns a <code>List</code> of all the <a href="../classes_dropdownClasses/Data-class.html">Data</a> for this Model 
-  <div class="features">read-only, override</div>
+  <div class="features">read-only, inherited</div>
 
 </dd>
 
-        <dt id="currentCategory" class="property">
-  <span class="name"><a href="../pages_checkpoints/CheckPointsModel/currentCategory.html">currentCategory</a></span>
-  <span class="signature">&#8594; <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> 
+        <dt id="currentData" class="property inherited">
+  <span class="name"><a href="../classes_dropdownClasses/DropDownModel/currentData.html">currentData</a></span>
+  <span class="signature">&#8596; <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> 
 
 </dt>
-<dd>
+<dd class="inherited">
    
-  <div class="features">final</div>
+  <div class="features">read / write, inherited</div>
 
 </dd>
 
@@ -164,14 +164,14 @@ for adding new <code>DataT</code> to this level (or other additional functionali
 
 </dd>
 
-        <dt id="title" class="property">
-  <span class="name"><a href="../pages_checkpoints/CheckPointsModel/title.html">title</a></span>
+        <dt id="title" class="property inherited">
+  <span class="name"><a href="../classes_dropdownClasses/DropDownModel/title.html">title</a></span>
   <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> 
 
 </dt>
-<dd>
+<dd class="inherited">
   could be used for the scaffold appbar title 
-  <div class="features">read-only, override</div>
+  <div class="features">read-only, inherited</div>
 
 </dd>
 
@@ -276,16 +276,16 @@ notified when the object changes. <a href="https://api.flutter.dev/flutter/found
 
 </dd>
 
-        <dt id="uploadString" class="callable">
-  <span class="name"><a href="../pages_checkpoints/CheckPointsModel/uploadString.html">uploadString</a></span><span class="signature">(<wbr><span class="parameter" id="uploadString-param-data"><span class="type-annotation"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span> <span class="parameter-name">data</span>, </span><span class="parameter" id="uploadString-param-txt"><span class="type-annotation">dynamic</span> <span class="parameter-name">txt</span></span>)
+        <dt id="update" class="callable inherited">
+  <span class="name"><a href="../classes_dropdownClasses/DropDownModel/update.html">update</a></span><span class="signature">(<wbr><span class="parameter" id="update-param-data"><span class="type-annotation"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span> <span class="parameter-name">data</span>, </span><span class="parameter" id="update-param-txt"><span class="type-annotation">dynamic</span> <span class="parameter-name">txt</span></span>)
     <span class="returntype parameter">&#8594; void</span>
   </span>
   
 
 </dt>
-<dd>
+<dd class="inherited">
    
-  
+  <div class="features">inherited</div>
 
 </dd>
 
@@ -357,13 +357,13 @@ notified when the object changes. <a href="https://api.flutter.dev/flutter/found
       <a href="../pages_checkpoints/CheckPointsModel-class.html#instance-properties">Properties</a>
     </li>
     <li><a href="../pages_checkpoints/CheckPointsModel/actions.html">actions</a></li>
-    <li><a href="../pages_checkpoints/CheckPointsModel/all.html">all</a></li>
-    <li><a href="../pages_checkpoints/CheckPointsModel/currentCategory.html">currentCategory</a></li>
+    <li class="inherited"><a href="../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
+    <li class="inherited"><a href="../classes_dropdownClasses/DropDownModel/currentData.html">currentData</a></li>
     <li><a href="../pages_checkpoints/CheckPointsModel/floatingActionButton.html">floatingActionButton</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/hasListeners.html">hasListeners</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
-    <li><a href="../pages_checkpoints/CheckPointsModel/title.html">title</a></li>
+    <li class="inherited"><a href="../classes_dropdownClasses/DropDownModel/title.html">title</a></li>
 
     <li class="section-title"><a href="../pages_checkpoints/CheckPointsModel-class.html#instance-methods">Methods</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
@@ -373,7 +373,7 @@ notified when the object changes. <a href="https://api.flutter.dev/flutter/found
     <li><a href="../pages_checkpoints/CheckPointsModel/open.html">open</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/removeListener.html">removeListener</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
-    <li><a href="../pages_checkpoints/CheckPointsModel/uploadString.html">uploadString</a></li>
+    <li class="inherited"><a href="../classes_dropdownClasses/DropDownModel/update.html">update</a></li>
 
     <li class="section-title inherited"><a href="../pages_checkpoints/CheckPointsModel-class.html#operators">Operators</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
@@ -390,7 +390,7 @@ notified when the object changes. <a href="https://api.flutter.dev/flutter/found
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

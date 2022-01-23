@@ -65,7 +65,22 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static T? fromJson&lt;T extends Data&gt;(Map&lt;String, dynamic&gt; map) =&gt; null;</code></pre>
+  <pre class="language-dart"><code class="language-dart">static T? fromJson&lt;T extends Data&gt;(Map&lt;String, dynamic&gt; map) {
+  &#47;&#47;whacker workaround
+  &#47;&#47;XXX: alle subclassen müssen hier eingetragen werden
+  switch (typeOf&lt;T&gt;()) {
+    case InspectionLocation:
+      return InspectionLocation.fromJson(map) as T;
+    case CheckCategory:
+      return CheckCategory.fromJson(map) as T;
+    case CheckPoint:
+      return CheckPoint.fromJson(map) as T;
+    case CheckPointDefect:
+      return CheckPointDefect.fromJson(map) as T;
+    default:
+      return null;
+  }
+}</code></pre>
 </section>
 
 
@@ -98,6 +113,7 @@
     </li>
     <li><a href="../../classes_dropdownClasses/Data/extra.html">extra</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
+    <li><a href="../../classes_dropdownClasses/Data/id.html">id</a></li>
     <li class="inherited"><a href="../../classes_dropdownClasses/WithImgHashes/image_streams.html">image_streams</a></li>
     <li class="inherited"><a href="../../classes_dropdownClasses/WithImgHashes/imagehashes.html">imagehashes</a></li>
     <li class="inherited"><a href="../../classes_dropdownClasses/WithImgHashes/mainImage.html">mainImage</a></li>
@@ -132,7 +148,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

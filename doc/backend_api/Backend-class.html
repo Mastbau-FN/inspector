@@ -136,7 +136,7 @@
       <h2>Methods</h2>
       <dl class="callables">
         <dt id="connectionGuard" class="callable">
-  <span class="name"><a href="../backend_api/Backend/connectionGuard.html">connectionGuard</a></span><span class="signature">(<wbr>)
+  <span class="name"><a href="../backend_api/Backend/connectionGuard.html">connectionGuard</a></span><span class="signature">(<wbr><span class="parameter" id="connectionGuard-param-timeout">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>}</span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a></span>
   </span>
   
@@ -175,54 +175,16 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
 </dd>
 
-        <dt id="getAllCheckCategoriesForLocation" class="callable">
-  <span class="name"><a href="../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></span><span class="signature">(<wbr><span class="parameter" id="getAllCheckCategoriesForLocation-param-location"><span class="type-annotation"><a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">location</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span>&gt;</span></span>&gt;</span></span>
+        <dt id="getNextDatapoint" class="callable">
+  <span class="name"><a href="../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></span><span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>, <span class="type-parameter">ParentData extends <a href="../classes_dropdownClasses/Data-class.html">Data</a>?</span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="getNextDatapoint-param-data"><span class="type-annotation">ParentData</span> <span class="parameter-name">data</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
   </span>
   
 
 </dt>
 <dd>
-  gets all the <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a>s for the given <a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a> 
-  
-
-</dd>
-
-        <dt id="getAllCheckPointsForCategory" class="callable">
-  <span class="name"><a href="../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></span><span class="signature">(<wbr><span class="parameter" id="getAllCheckPointsForCategory-param-category"><span class="type-annotation"><a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> <span class="parameter-name">category</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span>&gt;</span></span>&gt;</span></span>
-  </span>
-  
-
-</dt>
-<dd>
-  gets all the <a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a>s corresponding to a given <a href="../classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a> 
-  
-
-</dd>
-
-        <dt id="getAllDefectsForCheckpoint" class="callable">
-  <span class="name"><a href="../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></span><span class="signature">(<wbr><span class="parameter" id="getAllDefectsForCheckpoint-param-checkpoint"><span class="type-annotation"><a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span> <span class="parameter-name">checkpoint</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span>&gt;</span></span>&gt;</span></span>
-  </span>
-  
-
-</dt>
-<dd>
-  gets all the <a href="../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a>s for the given <a href="../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a> 
-  
-
-</dd>
-
-        <dt id="getAllInspectionLocationsForCurrentUser" class="callable">
-  <span class="name"><a href="../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></span><span class="signature">(<wbr>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span>&gt;</span></span>&gt;</span></span>
-  </span>
-  
-
-</dt>
-<dd>
-  gets all the <a href="../classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a>s for the currently logged in <a href="../backend_api/Backend/user.html">user</a> 
+  gets all the <code>ChildData</code>points for the given <code>ParentData</code>
+if no <code>ParentData</code> is given it defaults to root 
   
 
 </dd>
@@ -280,7 +242,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 </dd>
 
         <dt id="post" class="callable">
-  <span class="name"><a href="../backend_api/Backend/post.html">post</a></span><span class="signature">(<wbr><span class="parameter" id="post-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="post-param-headers">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> <span class="parameter-name">headers</span>, </span><span class="parameter" id="post-param-body"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a>?</span> <span class="parameter-name">body</span>, </span><span class="parameter" id="post-param-encoding"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-convert/Encoding-class.html">Encoding</a>?</span> <span class="parameter-name">encoding</span>}</span>)
+  <span class="name"><a href="../backend_api/Backend/post.html">post</a></span><span class="signature">(<wbr><span class="parameter" id="post-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="post-param-headers">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> <span class="parameter-name">headers</span>, </span><span class="parameter" id="post-param-body"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a>?</span> <span class="parameter-name">body</span>, </span><span class="parameter" id="post-param-encoding"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-convert/Encoding-class.html">Encoding</a>?</span> <span class="parameter-name">encoding</span>, </span><span class="parameter" id="post-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>}</span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/Response-class.html">Response</a></span>&gt;</span></span>
   </span>
   
@@ -293,7 +255,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 </dd>
 
         <dt id="post_JSON" class="callable">
-  <span class="name"><a href="../backend_api/Backend/post_JSON.html">post_JSON</a></span><span class="signature">(<wbr><span class="parameter" id="post_JSON-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="post_JSON-param-json">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span>?</span> <span class="parameter-name">json</span>, </span><span class="parameter" id="post_JSON-param-multipart_files"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.2/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span> <span class="parameter-name">multipart_files</span> = <span class="default-value">const []</span>}</span>)
+  <span class="name"><a href="../backend_api/Backend/post_JSON.html">post_JSON</a></span><span class="signature">(<wbr><span class="parameter" id="post_JSON-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="post_JSON-param-json">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span>?</span> <span class="parameter-name">json</span>, </span><span class="parameter" id="post_JSON-param-multipart_files"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.2/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span> <span class="parameter-name">multipart_files</span> = <span class="default-value">const []</span>, </span><span class="parameter" id="post_JSON-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>}</span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/BaseResponse-class.html">BaseResponse</a>?</span>&gt;</span></span>
   </span>
   
@@ -422,6 +384,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
   <li class="section-title"><a href="../backend_api/backend_api-library.html#functions">Functions</a></li>
   <li><a href="../backend_api/getListFromJson.html">getListFromJson</a></li>
+  <li><a href="../backend_api/routesFromData.html">routesFromData</a></li>
 
 
 
@@ -449,10 +412,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
     <li><a href="../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
     <li><a href="../backend_api/Backend/delete.html">delete</a></li>
     <li><a href="../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
-    <li><a href="../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></li>
-    <li><a href="../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></li>
-    <li><a href="../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></li>
-    <li><a href="../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
+    <li><a href="../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../backend_api/Backend/login.html">login</a></li>
     <li><a href="../backend_api/Backend/logout.html">logout</a></li>
@@ -480,7 +440,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   

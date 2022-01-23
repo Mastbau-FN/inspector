@@ -53,7 +53,8 @@
       
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a></span>
-<span class="name ">connectionGuard</span>(<wbr>)
+<span class="name ">connectionGuard</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="connectionGuard-param-timeout">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>}</span></li>
+</ol>)
 
       
 
@@ -68,7 +69,9 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future connectionGuard() async {
+  <pre class="language-dart"><code class="language-dart">Future connectionGuard({
+  Duration? timeout,
+}) async {
   if (_baseurl == null)
     throw NoConnectionToBackendException(&quot;no url provided&quot;);
 
@@ -82,7 +85,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 
   try {
     &#47;&#47; check if we can reach our api
-    await post_JSON(&#39;&#47;login&#39;);
+    await post_JSON(&#39;&#47;login&#39;, timeout: timeout);
   } catch (e) {
     throw NoConnectionToBackendException(&quot;couldn&#39;t reach $_baseurl&quot;);
   }
@@ -127,10 +130,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
     <li><a href="../../backend_api/Backend/connectionGuard.html">connectionGuard</a></li>
     <li><a href="../../backend_api/Backend/delete.html">delete</a></li>
     <li><a href="../../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
-    <li><a href="../../backend_api/Backend/getAllCheckCategoriesForLocation.html">getAllCheckCategoriesForLocation</a></li>
-    <li><a href="../../backend_api/Backend/getAllCheckPointsForCategory.html">getAllCheckPointsForCategory</a></li>
-    <li><a href="../../backend_api/Backend/getAllDefectsForCheckpoint.html">getAllDefectsForCheckpoint</a></li>
-    <li><a href="../../backend_api/Backend/getAllInspectionLocationsForCurrentUser.html">getAllInspectionLocationsForCurrentUser</a></li>
+    <li><a href="../../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>
@@ -161,7 +161,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.14+14
+      1.0.15+15
   </span>
 
   
