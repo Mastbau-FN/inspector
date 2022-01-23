@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
@@ -9,6 +10,8 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
+
+import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
@@ -23,18 +26,35 @@ abstract class Data implements WithImgHashes {
   String get title;
   String? get subtitle => null;
 
+  String? id;
+
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
   Widget? get extra => null;
 
   Map<String, dynamic> toJson();
   Map<String, dynamic> toSmallJson();
 
-  // sadly https://github.com/dart-lang/language/issues/356
-  static T? fromJson<T extends Data>(Map<String, dynamic> map) => null;
+  //XXX: sadly https://github.com/dart-lang/language/issues/356
+  static T? fromJson<T extends Data>(Map<String, dynamic> map) {
+    //whacker workaround
+    //XXX: alle subclassen müssen hier eingetragen werden
+    switch (typeOf<T>()) {
+      case InspectionLocation:
+        return InspectionLocation.fromJson(map) as T;
+      case CheckCategory:
+        return CheckCategory.fromJson(map) as T;
+      case CheckPoint:
+        return CheckPoint.fromJson(map) as T;
+      case CheckPointDefect:
+        return CheckPointDefect.fromJson(map) as T;
+      default:
+        return null;
+    }
+  }
 }
 
 mixin WithLangText on Data {
-  String? get langText;
+  String? langText;
 }
 
 mixin WithAuthor on Data {
@@ -42,20 +62,35 @@ mixin WithAuthor on Data {
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
-abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
+class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
+    extends ChangeNotifier {
   /// could be used for the scaffold appbar title
-  String get title;
+  String get title => currentData?.title ?? "root";
+
+  ParentData currentData;
+
+  DropDownModel(this.currentData);
 
   /// returns a [List] of all the [Data] for this Model
-  Future<List<DataT>> get all;
+  Future<List<ChildData>> get all => Backend().getNextDatapoint(currentData);
 
   /// a [List] which all the actions that could be made for a specific DropDown
-  List<MyListTileData> get actions;
+  List<MyListTileData> get actions {
+    // TODO: implement actions
+    throw UnimplementedError();
+  }
+
+  void update(ChildData data, txt) async {
+    data.langText = txt;
+    showToast(await Backend().update(data) ??
+        "we sent the request but we didnt get any response");
+    notifyListeners();
+  }
 
   /// when pressed on a tile in the [DropDownPage] this will be invoked
   void open(
     BuildContext context,
-    DataT data,
+    ChildData data,
     MyListTileData tiledata,
   ) {
     Navigator.of(context).push(MaterialPageRoute(
@@ -75,15 +110,16 @@ abstract class DropDownModel<DataT extends Data> extends ChangeNotifier {
   Widget? floatingActionButton = null;
 }
 
-Widget nextModel<DataT extends Data, DDModel extends DropDownModel<DataT>>(
-        DDModel child) =>
+Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
+        DDModel extends DropDownModel<ChildData, ParentData>>(DDModel child) =>
     ChangeNotifierProvider<DDModel>.value(
       value: child,
-      child: DropDownPage<DataT, DDModel>(),
+      child: DropDownPage<ChildData, ParentData, DDModel>(),
     );
 
-Widget standard_statefulImageView<DataT extends Data,
-        DDModel extends DropDownModel<DataT>>(DataT data, DDModel model) =>
+Widget standard_statefulImageView<ChildData extends WithLangText,
+            DDModel extends DropDownModel<ChildData, Data?>>(
+        ChildData data, DDModel model) =>
     ChangeNotifierProvider<DDModel>.value(
       value: model,
       child: Builder(builder: (context) {

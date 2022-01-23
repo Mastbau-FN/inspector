@@ -4,6 +4,8 @@ const location = require("./extern/location");
 const imghasher = require("./images/hash");
 const path = require("path");
 
+const identifiers = require("./misc/identifiers").identifiers;
+
 //errorhandling
 
 const errsafejson = async (statement, jsonmaker, res, next) => {
@@ -24,34 +26,53 @@ const login = (req, res) => {
   res.status(200).json(json_response);
 };
 
-const getProjects = (req, res, next) => errsafejson(
+const getProjects = (req, res, next) =>
+  errsafejson(
     async () =>
-      await location.addCoords(await (
-        await queries.getInspectionsForUser(req.user)
-      ).hashImages()),
-    (x)=>({inspections: x}),
-    res,next
+      await location.addCoords(
+        await (await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds()
+      ),
+    (x) => {
+      var ret = {};
+      ret[`${identifiers.location}s`] = x;
+      return ret;
+    },
+    res,
+    next
   );
 
-const getCategories = (req, res, next) => errsafejson(
+const getCategories = (req, res, next) =>
+  errsafejson(
     async () =>
       await (
         await queries.getCheckCategoriesForPjNR(req.body.PjNr)
-      ).hashImages(),
-    (x)=>({categories: x}),
-    res,next
+      ).hashImagesAndCreateIds(),
+    (x) => {
+      var ret = {};
+      ret[`${identifiers.category}s`] = x;
+      return ret;
+    },
+    res,
+    next
   );
 
-const getCheckPoints = (req, res, next) => errsafejson(
+const getCheckPoints = (req, res, next) =>
+  errsafejson(
     async () =>
       await (
         await queries.getCheckPoints(req.body.PjNr, req.body.E1)
-      ).hashImages(),
-    (x)=>({checkpoints: x}),
-    res,next
+      ).hashImagesAndCreateIds(),
+    (x) => {
+      var ret = {};
+      ret[`${identifiers.checkpoint}s`] = x;
+      return ret;
+    },
+    res,
+    next
   );
 
-const getCheckPointDefects = (req, res, next) => errsafejson(
+const getCheckPointDefects = (req, res, next) =>
+  errsafejson(
     async () =>
       await (
         await queries.getCheckPointDefects(
@@ -59,49 +80,54 @@ const getCheckPointDefects = (req, res, next) => errsafejson(
           req.body.E1,
           req.body.E2
         )
-      ).hashImages(),
-    (x)=>({checkpointdefects:x}),
-    res,next
+      ).hashImagesAndCreateIds(),
+    (x) => {
+      var ret = {};
+      ret[`${identifiers.defect}s`] = x;
+      return ret;
+    },
+    res,
+    next
   );
 
 const addNew = (req, res, next) =>
   errsafejson(
-    async () =>
-      (await queries.addNew(req.body,req.user.KZL))[0],
-    (json)=> (json),
-    res,next
+    async () => (await queries.addNew(req.body, req.user.KZL))[0],
+    (json) => json,
+    res,
+    next
   );
 
 const update = (req, res, next) =>
   errsafejson(
-    async () =>
-      (await queries.update(req.body))[0],
-    (json)=> (json),
-    res,next
+    async () => (await queries.update(req.body))[0],
+    (json) => json,
+    res,
+    next
   );
 
 const delete_ = (req, res, next) =>
   errsafejson(
-    async () =>
-      (await queries.delete_(req.body, req.user.KZL))[0],
-    (json)=> ({success:json.success, id: json.Index}),
-    res,next
+    async () => (await queries.delete_(req.body, req.user.KZL))[0],
+    (json) => ({ success: json.success, id: json.Index }),
+    res,
+    next
   );
 
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
-    async () =>
-      (await queries.deleteImgByHash(req.body.hash))[0],
-    (json)=> (json),
-    res,next
+    async () => (await queries.deleteImgByHash(req.body.hash))[0],
+    (json) => json,
+    res,
+    next
   );
 
-  const setMainImgByHash = (req, res, next) => {
-    const pathparts = imghasher.getPathFromHash(req.body.hash);
-    //console.log(pathparts)
-    req.body.data.Link = path.join(pathparts.link,pathparts.filename); // LinkOrdner+/+filename
-    return update(req,res,next);
-  }
+const setMainImgByHash = (req, res, next) => {
+  const pathparts = imghasher.getPathFromHash(req.body.hash);
+  //console.log(pathparts)
+  req.body.data.Link = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename
+  return update(req, res, next);
+};
 
 const getFileFromHash = async (req, res) => {
   try {
@@ -114,7 +140,7 @@ const getFileFromHash = async (req, res) => {
 };
 
 const fileUpload = async (req, res) => {
-  console.log("uploaded files")
+  console.log("uploaded files");
   if (!(req.files || req.file)) {
     res.status(400).json({ reason: "no file uploaded" });
   } else {

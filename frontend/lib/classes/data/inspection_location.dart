@@ -9,7 +9,9 @@ part 'inspection_location.g.dart';
 /// stores all the data needed for a specific location in a type-safe way
 
 @JsonSerializable()
-class InspectionLocation extends Data with WithImgHashes {
+class InspectionLocation extends Data with WithImgHashes, WithLangText {
+  @JsonKey(name: 'local_id')
+  String? id;
   @JsonKey(name: 'PjNr')
   final int pjNr;
   @JsonKey(name: 'PjName')

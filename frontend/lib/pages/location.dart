@@ -1,32 +1,22 @@
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
 import 'package:flutter_map/flutter_map.dart';
-import "package:latlong2/latlong.dart" as latLng;
 
-import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
-import 'imagesPage.dart';
-import 'detailsPage.dart';
-
-class LocationModel extends DropDownModel<InspectionLocation> {
-  final Backend _b = Backend();
+class LocationModel extends DropDownModel<InspectionLocation, Null> {
   final DisplayUser? user;
 
   static const _nextViewTitle = "Prüfkategorien";
 
-  LocationModel({this.user});
-
-  Future<List<InspectionLocation>> get all =>
-      _b.getAllInspectionLocationsForCurrentUser();
+  LocationModel({this.user}) : super(null);
 
   @override
   final List<MyListTileData> actions = [
@@ -59,7 +49,8 @@ class LocationModel extends DropDownModel<InspectionLocation> {
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            return nextModel<CheckCategory, CategoryModel>(CategoryModel(data));
+            return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
+                CategoryModel(data));
           case 'Fotos':
             return standard_statefulImageView(data, this);
           default:
