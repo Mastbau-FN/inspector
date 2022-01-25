@@ -39,7 +39,7 @@ Future<Image?> readImage(String name) async {
     throw Exception("file ${file} definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  debugPrint("retrieving ${file}");
+  //debugPrint("retrieving ${file}");
   return Image.file(await _localFile(name));
 }
 
