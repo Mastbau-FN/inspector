@@ -34,7 +34,9 @@ const _removeHighestLevel = (data)=>{
   let data_copy = {...data};
 
   //remove highest event
-  if (!(data_copy.E2 > 0)) {
+  if (!data_copy.E1 > 0){
+    throw Error("could not get parent, we already are the parent");
+  } else if (!(data_copy.E2 > 0)) {
     data_copy.E1 = null;
   } else if(!(data_copy.E3 > 0)) {
     data_copy.E2 = null;
@@ -279,14 +281,15 @@ const getRootFolder = async (pjNr) =>
 // this function is just power pure
 const getLink = async (data, andSet = true, recursion_num = 0) => {
 
-  console.log(recursion_num)
   let rootfolder = await getRootFolder(data.PjNr);
 
   let _link =
     data.Link;
     
   if(_link == null){
-    let qres = (await _magic_query(data)).rows[0];
+    let qres = (await _magic_query(data))
+    console.log(qres);
+    qres=qres.rows[0];
 
     const _newFolderName = async (data)=>{
       const _backup = (await _magic_query(data,false)).rows[0];
@@ -295,10 +298,13 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
     }
 
 
+    // const parent_data = _removeHighestLevel(data); 
+    // console.log(recursion_num+1, parent_data);      
+
     _link = path.join(
       ((qres?.Link ?? qres?.LinkOrdner) == null)                                  //if we dont get a result
         ? path.join(
-          //okay, hier fängt der sich bestimmt in unendlicher recursion..          
+          //okay, hier fängt der sich bestimmt in unendlicher recursion..   
             (await getLink(_removeHighestLevel(data),true,recursion_num+1)).link,                      //try the level above
             await _newFolderName(data)                                            //and add the new name
           )               
@@ -402,7 +408,7 @@ const __magic_part = (data)=>
             )
         : `AND ("Events"."EREArt" = 5100)` //E2 not set -> search a Category (5100)
         )
-    : `AND ("Events"."EventID" = 6097)`//E1 not set -> search for a Location TODO, KP ob das die Korrekte EREArt ist..
+    : `AND ("Events"."EventID" = 6097)`//E1 not set -> search for a Location //TODO: KP ob das die Korrekte EREArt ist..
   )
   +  `AND ($2=$2 AND $3=$3 AND $4=$4)`;
 
