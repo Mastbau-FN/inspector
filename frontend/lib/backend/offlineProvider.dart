@@ -22,7 +22,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
 
   // Write the file
   try {
-    file = (await file.exists()) ? file : await file.create();
+    //file = (await file.exists()) ? file : await file.create();
     file = await file.writeAsBytes(imgBytes); //u good?
     debugPrint('saved ${file}');
     return file;
@@ -34,8 +34,9 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
 
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
-  if (file.existsSync() && file.lengthSync() > 5)
-    throw Exception("file ${file} doesnt exist");
+  if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
+  if (file.lengthSync() < 5)
+    throw Exception("file ${file} definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await _localFile(name));
