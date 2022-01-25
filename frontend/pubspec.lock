@@ -1050,7 +1050,7 @@ packages:
       name: url_launcher_macos
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.3"
+    version: "2.0.2"
   url_launcher_platform_interface:
     dependency: transitive
     description:
@@ -1134,7 +1134,7 @@ packages:
       name: win32
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.8"
+    version: "2.3.6"
   wkt_parser:
     dependency: transitive
     description:
@@ -1171,5 +1171,5 @@ packages:
     source: hosted
     version: "8.0.0"
 sdks:
-  dart: ">=2.15.0 <3.0.0"
+  dart: ">=2.14.0 <3.0.0"
   flutter: ">=2.8.0"
