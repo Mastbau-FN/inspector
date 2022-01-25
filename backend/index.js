@@ -65,7 +65,7 @@ app.post(
   "/api/secure" + _uploadImage_r,
   auth.api_wall,
   upload.any(),
-  auth.login_wall,
+  //auth.login_wall, //TODO: reenable
   api.fileUpload
 );
 

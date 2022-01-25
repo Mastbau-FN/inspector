@@ -287,9 +287,7 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
     data.Link;
     
   if(_link == null){
-    let qres = (await _magic_query(data))
-    console.log(qres);
-    qres=qres.rows[0];
+    let qres = (await _magic_query(data)).rows[0];
 
     const _newFolderName = async (data)=>{
       const _backup = (await _magic_query(data,false)).rows[0];
@@ -408,7 +406,7 @@ const __magic_part = (data)=>
             )
         : `AND ("Events"."EREArt" = 5100)` //E2 not set -> search a Category (5100)
         )
-    : `AND ("Events"."EventID" = 6097)`//E1 not set -> search for a Location //TODO: KP ob das die Korrekte EREArt ist..
+    : `AND ("Events"."EventID" = 1910)`//E1 not set -> search for a Location //also see issue #90
   )
   +  `AND ($2=$2 AND $3=$3 AND $4=$4)`;
 
