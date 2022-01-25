@@ -1,0 +1,11 @@
+{
+  "client": "Thunder Client",
+  "environmentName": "mbg",
+  "dateExported": "2022-01-25T13:11:06.815Z",
+  "version": "1.0",
+  "variables": [
+    { "name": "USER", "value": "{\"name\":\"NL\", \"pass\":190267}" }
+  ],
+  "envFile": "$WORKSPACE_DIR\\frontend\\.env",
+  "___comment___":"TODO: replace the $WORKSPACE_DIR with your directory"
+}
