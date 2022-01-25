@@ -269,10 +269,9 @@ class Backend {
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
       try {
-        return (await OP.getAllChildrenFrom<ChildData>(_id))
-                ?.whereType<ChildData>()
-                .toList() ??
-            [];
+        _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
+            // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
+            (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
       } catch (e) {
         debugPrint("also couldnt read data from disk..: " + e.toString());
         return [];

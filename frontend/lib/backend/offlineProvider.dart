@@ -39,6 +39,7 @@ Future<Image?> readImage(String name) async {
     throw Exception("file ${file} definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
+  debugPrint("retrieving ${file}");
   return Image.file(await _localFile(name));
 }
 
@@ -69,6 +70,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
       : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
+  //debugPrint("stored json: " + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
   return forId + '-' + id;
