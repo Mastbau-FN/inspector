@@ -81,6 +81,7 @@
       : db.collection(collectionName).doc().id;
 
   if (addId) json[&#39;local_id&#39;] = id;
+  &#47;&#47;debugPrint(&quot;stored json: &quot; + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
   return forId + &#39;-&#39; + id;
@@ -136,7 +137,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.15+15
+      1.0.17+17
   </span>
 
   

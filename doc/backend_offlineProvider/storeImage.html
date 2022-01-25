@@ -69,7 +69,7 @@
 
   &#47;&#47; Write the file
   try {
-    file = (await file.exists()) ? file : await file.create();
+    &#47;&#47;file = (await file.exists()) ? file : await file.create();
     file = await file.writeAsBytes(imgBytes); &#47;&#47;u good?
     debugPrint(&#39;saved ${file}&#39;);
     return file;
@@ -129,7 +129,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.15+15
+      1.0.17+17
   </span>
 
   
