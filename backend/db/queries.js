@@ -265,17 +265,21 @@ const convertpath = (winpath) =>
   winpath.split(path.win32.sep).join(path.posix.sep);
 
 const getRootFolder = async (pjNr) =>
-  path.dirname(
-    convertpath(
-      (await queryFileWithParams("get/root_folder", [pjNr,_ID_], false))[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
-    )
+{
+  const queryRes = (await queryFileWithParams("get/root_folder", [pjNr,_ID_], false));//funzt
+  const _rootdir = queryRes[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
+  return path.dirname(
+    convertpath(_rootdir)
   );
+}
+  
 
 
 
 // this function is just power pure
-const getLink = async (data, andSet = true) => {
+const getLink = async (data, andSet = true, recursion_num = 0) => {
 
+  console.log(recursion_num)
   let rootfolder = await getRootFolder(data.PjNr);
 
   let _link =
@@ -293,8 +297,9 @@ const getLink = async (data, andSet = true) => {
 
     _link = path.join(
       ((qres?.Link ?? qres?.LinkOrdner) == null)                                  //if we dont get a result
-        ? path.join(          
-            (await getLink(_removeHighestLevel(data))).link,                      //try the level above
+        ? path.join(
+          //okay, hier fängt der sich bestimmt in unendlicher recursion..          
+            (await getLink(_removeHighestLevel(data),true,recursion_num+1)).link,                      //try the level above
             await _newFolderName(data)                                            //and add the new name
           )               
         : "" ,                                                                    //else were fine
