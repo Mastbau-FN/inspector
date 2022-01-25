@@ -13,6 +13,7 @@ const api_wall = (req, res, next) => {
 };
 
 const login_wall = async (req, res, next) => {
+  console.log(req.body)
   const loginFreePaths = [""];
   if (loginFreePaths.includes(req.path)) return next();
   try {
@@ -21,7 +22,7 @@ const login_wall = async (req, res, next) => {
     req.user = user;
     next();
   } catch (e) {
-    console.log("someone tried access with", req.body)
+    console.log(`someone tried access with`, req.body, e);
     return res.status(403).json({ error: "wrong credentials" });
   }
 };
