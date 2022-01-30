@@ -30,7 +30,7 @@ String? getIdentifierFromData<DataT extends Data>(DataT? data) {
   }
 }
 
-extension StreamRepeatLatestExtension<T extends Object> on Stream<T> {
+extension StreamRepeatLatestExtension<T /*extends Object*/ > on Stream<T> {
   Stream<T> repeatLatest() {
     var done = false;
     T? latest = null;

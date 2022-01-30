@@ -222,7 +222,8 @@ class Backend {
       //but we get another image anyway, since we want one that we can show as preview
       data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
             (hash) => _fetchImage(hash)
-                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+                .asBroadcastStream()
+                .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           ) ??
           []);
       //Future.doWhile(() => fetchdata)
@@ -234,7 +235,8 @@ class Backend {
       data.image_streams = data.imagehashes
           ?.map(
             (hash) => _fetchImage(hash)
-                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+                .asBroadcastStream()
+                .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
 
