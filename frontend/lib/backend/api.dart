@@ -135,8 +135,7 @@ class Backend {
           ..files.addAll(
             List<http.MultipartFile>.from((await Future.wait(
               multipart_files.map(
-                (xfile) async => await http.MultipartFile.fromPath(
-                    'package', xfile.path,
+                (xfile) => http.MultipartFile.fromPath('package', xfile.path,
                     filename: xfile.name),
               ),
             ))

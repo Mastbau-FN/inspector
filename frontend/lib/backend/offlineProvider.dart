@@ -130,39 +130,60 @@ logFailedMultiReq(http.MultipartRequest req) {
 extension SerializableRequest on http.Request {
   ////very unpolished version that only works for my kind of post req
   Map<String, dynamic> get toJson => {
+        'type': 'Request',
         'url': this.url,
         'headers': this.headers,
         'body': this.body,
         'encoding': this.encoding,
-        'type': 'Request',
         'method': this.method,
       };
+
+  static http.Request fromJson(Map<String, dynamic> json) =>
+      requestFromJson(json) as http.Request;
 }
 
 extension SerializableMultiPartReq on http.MultipartRequest {
   ////very unpolished version that only works for my kind of post req
   Map<String, dynamic> get toJson => {
+        'type': 'MultipartRequest',
         'url': this.url,
         'headers': this.headers,
         'body': this.fields,
         'file-names': this.files.map((e) => e.filename).toList(),
-        'type': 'MultipartRequest',
         'method': this.method,
       };
+
+  static http.MultipartRequest fromJson(Map<String, dynamic> json) =>
+      requestFromJson(json) as http.MultipartRequest;
 }
 
 // extension DeserializableRequest on http.BaseRequest{
 // factory requestFromJson(Map<String,dynamic> json ){
-requestFromJson(Map<String, dynamic> json) {
+requestFromJson(Map<String, dynamic> json) async {
   switch (json['type']) {
     case 'Request':
-      var req = http.Request(json['method'], Uri.parse(json['url']));
-      req.headers.addAll(json['headers']);
-      req.encoding = json['encoding'];
-      req.body = json['body'];
+      return http.Request(json['method'], Uri.parse(json['url']))
+        ..headers.addAll(json['headers'])
+        ..encoding = json['encoding']
+        ..body = json['body'];
+    case 'MultipartRequest':
+      return http.MultipartRequest(json['method'], Uri.parse(json['url']))
+        ..headers.addAll(json['headers'])
+        ..fields.addAll(json['body'])
+        ..files.addAll(
+          List<http.MultipartFile>.from((await Future.wait(
+            json['file-names'].map(
+              (String name) async => http.MultipartFile.fromPath(
+                  'package',
+                  (await _localFile(name))
+                      .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+            ),
+          ))
+              .whereType<http.MultipartFile>()),
+        );
       break;
-
     default:
+      throw UnimplementedError();
   }
 }
 // }
