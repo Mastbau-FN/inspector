@@ -138,8 +138,8 @@ extension SerializableRequest on http.Request {
         'method': this.method,
       };
 
-  static http.Request fromJson(Map<String, dynamic> json) =>
-      requestFromJson(json) as http.Request;
+  // static http.Request fromJson(Map<String, dynamic> json) =>
+  //     requestFromJson(json) as http.Request;
 }
 
 extension SerializableMultiPartReq on http.MultipartRequest {
@@ -153,37 +153,38 @@ extension SerializableMultiPartReq on http.MultipartRequest {
         'method': this.method,
       };
 
-  static http.MultipartRequest fromJson(Map<String, dynamic> json) =>
-      requestFromJson(json) as http.MultipartRequest;
+  // static http.MultipartRequest fromJson(Map<String, dynamic> json) =>
+  //     requestFromJson(json) as http.MultipartRequest;
 }
 
-// extension DeserializableRequest on http.BaseRequest{
-// factory requestFromJson(Map<String,dynamic> json ){
-requestFromJson(Map<String, dynamic> json) async {
-  switch (json['type']) {
-    case 'Request':
-      return http.Request(json['method'], Uri.parse(json['url']))
-        ..headers.addAll(json['headers'])
-        ..encoding = json['encoding']
-        ..body = json['body'];
-    case 'MultipartRequest':
-      return http.MultipartRequest(json['method'], Uri.parse(json['url']))
-        ..headers.addAll(json['headers'])
-        ..fields.addAll(json['body'])
-        ..files.addAll(
-          List<http.MultipartFile>.from((await Future.wait(
-            json['file-names'].map(
-              (String name) async => http.MultipartFile.fromPath(
-                  'package',
-                  (await _localFile(name))
-                      .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-            ),
-          ))
-              .whereType<http.MultipartFile>()),
-        );
-      break;
-    default:
-      throw UnimplementedError();
+extension DeserializableRequest<T extends http.BaseRequest> on T {
+  static T fromJson(Map<String, dynamic> json) => requestFromJson(json) as T;
+
+  static requestFromJson(Map<String, dynamic> json) async {
+    switch (json['type']) {
+      case 'Request':
+        return http.Request(json['method'], Uri.parse(json['url']))
+          ..headers.addAll(json['headers'])
+          ..encoding = json['encoding']
+          ..body = json['body'];
+      case 'MultipartRequest':
+        return http.MultipartRequest(json['method'], Uri.parse(json['url']))
+          ..headers.addAll(json['headers'])
+          ..fields.addAll(json['body'])
+          ..files.addAll(
+            List<http.MultipartFile>.from((await Future.wait(
+              json['file-names'].map(
+                (String name) async => http.MultipartFile.fromPath(
+                    'package',
+                    (await _localFile(name))
+                        .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+              ),
+            ))
+                .whereType<http.MultipartFile>()),
+          );
+        break;
+      default:
+        throw UnimplementedError();
+    }
   }
 }
-// }
