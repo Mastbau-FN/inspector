@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
+
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
@@ -112,3 +114,55 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
       .map((data) => Data.fromJson<ChildData>(data ?? {}))
       .toList();
 }
+
+final failedReqLogCollection = (db).collection('failed-requests');
+
+logFailedPostReq(http.Request req) {
+  final doc = failedReqLogCollection.doc();
+  return doc.set(req.toJson);
+}
+
+logFailedMultiReq(http.MultipartRequest req) {
+  final doc = failedReqLogCollection.doc();
+  return doc.set(req.toJson);
+}
+
+extension SerializableRequest on http.Request {
+  ////very unpolished version that only works for my kind of post req
+  Map<String, dynamic> get toJson => {
+        'url': this.url,
+        'headers': this.headers,
+        'body': this.body,
+        'encoding': this.encoding,
+        'type': 'Request',
+        'method': this.method,
+      };
+}
+
+extension SerializableMultiPartReq on http.MultipartRequest {
+  ////very unpolished version that only works for my kind of post req
+  Map<String, dynamic> get toJson => {
+        'url': this.url,
+        'headers': this.headers,
+        'body': this.fields,
+        'file-names': this.files.map((e) => e.filename).toList(),
+        'type': 'MultipartRequest',
+        'method': this.method,
+      };
+}
+
+// extension DeserializableRequest on http.BaseRequest{
+// factory requestFromJson(Map<String,dynamic> json ){
+requestFromJson(Map<String, dynamic> json) {
+  switch (json['type']) {
+    case 'Request':
+      var req = http.Request(json['method'], Uri.parse(json['url']));
+      req.headers.addAll(json['headers']);
+      req.encoding = json['encoding'];
+      req.body = json['body'];
+      break;
+
+    default:
+  }
+}
+// }
