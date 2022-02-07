@@ -35,18 +35,18 @@ abstract class Data implements WithImgHashes {
   Map<String, dynamic> toSmallJson();
 
   //XXX: sadly https://github.com/dart-lang/language/issues/356
-  static T? fromJson<T extends Data?>(Map<String, dynamic> map) {
+  static T? fromJson<T extends Data>(Map<String, dynamic> map) {
     //whacker workaround
     //XXX: alle subclassen müssen hier eingetragen werden
     switch (typeOf<T>()) {
       case InspectionLocation:
-        return InspectionLocation.fromJson(map) as T;
+        return InspectionLocation.fromJson(map) as T?;
       case CheckCategory:
-        return CheckCategory.fromJson(map) as T;
+        return CheckCategory.fromJson(map) as T?;
       case CheckPoint:
-        return CheckPoint.fromJson(map) as T;
+        return CheckPoint.fromJson(map) as T?;
       case CheckPointDefect:
-        return CheckPointDefect.fromJson(map) as T;
+        return CheckPointDefect.fromJson(map) as T?;
       default:
         return null;
     }
