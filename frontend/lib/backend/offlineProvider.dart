@@ -17,6 +17,7 @@ Future<String> get _localPath async =>
 Future<File> _localFile(String name) async =>
     File('${await _localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
 
+/// stores the [imgBytes] as an image given by the [name], returns the new [File]
 Future<File?> storeImage(Uint8List imgBytes, String name) async {
   var file = await _localFile(name);
 
@@ -32,6 +33,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
+///tries to open an [Image] given by its [name] and returns it if succesfull
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
   if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
@@ -41,6 +43,14 @@ Future<Image?> readImage(String name) async {
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   //debugPrint("retrieving ${file}");
   return Image.file(await _localFile(name));
+}
+
+///tries to remove an [Image] given by its [name] , throws if unsuccesfull
+Future<File> deleteImage(String name) async {
+  final file = (await _localFile(name));
+  if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
+
+  return await file.delete() as File;
 }
 
 deleteAll() async => Directory(await _localPath).delete();

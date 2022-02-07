@@ -158,6 +158,7 @@ class Backend {
         timeout: timeout,
       );
     } catch (e) {
+      //TODO: keep a log of failed requests to run them at a later time
       debugPrint("request failed, cause : ${e}");
       return null;
     }
@@ -380,10 +381,12 @@ class Backend {
       (await _sendDataToRoute(data: data, route: _delete_r))?.body;
 
   /// deletes an image specified by its hash and returns the response
-  Future<String?> deleteImageByHash(String hash) async =>
-      (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
-          ?.forceRes()
-          ?.body;
+  Future<String?> deleteImageByHash(String hash) async {
+    await OP.deleteImage(hash);
+    return (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+        ?.forceRes()
+        ?.body;
+  }
 
   /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
