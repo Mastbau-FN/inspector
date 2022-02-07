@@ -127,6 +127,7 @@ class Backend {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
     json['user'] = (await _c_user)?.toJson();
+    if (Options.debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
       if (multipart_files.isNotEmpty) {
         var fullURL = Uri.parse(_baseurl! + route);
@@ -279,6 +280,7 @@ class Backend {
         return [];
       }
     }
+    debugPrint(jsonEncode(json));
     final datapoints = await getListFromJson(
       _json,
       _generateImageFetcher(fromJson),
@@ -430,9 +432,10 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
         (await Future.wait(str.map((elem) async => await converter(elem))))
             .whereType<T>());
   } catch (e) {
-    debugPrint('could not parse response: ' + e.toString());
+    debugPrint(
+        'could not parse response: ' + e.toString() + '-->' + jsonEncode(json));
     throw BackendCommunicationException(
-        'could not parse response: ' + e.toString());
+        'could not parse response: \n' + jsonEncode(json));
   }
   //return [];
 }
