@@ -172,7 +172,7 @@ Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
 extension SerializableBaseRequest on http.BaseRequest {
   Map<String, dynamic> get toJson => {
         'type': 'Request',
-        'url': this.url,
+        'url': this.url.toString(),
         'headers': this.headers,
         'method': this.method,
       };
@@ -182,7 +182,7 @@ extension SerializableRequest on http.Request {
   ////very unpolished version that only works for my kind of post req
   Map<String, dynamic> get toJson => {
         'type': 'Request',
-        'url': this.url,
+        'url': this.url.toString(),
         'headers': this.headers,
         'body': this.body,
         'encoding': this.encoding,
@@ -197,7 +197,7 @@ extension SerializableMultiPartReq on http.MultipartRequest {
   ////very unpolished version that only works for my kind of post req
   Map<String, dynamic> get toJson => {
         'type': 'MultipartRequest',
-        'url': this.url,
+        'url': this.url.toString(),
         'headers': this.headers,
         'body': this.fields,
         'file-names': this.files.map((e) => e.filename).toList(),
