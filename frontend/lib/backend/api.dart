@@ -16,6 +16,7 @@ import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:tuple/tuple.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -445,6 +446,19 @@ class Backend {
 
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
+
+  retryFailedrequests() async {
+    for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
+        in await OP.getAllFailedRequests() ?? []) {
+      final docID = reqd.item1;
+      final _reqTuple = reqd.item2;
+      try {
+        final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
+        final res = http.Response.fromStream(await req.send());
+        OP.failedRequestWasSuccesful(docID);
+      } finally {}
+    }
+  }
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

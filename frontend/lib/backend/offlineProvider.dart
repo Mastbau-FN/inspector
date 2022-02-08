@@ -127,6 +127,7 @@ Future<String> logFailedReq<T extends http.BaseRequest>(T req) async {
   return doc.id;
 }
 
+///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]
 Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
     getAllFailedRequests() async {
   requestFromJson(Map<String, dynamic> json) async {
@@ -167,6 +168,12 @@ Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
       ? null
       : Future.wait(docs.entries
           .map((e) async => Tuple2(e.key, await requestFromJson(e.value))));
+}
+
+failedRequestWasSuccesful(String id) {
+  failedReqLogCollection.doc(id).delete();
+  debugPrint(
+      'request $id was apperently successful, so we deleted it from the failed-Log');
 }
 
 extension SerializableBaseRequest on http.BaseRequest {
