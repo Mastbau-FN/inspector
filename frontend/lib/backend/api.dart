@@ -96,25 +96,40 @@ class Backend {
   }
 
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  Future<http.Response> post(
+  Future<http.Response?> post(
     String route, {
     Map<String, String>? headers,
-    Object? body,
+    String? body,
     Encoding? encoding,
     Duration? timeout,
-  }) async {
+  }) =>
+      send(
+        makepost(route, headers: headers, body: body, encoding: encoding),
+        timeout: timeout,
+      );
+
+  Future<http.Response?> send(http.Request request, {Duration? timeout}) async {
+    final req = request.send();
+    final res = (timeout == null) ? await req : await req.timeout(timeout);
+    //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
+    final ret = await http.Response.fromStream(res); // res.forceRes();
+    return ret;
+  }
+
+  /// make an actual API request to a route, and always append the API_KEY as authorization-header
+  http.Request makepost(
+    String route, {
+    Map<String, String>? headers,
+    String? body,
+    Encoding? encoding,
+  }) {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
-    final req = http.post(
-      fullURL,
-      headers: headers,
-      body: body,
-      encoding: encoding,
-    );
-    var ret = (timeout == null) ? await req : await req.timeout(timeout);
-    //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
-    return ret;
+    final req = http.Request('post', fullURL)..headers.addAll(headers);
+    if (encoding != null) req.encoding = encoding;
+    if (body != null) req.body = body;
+    return req;
   }
 
   /// post_JSON to our backend as the user
@@ -130,34 +145,43 @@ class Backend {
     if (Options.debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
       if (multipart_files.isNotEmpty) {
-        var fullURL = Uri.parse(_baseurl! + route);
-        var mreq = http.MultipartRequest('POST', fullURL)
-          ..files.addAll(
-            List<http.MultipartFile>.from((await Future.wait(
-              multipart_files.map(
-                (xfile) => http.MultipartFile.fromPath('package', xfile.path,
-                    filename: xfile.name),
-              ),
-            ))
-                .whereType<http.MultipartFile>()),
-          )
-          ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-          ..fields.addAll(/*flatten()*/ json.map<String, String>(
-              (key, value) => MapEntry(key, value.toString())));
-        debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-        var res = (timeout == null)
-            ? await mreq.send()
-            : await mreq.send().timeout(timeout);
-        return res;
+        http.MultipartRequest? mreq;
+        try {
+          var fullURL = Uri.parse(_baseurl! + route);
+          mreq = http.MultipartRequest('POST', fullURL)
+            ..files.addAll(
+              List<http.MultipartFile>.from((await Future.wait(
+                multipart_files.map(
+                  (xfile) => http.MultipartFile.fromPath('package', xfile.path,
+                      filename: xfile.name),
+                ),
+              ))
+                  .whereType<http.MultipartFile>()),
+            )
+            ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
+            ..fields.addAll(/*flatten()*/ json.map<String, String>(
+                (key, value) => MapEntry(key, value.toString())));
+          debugPrint("gonna send multipart-req with booty ${mreq.fields}");
+          var res = (timeout == null)
+              ? await mreq.send()
+              : await mreq.send().timeout(timeout);
+          return res;
+        } on Exception catch (e) {
+          OP.logFailedReq(mreq!);
+          debugPrint('multipartRequest, failed, we logged it');
+          throw e;
+        }
+      } else {
+        final req = makepost(route, headers: headers, body: jsonEncode(json));
+        try {
+          return await send(req, timeout: timeout);
+        } catch (e) {
+          OP.logFailedReq(req);
+          debugPrint('request, failed, we logged it');
+          throw e;
+        }
       }
-      return post(
-        route,
-        headers: headers,
-        body: jsonEncode(json),
-        timeout: timeout,
-      );
     } catch (e) {
-      //TODO: keep a log of failed requests to run them at a later time
       debugPrint("request failed, cause : ${e}");
       return null;
     }
@@ -262,12 +286,11 @@ class Backend {
       final res = (await post_JSON(
         route,
         json: json,
-        timeout: Duration(seconds: 5),
-      ))
-          ?.forceRes()
-          ?.body;
+        //timeout: Duration(seconds: 5), //TODO: wieder reincommenten
+      ));
+      final body = res?.forceRes()?.body;
       _json = jsonDecode(
-        res ?? '',
+        body ?? '{"error":"failed"}',
       );
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
