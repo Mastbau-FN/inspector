@@ -286,7 +286,7 @@ class Backend {
       final res = (await post_JSON(
         route,
         json: json,
-        //timeout: Duration(seconds: 5), //TODO: wieder reincommenten
+        timeout: Duration(seconds: 5),
       ));
       final body = res?.forceRes()?.body;
       _json = jsonDecode(
