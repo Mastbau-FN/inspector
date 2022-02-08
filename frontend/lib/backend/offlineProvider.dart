@@ -119,7 +119,7 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
 
 final failedReqLogCollection = (db).collection('failed-requests');
 
-Future<String> logFailedMultiReq<T extends http.BaseRequest>(T req) async {
+Future<String> logFailedReq<T extends http.BaseRequest>(T req) async {
   final doc = failedReqLogCollection.doc();
 
   ///TODO: idk if this uses the baserquest to json, which it shouldnt..
