@@ -68,10 +68,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; deleteImageByHash(String hash) async =&gt;
-    (await post_JSON(_deleteImageByHash_r, json: {&#39;hash&#39;: hash}))
-        ?.forceRes()
-        ?.body;</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; deleteImageByHash(String hash) async {
+  await OP.deleteImage(hash);
+  return (await post_JSON(_deleteImageByHash_r, json: {&#39;hash&#39;: hash}))
+      ?.forceRes()
+      ?.body;
+}</code></pre>
 </section>
 
 
@@ -116,9 +118,12 @@
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>
+    <li><a href="../../backend_api/Backend/makepost.html">makepost</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
     <li><a href="../../backend_api/Backend/post.html">post</a></li>
     <li><a href="../../backend_api/Backend/post_JSON.html">post_JSON</a></li>
+    <li><a href="../../backend_api/Backend/retryFailedrequests.html">retryFailedrequests</a></li>
+    <li><a href="../../backend_api/Backend/send.html">send</a></li>
     <li><a href="../../backend_api/Backend/setMainImageByHash.html">setMainImageByHash</a></li>
     <li><a href="../../backend_api/Backend/setNew.html">setNew</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>

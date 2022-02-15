@@ -53,6 +53,39 @@
 
 
 
+    <section class="summary offset-anchor" id="extensions">
+      <h2>Extensions</h2>
+
+      <dl>
+        <dt id="SerializableBaseRequest">
+    <span class="name "><a href="../backend_offlineProvider/SerializableBaseRequest.html">SerializableBaseRequest</a></span> 
+
+</dt>
+<dd>
+     
+</dd>
+
+
+        <dt id="SerializableMultiPartReq">
+    <span class="name "><a href="../backend_offlineProvider/SerializableMultiPartReq.html">SerializableMultiPartReq</a></span> 
+
+</dt>
+<dd>
+     
+</dd>
+
+
+        <dt id="SerializableRequest">
+    <span class="name "><a href="../backend_offlineProvider/SerializableRequest.html">SerializableRequest</a></span> 
+
+</dt>
+<dd>
+     
+</dd>
+
+
+      </dl>
+    </section>
 
 
     <section class="summary offset-anchor" id="properties">
@@ -62,6 +95,17 @@
         <dt id="db" class="property">
   <span class="name"><a href="../backend_offlineProvider/db.html">db</a></span>
   <span class="signature">&#8594; <a href="https://pub.dev/documentation/localstore/1.2.1/localstore/Localstore-class.html">Localstore</a></span> 
+
+</dt>
+<dd>
+   
+  <div class="features">final</div>
+
+</dd>
+
+        <dt id="failedReqLogCollection" class="property">
+  <span class="name"><a href="../backend_offlineProvider/failedReqLogCollection.html">failedReqLogCollection</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/localstore/1.2.1/localstore/CollectionRef-class.html">CollectionRef</a></span> 
 
 </dt>
 <dd>
@@ -103,6 +147,32 @@
 
 </dd>
 
+        <dt id="deleteImage" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/deleteImage.html">deleteImage</a></span><span class="signature">(<wbr><span class="parameter" id="deleteImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  tries to remove an <a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a> given by its <code>name</code> , throws if unsuccesfull 
+  
+
+</dd>
+
+        <dt id="failedRequestWasSuccesful" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/failedRequestWasSuccesful.html">failedRequestWasSuccesful</a></span><span class="signature">(<wbr><span class="parameter" id="failedRequestWasSuccesful-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd>
+   
+  
+
+</dd>
+
         <dt id="getAllChildrenFrom" class="callable">
   <span class="name"><a href="../backend_offlineProvider/getAllChildrenFrom.html">getAllChildrenFrom</a></span><span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="getAllChildrenFrom-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData?</span>&gt;</span>?</span>&gt;</span></span>
@@ -117,6 +187,32 @@ it returns all <a href="../classes_dropdownClasses/Data-class.html">Data</a> (<c
 
 </dd>
 
+        <dt id="getAllFailedRequests" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/getAllFailedRequests.html">getAllFailedRequests</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/Request-class.html">Request</a>?</span>, <span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/MultipartRequest-class.html">MultipartRequest</a>?</span>&gt;</span></span>&gt;</span></span>&gt;</span>?</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a <a href="https://pub.dev/documentation/http/0.13.4/http/Response-class.html">http.Response</a> or an <a href="https://pub.dev/documentation/http/0.13.4/http/MultipartRequest-class.html">http.MultipartRequest</a> 
+  
+
+</dd>
+
+        <dt id="logFailedReq" class="callable">
+  <span class="name"><a href="../backend_offlineProvider/logFailedReq.html">logFailedReq</a></span><span class="signature">&lt;<wbr><span class="type-parameter">T extends <a href="https://pub.dev/documentation/http/0.13.4/http/BaseRequest-class.html">BaseRequest</a></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="logFailedReq-param-req"><span class="type-annotation">T</span> <span class="parameter-name">req</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+   
+  
+
+</dd>
+
         <dt id="readImage" class="callable">
   <span class="name"><a href="../backend_offlineProvider/readImage.html">readImage</a></span><span class="signature">(<wbr><span class="parameter" id="readImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span>
@@ -125,7 +221,7 @@ it returns all <a href="../classes_dropdownClasses/Data-class.html">Data</a> (<c
 
 </dt>
 <dd>
-   
+  tries to open an <a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a> given by its <code>name</code> and returns it if succesfull 
   
 
 </dd>
@@ -164,7 +260,7 @@ it returns all <a href="../classes_dropdownClasses/Data-class.html">Data</a> (<c
 
 </dt>
 <dd>
-   
+  stores the <code>imgBytes</code> as an image given by the <code>name</code>, returns the new <a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a> 
   
 
 </dd>
@@ -251,16 +347,25 @@ it returns all <a href="../classes_dropdownClasses/Data-class.html">Data</a> (<c
     <h5>offlineProvider library</h5>
     <ol>
 
+  <li class="section-title"><a href="../backend_offlineProvider/backend_offlineProvider-library.html#extensions">Extensions</a></li>
+  <li><a href="../backend_offlineProvider/SerializableBaseRequest.html">SerializableBaseRequest</a></li>
+  <li><a href="../backend_offlineProvider/SerializableMultiPartReq.html">SerializableMultiPartReq</a></li>
+  <li><a href="../backend_offlineProvider/SerializableRequest.html">SerializableRequest</a></li>
 
 
 
   <li class="section-title"><a href="../backend_offlineProvider/backend_offlineProvider-library.html#properties">Properties</a></li>
   <li><a href="../backend_offlineProvider/db.html">db</a></li>
+  <li><a href="../backend_offlineProvider/failedReqLogCollection.html">failedReqLogCollection</a></li>
 
   <li class="section-title"><a href="../backend_offlineProvider/backend_offlineProvider-library.html#functions">Functions</a></li>
   <li><a href="../backend_offlineProvider/deleteAll.html">deleteAll</a></li>
   <li><a href="../backend_offlineProvider/deleteData.html">deleteData</a></li>
+  <li><a href="../backend_offlineProvider/deleteImage.html">deleteImage</a></li>
+  <li><a href="../backend_offlineProvider/failedRequestWasSuccesful.html">failedRequestWasSuccesful</a></li>
   <li><a href="../backend_offlineProvider/getAllChildrenFrom.html">getAllChildrenFrom</a></li>
+  <li><a href="../backend_offlineProvider/getAllFailedRequests.html">getAllFailedRequests</a></li>
+  <li><a href="../backend_offlineProvider/logFailedReq.html">logFailedReq</a></li>
   <li><a href="../backend_offlineProvider/readImage.html">readImage</a></li>
   <li><a href="../backend_offlineProvider/retrieveData.html">retrieveData</a></li>
   <li><a href="../backend_offlineProvider/storeData.html">storeData</a></li>

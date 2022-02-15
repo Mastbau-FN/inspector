@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the readImage function from the offlineProvider library, for the Dart programming language.">
-  <title>readImage function - offlineProvider library - Dart API</title>
+  <meta name="description" content="API docs for the deleteImage function from the offlineProvider library, for the Dart programming language.">
+  <title>deleteImage function - offlineProvider library - Dart API</title>
 
 
   
@@ -31,9 +31,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-    <li class="self-crumb">readImage function</li>
+    <li class="self-crumb">deleteImage function</li>
   </ol>
-  <div class="self-name">readImage</div>
+  <div class="self-name">deleteImage</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -44,7 +44,7 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-function">readImage</span> function 
+<h1><span class="kind-function">deleteImage</span> function 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
  
 </h1></div>
@@ -52,29 +52,25 @@
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span>
-<span class="name ">readImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="readImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a></span>&gt;</span></span>
+<span class="name ">deleteImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="deleteImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span></li>
 </ol>)
 
     </section>
     
 <section class="desc markdown">
-  <p>tries to open an <a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a> given by its <code>name</code> and returns it if succesfull</p>
+  <p>tries to remove an <a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a> given by its <code>name</code> , throws if unsuccesfull</p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;Image?&gt; readImage(String name) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;File&gt; deleteImage(String name) async {
   final file = (await _localFile(name));
   if (!file.existsSync()) throw Exception(&quot;file ${file} doesnt exist&quot;);
-  if (file.lengthSync() &lt; 5)
-    throw Exception(&quot;file ${file} definitely to small&quot;);
-  &#47;&#47;TODO: was wenn keine datei da lesbar ist? -&gt; return null
-  &#47;&#47; das ist wichtig damit der placeholder statt einem &quot;image corrupt&quot; dargestellt wird
-  &#47;&#47;debugPrint(&quot;retrieving ${file}&quot;);
-  return Image.file(await _localFile(name));
+
+  return await file.delete() as File;
 }</code></pre>
 </section>
 
@@ -91,7 +87,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../index.html">MBG_Inspektionen</a></li>
   <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-  <li class="self-crumb">readImage function</li>
+  <li class="self-crumb">deleteImage function</li>
 </ol>
 
 

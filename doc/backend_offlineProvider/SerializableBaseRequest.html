@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the readImage function from the offlineProvider library, for the Dart programming language.">
-  <title>readImage function - offlineProvider library - Dart API</title>
+  <meta name="description" content="API docs for the SerializableBaseRequest extension from the offlineProvider library, for the Dart programming language.">
+  <title>SerializableBaseRequest extension - offlineProvider library - Dart API</title>
 
 
   
@@ -31,9 +31,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-    <li class="self-crumb">readImage function</li>
+    <li class="self-crumb">SerializableBaseRequest extension</li>
   </ol>
-  <div class="self-name">readImage</div>
+  <div class="self-name">SerializableBaseRequest</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -42,46 +42,52 @@
 <main>
 
 
-  <div id="dartdoc-main-content" class="main-content">
-      <div>
-<h1><span class="kind-function">readImage</span> function 
+<div id="dartdoc-main-content" class="main-content">
+    <div>
+<h1><span class="kind-class">SerializableBaseRequest</span> extension 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
  
 </h1></div>
 
-    <section class="multi-line-signature">
-        
+    
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span>
-<span class="name ">readImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="readImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span></li>
-</ol>)
-
+    <section>
+        <dl class="dl-horizontal">
+        <dt>on</dt>
+        <dd>
+            <ul class="comma-separated clazz-relationships">
+            <li><a href="https://pub.dev/documentation/http/0.13.4/http/BaseRequest-class.html">BaseRequest</a></li>
+            </ul>
+        </dd>
+        </dl>
     </section>
-    
-<section class="desc markdown">
-  <p>tries to open an <a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a> given by its <code>name</code> and returns it if succesfull</p>
-</section>
+
+    <section class="summary offset-anchor" id="instance-properties">
+        <h2>Properties</h2>
+
+        <dl class="properties">
+            <dt id="toJson" class="property">
+  <span class="name"><a href="../backend_offlineProvider/SerializableBaseRequest/toJson.html">toJson</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span> 
+
+</dt>
+<dd>
+   
+  <div class="features">read-only</div>
+
+</dd>
+
+        </dl>
+    </section>
 
 
-    
-<section class="summary source-code" id="source">
-  <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;Image?&gt; readImage(String name) async {
-  final file = (await _localFile(name));
-  if (!file.existsSync()) throw Exception(&quot;file ${file} doesnt exist&quot;);
-  if (file.lengthSync() &lt; 5)
-    throw Exception(&quot;file ${file} definitely to small&quot;);
-  &#47;&#47;TODO: was wenn keine datei da lesbar ist? -&gt; return null
-  &#47;&#47; das ist wichtig damit der placeholder statt einem &quot;image corrupt&quot; dargestellt wird
-  &#47;&#47;debugPrint(&quot;retrieving ${file}&quot;);
-  return Image.file(await _localFile(name));
-}</code></pre>
-</section>
 
 
-  </div> <!-- /.main-content -->
 
-  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+
+</div> <!-- /.main-content -->
+
+<div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
     <header id="header-search-sidebar" class="hidden-l">
   <form class="search-sidebar" role="search">
     <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
@@ -91,7 +97,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../index.html">MBG_Inspektionen</a></li>
   <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-  <li class="self-crumb">readImage function</li>
+  <li class="self-crumb">SerializableBaseRequest extension</li>
 </ol>
 
 
@@ -126,10 +132,25 @@
 
 </ol>
 
-  </div><!--/.sidebar-offcanvas-left-->
+</div>
 
-  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
-  </div><!--/.sidebar-offcanvas-->
+<div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+    <ol>
+
+
+
+
+    <li class="section-title"> <a href="../backend_offlineProvider/SerializableBaseRequest.html#instance-properties">Properties</a>
+    </li>
+    <li><a href="../backend_offlineProvider/SerializableBaseRequest/toJson.html">toJson</a></li>
+
+
+
+
+
+</ol>
+
+</div><!--/.sidebar-offcanvas-->
 
 </main>
 

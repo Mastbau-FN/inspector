@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the readImage function from the offlineProvider library, for the Dart programming language.">
-  <title>readImage function - offlineProvider library - Dart API</title>
+  <meta name="description" content="API docs for the getAllFailedRequests function from the offlineProvider library, for the Dart programming language.">
+  <title>getAllFailedRequests function - offlineProvider library - Dart API</title>
 
 
   
@@ -31,9 +31,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-    <li class="self-crumb">readImage function</li>
+    <li class="self-crumb">getAllFailedRequests function</li>
   </ol>
-  <div class="self-name">readImage</div>
+  <div class="self-name">getAllFailedRequests</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -44,7 +44,7 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-function">readImage</span> function 
+<h1><span class="kind-function">getAllFailedRequests</span> function 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
  
 </h1></div>
@@ -52,29 +52,59 @@
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a>?</span>&gt;</span></span>
-<span class="name ">readImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="readImage-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span></li>
-</ol>)
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/Request-class.html">Request</a>?</span>, <span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/MultipartRequest-class.html">MultipartRequest</a>?</span>&gt;</span></span>&gt;</span></span>&gt;</span>?</span>&gt;</span></span>
+<span class="name ">getAllFailedRequests</span>(<wbr>)
 
     </section>
     
 <section class="desc markdown">
-  <p>tries to open an <a href="https://api.flutter.dev/flutter/widgets/Image-class.html">Image</a> given by its <code>name</code> and returns it if succesfull</p>
+  <p>returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a <a href="https://pub.dev/documentation/http/0.13.4/http/Response-class.html">http.Response</a> or an <a href="https://pub.dev/documentation/http/0.13.4/http/MultipartRequest-class.html">http.MultipartRequest</a></p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;Image?&gt; readImage(String name) async {
-  final file = (await _localFile(name));
-  if (!file.existsSync()) throw Exception(&quot;file ${file} doesnt exist&quot;);
-  if (file.lengthSync() &lt; 5)
-    throw Exception(&quot;file ${file} definitely to small&quot;);
-  &#47;&#47;TODO: was wenn keine datei da lesbar ist? -&gt; return null
-  &#47;&#47; das ist wichtig damit der placeholder statt einem &quot;image corrupt&quot; dargestellt wird
-  &#47;&#47;debugPrint(&quot;retrieving ${file}&quot;);
-  return Image.file(await _localFile(name));
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;Tuple2&lt;String, Tuple2&lt;http.Request?, http.MultipartRequest?&gt;&gt;&gt;?&gt;
+    getAllFailedRequests() async {
+  requestFromJson(Map&lt;String, dynamic&gt; json) async {
+    switch (json[&#39;type&#39;]) {
+      case &#39;Request&#39;:
+        return Tuple2(
+            http.Request(json[&#39;method&#39;], Uri.parse(json[&#39;url&#39;]))
+              ..headers.addAll(json[&#39;headers&#39;])
+              ..encoding = json[&#39;encoding&#39;]
+              ..body = json[&#39;body&#39;],
+            null);
+      case &#39;MultipartRequest&#39;:
+        return Tuple2(
+            null,
+            http.MultipartRequest(json[&#39;method&#39;], Uri.parse(json[&#39;url&#39;]))
+              ..headers.addAll(json[&#39;headers&#39;])
+              ..fields.addAll(json[&#39;body&#39;])
+              ..files.addAll(
+                List&lt;http.MultipartFile&gt;.from((await Future.wait(
+                  json[&#39;file-names&#39;].map(
+                    (String name) async =&gt; http.MultipartFile.fromPath(
+                        &#39;package&#39;,
+                        (await _localFile(name))
+                            .path), &#47;&#47;TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+                  ),
+                ))
+                    .whereType&lt;http.MultipartFile&gt;()),
+              ));
+      default:
+        throw UnimplementedError();
+    }
+  }
+
+  final docs = (await failedReqLogCollection
+      .get()); &#47;&#47;TODO: das muss in-order sein, sonst könnte es probleme geben..
+
+  return (docs == null)
+      ? null
+      : Future.wait(docs.entries
+          .map((e) async =&gt; Tuple2(e.key, await requestFromJson(e.value))));
 }</code></pre>
 </section>
 
@@ -91,7 +121,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../index.html">MBG_Inspektionen</a></li>
   <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-  <li class="self-crumb">readImage function</li>
+  <li class="self-crumb">getAllFailedRequests function</li>
 </ol>
 
 

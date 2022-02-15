@@ -79,9 +79,10 @@
         (await Future.wait(str.map((elem) async =&gt; await converter(elem))))
             .whereType&lt;T&gt;());
   } catch (e) {
-    debugPrint(&#39;could not parse response: &#39; + e.toString());
+    debugPrint(
+        &#39;could not parse response: &#39; + e.toString() + &#39;--&gt;&#39; + jsonEncode(json));
     throw BackendCommunicationException(
-        &#39;could not parse response: &#39; + e.toString());
+        &#39;could not parse response: \n&#39; + jsonEncode(json));
   }
   &#47;&#47;return [];
 }</code></pre>

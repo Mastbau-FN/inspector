@@ -122,6 +122,12 @@ Widget build(BuildContext context) {
     supplyLoginModel: true,
   );
 
+  var uploadSyncTile = MyCardListTile1(
+    icon: Icons.sync,
+    text: &#39;uploadSync&#39;,
+    onTap: Backend().retryFailedrequests,
+  );
+
   return Drawer(
     child: ListView(
       &#47;&#47; Important: Remove any padding from the ListView.
@@ -129,6 +135,7 @@ Widget build(BuildContext context) {
       children: &lt;Widget&gt;[
         MainDrawerHeader(),
         settingsTile,
+        uploadSyncTile,
         unlimiteddoggosTile,
       ],
     ),

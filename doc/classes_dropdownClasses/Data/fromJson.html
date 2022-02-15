@@ -70,13 +70,13 @@
   &#47;&#47;XXX: alle subclassen müssen hier eingetragen werden
   switch (typeOf&lt;T&gt;()) {
     case InspectionLocation:
-      return InspectionLocation.fromJson(map) as T;
+      return InspectionLocation.fromJson(map) as T?;
     case CheckCategory:
-      return CheckCategory.fromJson(map) as T;
+      return CheckCategory.fromJson(map) as T?;
     case CheckPoint:
-      return CheckPoint.fromJson(map) as T;
+      return CheckPoint.fromJson(map) as T?;
     case CheckPointDefect:
-      return CheckPointDefect.fromJson(map) as T;
+      return CheckPointDefect.fromJson(map) as T?;
     default:
       return null;
   }

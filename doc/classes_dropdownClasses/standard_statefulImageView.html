@@ -88,6 +88,12 @@
               model.notifyListeners();
               return value;
             }),
+            onDelete: (hash) =&gt;
+                Backend().deleteImageByHash(hash.toString()).then((value) {
+              if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
+              model.notifyListeners();
+              return value;
+            }),
           );
         });
       }),

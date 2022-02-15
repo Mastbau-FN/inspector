@@ -107,22 +107,26 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(&#39;Bilder&#39;),
-    ),
-    body: ImageWrap&lt;T&gt;.futured(
-      images: _images,
-      onDelete: onDelete,
-      onShare: onShare,
-      onStar: onStar,
-    ),
-    floatingActionButton: ChangeNotifierProvider(
-      create: (ocontext) =&gt; CameraModel(),
-      child: Builder(builder: (context) {
-        return ImageAddButton(picker: _picker, onNewImages: onNewImages);
-      }),
-    ),
+  return Stack(
+    children: [
+      Scaffold(
+        appBar: AppBar(
+          title: Text(&#39;Bilder&#39;),
+        ),
+        body: ImageWrap&lt;T&gt;.futured(
+          images: _images,
+          onDelete: onDelete,
+          onShare: onShare,
+          onStar: onStar,
+        ),
+      ),
+      ChangeNotifierProvider(
+        create: (ocontext) =&gt; CameraModel(),
+        child: Builder(builder: (context) {
+          return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+        }),
+      ),
+    ],
   );
 }</code></pre>
 </section>
