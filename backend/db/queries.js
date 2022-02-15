@@ -377,6 +377,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       thingy.images.unshift(
         await imghasher.memorize(rootfolder, link, mainImg)
       );
+      console.log("imagehashes: "+thingy.images);
     }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
