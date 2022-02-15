@@ -42,10 +42,11 @@ extension StreamRepeatLatestExtension<T /*extends Object*/ > on Stream<T> {
       for (var listener in [...currentListeners])
         listener.addErrorSync(error, stack);
     }, onDone: () {
-      done = true;
-      latest = null;
-      for (var listener in currentListeners) listener.closeSync();
-      currentListeners.clear();
+      //TODO: PERFORMANCE, okay we currently dont close the streams so photos can be shown again (see #36), but thats very bad for performance, so find an actual solution instead of a dirty workaround
+      // done = true;
+      // latest = null;
+      // for (var listener in currentListeners) listener.close();
+      // currentListeners.clear();
     });
     return Stream.multi((controller) {
       if (done) {
