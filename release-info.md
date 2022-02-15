@@ -1,10 +1,7 @@
 # Changes
 
-## Photos und Datenpunkte sind nun offline zum Lesen verfügbar
 
-- nur wenn sie vorher einmal geöffnet wurden
-
-### upload
+## upload
 
 - alle gefaileten request werden gelogged und beim drücken auf den sync button erneut ausgeführt
 
