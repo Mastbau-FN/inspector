@@ -80,22 +80,26 @@ class ImagesPage<T extends Object> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Bilder'),
-      ),
-      body: ImageWrap<T>.futured(
-        images: _images,
-        onDelete: onDelete,
-        onShare: onShare,
-        onStar: onStar,
-      ),
-      floatingActionButton: ChangeNotifierProvider(
-        create: (ocontext) => CameraModel(),
-        child: Builder(builder: (context) {
-          return ImageAddButton(picker: _picker, onNewImages: onNewImages);
-        }),
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: Text('Bilder'),
+          ),
+          body: ImageWrap<T>.futured(
+            images: _images,
+            onDelete: onDelete,
+            onShare: onShare,
+            onStar: onStar,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (ocontext) => CameraModel(),
+          child: Builder(builder: (context) {
+            return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+          }),
+        ),
+      ],
     );
   }
 }
@@ -174,68 +178,78 @@ class _ImageAddButtonState extends State<ImageAddButton>
     return Stack(
       fit: StackFit.expand,
       children: [
-        BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 8.0 * animation.value,
-            sigmaY: 8.0 * animation.value,
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+                sigmaX: 5.0 * animation.value,
+                sigmaY: 5.0 * animation.value,
+                tileMode: TileMode.mirror),
+            child: Container(
+              color: Colors.black.withOpacity(0.1 * animation.value),
+            ),
           ),
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (withCamera)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: Consumer<CameraModel>(
-                          builder: (context, model, child) =>
-                              model.latestPic == null
-                                  ? CameraPreviewOnly()
-                                  : Image.file(
-                                      File(model.latestPic!.path),
-                                      fit: BoxFit.fitWidth,
-                                    ),
-                        ),
-                      ),
-                    ),
-                  ),
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  //mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (expanded && !withCamera)
-                      Transform.translate(
-                        //transformHitTests: true,
-                        offset: Offset(0, animation.value * -130),
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              top:
-                                  160), //needed for hitTesting to work after transform
-                          child: uploadFromSystem,
-                        ),
-                      ),
-                    if (expanded)
-                      Transform.translate(
-                        //transformHitTests: true,
-                        offset: Offset(0, animation.value * -70),
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              top:
-                                  100), //needed for hitTesting to work after transform
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(18.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (withCamera)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
                           child: Consumer<CameraModel>(
                             builder: (context, model, child) =>
-                                takeImage(context, model),
+                                model.latestPic == null
+                                    ? CameraPreviewOnly()
+                                    : Image.file(
+                                        File(model.latestPic!.path),
+                                        fit: BoxFit.fitWidth,
+                                      ),
                           ),
                         ),
                       ),
-                    add,
-                  ],
-                ),
-              ],
+                    ),
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    //mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (expanded && !withCamera)
+                        Transform.translate(
+                          //transformHitTests: true,
+                          offset: Offset(0, animation.value * -130),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                top:
+                                    160), //needed for hitTesting to work after transform
+                            child: uploadFromSystem,
+                          ),
+                        ),
+                      if (expanded)
+                        Transform.translate(
+                          //transformHitTests: true,
+                          offset: Offset(0, animation.value * -70),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                top:
+                                    100), //needed for hitTesting to work after transform
+                            child: Consumer<CameraModel>(
+                              builder: (context, model, child) =>
+                                  takeImage(context, model),
+                            ),
+                          ),
+                        ),
+                      add,
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

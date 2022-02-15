@@ -16,6 +16,7 @@ import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:tuple/tuple.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -108,11 +109,17 @@ class Backend {
         timeout: timeout,
       );
 
-  Future<http.Response?> send(http.Request request, {Duration? timeout}) async {
+  Future<http.Response?> send(
+    http.Request request, {
+    Duration? timeout,
+    bool returnsBinary = false,
+  }) async {
     final req = request.send();
     final res = (timeout == null) ? await req : await req.timeout(timeout);
-    //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
+
     final ret = await http.Response.fromStream(res); // res.forceRes();
+    if (Options.debugAllResponses && !returnsBinary)
+      debugPrint("res: " + ret.body);
     return ret;
   }
 
@@ -138,6 +145,7 @@ class Backend {
     Map<String, dynamic>? json,
     List<XFile> multipart_files = const [],
     Duration? timeout,
+    bool returnsBinary = false,
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
@@ -174,7 +182,11 @@ class Backend {
       } else {
         final req = makepost(route, headers: headers, body: jsonEncode(json));
         try {
-          return await send(req, timeout: timeout);
+          return await send(
+            req,
+            timeout: timeout,
+            returnsBinary: returnsBinary,
+          );
         } catch (e) {
           OP.logFailedReq(req);
           debugPrint('request, failed, we logged it');
@@ -199,9 +211,14 @@ class Backend {
       //yield null;
     }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res =
-          (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-              ?.forceRes();
+      http.Response? res = (await post_JSON(
+        _getImageFromHash_r,
+        json: {
+          'imghash': hash,
+        },
+        returnsBinary: true,
+      ))
+          ?.forceRes();
       if (res == null || res.statusCode != 200)
         yield null;
       else {
@@ -247,7 +264,7 @@ class Backend {
       //but we get another image anyway, since we want one that we can show as preview
       data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
             (hash) => _fetchImage(hash)
-                .asBroadcastStream()
+                //.asBroadcastStream()
                 .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           ) ??
           []);
@@ -257,10 +274,12 @@ class Backend {
       //    ) ??
       //    []);
 
+      debugPrint("image-hashes:" + data.imagehashes.toString());
+
       data.image_streams = data.imagehashes
           ?.map(
             (hash) => _fetchImage(hash)
-                .asBroadcastStream()
+                // .asBroadcastStream()
                 .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
@@ -445,6 +464,19 @@ class Backend {
 
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
+
+  retryFailedrequests() async {
+    for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
+        in await OP.getAllFailedRequests() ?? []) {
+      final docID = reqd.item1;
+      final _reqTuple = reqd.item2;
+      try {
+        final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
+        final res = http.Response.fromStream(await req.send());
+        OP.failedRequestWasSuccesful(docID);
+      } finally {}
+    }
+  }
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
