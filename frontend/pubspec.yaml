@@ -19,7 +19,7 @@ version: 1.0.17+17
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
-  flutter: 2.8.1 # kann demnächst auch wieder geupgraded werden wenn flutter_quill hinterhergekommen ist
+  flutter: ">=2.8.0 <2.9.0" # kann demnächst auch wieder geupgraded werden wenn flutter_quill hinterhergekommen ist
 
 dependencies:
 
