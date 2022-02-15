@@ -10,6 +10,6 @@ SET
 WHERE
 "EREArt" = 5100 /*Prüfkategorie*/
 AND ("E1" = $2 /*neuer Parameter*/
-AND "E2" = 0
-AND "E3" = 0)
+AND ("E2" = 0 OR "E2" is null)
+AND ("E3" = 0 OR "E3" is null))
 ;

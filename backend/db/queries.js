@@ -205,6 +205,8 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  let queryfile;
  switch (data.type) {
    case identifiers.category:
+     //console.log("updating category")
+     //console.log(ld.Link);
      queryfile = folder+"/check_categories";
      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
@@ -377,7 +379,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       thingy.images.unshift(
         await imghasher.memorize(rootfolder, link, mainImg)
       );
-      console.log("imagehashes: "+thingy.images);
+      console.log(`imagehashes- ${thingy.KurzText} -:`, thingy.images);
     }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
