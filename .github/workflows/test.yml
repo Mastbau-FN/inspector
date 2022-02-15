@@ -14,18 +14,7 @@ jobs:
         working-directory: ./frontend
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '12.x'
-      - uses: subosito/flutter-action@v1
-        with:
-          flutter-version: '2.x'
-      - run: |
-          touch .env
-          echo "API_KEY=$API_KEY" >> .env
-          echo "API_URL=$API_URL" >> .env
-      - name: install dependencies
-        run: flutter pub get
+      - uses: Mastbau-FN/inspector/.github/actions/setup@main
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage

@@ -11,5 +11,5 @@ WHERE
 "EREArt" = 5200 /*Prüfpunkt*/
 AND ("E1" = $2 /*neuer Parameter*/
 AND "E2" = $3 /*neuer Parameter*/
-AND "E3" = 0)
+AND ("E3" = 0 OR "E3" is null))
 ;

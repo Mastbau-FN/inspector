@@ -4,7 +4,9 @@ const logreq = (req,res,next)=>{
         passTmp = req.body.user.pass;
         req.body.user.pass = '--CENSORED--';
     } catch (error) {}
-    console.log(`${req.url}:`, req.body)
+    if(!req.url.includes('image')){
+        console.log(`${req.url}:`, req.body)
+    }
     try {
         req.body.user.pass = passTmp;
     } catch (error) {}

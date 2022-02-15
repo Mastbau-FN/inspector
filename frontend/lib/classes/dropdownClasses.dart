@@ -40,13 +40,13 @@ abstract class Data implements WithImgHashes {
     //XXX: alle subclassen müssen hier eingetragen werden
     switch (typeOf<T>()) {
       case InspectionLocation:
-        return InspectionLocation.fromJson(map) as T;
+        return InspectionLocation.fromJson(map) as T?;
       case CheckCategory:
-        return CheckCategory.fromJson(map) as T;
+        return CheckCategory.fromJson(map) as T?;
       case CheckPoint:
-        return CheckPoint.fromJson(map) as T;
+        return CheckPoint.fromJson(map) as T?;
       case CheckPointDefect:
-        return CheckPointDefect.fromJson(map) as T;
+        return CheckPointDefect.fromJson(map) as T?;
       default:
         return null;
     }
@@ -137,6 +137,12 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
             onStar: (hash) => Backend()
                 .setMainImageByHash(data, hash.toString())
                 .then((value) {
+              if (value != null && value != "") showToast(value);
+              model.notifyListeners();
+              return value;
+            }),
+            onDelete: (hash) =>
+                Backend().deleteImageByHash(hash.toString()).then((value) {
               if (value != null && value != "") showToast(value);
               model.notifyListeners();
               return value;

@@ -5,8 +5,8 @@ const bcript = require("bcrypt");
 // XXX: for #92 use https://www.npmjs.com/package/data-store
 const NanoCache = require("nano-cache");
 var cache = new NanoCache({
-  ttl: 604800000, // store data in memory for exactly one week
-  limit: 5, // a hashed image may only be queried 5 times //maybe once would be better
+  //ttl: 604800000, // store data in memory for exactly one week
+  //limit: 5, // a hashed image may only be queried 5 times //maybe once would be better
   bytes: NanoCache.SIZE.GB, // cache memory usage must not exceed 1GB
 });
 
@@ -18,13 +18,20 @@ const getFileFromHash = async (hash) => {
   );
 };
 
+function throwExpression(errorMessage){
+  throw new Error(errorMessage);
+}
+
 const getPathFromHash = (hash) => {
   // console.log(hash);
   // console.log(cache.stats());
+  const  throwE = ()=>{
+    throw new Error("-cache miss- , we couldnt resolve where that image is supposed to live");
+  }
   return {
-    rootpath: cache.get(hash + "r"),
-    link:     cache.get(hash + "l"),
-    filename: cache.get(hash + "f")
+    rootpath: cache.get(hash + "r") ?? throwE(),
+    link:     cache.get(hash + "l") ?? throwE(),
+    filename: cache.get(hash + "f") ?? throwE()
   }
 };
 

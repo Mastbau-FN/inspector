@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
@@ -23,6 +24,12 @@ class MainDrawer extends StatelessWidget {
       supplyLoginModel: true,
     );
 
+    var uploadSyncTile = MyCardListTile1(
+      icon: Icons.sync,
+      text: 'uploadSync',
+      onTap: Backend().retryFailedrequests,
+    );
+
     return Drawer(
       child: ListView(
         // Important: Remove any padding from the ListView.
@@ -30,6 +37,7 @@ class MainDrawer extends StatelessWidget {
         children: <Widget>[
           MainDrawerHeader(),
           settingsTile,
+          uploadSyncTile,
           unlimiteddoggosTile,
         ],
       ),

@@ -16,6 +16,7 @@ import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:tuple/tuple.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -96,25 +97,46 @@ class Backend {
   }
 
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  Future<http.Response> post(
+  Future<http.Response?> post(
     String route, {
     Map<String, String>? headers,
-    Object? body,
+    String? body,
     Encoding? encoding,
     Duration? timeout,
+  }) =>
+      send(
+        makepost(route, headers: headers, body: body, encoding: encoding),
+        timeout: timeout,
+      );
+
+  Future<http.Response?> send(
+    http.Request request, {
+    Duration? timeout,
+    bool returnsBinary = false,
   }) async {
+    final req = request.send();
+    final res = (timeout == null) ? await req : await req.timeout(timeout);
+
+    final ret = await http.Response.fromStream(res); // res.forceRes();
+    if (Options.debugAllResponses && !returnsBinary)
+      debugPrint("res: " + ret.body);
+    return ret;
+  }
+
+  /// make an actual API request to a route, and always append the API_KEY as authorization-header
+  http.Request makepost(
+    String route, {
+    Map<String, String>? headers,
+    String? body,
+    Encoding? encoding,
+  }) {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
     var fullURL = Uri.parse(_baseurl! + route);
-    final req = http.post(
-      fullURL,
-      headers: headers,
-      body: body,
-      encoding: encoding,
-    );
-    var ret = (timeout == null) ? await req : await req.timeout(timeout);
-    //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
-    return ret;
+    final req = http.Request('post', fullURL)..headers.addAll(headers);
+    if (encoding != null) req.encoding = encoding;
+    if (body != null) req.body = body;
+    return req;
   }
 
   /// post_JSON to our backend as the user
@@ -123,39 +145,54 @@ class Backend {
     Map<String, dynamic>? json,
     List<XFile> multipart_files = const [],
     Duration? timeout,
+    bool returnsBinary = false,
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
     json['user'] = (await _c_user)?.toJson();
+    if (Options.debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
       if (multipart_files.isNotEmpty) {
-        var fullURL = Uri.parse(_baseurl! + route);
-        var mreq = http.MultipartRequest('POST', fullURL)
-          ..files.addAll(
-            List<http.MultipartFile>.from((await Future.wait(
-              multipart_files.map(
-                (xfile) async => await http.MultipartFile.fromPath(
-                    'package', xfile.path,
-                    filename: xfile.name),
-              ),
-            ))
-                .whereType<http.MultipartFile>()),
-          )
-          ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-          ..fields.addAll(/*flatten()*/ json.map<String, String>(
-              (key, value) => MapEntry(key, value.toString())));
-        debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-        var res = (timeout == null)
-            ? await mreq.send()
-            : await mreq.send().timeout(timeout);
-        return res;
+        http.MultipartRequest? mreq;
+        try {
+          var fullURL = Uri.parse(_baseurl! + route);
+          mreq = http.MultipartRequest('POST', fullURL)
+            ..files.addAll(
+              List<http.MultipartFile>.from((await Future.wait(
+                multipart_files.map(
+                  (xfile) => http.MultipartFile.fromPath('package', xfile.path,
+                      filename: xfile.name),
+                ),
+              ))
+                  .whereType<http.MultipartFile>()),
+            )
+            ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
+            ..fields.addAll(/*flatten()*/ json.map<String, String>(
+                (key, value) => MapEntry(key, value.toString())));
+          debugPrint("gonna send multipart-req with booty ${mreq.fields}");
+          var res = (timeout == null)
+              ? await mreq.send()
+              : await mreq.send().timeout(timeout);
+          return res;
+        } on Exception catch (e) {
+          OP.logFailedReq(mreq!);
+          debugPrint('multipartRequest, failed, we logged it');
+          throw e;
+        }
+      } else {
+        final req = makepost(route, headers: headers, body: jsonEncode(json));
+        try {
+          return await send(
+            req,
+            timeout: timeout,
+            returnsBinary: returnsBinary,
+          );
+        } catch (e) {
+          OP.logFailedReq(req);
+          debugPrint('request, failed, we logged it');
+          throw e;
+        }
       }
-      return post(
-        route,
-        headers: headers,
-        body: jsonEncode(json),
-        timeout: timeout,
-      );
     } catch (e) {
       debugPrint("request failed, cause : ${e}");
       return null;
@@ -174,9 +211,14 @@ class Backend {
       //yield null;
     }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res =
-          (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-              ?.forceRes();
+      http.Response? res = (await post_JSON(
+        _getImageFromHash_r,
+        json: {
+          'imghash': hash,
+        },
+        returnsBinary: true,
+      ))
+          ?.forceRes();
       if (res == null || res.statusCode != 200)
         yield null;
       else {
@@ -222,7 +264,8 @@ class Backend {
       //but we get another image anyway, since we want one that we can show as preview
       data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
             (hash) => _fetchImage(hash)
-                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+                //.asBroadcastStream()
+                .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           ) ??
           []);
       //Future.doWhile(() => fetchdata)
@@ -231,10 +274,13 @@ class Backend {
       //    ) ??
       //    []);
 
+      debugPrint("image-hashes:" + data.imagehashes.toString());
+
       data.image_streams = data.imagehashes
           ?.map(
             (hash) => _fetchImage(hash)
-                .asBroadcastStream(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+                // .asBroadcastStream()
+                .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
           .toList() /*.sublist(first_working_image_index + 1)*/;
 
@@ -260,11 +306,10 @@ class Backend {
         route,
         json: json,
         timeout: Duration(seconds: 5),
-      ))
-          ?.forceRes()
-          ?.body;
+      ));
+      final body = res?.forceRes()?.body;
       _json = jsonDecode(
-        res ?? '',
+        body ?? '{"error":"failed"}',
       );
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
@@ -277,6 +322,7 @@ class Backend {
         return [];
       }
     }
+    debugPrint(jsonEncode(json));
     final datapoints = await getListFromJson(
       _json,
       _generateImageFetcher(fromJson),
@@ -376,10 +422,12 @@ class Backend {
       (await _sendDataToRoute(data: data, route: _delete_r))?.body;
 
   /// deletes an image specified by its hash and returns the response
-  Future<String?> deleteImageByHash(String hash) async =>
-      (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
-          ?.forceRes()
-          ?.body;
+  Future<String?> deleteImageByHash(String hash) async {
+    await OP.deleteImage(hash);
+    return (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+        ?.forceRes()
+        ?.body;
+  }
 
   /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
@@ -416,6 +464,19 @@ class Backend {
 
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
+
+  retryFailedrequests() async {
+    for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
+        in await OP.getAllFailedRequests() ?? []) {
+      final docID = reqd.item1;
+      final _reqTuple = reqd.item2;
+      try {
+        final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
+        final res = http.Response.fromStream(await req.send());
+        OP.failedRequestWasSuccesful(docID);
+      } finally {}
+    }
+  }
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
@@ -428,9 +489,10 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
         (await Future.wait(str.map((elem) async => await converter(elem))))
             .whereType<T>());
   } catch (e) {
-    debugPrint('could not parse response: ' + e.toString());
+    debugPrint(
+        'could not parse response: ' + e.toString() + '-->' + jsonEncode(json));
     throw BackendCommunicationException(
-        'could not parse response: ' + e.toString());
+        'could not parse response: \n' + jsonEncode(json));
   }
   //return [];
 }
