@@ -121,36 +121,43 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
             DDModel extends DropDownModel<ChildData, Data?>>(
         ChildData data, DDModel model) =>
     ChangeNotifierProvider<DDModel>.value(
-      value: model,
-      child: Builder(builder: (context) {
-        return Consumer<DDModel>(builder: (context, model, child) {
-          return ImagesPage.streamed(
-            imageStreams: data.image_streams,
-            //s ?.map((e) => e.asBroadcastStream())
-            // .toList(),
-            onNewImages: (files) =>
-                Backend().uploadFiles(data, files).then((value) {
-              model.notifyListeners();
-              if (value != null) showToast(value);
-              return value;
-            }),
-            onStar: (hash) => Backend()
-                .setMainImageByHash(data, hash.toString())
-                .then((value) {
-              if (value != null && value != "") showToast(value);
-              model.notifyListeners();
-              return value;
-            }),
-            onDelete: (hash) =>
-                Backend().deleteImageByHash(hash.toString()).then((value) {
-              if (value != null && value != "") showToast(value);
-              model.notifyListeners();
-              return value;
-            }),
-          );
-        });
-      }),
-    );
+        value: model,
+        // child: ChangeNotifierProvider<ChildData>.value(
+        //   value: data,
+        child: Builder(builder: (context) {
+          return Consumer<DDModel>(builder: (context, model, child) {
+            // return Consumer<ChildData>(builder: (context, data, child) {
+            return ImagesPage.streamed(
+              // TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
+              imageStreams: data.image_streams,
+              //s ?.map((e) => e.asBroadcastStream())
+              // .toList(),
+              onNewImages: (files) =>
+                  Backend().uploadFiles(data, files).then((value) {
+                model.notifyListeners();
+                if (value != null) showToast(value);
+                return value;
+              }),
+              onStar: (hash) => Backend()
+                  .setMainImageByHash(data, hash.toString())
+                  .then((value) {
+                if (value != null && value != "") showToast(value);
+                model.notifyListeners();
+                return value;
+              }),
+              onDelete: (hash) =>
+                  Backend().deleteImageByHash(hash.toString()).then((value) {
+                if (value != null && value != "") showToast(value);
+                model.notifyListeners();
+                return value;
+              }),
+            );
+          });
+        })
+        // ;
+        // }),
+        // ),
+        );
 
 Type typeOf<T>() => T;
 typedef BuilderT = Widget Function(BuildContext);
