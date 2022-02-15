@@ -109,11 +109,17 @@ class Backend {
         timeout: timeout,
       );
 
-  Future<http.Response?> send(http.Request request, {Duration? timeout}) async {
+  Future<http.Response?> send(
+    http.Request request, {
+    Duration? timeout,
+    bool returnsBinary = false,
+  }) async {
     final req = request.send();
     final res = (timeout == null) ? await req : await req.timeout(timeout);
-    //if (_debugAllResponses) debugPrint(ret.statusCode.toString());//gibt momentan n 404, wird wohl zeit das backend zu deployen
+
     final ret = await http.Response.fromStream(res); // res.forceRes();
+    if (Options.debugAllResponses && !returnsBinary)
+      debugPrint("res: " + ret.body);
     return ret;
   }
 
@@ -139,6 +145,7 @@ class Backend {
     Map<String, dynamic>? json,
     List<XFile> multipart_files = const [],
     Duration? timeout,
+    bool returnsBinary = false,
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
@@ -175,7 +182,11 @@ class Backend {
       } else {
         final req = makepost(route, headers: headers, body: jsonEncode(json));
         try {
-          return await send(req, timeout: timeout);
+          return await send(
+            req,
+            timeout: timeout,
+            returnsBinary: returnsBinary,
+          );
         } catch (e) {
           OP.logFailedReq(req);
           debugPrint('request, failed, we logged it');
@@ -200,9 +211,14 @@ class Backend {
       //yield null;
     }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res =
-          (await post_JSON(_getImageFromHash_r, json: {'imghash': hash}))
-              ?.forceRes();
+      http.Response? res = (await post_JSON(
+        _getImageFromHash_r,
+        json: {
+          'imghash': hash,
+        },
+        returnsBinary: true,
+      ))
+          ?.forceRes();
       if (res == null || res.statusCode != 200)
         yield null;
       else {
@@ -257,6 +273,8 @@ class Backend {
       //      (hash) => _fetchImage(hash),
       //    ) ??
       //    []);
+
+      debugPrint("image-hashes:" + data.imagehashes.toString());
 
       data.image_streams = data.imagehashes
           ?.map(

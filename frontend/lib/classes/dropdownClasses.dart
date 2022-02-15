@@ -141,6 +141,12 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
               model.notifyListeners();
               return value;
             }),
+            onDelete: (hash) =>
+                Backend().deleteImageByHash(hash.toString()).then((value) {
+              if (value != null && value != "") showToast(value);
+              model.notifyListeners();
+              return value;
+            }),
           );
         });
       }),
