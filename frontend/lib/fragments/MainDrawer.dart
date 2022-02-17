@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -31,17 +32,43 @@ class MainDrawer extends StatelessWidget {
     );
 
     return Drawer(
-      child: ListView(
+      child: Column(
         // Important: Remove any padding from the ListView.
-        padding: EdgeInsets.zero,
+        //padding: EdgeInsets.zero,
         children: <Widget>[
           MainDrawerHeader(),
           settingsTile,
           uploadSyncTile,
           unlimiteddoggosTile,
+          Spacer(),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: VersionInfo(),
+            ),
+          ),
         ],
       ),
     );
+  }
+}
+
+class VersionInfo extends StatelessWidget {
+  const VersionInfo({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+        future: PackageInfo.fromPlatform(),
+        builder: (context, snapshot) {
+          return Text(
+            (snapshot.data?.appName ?? 'MBG Inspektionen') +
+                ' ' +
+                (snapshot.data?.buildNumber ?? '...'),
+          );
+        });
   }
 }
 
