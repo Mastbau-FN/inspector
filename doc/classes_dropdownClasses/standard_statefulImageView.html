@@ -68,36 +68,43 @@
             DDModel extends DropDownModel&lt;ChildData, Data?&gt;&gt;(
         ChildData data, DDModel model) =&gt;
     ChangeNotifierProvider&lt;DDModel&gt;.value(
-      value: model,
-      child: Builder(builder: (context) {
-        return Consumer&lt;DDModel&gt;(builder: (context, model, child) {
-          return ImagesPage.streamed(
-            imageStreams: data.image_streams,
-            &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
-            &#47;&#47; .toList(),
-            onNewImages: (files) =&gt;
-                Backend().uploadFiles(data, files).then((value) {
-              model.notifyListeners();
-              if (value != null) showToast(value);
-              return value;
-            }),
-            onStar: (hash) =&gt; Backend()
-                .setMainImageByHash(data, hash.toString())
-                .then((value) {
-              if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
-              model.notifyListeners();
-              return value;
-            }),
-            onDelete: (hash) =&gt;
-                Backend().deleteImageByHash(hash.toString()).then((value) {
-              if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
-              model.notifyListeners();
-              return value;
-            }),
-          );
-        });
-      }),
-    );</code></pre>
+        value: model,
+        &#47;&#47; child: ChangeNotifierProvider&lt;ChildData&gt;.value(
+        &#47;&#47;   value: data,
+        child: Builder(builder: (context) {
+          return Consumer&lt;DDModel&gt;(builder: (context, model, child) {
+            &#47;&#47; return Consumer&lt;ChildData&gt;(builder: (context, data, child) {
+            return ImagesPage.streamed(
+              &#47;&#47; TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
+              imageStreams: data.image_streams,
+              &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
+              &#47;&#47; .toList(),
+              onNewImages: (files) =&gt;
+                  Backend().uploadFiles(data, files).then((value) {
+                model.notifyListeners();
+                if (value != null) showToast(value);
+                return value;
+              }),
+              onStar: (hash) =&gt; Backend()
+                  .setMainImageByHash(data, hash.toString())
+                  .then((value) {
+                if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
+                model.notifyListeners();
+                return value;
+              }),
+              onDelete: (hash) =&gt;
+                  Backend().deleteImageByHash(hash.toString()).then((value) {
+                if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
+                model.notifyListeners();
+                return value;
+              }),
+            );
+          });
+        })
+        &#47;&#47; ;
+        &#47;&#47; }),
+        &#47;&#47; ),
+        );</code></pre>
 </section>
 
 
@@ -152,7 +159,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.18+18
+      1.0.19+19
   </span>
 
   
