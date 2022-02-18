@@ -175,20 +175,22 @@ class _ImageAddButtonState extends State<ImageAddButton>
 
   @override
   Widget build(BuildContext ocontext) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(
+          sigmaX: 5.0 * animation.value,
+          sigmaY: 5.0 * animation.value,
+          tileMode: TileMode.mirror),
+      child: addImageButton(),
+    );
+  }
+
+  Widget addImageButton() {
     return Stack(
-      fit: StackFit.expand,
       children: [
-        Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-                sigmaX: 5.0 * animation.value,
-                sigmaY: 5.0 * animation.value,
-                tileMode: TileMode.mirror),
-            child: Container(
-              color: Colors.black.withOpacity(0.1 * animation.value),
-            ),
-          ),
-        ),
+        //XXX: ich verstehe nicht was hier abgeht, wenn wir den container haben geht der touch im hintergrund nicht mehr
+        // Container(
+        //   color: Colors.black.withOpacity(0.1 * animation.value),
+        // ),
         Align(
           alignment: Alignment.bottomCenter,
           child: SafeArea(
