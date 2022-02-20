@@ -9,14 +9,14 @@ const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
   height: 56.0,
 );
 
-class TransformeableActionbutton extends StatefulWidget {
+class TransformableActionbutton extends StatefulWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
   final double expandedHeight;
 
   final EdgeInsets padding;
 
-  const TransformeableActionbutton({
+  const TransformableActionbutton({
     Key? key,
     this.collapsedChild = const Icon(Icons.add),
     required this.expandedChild,
@@ -25,12 +25,11 @@ class TransformeableActionbutton extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  TransformeableActionbuttonState createState() =>
-      TransformeableActionbuttonState();
+  TransformableActionbuttonState createState() =>
+      TransformableActionbuttonState();
 }
 
-class TransformeableActionbuttonState
-    extends State<TransformeableActionbutton> {
+class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool isClicked = false;
   bool wasClicked = false;
 

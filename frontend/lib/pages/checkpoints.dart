@@ -57,7 +57,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
   }
 
   @override
-  Widget? get floatingActionButton => TransformeableActionbutton(
+  Widget? get floatingActionButton => TransformableActionbutton(
         expandedHeight: 200,
         expandedChild: (onCancel) => Adder(
           'checkpoint',
