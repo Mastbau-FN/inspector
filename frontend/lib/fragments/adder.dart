@@ -62,9 +62,7 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
         (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
     return WillPopScope(
       onWillPop: () async {
-        if (!wasClicked) {
-          return true;
-        }
+        if (!wasClicked) return true;
         cancel();
         return false;
       },
@@ -262,6 +260,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
                 icon: Icons.check_circle,
                 onPressed: () {
                   set(context);
+                  onCancel?.call(); //as requested by #118
                 },
               ),
             ],
