@@ -55,7 +55,7 @@ class CheckPointDefectsModel
   @override
   Widget? get floatingActionButton {
     var oufnessChooser = OufnessChooser();
-    return TransformeableActionbutton(
+    return TransformableActionbutton(
       expandedHeight: 300,
       expandedChild: (onCancel) => Adder(
         'checkpointdefect',
