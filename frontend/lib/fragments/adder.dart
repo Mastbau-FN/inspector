@@ -14,6 +14,8 @@ class TransformableActionbutton extends StatefulWidget {
   final Widget Function(Function()) expandedChild;
   final double expandedHeight;
 
+  //XXX: could blur background
+
   final EdgeInsets padding;
 
   const TransformableActionbutton({
