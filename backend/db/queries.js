@@ -218,6 +218,10 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      queryfile = folder+"/check_point_defects";
      params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
      break;
+  case identifiers.location:
+    queryfile = folder+"/inspection_location";
+     params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess,];
+     break;
  
    default:
      console.log(`someone tried to update ${data.type}`);
