@@ -21,6 +21,19 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
     )
       ..langText = json['langText'] as String?
       ..id = json['local_id'] as String?
+      ..eigentuemer = json['Eigentuemer'] as String?
+      ..bauwerkhoehe = json['Bauwerkhoehe'] as String?
+      ..baujahr = json['Baujahr'] as String?
+      ..ansprechpartner = json['Ansprechpartner'] as String?
+      ..steigwegtyp = json['Steigwegtyp'] as String?
+      ..schluessel = json['Schluessel'] as String?
+      ..abschaltungen = json['Abschaltungen'] as String?
+      ..steckdosen = json['Steckdosen'] as String?
+      ..wC = json['WC'] as String?
+      ..lagerraeume = json['Lagerraeume'] as String?
+      ..steigschutzschluessel = json['Steigschutzschluessel'] as String?
+      ..x = json['X'] as String?
+      ..y = json['Y'] as String?
       ..imagehashes =
           (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
@@ -36,6 +49,19 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Straße': instance.strasse,
       'PLZ': instance.plz,
       'Ort': instance.ort,
+      'Eigentuemer': instance.eigentuemer,
+      'Bauwerkhoehe': instance.bauwerkhoehe,
+      'Baujahr': instance.baujahr,
+      'Ansprechpartner': instance.ansprechpartner,
+      'Steigwegtyp': instance.steigwegtyp,
+      'Schluessel': instance.schluessel,
+      'Abschaltungen': instance.abschaltungen,
+      'Steckdosen': instance.steckdosen,
+      'WC': instance.wC,
+      'Lagerraeume': instance.lagerraeume,
+      'Steigschutzschluessel': instance.steigschutzschluessel,
+      'X': instance.x,
+      'Y': instance.y,
       'latLng': _toplevelhelperLatLng_toJson(instance.coords),
       'images': instance.imagehashes,
     };

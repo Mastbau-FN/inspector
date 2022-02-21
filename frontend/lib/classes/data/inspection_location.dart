@@ -29,6 +29,34 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: 'Ort')
   final String? ort;
 
+//TODO: die meisten hier werden wahrscheinlich keine strings sein, aber naja
+  @JsonKey(name: "Eigentuemer")
+  String? eigentuemer;
+  @JsonKey(name: "Bauwerkhoehe")
+  String? bauwerkhoehe;
+  @JsonKey(name: "Baujahr")
+  String? baujahr;
+  @JsonKey(name: "Ansprechpartner")
+  String? ansprechpartner;
+  @JsonKey(name: "Steigwegtyp")
+  String? steigwegtyp;
+  @JsonKey(name: "Schluessel")
+  String? schluessel;
+  @JsonKey(name: "Abschaltungen")
+  String? abschaltungen;
+  @JsonKey(name: "Steckdosen")
+  String? steckdosen;
+  @JsonKey(name: "WC")
+  String? wC;
+  @JsonKey(name: "Lagerraeume")
+  String? lagerraeume;
+  @JsonKey(name: "Steigschutzschluessel")
+  String? steigschutzschluessel;
+  @JsonKey(name: "X")
+  String? x;
+  @JsonKey(name: "Y")
+  String? y;
+
   @JsonKey(
     name: 'latLng',
     fromJson: _toplevelhelperLatLng_fromJson,
