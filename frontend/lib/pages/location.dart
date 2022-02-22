@@ -63,6 +63,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
   }
 }
 
+//TODO: ansichrt den neuen daten anpassen
 class LocationDetailPage extends StatelessWidget {
   final InspectionLocation locationdata;
   const LocationDetailPage({required this.locationdata, Key? key})
