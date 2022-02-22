@@ -13,7 +13,6 @@ const addLocations = async (locationList) => {
             queryres = await axios.post(`http://open.mapquestapi.com/geocoding/v1/address?key=${process.env.MAPQUEST_KEY}`, {
                 location: _locationToString(location)
             });
-            //console.log(queryres.data)//TODO:remove
             location.locations = queryres.data.results[0].locations;
         } catch (error) {
             console.warn(error);
