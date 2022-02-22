@@ -29,12 +29,44 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: 'Ort')
   final String? ort;
 
+  @JsonKey(name: "Eigentuemer")
+  String? eigentuemer;
+  @JsonKey(name: "Bauwerkhoehe")
+  int? bauwerkhoehe;
+  @JsonKey(name: "Baujahr")
+  int? baujahr;
+  @JsonKey(name: "Ansprechpartner")
+  String? ansprechpartner;
+  @JsonKey(name: "Steigwegtyp")
+  String? steigwegtyp;
+  @JsonKey(name: "Schluessel")
+  bool? needs_schluessel;
+  @JsonKey(name: "Abschaltungen")
+  String? abschaltungen;
+  @JsonKey(name: "Steckdosen")
+  bool? has_steckdosen;
+  @JsonKey(name: "WC")
+  bool? has_wc;
+  @JsonKey(name: "Lagerraeume")
+  bool? has_lagerraeume;
+  @JsonKey(name: "Steigschutzschluessel")
+  String? steigschutzschluessel;
+
+//XXX: ist das redundand mit den latLng?
+  @JsonKey(name: "X")
+  String? x;
+  @JsonKey(name: "Y")
+  String? y;
+
+  LatLng? get coords =>
+      _toplevelhelperLatLng_fromJson({'lat': x, 'lng': y}) ?? fallback_coords;
+
   @JsonKey(
     name: 'latLng',
     fromJson: _toplevelhelperLatLng_fromJson,
     toJson: _toplevelhelperLatLng_toJson,
   )
-  final LatLng? coords;
+  final LatLng? fallback_coords;
 
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
@@ -55,7 +87,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
     this.plz,
     required this.stONr,
     this.strasse,
-    this.coords,
+    this.fallback_coords,
   });
 
   @override
