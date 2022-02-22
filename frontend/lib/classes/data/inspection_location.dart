@@ -33,25 +33,26 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
   @JsonKey(name: "Bauwerkhoehe")
-  String? bauwerkhoehe;
+  int? bauwerkhoehe;
   @JsonKey(name: "Baujahr")
-  String? baujahr;
+  int? baujahr;
   @JsonKey(name: "Ansprechpartner")
   String? ansprechpartner;
   @JsonKey(name: "Steigwegtyp")
   String? steigwegtyp;
   @JsonKey(name: "Schluessel")
-  String? schluessel;
+  bool? needs_schluessel;
   @JsonKey(name: "Abschaltungen")
   String? abschaltungen;
   @JsonKey(name: "Steckdosen")
-  String? steckdosen;
+  bool? has_steckdosen;
   @JsonKey(name: "WC")
-  String? wC;
+  bool? has_wc;
   @JsonKey(name: "Lagerraeume")
-  String? lagerraeume;
+  bool? has_lagerraeume;
   @JsonKey(name: "Steigschutzschluessel")
   String? steigschutzschluessel;
+
   @JsonKey(name: "X")
   String? x;
   @JsonKey(name: "Y")
