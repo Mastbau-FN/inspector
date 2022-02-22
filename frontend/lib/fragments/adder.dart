@@ -287,7 +287,6 @@ class _PaddedButton extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.all(5.0),
         child: IconButton(
-          //TODO: press-feedback (animation)
           //backgroundColor: Theme.of(context).canvasColor,
           onPressed: () {
             onPressed?.call();

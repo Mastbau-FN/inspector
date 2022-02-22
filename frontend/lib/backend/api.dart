@@ -1,8 +1,3 @@
-// TODO offline storage etc, error handling
-
-// BUG: FormatException
-
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -231,14 +226,6 @@ class Backend {
         } catch (e) {
           debugPrint("failed to load webimg: " + e.toString());
         }
-        //XXX: this could be a really bad workaround to make the streams useable as broadcaststreams
-        // while (Options.infinitelyreloadPictures) {
-        //   await Future.delayed(Duration(seconds: 5));
-        //   yield ImageData(
-        //     (await OP.readImage(hash))!,
-        //     id: hash,
-        //   );
-        // }
       }
     }
   }
@@ -401,8 +388,7 @@ class Backend {
       route: routesFromData<ChildData>(null),
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
-      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(
-          json), //TODO: sadly this doesnt work rn, since its not using thild overriden functions but the super one
+      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
     );
   }
 

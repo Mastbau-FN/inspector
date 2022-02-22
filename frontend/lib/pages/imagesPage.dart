@@ -306,7 +306,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
         child: Icon(Icons.folder),
         onPressed: () async {
-          //XXX: multipicker is a great solution for now, but could be much better (maybe use adder fragment)
+          // multipicker is a great solution for now, but could be much better (maybe use adder fragment)
           final List<XFile>? new_images = await widget._picker.pickMultiImage();
           var resstring = await widget.onNewImages(new_images ?? []);
           showToast(resstring ??

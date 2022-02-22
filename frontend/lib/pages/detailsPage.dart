@@ -78,7 +78,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
             _isEditing ^= true;
           });
-        }, //TODO: edit text
+        },
         child: Icon(_isEditing ? Icons.done : Icons.edit),
         tooltip: "noch in arbeit..",
       ),
