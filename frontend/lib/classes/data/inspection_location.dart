@@ -29,7 +29,6 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: 'Ort')
   final String? ort;
 
-//TODO: die meisten hier werden wahrscheinlich keine strings sein, aber naja
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
   @JsonKey(name: "Bauwerkhoehe")
@@ -53,6 +52,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Steigschutzschluessel")
   String? steigschutzschluessel;
 
+//XXX: ist das redundand mit den latLng?
   @JsonKey(name: "X")
   String? x;
   @JsonKey(name: "Y")
