@@ -16,7 +16,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       plz: json['PLZ'] as String?,
       stONr: json['StONr'] as int,
       strasse: json['Straße'] as String?,
-      coords: _toplevelhelperLatLng_fromJson(
+      fallback_coords: _toplevelhelperLatLng_fromJson(
           json['latLng'] as Map<String, dynamic>),
     )
       ..langText = json['langText'] as String?
