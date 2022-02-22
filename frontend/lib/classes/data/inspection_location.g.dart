@@ -22,15 +22,15 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..langText = json['langText'] as String?
       ..id = json['local_id'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
-      ..bauwerkhoehe = json['Bauwerkhoehe'] as String?
-      ..baujahr = json['Baujahr'] as String?
+      ..bauwerkhoehe = json['Bauwerkhoehe'] as int?
+      ..baujahr = json['Baujahr'] as int?
       ..ansprechpartner = json['Ansprechpartner'] as String?
       ..steigwegtyp = json['Steigwegtyp'] as String?
-      ..schluessel = json['Schluessel'] as String?
+      ..needs_schluessel = json['Schluessel'] as bool?
       ..abschaltungen = json['Abschaltungen'] as String?
-      ..steckdosen = json['Steckdosen'] as String?
-      ..wC = json['WC'] as String?
-      ..lagerraeume = json['Lagerraeume'] as String?
+      ..has_steckdosen = json['Steckdosen'] as bool?
+      ..has_wc = json['WC'] as bool?
+      ..has_lagerraeume = json['Lagerraeume'] as bool?
       ..steigschutzschluessel = json['Steigschutzschluessel'] as String?
       ..x = json['X'] as String?
       ..y = json['Y'] as String?
@@ -54,11 +54,11 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Baujahr': instance.baujahr,
       'Ansprechpartner': instance.ansprechpartner,
       'Steigwegtyp': instance.steigwegtyp,
-      'Schluessel': instance.schluessel,
+      'Schluessel': instance.needs_schluessel,
       'Abschaltungen': instance.abschaltungen,
-      'Steckdosen': instance.steckdosen,
-      'WC': instance.wC,
-      'Lagerraeume': instance.lagerraeume,
+      'Steckdosen': instance.has_steckdosen,
+      'WC': instance.has_wc,
+      'Lagerraeume': instance.has_lagerraeume,
       'Steigschutzschluessel': instance.steigschutzschluessel,
       'X': instance.x,
       'Y': instance.y,
