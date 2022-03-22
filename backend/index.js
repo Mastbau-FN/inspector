@@ -1,3 +1,5 @@
+const _hideProblems = false;
+
 const _getImageFromHash_r = "/image/get";
 const _uploadImage_r = "/image/set";
 
@@ -130,7 +132,7 @@ app.use(function (req, res, next) {
 
 app.use("/api/", function (err, req, res, next) {
   console.error({ err });
-  res.status(500).send({ error: "Something broke!" });
+  res.status(500).send({ error: _hideProblems ? "Something broke!" : err});
 });
 
 // when an error accurs that should be human readable
