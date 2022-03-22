@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:http/http.dart' as http;
@@ -30,7 +31,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   try {
     //file = (await file.exists()) ? file : await file.create();
     file = await file.writeAsBytes(imgBytes); //u good?
-    debugPrint('saved ${file}');
+    if (Options.debugLocalMirror) debugPrint('saved ${file}');
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
@@ -46,7 +47,6 @@ Future<Image?> readImage(String name) async {
     throw Exception("file ${file} definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  //debugPrint("retrieving ${file}");
   return Image.file(await _localFile(name));
 }
 
@@ -85,7 +85,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
       : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
-  //debugPrint("stored json: " + json.toString());
+  if (Options.debugLocalMirror) debugPrint("stored json: " + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
   return forId + '-' + id;

@@ -51,7 +51,6 @@ class ExpandableCard2 extends ExpandablesRadio {
 
   @override
   ExpansionPanelRadio make(BuildContext context) {
-    //debugPrint(previewImg.toString());
     return ExpansionPanelRadio(
         backgroundColor:
             color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),

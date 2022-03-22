@@ -17,7 +17,7 @@ class LoginModel extends ChangeNotifier {
     }
 
     var res = await Backend().login(User(username, password));
-    debugPrint(res.toString());
+    debugPrint('logged in, ${res.toString()}');
     notifyListeners();
   }
 

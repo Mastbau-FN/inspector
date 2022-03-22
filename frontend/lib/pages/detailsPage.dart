@@ -69,7 +69,6 @@ class _DetailsPageState extends State<DetailsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            //debugPrint(_controller.document.toDelta().toJson().toString());
             if (_isEditing) {
               _isRich
                   ? widget.onRichChanged!.call(_rich!.details)

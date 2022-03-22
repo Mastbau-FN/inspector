@@ -237,7 +237,6 @@ class Backend {
   ) {
     // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
-      //debugPrint(json.toString() + '\n');
       DataT? data = jsoner(json);
       if (data == null) return null;
       if (data.imagehashes == null ||
@@ -262,7 +261,8 @@ class Backend {
       //    ) ??
       //    []);
 
-      debugPrint("image-hashes:" + data.imagehashes.toString());
+      if (Options.debugImages)
+        debugPrint("image-hashes: " + data.imagehashes.toString());
 
       data.image_streams = data.imagehashes
           ?.map(
@@ -310,7 +310,8 @@ class Backend {
         return [];
       }
     }
-    debugPrint(jsonEncode(json));
+    if (Options.debugAllResponses)
+      debugPrint("_getAllForNextLevel received: " + jsonEncode(json));
     final datapoints = await getListFromJson(
       _json,
       _generateImageFetcher(fromJson),
@@ -318,7 +319,8 @@ class Backend {
     );
     for (var data in datapoints) {
       String childId = await OP.storeData(data, forId: _id);
-      debugPrint("stored new child with id: " + childId);
+      if (Options.debugLocalMirror)
+        debugPrint("stored new child with id: " + childId);
     }
     return datapoints;
   }
@@ -328,7 +330,9 @@ class Backend {
       {required DataT? data,
       required String route,
       Map<String, dynamic> other = const {}}) async {
-    debugPrint(data?.toJson().toString());
+    if (Options.debugAllResponses)
+      debugPrint(
+          "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
     if (data == null) return null;
     var json_data = data.toJson();
     http.Response? res = (await post_JSON(route, json: {
@@ -337,7 +341,8 @@ class Backend {
       ...other
     }))
         ?.forceRes();
-    debugPrint(res?.body.toString());
+    if (Options.debugAllResponses)
+      debugPrint("and we received :" + (res?.body.toString() ?? ""));
     return res;
   }
 
@@ -441,8 +446,8 @@ class Backend {
       multipart_files: files,
     ); //wont work
     if (res?.statusCode != 200) {
-      debugPrint(res?.statusCode.toString());
-      debugPrint(res?.contentLength.toString());
+      debugPrint('not ok: ${res?.statusCode.toString()}');
+      // debugPrint(res?.contentLength.toString());
     }
     return (res.runtimeType == http.Response)
         ? (res as http.Response?)?.body //TODO meh remove crash und stuff
@@ -479,7 +484,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
     debugPrint(
         'could not parse response: ' + e.toString() + '-->' + jsonEncode(json));
     throw BackendCommunicationException(
-        'could not parse response: \n' + jsonEncode(json));
+        'could not parse response: ' + jsonEncode(json));
   }
   //return [];
 }
