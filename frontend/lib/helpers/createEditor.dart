@@ -32,3 +32,13 @@ DetailsPage createRichIfPossibleEditor<DataT extends WithLangText>(
     }
   }
 }
+
+DetailsPage alwaysPlainText<DataT extends WithLangText>(
+    DataT data, Function(DataT, String) uploadString) {
+  return DetailsPage(
+      title: data.title,
+      details: data.langText,
+      onChanged: (txt) {
+        uploadString(data, txt);
+      });
+}

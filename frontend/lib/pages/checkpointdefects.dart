@@ -44,7 +44,7 @@ class CheckPointDefectsModel
                   this, //the injector //XXX: sadly this doesnt work for some reason
               child: Builder(builder: (context) {
                 debugPrint('build new defectsdetails');
-                return createRichIfPossibleEditor(data, update);
+                return alwaysPlainText(data, update);
               }),
             );
         }

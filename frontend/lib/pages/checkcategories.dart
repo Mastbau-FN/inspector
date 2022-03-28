@@ -50,7 +50,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
             return standard_statefulImageView(data, this);
 
           default:
-            return createRichIfPossibleEditor(data, update);
+            return alwaysPlainText(data, update);
         }
       }),
     );
