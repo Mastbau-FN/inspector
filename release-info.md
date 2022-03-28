@@ -1,5 +1,3 @@
 # Changes
 
-## bug-fixes
-
-- the images can now be opened again
+its not yet shown, but the location has additional information
