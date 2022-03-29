@@ -74,7 +74,7 @@
   try {
     &#47;&#47;file = (await file.exists()) ? file : await file.create();
     file = await file.writeAsBytes(imgBytes); &#47;&#47;u good?
-    debugPrint(&#39;saved ${file}&#39;);
+    if (Options.debugLocalMirror) debugPrint(&#39;saved ${file}&#39;);
     return file;
   } catch (e) {
     debugPrint(&quot;!!! failed to store image: &quot; + e.toString());
@@ -141,7 +141,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.19+19
+      1.0.20+20
   </span>
 
   

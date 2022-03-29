@@ -94,7 +94,7 @@ void open(
                 this, &#47;&#47;the injector &#47;&#47;XXX: sadly this doesnt work for some reason
             child: Builder(builder: (context) {
               debugPrint(&#39;build new defectsdetails&#39;);
-              return createRichIfPossibleEditor(data, update);
+              return alwaysPlainText(data, update);
             }),
           );
       }
@@ -168,7 +168,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.19+19
+      1.0.20+20
   </span>
 
   

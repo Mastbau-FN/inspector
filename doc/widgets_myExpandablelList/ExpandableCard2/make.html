@@ -72,10 +72,14 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 ExpansionPanelRadio make(BuildContext context) {
-  &#47;&#47;debugPrint(previewImg.toString());
   return ExpansionPanelRadio(
-      backgroundColor: color,
+      backgroundColor:
+          color, &#47;&#47; Theme.of(context).colorScheme.secondary.withOpacity(0.1),
       headerBuilder: (context, isExpanded) =&gt; ListTile(
+            &#47;&#47; selectedTileColor: Theme.of(context).colorScheme.secondary,
+            &#47;&#47; selectedColor: Theme.of(context).colorScheme.secondary,
+            &#47;&#47; selected: isExpanded,
+            &#47;&#47; enabled: true,
             leading: Padding(
               padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
               child: ClipOval(
@@ -95,15 +99,20 @@ ExpansionPanelRadio make(BuildContext context) {
             ),
             trailing: extra,
             title: Text(
-              title,
+              title + (isExpanded ? &#39;:&#39; : &#39;&#39;),
               style: isExpanded
-                  ? Theme.of(context).textTheme.headline5
+                  ? Theme.of(context).textTheme.headline5?.apply(
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                   : Theme.of(context).textTheme.bodyText1,
             ),
             subtitle: (subtitle != null) ? Text(subtitle ?? &quot;&quot;) : null,
           ),
-      body: Column(
-        children: [...children, SizedBox(height: 10)],
+      body: Container(
+        &#47;&#47; color: Theme.of(context).colorScheme.secondary,
+        child: Column(
+          children: [...children, SizedBox(height: 10)],
+        ),
       ),
       canTapOnHeader: true,
       value: key);
@@ -181,7 +190,7 @@ ExpansionPanelRadio make(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.19+19
+      1.0.20+20
   </span>
 
   

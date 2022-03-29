@@ -81,8 +81,8 @@
     multipart_files: files,
   ); &#47;&#47;wont work
   if (res?.statusCode != 200) {
-    debugPrint(res?.statusCode.toString());
-    debugPrint(res?.contentLength.toString());
+    debugPrint(&#39;not ok: ${res?.statusCode.toString()}&#39;);
+    &#47;&#47; debugPrint(res?.contentLength.toString());
   }
   return (res.runtimeType == http.Response)
       ? (res as http.Response?)?.body &#47;&#47;TODO meh remove crash und stuff
@@ -162,7 +162,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.19+19
+      1.0.20+20
   </span>
 
   

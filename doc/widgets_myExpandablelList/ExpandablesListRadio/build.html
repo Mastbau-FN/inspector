@@ -109,6 +109,9 @@ and</li>
 Widget build(BuildContext context) {
   return SingleChildScrollView(
     child: ExpansionPanelList.radio(
+      expansionCallback: (panelIndex, isExpanded) {
+        &#47;&#47;XXX: hier könnte ich #121 lösen vllt
+      },
       dividerColor: Colors.transparent,
       elevation: 0,
       children: children.map((e) =&gt; e.make(context)).toList(),
@@ -181,7 +184,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.19+19
+      1.0.20+20
   </span>
 
   
