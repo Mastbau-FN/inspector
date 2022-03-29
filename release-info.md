@@ -1,3 +1,3 @@
 # Changes
 
-no more rich text support
+no more *rich* text support
