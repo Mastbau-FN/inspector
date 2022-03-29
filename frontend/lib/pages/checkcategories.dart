@@ -40,6 +40,8 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
     CheckCategory data,
     MyListTileData tiledata,
   ) {
+    currentlyChosenChildDataIndex = all()
+    //notifyListeners();
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
