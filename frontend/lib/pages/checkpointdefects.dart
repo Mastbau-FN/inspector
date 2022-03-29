@@ -77,7 +77,7 @@ class CheckPointDefectsModel
 
           /// this solves #48
           defect['KurzText'] = currentData.title +
-              ": " +
+              "  " +
               ((defect[oufnessChooser.name].toString() ==
                       OufnessChooser.default_none.toString())
                   ? "ohne Mangel"
