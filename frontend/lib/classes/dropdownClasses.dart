@@ -99,6 +99,16 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
     });
   }
 
+  Future<T?> updateCurrentChild<T>(
+      Future<T> Function(ChildData) updater) async {
+    ChildData? childD = await currentlyChosenChildData;
+    if (childD != null) {
+      T ret = await updater(childD);
+      notifyListeners();
+      return ret;
+    }
+  }
+
   DropDownModel(this.currentData);
 
   /// returns a [List] of all the [Data] for this Model
@@ -148,8 +158,7 @@ Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
     );
 
 Widget standard_statefulImageView<ChildData extends WithLangText,
-            DDModel extends DropDownModel<ChildData, Data?>>(
-        ChildData data, DDModel model) =>
+        DDModel extends DropDownModel<ChildData, Data?>>(DDModel model) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,
         // child: ChangeNotifierProvider<ChildData>.value(
@@ -164,27 +173,28 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                     // TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
                     // und es wird auch neu gebaut!
                     // deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
-                    imageStreams: (snapshot.data ?? data).image_streams,
+                    imageStreams: (snapshot.data)?.image_streams,
                     //s ?.map((e) => e.asBroadcastStream())
                     // .toList(),
-                    onNewImages: (files) =>
-                        Backend().uploadFiles(data, files).then((value) {
-                      model.notifyListeners();
+                    onNewImages: (files) => model
+                        .updateCurrentChild(
+                            (data) => Backend().uploadFiles(data, files))
+                        .then((value) {
                       if (value != null) showToast(value);
                       return value;
                     }),
-                    onStar: (hash) => Backend()
-                        .setMainImageByHash(data, hash.toString())
+                    onStar: (hash) => model
+                        .updateCurrentChild((data) =>
+                            Backend().setMainImageByHash(data, hash.toString()))
                         .then((value) {
                       if (value != null && value != "") showToast(value);
-                      model.notifyListeners();
                       return value;
                     }),
-                    onDelete: (hash) => Backend()
-                        .deleteImageByHash(hash.toString())
+                    onDelete: (hash) => model
+                        .updateCurrentChild((data) =>
+                            Backend().deleteImageByHash(hash.toString()))
                         .then((value) {
                       if (value != null && value != "") showToast(value);
-                      model.notifyListeners();
                       return value;
                     }),
                   );

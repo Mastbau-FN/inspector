@@ -40,6 +40,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
     CheckPoint data,
     MyListTileData tiledata,
   ) {
+    currentlyChosenChildData = Future.sync(() => data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
@@ -47,7 +48,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
             return nextModel<CheckPointDefect, CheckPoint,
                 CheckPointDefectsModel>(CheckPointDefectsModel(data));
           case 'Fotos':
-            return standard_statefulImageView(data, this);
+            return standard_statefulImageView(this);
 
           default:
             return alwaysPlainText(data, update);

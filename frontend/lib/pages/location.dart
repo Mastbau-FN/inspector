@@ -45,6 +45,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     InspectionLocation data,
     MyListTileData tiledata,
   ) {
+    currentlyChosenChildData = Future.sync(() => data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
@@ -52,7 +53,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
             return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
                 CategoryModel(data));
           case 'Fotos':
-            return standard_statefulImageView(data, this);
+            return standard_statefulImageView(this);
           default:
             return LocationDetailPage(
               locationdata: data,

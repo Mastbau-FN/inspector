@@ -31,11 +31,12 @@ class CheckPointDefectsModel
     CheckPointDefect data,
     MyListTileData tiledata,
   ) {
+    currentlyChosenChildData = Future.sync(() => data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case 'Fotos':
-            return standard_statefulImageView(data, this);
+            return standard_statefulImageView(this);
 
           default:
             return Provider<CheckPointDefectsModel>(
