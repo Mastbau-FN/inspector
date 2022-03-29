@@ -68,6 +68,36 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   String get title => currentData?.title ?? "root";
 
   ParentData currentData;
+  int? _currentlyChosenChildDataIndex;
+  ChildData? _currentlyChosenChildData;
+  int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
+  void set currentlyChosenChildDataIndex(int? index) {
+    if (index != currentlyChosenChildDataIndex) {
+      currentlyChosenChildDataIndex = index;
+      notifyListeners();
+    }
+  }
+
+  Future<ChildData?> get currentlyChosenChildData async =>
+      (currentlyChosenChildDataIndex ?? -1) > 0
+          ? (await all)[currentlyChosenChildDataIndex!]
+          : null;
+
+  void set currentlyChosenChildData(Future<ChildData?> data) {
+    data.then((data) {
+      if (data != currentlyChosenChildData) {
+        if (data != null) {
+          all.then((list) {
+            currentlyChosenChildDataIndex = list.indexOf(data);
+            notifyListeners();
+          });
+        } else {
+          currentlyChosenChildDataIndex = null;
+          notifyListeners();
+        }
+      }
+    });
+  }
 
   DropDownModel(this.currentData);
 
@@ -127,33 +157,38 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
         child: Builder(builder: (context) {
           return Consumer<DDModel>(builder: (context, model, child) {
             // return Consumer<ChildData>(builder: (context, data, child) {
-            return ImagesPage.streamed(
-              // TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
-              // und es wird auch neu gebaut!
-              // deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
-              imageStreams: data.image_streams,
-              //s ?.map((e) => e.asBroadcastStream())
-              // .toList(),
-              onNewImages: (files) =>
-                  Backend().uploadFiles(data, files).then((value) {
-                model.notifyListeners();
-                if (value != null) showToast(value);
-                return value;
-              }),
-              onStar: (hash) => Backend()
-                  .setMainImageByHash(data, hash.toString())
-                  .then((value) {
-                if (value != null && value != "") showToast(value);
-                model.notifyListeners();
-                return value;
-              }),
-              onDelete: (hash) =>
-                  Backend().deleteImageByHash(hash.toString()).then((value) {
-                if (value != null && value != "") showToast(value);
-                model.notifyListeners();
-                return value;
-              }),
-            );
+            return FutureBuilder<ChildData?>(
+                future: model.currentlyChosenChildData,
+                builder: (context, snapshot) {
+                  return ImagesPage.streamed(
+                    // TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
+                    // und es wird auch neu gebaut!
+                    // deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
+                    imageStreams: (snapshot.data ?? data).image_streams,
+                    //s ?.map((e) => e.asBroadcastStream())
+                    // .toList(),
+                    onNewImages: (files) =>
+                        Backend().uploadFiles(data, files).then((value) {
+                      model.notifyListeners();
+                      if (value != null) showToast(value);
+                      return value;
+                    }),
+                    onStar: (hash) => Backend()
+                        .setMainImageByHash(data, hash.toString())
+                        .then((value) {
+                      if (value != null && value != "") showToast(value);
+                      model.notifyListeners();
+                      return value;
+                    }),
+                    onDelete: (hash) => Backend()
+                        .deleteImageByHash(hash.toString())
+                        .then((value) {
+                      if (value != null && value != "") showToast(value);
+                      model.notifyListeners();
+                      return value;
+                    }),
+                  );
+                });
           });
         })
         // ;
