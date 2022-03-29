@@ -362,6 +362,7 @@ module.exports = {
 };
 
 const hashImagesAndCreateIds = async (tthis) => {
+  // console.log({hashing: tthis})
   for (thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, mainImg } = await getLink(thingy);
@@ -379,10 +380,9 @@ const hashImagesAndCreateIds = async (tthis) => {
       );
 
       // set main image at first index
-      thingy.images.unshift(
-        await imghasher.memorize(rootfolder, link, mainImg)
-      );
-      console.log(`imagehashes- ${thingy.KurzText} -:`, thingy.images);
+      let mainHash = await imghasher.memorize(rootfolder, link, mainImg);
+      thingy.images.unshift(mainHash);
+      console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
     }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed

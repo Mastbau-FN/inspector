@@ -119,7 +119,7 @@ const getCheckPointDefects = (req, res, next) =>
 const addNew = (req, res, next) =>
   errsafejson(
     async () => (await queries.addNew(req.body, req.user.KZL))[0],
-    (json) => json,
+    (json) => {return{message: "added the entry", query_result: json}},
     res,
     next
   );
@@ -130,7 +130,7 @@ const addNew = (req, res, next) =>
 const update = (req, res, next) =>
   errsafejson(
     async () => (await queries.update(req.body))[0],
-    (json) => json,
+    (json) => {return {message: "updated the entry", query_result: json}},
     res,
     next
   );
@@ -149,17 +149,16 @@ const delete_ = (req, res, next) =>
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
     async () => (await queries.deleteImgByHash(req.body.hash))[0],
-    (json) => json,
+    (json) => {return{message: "deleted image", query_result: json}},
     res,
     next
   );
 
 const setMainImgByHash = (req, res, next) => {
   const pathparts = imghasher.getPathFromHash(req.body.hash);
-  console.log(req.body.hash,pathparts);
   const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
   // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
-  console.log({newLink});
+  console.log(req.body.hash,newLink);
   req.body.data.Link = newLink;
   return update(req, res, next);
 };
