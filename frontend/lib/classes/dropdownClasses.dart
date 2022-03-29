@@ -68,38 +68,53 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   String get title => currentData?.title ?? "root";
 
   ParentData currentData;
-  int? _currentlyChosenChildDataIndex;
-  ChildData? _currentlyChosenChildData;
-  int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
-  void set currentlyChosenChildDataIndex(int? index) {
-    if (index != currentlyChosenChildDataIndex) {
-      currentlyChosenChildDataIndex = index;
-      notifyListeners();
-    }
+  String? currentlyChosenChildId;
+  void chooseChild(ChildData? child) {
+    currentlyChosenChildId = child?.id;
+    notifyListeners();
   }
 
-  Future<ChildData?> get currentlyChosenChildData async =>
-      (currentlyChosenChildDataIndex ?? -1) > 0
-          ? (await all)[currentlyChosenChildDataIndex!]
-          : null;
+  Future<ChildData?> get currentlyChosenChildData async {
+    if (currentlyChosenChildId == null) return null;
+    List<ChildData?> alln = await all;
+    return alln.firstWhere(
+      (child) => child?.id == currentlyChosenChildId,
+      orElse: () => null,
+    );
+  }
+  // int? _currentlyChosenChildDataIndex;
+  // // ChildData? _currentlyChosenChildData;
+  // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
+  // void set currentlyChosenChildDataIndex(int? index) {
+  //   if (index != currentlyChosenChildDataIndex) {
+  //     _currentlyChosenChildDataIndex = index;
+  //     notifyListeners();
+  //   }
+  // }
+
+  // Future<ChildData?> get currentlyChosenChildData async =>
+  //     (currentlyChosenChildDataIndex ?? -1) > 0
+  //         ? (await all)[currentlyChosenChildDataIndex!]
+  //         : null;
 
   void set currentlyChosenChildData(Future<ChildData?> data) {
-    data.then(_currentlyChosenChildDataHelper);
+    data.then(chooseChild);
   }
 
-  Future<void> _currentlyChosenChildDataHelper(ChildData? data) async {
-    if (data != await currentlyChosenChildData) {
-      if (data != null) {
-        int index = (await all).indexOf(data); //-1, meh
-        currentlyChosenChildDataIndex = index;
-        notifyListeners();
-      }
-      ;
-    } else {
-      currentlyChosenChildDataIndex = null;
-      notifyListeners();
-    }
-  }
+  // Future<void> _currentlyChosenChildDataHelper(ChildData? data) async {
+  //   if (data != await currentlyChosenChildData) {
+  //     if (data != null) {
+  //       int index = (await all)
+  //           .indexWhere(((element) => element.id == data.id)); //-1, meh
+  //       currentlyChosenChildDataIndex = index;
+  //       notifyListeners();
+  //     }
+  //     ;
+  //   } else {
+  //     currentlyChosenChildDataIndex = null;
+  //     notifyListeners();
+  //   }
+  // }
 
   Future<T?> updateCurrentChild<T>(
       Future<T> Function(ChildData) updater) async {
