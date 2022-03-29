@@ -84,19 +84,21 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
           : null;
 
   void set currentlyChosenChildData(Future<ChildData?> data) {
-    data.then((data) {
-      if (data != currentlyChosenChildData) {
-        if (data != null) {
-          all.then((list) {
-            currentlyChosenChildDataIndex = list.indexOf(data);
-            notifyListeners();
-          });
-        } else {
-          currentlyChosenChildDataIndex = null;
-          notifyListeners();
-        }
+    data.then(_currentlyChosenChildDataHelper);
+  }
+
+  Future<void> _currentlyChosenChildDataHelper(ChildData? data) async {
+    if (data != await currentlyChosenChildData) {
+      if (data != null) {
+        int index = (await all).indexOf(data); //-1, meh
+        currentlyChosenChildDataIndex = index;
+        notifyListeners();
       }
-    });
+      ;
+    } else {
+      currentlyChosenChildDataIndex = null;
+      notifyListeners();
+    }
   }
 
   Future<T?> updateCurrentChild<T>(
