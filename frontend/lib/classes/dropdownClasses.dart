@@ -69,16 +69,20 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   ParentData currentData;
   String? currentlyChosenChildId;
-  void chooseChild(ChildData? child) {
+  void chooseChild(ChildData? child, {bool notify = false}) {
     currentlyChosenChildId = child?.id;
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
   Future<ChildData?> get currentlyChosenChildData async {
+    debugPrint('getting ${currentlyChosenChildId}');
     if (currentlyChosenChildId == null) return null;
     List<ChildData?> alln = await all;
     return alln.firstWhere(
-      (child) => child?.id == currentlyChosenChildId,
+      (child) {
+        debugPrint('comparing ${child?.id} to ${currentlyChosenChildData}');
+        return child?.id == currentlyChosenChildId;
+      },
       orElse: () => null,
     );
   }
