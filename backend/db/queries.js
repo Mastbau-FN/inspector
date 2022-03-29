@@ -219,8 +219,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      break;
   case identifiers.location:
     queryfile = folder+"/inspection_location";
-    //TODO: für #102 muss hier noch ld.Link an die query übergeben werden, nachdem @MbgBn die update query um den parameter erweitert hat.
-     params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess];
+     params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
      break;
  
    default:
