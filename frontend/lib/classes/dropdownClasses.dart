@@ -207,29 +207,36 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         imageStreams: (snapshot.data ?? data)?.image_streams,
                         //s ?.map((e) => e.asBroadcastStream())
                         // .toList(),
-                        onNewImages: (files) => model
-                            .updateCurrentChild(
-                                (data) => Backend().uploadFiles(data, files))
-                            .then((value) {
+                        onNewImages: (files) async {
+                          showToast("new image sending, this may take a sec");
+                          var value = await model.updateCurrentChild(
+                              (data) => Backend().uploadFiles(data, files));
+
                           if (value != null) showToast(value);
                           return value;
-                        }),
-                        onStar: (hash) => model
-                            .updateCurrentChild((data) => Backend()
-                                .setMainImageByHash(data, hash.toString()))
-                            .then((value) {
-                          if (value != null && value != "") showToast(value);
-                          return value;
-                        }),
-                        onDelete: (hash) => model
-                            .updateCurrentChild((data) =>
-                                Backend().deleteImageByHash(hash.toString()))
-                            .then((value) {
-                          if (value != null && value != "") showToast(value);
-                          return value;
-                        }),
+                        },
+                        onStar: (hash) {
+                          showToast("setting main image, this may take a sec");
+                          model
+                              .updateCurrentChild((data) => Backend()
+                                  .setMainImageByHash(data, hash.toString()))
+                              .then((value) {
+                            if (value != null && value != "") showToast(value);
+                            return value;
+                          });
+                        },
+                        onDelete: (hash) {
+                          showToast("Deleting Image, this may take a sec");
+                          model
+                              .updateCurrentChild((data) =>
+                                  Backend().deleteImageByHash(hash.toString()))
+                              .then((value) {
+                            if (value != null && value != "") showToast(value);
+                            return value;
+                          });
+                        },
                       ),
-                      if (snapshot.data == null)
+                      if (snapshot.connectionState == ConnectionState.waiting)
                         Card(
                           child: Text("please wait, data is beeing synced"),
                         ),
