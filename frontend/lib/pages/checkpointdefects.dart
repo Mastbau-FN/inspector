@@ -31,11 +31,12 @@ class CheckPointDefectsModel
     CheckPointDefect data,
     MyListTileData tiledata,
   ) {
+    currentlyChosenChildData = Future.sync(() => data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case 'Fotos':
-            return standard_statefulImageView(data, this);
+            return standard_statefulImageView(this, data);
 
           default:
             return Provider<CheckPointDefectsModel>(
@@ -44,7 +45,7 @@ class CheckPointDefectsModel
                   this, //the injector //XXX: sadly this doesnt work for some reason
               child: Builder(builder: (context) {
                 debugPrint('build new defectsdetails');
-                return createRichIfPossibleEditor(data, update);
+                return alwaysPlainText(this, data, update);
               }),
             );
         }
@@ -55,7 +56,7 @@ class CheckPointDefectsModel
   @override
   Widget? get floatingActionButton {
     var oufnessChooser = OufnessChooser();
-    return TransformeableActionbutton(
+    return TransformableActionbutton(
       expandedHeight: 300,
       expandedChild: (onCancel) => Adder(
         'checkpointdefect',
@@ -77,7 +78,7 @@ class CheckPointDefectsModel
 
           /// this solves #48
           defect['KurzText'] = currentData.title +
-              ": " +
+              "  " +
               ((defect[oufnessChooser.name].toString() ==
                       OufnessChooser.default_none.toString())
                   ? "ohne Mangel"

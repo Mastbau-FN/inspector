@@ -69,7 +69,6 @@ class _DetailsPageState extends State<DetailsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-            //debugPrint(_controller.document.toDelta().toJson().toString());
             if (_isEditing) {
               _isRich
                   ? widget.onRichChanged!.call(_rich!.details)
@@ -78,7 +77,7 @@ class _DetailsPageState extends State<DetailsPage> {
 
             _isEditing ^= true;
           });
-        }, //TODO: edit text
+        },
         child: Icon(_isEditing ? Icons.done : Icons.edit),
         tooltip: "noch in arbeit..",
       ),

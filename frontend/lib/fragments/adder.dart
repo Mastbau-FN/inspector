@@ -9,14 +9,16 @@ const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
   height: 56.0,
 );
 
-class TransformeableActionbutton extends StatefulWidget {
+class TransformableActionbutton extends StatefulWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
   final double expandedHeight;
 
+  //XXX: could blur background
+
   final EdgeInsets padding;
 
-  const TransformeableActionbutton({
+  const TransformableActionbutton({
     Key? key,
     this.collapsedChild = const Icon(Icons.add),
     required this.expandedChild,
@@ -25,12 +27,11 @@ class TransformeableActionbutton extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  TransformeableActionbuttonState createState() =>
-      TransformeableActionbuttonState();
+  TransformableActionbuttonState createState() =>
+      TransformableActionbuttonState();
 }
 
-class TransformeableActionbuttonState
-    extends State<TransformeableActionbutton> {
+class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool isClicked = false;
   bool wasClicked = false;
 
@@ -63,9 +64,7 @@ class TransformeableActionbuttonState
         (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
     return WillPopScope(
       onWillPop: () async {
-        if (!wasClicked) {
-          return true;
-        }
+        if (!wasClicked) return true;
         cancel();
         return false;
       },
@@ -263,6 +262,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
                 icon: Icons.check_circle,
                 onPressed: () {
                   set(context);
+                  onCancel?.call(); //as requested by #118
                 },
               ),
             ],
@@ -287,7 +287,6 @@ class _PaddedButton extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.all(5.0),
         child: IconButton(
-          //TODO: press-feedback (animation)
           //backgroundColor: Theme.of(context).canvasColor,
           onPressed: () {
             onPressed?.call();

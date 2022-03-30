@@ -31,7 +31,7 @@ fill
 
 and store (in backend dir)
 
-#### if neccessary also spin up the postgres database <!--TODO could be dockerized if wanted-->
+#### if neccessary also spin up the postgres database <!--could be dockerized if wanted-->
 
 ### run
 

@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -68,6 +69,73 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   String get title => currentData?.title ?? "root";
 
   ParentData currentData;
+  String? currentlyChosenChildId;
+  void chooseChild(ChildData? child, {bool notify = false}) {
+    currentlyChosenChildId = child?.id;
+    if (notify) notifyListeners();
+  }
+
+  Future<ChildData?> _getCurrentlyChosenChildData({int? remainingTries}) async {
+    int reloadTries = (remainingTries ?? Options.reloadTries) - 1;
+    debugPrint('getting ${currentlyChosenChildId}');
+    if (currentlyChosenChildId == null) return null;
+    try {
+      return (await all).firstWhere((child) {
+        // debugPrint('comparing ${child?.id} to ${currentlyChosenChildId}');
+        return child.id == currentlyChosenChildId;
+      });
+    } catch (e) {
+      return await _getCurrentlyChosenChildData(
+          remainingTries:
+              reloadTries); //refetch //XXX: this will result in a stack overflow if no data can be retreived
+    }
+  }
+
+  Future<ChildData?> get currentlyChosenChildData =>
+      _getCurrentlyChosenChildData();
+  // int? _currentlyChosenChildDataIndex;
+  // // ChildData? _currentlyChosenChildData;
+  // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
+  // void set currentlyChosenChildDataIndex(int? index) {
+  //   if (index != currentlyChosenChildDataIndex) {
+  //     _currentlyChosenChildDataIndex = index;
+  //     notifyListeners();
+  //   }
+  // }
+
+  // Future<ChildData?> get currentlyChosenChildData async =>
+  //     (currentlyChosenChildDataIndex ?? -1) > 0
+  //         ? (await all)[currentlyChosenChildDataIndex!]
+  //         : null;
+
+  void set currentlyChosenChildData(Future<ChildData?> data) {
+    data.then(chooseChild);
+  }
+
+  // Future<void> _currentlyChosenChildDataHelper(ChildData? data) async {
+  //   if (data != await currentlyChosenChildData) {
+  //     if (data != null) {
+  //       int index = (await all)
+  //           .indexWhere(((element) => element.id == data.id)); //-1, meh
+  //       currentlyChosenChildDataIndex = index;
+  //       notifyListeners();
+  //     }
+  //     ;
+  //   } else {
+  //     currentlyChosenChildDataIndex = null;
+  //     notifyListeners();
+  //   }
+  // }
+
+  Future<T?> updateCurrentChild<T>(
+      Future<T> Function(ChildData) updater) async {
+    ChildData? childD = await currentlyChosenChildData;
+    if (childD != null) {
+      T ret = await updater(childD);
+      notifyListeners();
+      return ret;
+    }
+  }
 
   DropDownModel(this.currentData);
 
@@ -76,7 +144,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   /// a [List] which all the actions that could be made for a specific DropDown
   List<MyListTileData> get actions {
-    // TODO: implement actions
+    //must be implemented by subclasses
     throw UnimplementedError();
   }
 
@@ -119,38 +187,68 @@ Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
 
 Widget standard_statefulImageView<ChildData extends WithLangText,
             DDModel extends DropDownModel<ChildData, Data?>>(
-        ChildData data, DDModel model) =>
+        DDModel model, ChildData? data) =>
     ChangeNotifierProvider<DDModel>.value(
-      value: model,
-      child: Builder(builder: (context) {
-        return Consumer<DDModel>(builder: (context, model, child) {
-          return ImagesPage.streamed(
-            imageStreams: data.image_streams,
-            //s ?.map((e) => e.asBroadcastStream())
-            // .toList(),
-            onNewImages: (files) =>
-                Backend().uploadFiles(data, files).then((value) {
-              model.notifyListeners();
-              if (value != null) showToast(value);
-              return value;
-            }),
-            onStar: (hash) => Backend()
-                .setMainImageByHash(data, hash.toString())
-                .then((value) {
-              if (value != null && value != "") showToast(value);
-              model.notifyListeners();
-              return value;
-            }),
-            onDelete: (hash) =>
-                Backend().deleteImageByHash(hash.toString()).then((value) {
-              if (value != null && value != "") showToast(value);
-              model.notifyListeners();
-              return value;
-            }),
-          );
-        });
-      }),
-    );
+        value: model,
+        // child: ChangeNotifierProvider<ChildData>.value(
+        //   value: data,
+        child: Builder(builder: (context) {
+          return Consumer<DDModel>(builder: (context, model, child) {
+            // return Consumer<ChildData>(builder: (context, data, child) {
+            return FutureBuilder<ChildData?>(
+                future: model.currentlyChosenChildData,
+                builder: (context, snapshot) {
+                  return Stack(
+                    children: [
+                      ImagesPage.streamed(
+                        // TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
+                        // und es wird auch neu gebaut!
+                        // deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
+                        imageStreams: (snapshot.data ?? data)?.image_streams,
+                        //s ?.map((e) => e.asBroadcastStream())
+                        // .toList(),
+                        onNewImages: (files) async {
+                          showToast("new image sending, this may take a sec");
+                          var value = await model.updateCurrentChild(
+                              (data) => Backend().uploadFiles(data, files));
+
+                          if (value != null) showToast(value);
+                          return value;
+                        },
+                        onStar: (hash) {
+                          showToast("setting main image, this may take a sec");
+                          model
+                              .updateCurrentChild((data) => Backend()
+                                  .setMainImageByHash(data, hash.toString()))
+                              .then((value) {
+                            if (value != null && value != "") showToast(value);
+                            return value;
+                          });
+                        },
+                        onDelete: (hash) {
+                          showToast("Deleting Image, this may take a sec");
+                          model
+                              .updateCurrentChild((data) =>
+                                  Backend().deleteImageByHash(hash.toString()))
+                              .then((value) {
+                            if (value != null && value != "") showToast(value);
+                            return value;
+                          });
+                        },
+                      ),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        Card(
+                          child: Text("please wait, data is beeing synced"),
+                        ),
+                    ],
+                  );
+                });
+          });
+        })
+        // ;
+        // }),
+        // ),
+        );
 
 Type typeOf<T>() => T;
 typedef BuilderT = Widget Function(BuildContext);

@@ -40,6 +40,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
     CheckPoint data,
     MyListTileData tiledata,
   ) {
+    currentlyChosenChildData = Future.sync(() => data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
@@ -47,17 +48,17 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
             return nextModel<CheckPointDefect, CheckPoint,
                 CheckPointDefectsModel>(CheckPointDefectsModel(data));
           case 'Fotos':
-            return standard_statefulImageView(data, this);
+            return standard_statefulImageView(this, data);
 
           default:
-            return createRichIfPossibleEditor(data, update);
+            return alwaysPlainText(this, data, update);
         }
       }),
     );
   }
 
   @override
-  Widget? get floatingActionButton => TransformeableActionbutton(
+  Widget? get floatingActionButton => TransformableActionbutton(
         expandedHeight: 200,
         expandedChild: (onCancel) => Adder(
           'checkpoint',

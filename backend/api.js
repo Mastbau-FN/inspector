@@ -7,25 +7,40 @@ const path = require("path");
 const identifiers = require("./misc/identifiers").identifiers;
 
 //errorhandling
-
+/**
+ * 
+ * @param {Promise} statement the Promise to await whose result will be parsed by jsonmaker
+ * @param {Function} jsonmaker parses the result of the statement to json
+ * @param {*} res the express resolve object
+ * @param {*} next the express next middleware object (used for error-handling)
+ * @returns 
+ */
 const errsafejson = async (statement, jsonmaker, res, next) => {
   let val;
   try {
     val = await statement();
   } catch (error) {
-    return next(error);
+    console.warn(error)
+    return next({error: {errsafejson_captured: error.toString()}});
   }
   return res.status(200).json(await jsonmaker(val));
 };
 
-//TODO: docstrings
-
+/**
+ * simply resolves with success that the user in the req was succesfully logged in
+ * this doesnt really do anything besides that but it runs after the user-auth middleware so it only runs if the user credentials are valid
+ * @param {*} req express obj
+ * @param {*} res express obj
+ */
 const login = (req, res) => {
   let json_response = { success: true };
   json_response.user = req.user;
   res.status(200).json(json_response);
 };
 
+/**
+ * resolves all projects / inspections / locations for the currently logged-in user 
+ */
 const getProjects = (req, res, next) =>
   errsafejson(
     async () =>
@@ -41,6 +56,9 @@ const getProjects = (req, res, next) =>
     next
   );
 
+/**
+ * resolves all categories for the current location (given by req.body.PrNr)
+ */
 const getCategories = (req, res, next) =>
   errsafejson(
     async () =>
@@ -56,6 +74,9 @@ const getCategories = (req, res, next) =>
     next
   );
 
+  /**
+   * similar to getCategories, but one level deeper
+   */
 const getCheckPoints = (req, res, next) =>
   errsafejson(
     async () =>
@@ -71,6 +92,9 @@ const getCheckPoints = (req, res, next) =>
     next
   );
 
+/**
+ * similar to getCategories, but two levels deeper
+ */
 const getCheckPointDefects = (req, res, next) =>
   errsafejson(
     async () =>
@@ -90,22 +114,31 @@ const getCheckPointDefects = (req, res, next) =>
     next
   );
 
+/**
+ * adds a new data entry (category/checkpoint/defect)
+ */
 const addNew = (req, res, next) =>
   errsafejson(
     async () => (await queries.addNew(req.body, req.user.KZL))[0],
-    (json) => json,
+    (json) => {return{message: "added the entry", query_result: json}},
     res,
     next
   );
 
+/**
+ * updates a data entry
+ */
 const update = (req, res, next) =>
   errsafejson(
     async () => (await queries.update(req.body))[0],
-    (json) => json,
+    (json) => {return {message: "updated the entry", query_result: json}},
     res,
     next
   );
 
+/**
+ * updates a data entry
+ */
 const delete_ = (req, res, next) =>
   errsafejson(
     async () => (await queries.delete_(req.body, req.user.KZL))[0],
@@ -117,21 +150,23 @@ const delete_ = (req, res, next) =>
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
     async () => (await queries.deleteImgByHash(req.body.hash))[0],
-    (json) => json,
+    (json) => {return{message: "deleted image", query_result: json}},
     res,
     next
   );
 
 const setMainImgByHash = (req, res, next) => {
   const pathparts = imghasher.getPathFromHash(req.body.hash);
-  console.log(req.body.hash,pathparts);
   const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
   // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
-  console.log({newLink});
+  console.log(req.body.hash,newLink);
   req.body.data.Link = newLink;
   return update(req, res, next);
 };
 
+/**
+ * retrieves the file given by a hash and returns it to the client
+ */
 const getFileFromHash = async (req, res) => {
   try {
     let img = await imghasher.getFileFromHash(req.body.imghash);

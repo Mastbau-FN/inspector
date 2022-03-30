@@ -58,12 +58,15 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Y")
   String? y;
 
+  LatLng? get coords =>
+      _toplevelhelperLatLng_fromJson({'lat': x, 'lng': y}) ?? fallback_coords;
+
   @JsonKey(
     name: 'latLng',
     fromJson: _toplevelhelperLatLng_fromJson,
     toJson: _toplevelhelperLatLng_toJson,
   )
-  final LatLng? coords;
+  final LatLng? fallback_coords;
 
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
@@ -84,7 +87,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
     this.plz,
     required this.stONr,
     this.strasse,
-    this.coords,
+    this.fallback_coords,
   });
 
   @override

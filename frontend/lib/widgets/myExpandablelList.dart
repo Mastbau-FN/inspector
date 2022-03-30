@@ -51,10 +51,14 @@ class ExpandableCard2 extends ExpandablesRadio {
 
   @override
   ExpansionPanelRadio make(BuildContext context) {
-    //debugPrint(previewImg.toString());
     return ExpansionPanelRadio(
-        backgroundColor: color,
+        backgroundColor:
+            color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),
         headerBuilder: (context, isExpanded) => ListTile(
+              // selectedTileColor: Theme.of(context).colorScheme.secondary,
+              // selectedColor: Theme.of(context).colorScheme.secondary,
+              // selected: isExpanded,
+              // enabled: true,
               leading: Padding(
                 padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
                 child: ClipOval(
@@ -74,15 +78,20 @@ class ExpandableCard2 extends ExpandablesRadio {
               ),
               trailing: extra,
               title: Text(
-                title,
+                title + (isExpanded ? ':' : ''),
                 style: isExpanded
-                    ? Theme.of(context).textTheme.headline5
+                    ? Theme.of(context).textTheme.headline5?.apply(
+                          color: Theme.of(context).colorScheme.primary,
+                        )
                     : Theme.of(context).textTheme.bodyText1,
               ),
               subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
             ),
-        body: Column(
-          children: [...children, SizedBox(height: 10)],
+        body: Container(
+          // color: Theme.of(context).colorScheme.secondary,
+          child: Column(
+            children: [...children, SizedBox(height: 10)],
+          ),
         ),
         canTapOnHeader: true,
         value: key);
@@ -104,6 +113,9 @@ class ExpandablesListRadio extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: ExpansionPanelList.radio(
+        expansionCallback: (panelIndex, isExpanded) {
+          //XXX: hier könnte ich #121 lösen vllt
+        },
         dividerColor: Colors.transparent,
         elevation: 0,
         children: children.map((e) => e.make(context)).toList(),

@@ -1,6 +1,5 @@
 ////const bcrypt = require("bcrypt");
-
-//TODO: update-queries (wahrscheinlich nur LangText, der rest ist final)
+const options = require("../options");
 
 const useNewID = true //&& false;
 const _ID_ = useNewID ? 1910 : 6097;
@@ -220,8 +219,10 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      break;
   case identifiers.location:
     queryfile = folder+"/inspection_location";
-     params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess];
-     break;
+    params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess];
+    params2 = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
+    await queryFileWithParams(queryfile+"_part2", params2);
+    break;
  
    default:
      console.log(`someone tried to update ${data.type}`);
@@ -363,7 +364,8 @@ module.exports = {
 };
 
 const hashImagesAndCreateIds = async (tthis) => {
-  for (thingy of tthis) {
+  // console.log({hashing: tthis})
+  for (var thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, mainImg } = await getLink(thingy);
 
@@ -373,18 +375,20 @@ const hashImagesAndCreateIds = async (tthis) => {
       ).filter((v) => v != mainImg);
 
       // append their hashes to the returned obj
-      thingy.images = await Promise.all(
+      const images = 
         imageNames.map(
-          async (name) => await imghasher.memorize(rootfolder, link, name)
+          (name) => {try{let x = imghasher.memorize(rootfolder, link, name); if(options.debugImageHashes)console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
         )
-      );
+      || ["error_ image hashing failed to-te-totally"];
+      // console.log(images)
 
       // set main image at first index
-      thingy.images.unshift(
-        await imghasher.memorize(rootfolder, link, mainImg)
-      );
-      console.log(`imagehashes- ${thingy.KurzText} -:`, thingy.images);
-    }
+      let mainHash = imghasher.memorize(rootfolder, link, mainImg);
+      images.unshift(mainHash);
+
+      thingy['images'] = images??["error_ couldnt set image hashes"];
+      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
+  }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
     delete thingy.Link;
