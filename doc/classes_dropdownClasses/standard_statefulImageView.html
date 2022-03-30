@@ -53,8 +53,8 @@
         
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>
-<span class="name ">standard_statefulImageView</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">Data?</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="standard_statefulImageView-param-data"><span class="type-annotation">ChildData</span> <span class="parameter-name">data</span>, </span></li>
-<li><span class="parameter" id="standard_statefulImageView-param-model"><span class="type-annotation">DDModel</span> <span class="parameter-name">model</span></span></li>
+<span class="name ">standard_statefulImageView</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">Data?</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="standard_statefulImageView-param-model"><span class="type-annotation">DDModel</span> <span class="parameter-name">model</span>, </span></li>
+<li><span class="parameter" id="standard_statefulImageView-param-data"><span class="type-annotation">ChildData?</span> <span class="parameter-name">data</span></span></li>
 </ol>)
 
     </section>
@@ -66,7 +66,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget standard_statefulImageView&lt;ChildData extends WithLangText,
             DDModel extends DropDownModel&lt;ChildData, Data?&gt;&gt;(
-        ChildData data, DDModel model) =&gt;
+        DDModel model, ChildData? data) =&gt;
     ChangeNotifierProvider&lt;DDModel&gt;.value(
         value: model,
         &#47;&#47; child: ChangeNotifierProvider&lt;ChildData&gt;.value(
@@ -74,31 +74,54 @@
         child: Builder(builder: (context) {
           return Consumer&lt;DDModel&gt;(builder: (context, model, child) {
             &#47;&#47; return Consumer&lt;ChildData&gt;(builder: (context, data, child) {
-            return ImagesPage.streamed(
-              &#47;&#47; TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
-              imageStreams: data.image_streams,
-              &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
-              &#47;&#47; .toList(),
-              onNewImages: (files) =&gt;
-                  Backend().uploadFiles(data, files).then((value) {
-                model.notifyListeners();
-                if (value != null) showToast(value);
-                return value;
-              }),
-              onStar: (hash) =&gt; Backend()
-                  .setMainImageByHash(data, hash.toString())
-                  .then((value) {
-                if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
-                model.notifyListeners();
-                return value;
-              }),
-              onDelete: (hash) =&gt;
-                  Backend().deleteImageByHash(hash.toString()).then((value) {
-                if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
-                model.notifyListeners();
-                return value;
-              }),
-            );
+            return FutureBuilder&lt;ChildData?&gt;(
+                future: model.currentlyChosenChildData,
+                builder: (context, snapshot) {
+                  return Stack(
+                    children: [
+                      ImagesPage.streamed(
+                        &#47;&#47; TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
+                        &#47;&#47; und es wird auch neu gebaut!
+                        &#47;&#47; deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
+                        imageStreams: (snapshot.data ?? data)?.image_streams,
+                        &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
+                        &#47;&#47; .toList(),
+                        onNewImages: (files) async {
+                          showToast(&quot;new image sending, this may take a sec&quot;);
+                          var value = await model.updateCurrentChild(
+                              (data) =&gt; Backend().uploadFiles(data, files));
+
+                          if (value != null) showToast(value);
+                          return value;
+                        },
+                        onStar: (hash) {
+                          showToast(&quot;setting main image, this may take a sec&quot;);
+                          model
+                              .updateCurrentChild((data) =&gt; Backend()
+                                  .setMainImageByHash(data, hash.toString()))
+                              .then((value) {
+                            if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
+                            return value;
+                          });
+                        },
+                        onDelete: (hash) {
+                          showToast(&quot;Deleting Image, this may take a sec&quot;);
+                          model
+                              .updateCurrentChild((data) =&gt;
+                                  Backend().deleteImageByHash(hash.toString()))
+                              .then((value) {
+                            if (value != null &amp;&amp; value != &quot;&quot;) showToast(value);
+                            return value;
+                          });
+                        },
+                      ),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        Card(
+                          child: Text(&quot;please wait, data is beeing synced&quot;),
+                        ),
+                    ],
+                  );
+                });
           });
         })
         &#47;&#47; ;
@@ -159,7 +182,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.20+20
+      1.0.21+21
   </span>
 
   

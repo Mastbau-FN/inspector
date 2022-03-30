@@ -80,7 +80,7 @@
             .whereType&lt;T&gt;());
   } catch (e) {
     debugPrint(
-        &#39;could not parse response: &#39; + e.toString() + &#39;--&gt;&#39; + jsonEncode(json));
+        &#39;could not parse response: &#39; + e.toString() + &#39;&lt;--&#39; + jsonEncode(json));
     throw BackendCommunicationException(
         &#39;could not parse response: &#39; + jsonEncode(json));
   }
@@ -132,7 +132,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.20+20
+      1.0.21+21
   </span>
 
   
