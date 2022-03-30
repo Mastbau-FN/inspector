@@ -53,7 +53,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
             return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
                 CategoryModel(data));
           case 'Fotos':
-            return standard_statefulImageView(this);
+            return standard_statefulImageView(this, data);
           default:
             return LocationDetailPage(
               locationdata: data,
