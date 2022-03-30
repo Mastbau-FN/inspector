@@ -51,7 +51,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
             return standard_statefulImageView(this, data);
 
           default:
-            return alwaysPlainText(data, update);
+            return alwaysPlainText(this, data, update);
         }
       }),
     );
