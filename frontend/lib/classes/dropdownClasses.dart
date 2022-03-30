@@ -179,7 +179,8 @@ Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
     );
 
 Widget standard_statefulImageView<ChildData extends WithLangText,
-        DDModel extends DropDownModel<ChildData, Data?>>(DDModel model) =>
+            DDModel extends DropDownModel<ChildData, Data?>>(
+        DDModel model, ChildData? data) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,
         // child: ChangeNotifierProvider<ChildData>.value(
@@ -194,7 +195,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                     // TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
                     // und es wird auch neu gebaut!
                     // deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
-                    imageStreams: (snapshot.data)?.image_streams,
+                    imageStreams: (snapshot.data ?? data)?.image_streams,
                     //s ?.map((e) => e.asBroadcastStream())
                     // .toList(),
                     onNewImages: (files) => model

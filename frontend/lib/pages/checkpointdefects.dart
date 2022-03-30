@@ -36,7 +36,7 @@ class CheckPointDefectsModel
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case 'Fotos':
-            return standard_statefulImageView(this);
+            return standard_statefulImageView(this, data);
 
           default:
             return Provider<CheckPointDefectsModel>(

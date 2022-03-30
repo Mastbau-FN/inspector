@@ -48,7 +48,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
             return nextModel<CheckPointDefect, CheckPoint,
                 CheckPointDefectsModel>(CheckPointDefectsModel(data));
           case 'Fotos':
-            return standard_statefulImageView(this);
+            return standard_statefulImageView(this, data);
 
           default:
             return alwaysPlainText(data, update);
