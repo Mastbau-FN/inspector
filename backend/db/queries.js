@@ -365,7 +365,7 @@ module.exports = {
 
 const hashImagesAndCreateIds = async (tthis) => {
   // console.log({hashing: tthis})
-  for (thingy of tthis) {
+  for (var thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, mainImg } = await getLink(thingy);
 
@@ -375,17 +375,23 @@ const hashImagesAndCreateIds = async (tthis) => {
       ).filter((v) => v != mainImg);
 
       // append their hashes to the returned obj
-      thingy.images = await Promise.all(
+      const images = (await Promise.all(
         imageNames.map(
           async (name) => {try{let x = await imghasher.memorize(rootfolder, link, name); console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
         )
-      );//TODO: warum kommt hier undefined zurück?
+      )) || ["error_ image hashing failed to-te-totally"];//TODO: warum kommt hier undefined zurück?
+      // console.log(images)
+      thingy['images'] = images??["error_ couldnt set image hashes"];
 
       // set main image at first index
       let mainHash = await imghasher.memorize(rootfolder, link, mainImg);
+      try{
       thingy.images.unshift(mainHash);
       console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
+    }catch(e){
+      console.log('couldnt unshift', e, thingy);throw e;
     }
+  }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
     delete thingy.Link;
