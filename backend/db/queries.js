@@ -377,7 +377,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       // append their hashes to the returned obj
       thingy.images = await Promise.all(
         imageNames.map(
-          async (name) => {let x = await imghasher.memorize(rootfolder, link, name); console.log(`${name} -> ${x}`); return x;}
+          async (name) => {try{let x = await imghasher.memorize(rootfolder, link, name); console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
         )
       );//TODO: warum kommt hier undefined zurück?
 
