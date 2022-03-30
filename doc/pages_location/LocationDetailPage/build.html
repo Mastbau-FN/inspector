@@ -110,14 +110,17 @@ Widget build(BuildContext context) =&gt; Scaffold(
     appBar: AppBar(
       title: Text(locationdata.title),
     ),
-    body: Center(
+    body: SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          Container(height: 20),
           _previewImg(),
           Container(height: 20),
           _mgauftr(),
+          Container(height: 20),
+          _additionalInfo,
           Container(height: 20),
           _standort(),
         ],
@@ -188,7 +191,7 @@ Widget build(BuildContext context) =&gt; Scaffold(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.22+22
+      1.0.23+23
   </span>
 
   
