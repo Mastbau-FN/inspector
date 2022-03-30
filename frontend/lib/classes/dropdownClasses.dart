@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -74,18 +75,24 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
     if (notify) notifyListeners();
   }
 
-  Future<ChildData?> get currentlyChosenChildData async {
+  Future<ChildData?> _getCurrentlyChosenChildData({int? remainingTries}) async {
+    int reloadTries = (remainingTries ?? Options.reloadTries) - 1;
     debugPrint('getting ${currentlyChosenChildId}');
     if (currentlyChosenChildId == null) return null;
-    List<ChildData?> alln = await all;
-    return alln.firstWhere(
-      (child) {
+    try {
+      return (await all).firstWhere((child) {
         // debugPrint('comparing ${child?.id} to ${currentlyChosenChildId}');
-        return child?.id == currentlyChosenChildId;
-      },
-      orElse: null,
-    );
+        return child.id == currentlyChosenChildId;
+      });
+    } catch (e) {
+      return await _getCurrentlyChosenChildData(
+          remainingTries:
+              reloadTries); //refetch //XXX: this will result in a stack overflow if no data can be retreived
+    }
   }
+
+  Future<ChildData?> get currentlyChosenChildData =>
+      _getCurrentlyChosenChildData();
   // int? _currentlyChosenChildDataIndex;
   // // ChildData? _currentlyChosenChildData;
   // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
