@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +53,8 @@ Widget alwaysPlainText<ChildData extends WithLangText,
                   return DetailsPage(
                       title: (snapshot.data ?? data).title,
                       details: (snapshot.data ?? data).langText,
-                      onChanged: (txt) async {
+                      onChanged: (txt) {
+                        showToast("uploading..");
                         model.updateCurrentChild((p0) => uploadString(p0, txt));
                       });
                 });
