@@ -107,7 +107,14 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return TextButton(onPressed: () {}, child: Text(&quot;Lokale Bilder löschen&quot;));
+  return TextButton(
+      onPressed: () {},
+      child: Row(
+        children: [
+          Icon(Icons.delete),
+          Text(&quot;Lokale Bilder löschen&quot;),
+        ],
+      ));
 }</code></pre>
 </section>
 
@@ -173,7 +180,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.21+21
+      1.0.22+22
   </span>
 
   

@@ -69,7 +69,12 @@
     Iterable&lt;Stream&lt;T?&gt;&gt; iterable) async* {
   await for (final event
       in iterable.first.combineLatestAll([...iterable.skip(1)])) {
-    yield event.firstWhere((element) =&gt; element != null);
+    try {
+      yield event.firstWhere((element) =&gt; element != null);
+    } catch (e) {
+      &#47;&#47;XXX: das ist eigentlich unsauber, lieber sollte der caller das errorhandling machen aber naja
+      yield null;
+    }
   }
 }</code></pre>
 </section>
@@ -117,7 +122,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.21+21
+      1.0.22+22
   </span>
 
   

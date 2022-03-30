@@ -8,6 +8,7 @@ class Options {
   static const debugImages = true;
   static const infinitelyreloadPictures = true;
   static var reloadTries = 5;
+  static var showDoggo = false;
 }
 
 class Design {

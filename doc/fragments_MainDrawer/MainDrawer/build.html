@@ -122,12 +122,6 @@ Widget build(BuildContext context) {
     supplyLoginModel: true,
   );
 
-  var uploadSyncTile = MyCardListTile1(
-    icon: Icons.sync,
-    text: &#39;uploadSync&#39;,
-    onTap: Backend().retryFailedrequests,
-  );
-
   return Drawer(
     child: Column(
       &#47;&#47; Important: Remove any padding from the ListView.
@@ -135,8 +129,7 @@ Widget build(BuildContext context) {
       children: &lt;Widget&gt;[
         MainDrawerHeader(),
         settingsTile,
-        uploadSyncTile,
-        unlimiteddoggosTile,
+        if (Options.showDoggo) unlimiteddoggosTile,
         Spacer(),
         SafeArea(
           child: Padding(
@@ -212,7 +205,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.21+21
+      1.0.22+22
   </span>
 
   

@@ -107,11 +107,21 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return TextButton(
-      onPressed: () async {
-        await _logout(context);
-      },
-      child: Text(&quot;Logout&quot;));
+  return MyCardListTile1(
+    icon: Icons.exit_to_app,
+    text: &quot;Logout&quot;,
+    onTap: () =&gt; _logout(context),
+  );
+  &#47;&#47; return TextButton(
+  &#47;&#47;     onPressed: () async {
+  &#47;&#47;       await _logout(context);
+  &#47;&#47;     },
+  &#47;&#47;     child: Row(
+  &#47;&#47;       children: [
+  &#47;&#47;         Icon(Icons.logout),
+  &#47;&#47;         Text(&quot;Logout&quot;),
+  &#47;&#47;       ],
+  &#47;&#47;     ));
 }</code></pre>
 </section>
 
@@ -178,7 +188,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.21+21
+      1.0.22+22
   </span>
 
   
