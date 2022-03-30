@@ -1,11 +1,20 @@
+import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
+
+import '../../backend/api.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;
   const SettingsView({Key? key, required this.logoutcontext}) : super(key: key);
+
+  Widget get uploadSyncTile => MyCardListTile1(
+        icon: Icons.sync,
+        text: 'uploadSync',
+        onTap: Backend().retryFailedrequests,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -13,14 +22,21 @@ class SettingsView extends StatelessWidget {
       appBar: AppBar(
         title: Text('Settings'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Logout(
-            logoutcontext: logoutcontext,
-          ),
-          DeleteCachedImages(),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Logout(
+              logoutcontext: logoutcontext,
+            ),
+            Spacer(),
+            Divider(),
+            Text("advanced & experimental"),
+            uploadSyncTile,
+            // DeleteCachedImages(),
+          ],
+        ),
       ),
     );
   }
@@ -31,7 +47,14 @@ class DeleteCachedImages extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(onPressed: () {}, child: Text("Lokale Bilder löschen"));
+    return TextButton(
+        onPressed: () {},
+        child: Row(
+          children: [
+            Icon(Icons.delete),
+            Text("Lokale Bilder löschen"),
+          ],
+        ));
   }
 }
 
@@ -56,10 +79,20 @@ class Logout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-        onPressed: () async {
-          await _logout(context);
-        },
-        child: Text("Logout"));
+    return MyCardListTile1(
+      icon: Icons.exit_to_app,
+      text: "Logout",
+      onTap: () => _logout(context),
+    );
+    // return TextButton(
+    //     onPressed: () async {
+    //       await _logout(context);
+    //     },
+    //     child: Row(
+    //       children: [
+    //         Icon(Icons.logout),
+    //         Text("Logout"),
+    //       ],
+    //     ));
   }
 }
