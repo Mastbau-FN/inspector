@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
@@ -96,59 +97,122 @@ class LocationDetailPage extends StatelessWidget {
         ),
       ));
 
-  Widget get _additionalInfo => Column(
-        children: [
-          EditableText(
-            label: "Eigentümer",
-            text: locationdata.eigentuemer,
-            onChanged: (val) {
-              locationdata.eigentuemer = val;
-              Backend()
-                  .update(locationdata)
-                  .then((value) => showToast("update successful"));
-            },
-          ),
-          EditableText(
-            label: "Ansprechpartner",
-            text: locationdata.ansprechpartner,
-            onChanged: (val) {
-              locationdata.ansprechpartner = val;
-              Backend()
-                  .update(locationdata)
-                  .then((value) => showToast("update successful"));
-            },
-          ),
-          EditableText(
-            label: "Steigweg-Typ",
-            text: locationdata.steigwegtyp,
-            onChanged: (val) {
-              locationdata.steigwegtyp = val;
-              Backend()
-                  .update(locationdata)
-                  .then((value) => showToast("update successful"));
-            },
-          ),
-          EditableText(
-            label: "Abschaltungen",
-            text: locationdata.abschaltungen,
-            onChanged: (val) {
-              locationdata.abschaltungen = val;
-              Backend()
-                  .update(locationdata)
-                  .then((value) => showToast("update successful"));
-            },
-          ),
-          EditableText(
-            label: "SSSchlüssel",
-            text: locationdata.steigschutzschluessel,
-            onChanged: (val) {
-              locationdata.steigschutzschluessel = val;
-              Backend()
-                  .update(locationdata)
-                  .then((value) => showToast("update successful"));
-            },
-          ),
-        ],
+  Widget get _additionalInfo => Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            EditableText(
+              label: "Eigentümer",
+              text: locationdata.eigentuemer,
+              onChanged: (val) {
+                locationdata.eigentuemer = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            EditableText(
+              label: "Ansprechpartner",
+              text: locationdata.ansprechpartner,
+              onChanged: (val) {
+                locationdata.ansprechpartner = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            EditableText(
+              label: "Steigweg-Typ",
+              text: locationdata.steigwegtyp,
+              onChanged: (val) {
+                locationdata.steigwegtyp = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            EditableText(
+              label: "Abschaltungen",
+              text: locationdata.abschaltungen,
+              onChanged: (val) {
+                locationdata.abschaltungen = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            EditableText(
+              label: "SSSchlüssel",
+              text: locationdata.steigschutzschluessel,
+              onChanged: (val) {
+                locationdata.steigschutzschluessel = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            EditableText(
+              label: "Höhe",
+              text: locationdata.bauwerkhoehe.toString(),
+              onChanged: (val) {
+                locationdata.bauwerkhoehe = int.tryParse(val);
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            EditableText(
+              label: "BauJahr",
+              text: locationdata.baujahr.toString(),
+              onChanged: (val) {
+                locationdata.baujahr = int.tryParse(val);
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            NamedNulleableBoolToggle(
+              isSelected: locationdata.needs_schluessel,
+              label: "Benötigt Schlüssel",
+              onSelected: (val) {
+                locationdata.needs_schluessel = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            NamedNulleableBoolToggle(
+              label: "WC Vorort",
+              isSelected: locationdata.has_wc,
+              onSelected: (val) {
+                locationdata.has_wc = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            NamedNulleableBoolToggle(
+              label: "Steckdosen verfügbar",
+              isSelected: locationdata.has_steckdosen,
+              onSelected: (val) {
+                locationdata.has_steckdosen = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+            NamedNulleableBoolToggle(
+              label: "Lagerraum verfügbar",
+              isSelected: locationdata.has_lagerraeume,
+              onSelected: (val) {
+                locationdata.has_lagerraeume = val;
+                Backend()
+                    .update(locationdata)
+                    .then((value) => showToast("update successful"));
+              },
+            ),
+          ],
+        ),
       );
 
   Widget _previewImg() => Container(
@@ -243,11 +307,13 @@ class EditableText extends StatefulWidget {
     required this.label,
     required this.text,
     required this.onChanged,
+    this.keyboardType = TextInputType.text,
   }) : super(key: key);
 
   final String label;
   String? text;
   final Function(String) onChanged;
+  final TextInputType keyboardType;
 
   @override
   State<EditableText> createState() => _EditableTextState();
@@ -257,34 +323,65 @@ class _EditableTextState extends State<EditableText> {
   bool isEditing = false;
   @override
   Widget build(BuildContext context) {
-    var editor =
-        PlainEditor(sdetails: widget.text ?? "--", isEditing: isEditing);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Row(
-        children: [
-          Text(
-            widget.label + ': ',
-            style: TextStyle(fontWeight: FontWeight.w300),
-          ),
-          Container(
-            child: editor,
-            width: 200,
-          ),
-          Spacer(),
-          IconButton(
-            constraints: BoxConstraints(maxHeight: 20, maxWidth: 20),
-            icon: Icon(isEditing ? Icons.check : Icons.edit),
-            onPressed: () => setState(() {
-              if (isEditing) {
-                widget.onChanged(editor.details);
-                widget.text = editor.details;
-              }
-              isEditing ^= true;
-            }),
-          ),
-        ],
-      ),
+    var editor = PlainEditor(
+      sdetails: widget.text ?? "--",
+      isEditing: isEditing,
+      keyboardType: widget.keyboardType,
+    );
+    return Row(
+      children: [
+        Text(
+          widget.label + ': ',
+          style: TextStyle(fontWeight: FontWeight.w300),
+        ),
+        Flexible(
+          child: editor,
+        ),
+        // Spacer(),
+        TextButton(
+          // style: ButtonStyle(
+          //     fixedSize: MaterialStateProperty.all<Size>(Size(50, 10)),
+          //     padding: MaterialStateProperty.all(EdgeInsets.all(-10))),
+          // constraints: BoxConstraints(maxHeight: 20, maxWidth: 20),
+          child: Icon(isEditing ? Icons.check : Icons.edit),
+          onPressed: () => setState(() {
+            if (isEditing) {
+              widget.onChanged(editor.details);
+              widget.text = editor.details;
+            }
+            isEditing ^= true;
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class NamedNulleableBoolToggle extends StatelessWidget {
+  final String label;
+  final Function(bool?)? onSelected;
+  final bool? isSelected;
+  const NamedNulleableBoolToggle({
+    Key? key,
+    required this.label,
+    this.onSelected,
+    this.isSelected,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontWeight: FontWeight.w300),
+        ),
+        Spacer(),
+        NulleableToggle(
+          isSelected: isSelected,
+          onSelected: onSelected,
+        ),
+      ],
     );
   }
 }

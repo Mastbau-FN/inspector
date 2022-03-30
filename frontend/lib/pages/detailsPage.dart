@@ -92,17 +92,28 @@ class _DetailsPageState extends State<DetailsPage> {
 class PlainEditor extends StatelessWidget {
   final bool isEditing;
   final String sdetails;
-  PlainEditor({Key? key, this.isEditing = false, required this.sdetails})
-      : this.controller = TextEditingController(text: sdetails),
+  final TextInputType keyboardType;
+  PlainEditor({
+    Key? key,
+    this.isEditing = false,
+    required this.sdetails,
+    this.keyboardType = TextInputType.text,
+  })  : this.controller = TextEditingController(text: sdetails),
         super(key: key);
 
   String get details => controller.text;
 
   @override
   Widget build(BuildContext context) => isEditing ? _inEdit : _inShow;
-  Widget get _inShow => Text(sdetails); //// ?? "");
+  Widget get _inShow => Row(
+        children: [
+          Text(sdetails),
+          Spacer(),
+        ],
+      ); //// ?? "");
 
   Widget get _inEdit => TextFormField(
+        keyboardType: keyboardType,
         minLines: 1,
         maxLines: 15,
         controller: controller,
