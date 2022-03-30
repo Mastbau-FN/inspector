@@ -17,7 +17,12 @@ extension IterateStream on Stream {
       Iterable<Stream<T?>> iterable) async* {
     await for (final event
         in iterable.first.combineLatestAll([...iterable.skip(1)])) {
-      yield event.firstWhere((element) => element != null);
+      try {
+        yield event.firstWhere((element) => element != null);
+      } catch (e) {
+        //XXX: das ist eigentlich unsauber, lieber sollte der caller das errorhandling machen aber naja
+        yield null;
+      }
     }
   }
 }

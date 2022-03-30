@@ -51,7 +51,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
             return standard_statefulImageView(this, data);
 
           default:
-            return alwaysPlainText(data, update);
+            return alwaysPlainText(this, data, update);
         }
       }),
     );
