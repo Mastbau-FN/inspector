@@ -1,3 +1,3 @@
 # Changes
 
-no more *rich* text support
+images are now updating in their view
