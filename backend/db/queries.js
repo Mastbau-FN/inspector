@@ -375,15 +375,15 @@ const hashImagesAndCreateIds = async (tthis) => {
       ).filter((v) => v != mainImg);
 
       // append their hashes to the returned obj
-      const images = (await Promise.all(
+      const images = 
         imageNames.map(
-          async (name) => {try{let x = await imghasher.memorize(rootfolder, link, name); if(options.debugImageHashes)console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
+          (name) => {try{let x = imghasher.memorize(rootfolder, link, name); if(options.debugImageHashes)console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
         )
-      )) || ["error_ image hashing failed to-te-totally"];//TODO: warum kommt hier undefined zurück?
+      || ["error_ image hashing failed to-te-totally"];
       // console.log(images)
 
       // set main image at first index
-      let mainHash = await imghasher.memorize(rootfolder, link, mainImg);
+      let mainHash = imghasher.memorize(rootfolder, link, mainImg);
       images.unshift(mainHash);
 
       thingy['images'] = images??["error_ couldnt set image hashes"];
