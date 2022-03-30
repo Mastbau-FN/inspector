@@ -482,7 +482,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
             .whereType<T>());
   } catch (e) {
     debugPrint(
-        'could not parse response: ' + e.toString() + '-->' + jsonEncode(json));
+        'could not parse response: ' + e.toString() + '<--' + jsonEncode(json));
     throw BackendCommunicationException(
         'could not parse response: ' + jsonEncode(json));
   }

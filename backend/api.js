@@ -20,7 +20,8 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
   try {
     val = await statement();
   } catch (error) {
-    return next(error);
+    console.warn(error)
+    return next({error: {errsafejson_captured: error.toString()}});
   }
   return res.status(200).json(await jsonmaker(val));
 };

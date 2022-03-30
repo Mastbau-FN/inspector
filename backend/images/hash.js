@@ -1,6 +1,6 @@
 const imgfiler = require("./filesystem");
 
-const bcript = require("bcrypt");
+const hashkeks = require('crypto');
 
 // XXX: for #92 use https://www.npmjs.com/package/data-store
 const NanoCache = require("nano-cache");
@@ -35,9 +35,9 @@ const getPathFromHash = (hash) => {
   }
 };
 
-const memorize = async (rootpath, link, filename) => {
+const memorize = (rootpath, link, filename) => {
   // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
-  let key = await bcript.hash(rootpath + link + filename, '$2b$10$DNz2TF9EXMD2EENXEEE9t.');
+  let key = hashkeks.createHash('sha1').update(rootpath + link + filename+ 'v1').digest('base64');
 
   //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
   cache.set(key + "r", rootpath);

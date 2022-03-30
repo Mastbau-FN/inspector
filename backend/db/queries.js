@@ -1,5 +1,5 @@
 ////const bcrypt = require("bcrypt");
-
+const options = require("../options");
 
 const useNewID = true //&& false;
 const _ID_ = useNewID ? 1910 : 6097;
@@ -365,7 +365,7 @@ module.exports = {
 
 const hashImagesAndCreateIds = async (tthis) => {
   // console.log({hashing: tthis})
-  for (thingy of tthis) {
+  for (var thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, mainImg } = await getLink(thingy);
 
@@ -375,17 +375,20 @@ const hashImagesAndCreateIds = async (tthis) => {
       ).filter((v) => v != mainImg);
 
       // append their hashes to the returned obj
-      thingy.images = await Promise.all(
+      const images = 
         imageNames.map(
-          async (name) => await imghasher.memorize(rootfolder, link, name)
+          (name) => {try{let x = imghasher.memorize(rootfolder, link, name); if(options.debugImageHashes)console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
         )
-      );
+      || ["error_ image hashing failed to-te-totally"];
+      // console.log(images)
 
       // set main image at first index
-      let mainHash = await imghasher.memorize(rootfolder, link, mainImg);
-      thingy.images.unshift(mainHash);
-      console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
-    }
+      let mainHash = imghasher.memorize(rootfolder, link, mainImg);
+      images.unshift(mainHash);
+
+      thingy['images'] = images??["error_ couldnt set image hashes"];
+      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
+  }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
     delete thingy.Link;
