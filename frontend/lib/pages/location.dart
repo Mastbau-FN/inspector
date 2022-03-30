@@ -1,5 +1,7 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
@@ -10,6 +12,8 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+
+import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation, Null> {
   final DisplayUser? user;
@@ -75,28 +79,90 @@ class LocationDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(locationdata.title),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            Container(height: 20),
             _previewImg(),
             Container(height: 20),
             _mgauftr(),
+            Container(height: 20),
+            _additionalInfo,
             Container(height: 20),
             _standort(),
           ],
         ),
       ));
 
-  ClipOval _previewImg() => ClipOval(
-        child: Container(
-          height: 100,
-          width: 100,
-          child: StreamBuilder<ImageData?>(
-              stream: locationdata.mainImage,
-              builder: (context, snapshot) =>
-                  snapshot.data?.image ?? Icon(Icons.construction)),
+  Widget get _additionalInfo => Column(
+        children: [
+          EditableText(
+            label: "Eigentümer",
+            text: locationdata.eigentuemer,
+            onChanged: (val) {
+              locationdata.eigentuemer = val;
+              Backend()
+                  .update(locationdata)
+                  .then((value) => showToast("update successful"));
+            },
+          ),
+          EditableText(
+            label: "Ansprechpartner",
+            text: locationdata.ansprechpartner,
+            onChanged: (val) {
+              locationdata.ansprechpartner = val;
+              Backend()
+                  .update(locationdata)
+                  .then((value) => showToast("update successful"));
+            },
+          ),
+          EditableText(
+            label: "Steigweg-Typ",
+            text: locationdata.steigwegtyp,
+            onChanged: (val) {
+              locationdata.steigwegtyp = val;
+              Backend()
+                  .update(locationdata)
+                  .then((value) => showToast("update successful"));
+            },
+          ),
+          EditableText(
+            label: "Abschaltungen",
+            text: locationdata.abschaltungen,
+            onChanged: (val) {
+              locationdata.abschaltungen = val;
+              Backend()
+                  .update(locationdata)
+                  .then((value) => showToast("update successful"));
+            },
+          ),
+          EditableText(
+            label: "SSSchlüssel",
+            text: locationdata.steigschutzschluessel,
+            onChanged: (val) {
+              locationdata.steigschutzschluessel = val;
+              Backend()
+                  .update(locationdata)
+                  .then((value) => showToast("update successful"));
+            },
+          ),
+        ],
+      );
+
+  Widget _previewImg() => Container(
+        height: 100,
+        width: 100,
+        child: ClipOval(
+          child: Container(
+            height: 100,
+            width: 100,
+            child: StreamBuilder<ImageData?>(
+                stream: locationdata.mainImage,
+                builder: (context, snapshot) =>
+                    snapshot.data?.image ?? Icon(Icons.construction)),
+          ),
         ),
       );
 
@@ -169,4 +235,56 @@ class LocationDetailPage extends StatelessWidget {
                 ),
               ],
             );
+}
+
+class EditableText extends StatefulWidget {
+  EditableText({
+    Key? key,
+    required this.label,
+    required this.text,
+    required this.onChanged,
+  }) : super(key: key);
+
+  final String label;
+  String? text;
+  final Function(String) onChanged;
+
+  @override
+  State<EditableText> createState() => _EditableTextState();
+}
+
+class _EditableTextState extends State<EditableText> {
+  bool isEditing = false;
+  @override
+  Widget build(BuildContext context) {
+    var editor =
+        PlainEditor(sdetails: widget.text ?? "--", isEditing: isEditing);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
+        children: [
+          Text(
+            widget.label + ': ',
+            style: TextStyle(fontWeight: FontWeight.w300),
+          ),
+          Container(
+            child: editor,
+            width: 200,
+          ),
+          Spacer(),
+          IconButton(
+            constraints: BoxConstraints(maxHeight: 20, maxWidth: 20),
+            icon: Icon(isEditing ? Icons.check : Icons.edit),
+            onPressed: () => setState(() {
+              if (isEditing) {
+                widget.onChanged(editor.details);
+                widget.text = editor.details;
+              }
+              isEditing ^= true;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -93,10 +93,10 @@ class PlainEditor extends StatelessWidget {
   final bool isEditing;
   final String sdetails;
   PlainEditor({Key? key, this.isEditing = false, required this.sdetails})
-      : this._controller = TextEditingController(text: sdetails),
+      : this.controller = TextEditingController(text: sdetails),
         super(key: key);
 
-  String get details => _controller.text;
+  String get details => controller.text;
 
   @override
   Widget build(BuildContext context) => isEditing ? _inEdit : _inShow;
@@ -105,10 +105,10 @@ class PlainEditor extends StatelessWidget {
   Widget get _inEdit => TextFormField(
         minLines: 1,
         maxLines: 15,
-        controller: _controller,
+        controller: controller,
       );
 
-  TextEditingController _controller;
+  TextEditingController controller;
 }
 
 class RichEditor extends StatelessWidget {
