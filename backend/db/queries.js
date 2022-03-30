@@ -381,16 +381,13 @@ const hashImagesAndCreateIds = async (tthis) => {
         )
       )) || ["error_ image hashing failed to-te-totally"];//TODO: warum kommt hier undefined zurück?
       // console.log(images)
-      thingy['images'] = images??["error_ couldnt set image hashes"];
 
       // set main image at first index
       let mainHash = await imghasher.memorize(rootfolder, link, mainImg);
-      try{
-      thingy.images.unshift(mainHash);
+      images.unshift(mainHash);
+
+      thingy['images'] = images??["error_ couldnt set image hashes"];
       console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
-    }catch(e){
-      console.log('couldnt unshift', e, thingy);throw e;
-    }
   }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
