@@ -377,9 +377,9 @@ const hashImagesAndCreateIds = async (tthis) => {
       // append their hashes to the returned obj
       thingy.images = await Promise.all(
         imageNames.map(
-          async (name) => await imghasher.memorize(rootfolder, link, name)
+          async (name) => {let x = await imghasher.memorize(rootfolder, link, name); console.log(`${name} -> ${x}`); return x;}
         )
-      );
+      );//TODO: warum kommt hier undefined zurück?
 
       // set main image at first index
       let mainHash = await imghasher.memorize(rootfolder, link, mainImg);
