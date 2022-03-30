@@ -1,1 +1,1 @@
-export const debugImageHashes = false;
+module.exports = {debugImageHashes : false};
