@@ -17,6 +17,6 @@ services:
       - .:/home/node/api
     command: sh -c "
         npm install --quiet 
-        && node index.js
+        && node --unhandled-rejections=warn index.js
       "
 
