@@ -30,6 +30,7 @@ if (!Array.prototype.last) {
 const _nextID = async() => (await pool.asyncQuery(`SELECT coalesce(max("Index") + 1, 1) AS "Index" FROM "Events";`, null)).rows[0].Index;
 
 const _removeHighestLevel = (data)=>{
+  // console.log("we're removing highest level of",data)
   let data_copy = {...data};
 
   //remove highest event
@@ -290,14 +291,21 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
 
   let rootfolder = await getRootFolder(data.PjNr);
 
+  // console.log(rootfolder, recursion_num)
+
   let _link =
     data.Link;
+
     
   if(_link == null){
-    let qres = (await _magic_query(data)).rows[0];
+    const _qqres = (await _magic_query(data, hasLink=false));
+    console.log(_qqres);
+    let qres = _qqres.rows[0];
+    console.log({data,qres})
 
     const _newFolderName = async (data)=>{
       const _backup = (await _magic_query(data,false)).rows[0];
+      // console.log({_backup})
       const new_name = (_backup.Index ?? "TODO_INDEX") + "_" + (_backup.KurzText ?? "TODO_KURZTEXT");
       return new_name;
     }
