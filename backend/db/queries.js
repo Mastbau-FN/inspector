@@ -310,9 +310,9 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
       ((qres?.Link ?? qres?.LinkOrdner) == null)                                  //if we dont get a result
         ? path.join(
           //okay, hier fängt der sich bestimmt in unendlicher recursion..   
-          (()=>{
+          await((async()=>{
             try{return (await getLink(_removeHighestLevel(data),true,recursion_num+1)).link;}catch(e){console.warn(e);return "NO_LINK";}
-          })()
+          })())
             , //try the level above
             await _newFolderName(data)                                            //and add the new name
           )               
