@@ -24,7 +24,7 @@ SELECT "MGAUFTR"."PjNr", -- Mastbau Projektnummer
 	"V_StO_Koordinaten"."Y",
 	"Insp_STANDORT_Infos"."ASP_required",
 	"Insp_STANDORT_Infos"."Steckdosen_description",
-	"Insp_STANDORT_Infos"."Schluessel_description"
+	"Insp_STANDORT_Infos"."Schlüssel_description"
 FROM (
 	"MGAUFTR" INNER JOIN "STANDORT" ON "MGAUFTR"."StONr" = "STANDORT"."StONr"
 	)

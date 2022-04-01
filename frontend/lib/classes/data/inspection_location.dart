@@ -56,7 +56,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   bool? asp_required;
   @JsonKey(name: "Steckdosen_description")
   String? steckdosen_description;
-  @JsonKey(name: "Schluessel_description")
+  @JsonKey(name: "Schlüssel_description")
   String? schlussel_description;
 
 //XXX: ist das redundand mit den latLng?
