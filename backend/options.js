@@ -1,1 +1,1 @@
-module.exports = {debugImageHashes : false};
+module.exports = {debugImageHashes : false, no_image_placeholder_name:"no_default_picture_yet"};

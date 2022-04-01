@@ -16,7 +16,7 @@ import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Stream<ImageData?> mainImage = Stream.value(null);
+  Stream<ImageData?>? mainImage = Stream.value(null);
   Stream<ImageData?> previewImage = Stream.value(null);
   List<Stream<ImageData?>>? image_streams = [];
   //Null Function() onNextImageLoaded = () {};

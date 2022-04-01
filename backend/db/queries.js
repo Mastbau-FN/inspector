@@ -317,7 +317,7 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
             await _newFolderName(data)                                            //and add the new name
           )               
         : "" ,                                                                    //else were fine
-      qres?.Link ?? path.join(qres?.LinkOrdner ?? "", "no_default_picture_yet")   //otherwise 
+      qres?.Link ?? path.join(qres?.LinkOrdner ?? "", options.no_image_placeholder_name)   //otherwise 
     );
   }
 

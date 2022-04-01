@@ -43,7 +43,7 @@ class CheckPointDefect extends Data
   @JsonKey(ignore: true)
   List<Stream<ImageData?>>? image_streams;
   @JsonKey(ignore: true)
-  Stream<ImageData?> mainImage = Stream.value(null);
+  Stream<ImageData?>? mainImage;
   @JsonKey(ignore: true)
   Stream<ImageData?> previewImage = Stream.value(null);
 
