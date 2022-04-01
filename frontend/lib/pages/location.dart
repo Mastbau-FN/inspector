@@ -106,114 +106,90 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.eigentuemer,
               onChanged: (val) {
                 locationdata.eigentuemer = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
-            EditableText(
-              label: "Ansprechpartner",
-              text: locationdata.ansprechpartner,
-              onChanged: (val) {
-                locationdata.ansprechpartner = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
-              },
-            ),
+            Divider(),
+            _ASP(locationdata, updateData: updateData),
+            Divider(),
             EditableText(
               label: "Steigweg-Typ",
               text: locationdata.steigwegtyp,
               onChanged: (val) {
                 locationdata.steigwegtyp = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
+            Divider(),
             EditableText(
               label: "Abschaltungen",
               text: locationdata.abschaltungen,
               onChanged: (val) {
                 locationdata.abschaltungen = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
+            Divider(),
             EditableText(
               label: "SSSchlüssel",
               text: locationdata.steigschutzschluessel,
               onChanged: (val) {
                 locationdata.steigschutzschluessel = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
+            Divider(),
             EditableText(
+              keyboardType: TextInputType.number,
               label: "Höhe",
               text: locationdata.bauwerkhoehe.toString(),
               onChanged: (val) {
                 locationdata.bauwerkhoehe = int.tryParse(val);
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
+            Divider(),
             EditableText(
-              label: "BauJahr",
+              keyboardType: TextInputType.number,
+              label: "Baujahr",
               text: locationdata.baujahr.toString(),
               onChanged: (val) {
                 locationdata.baujahr = int.tryParse(val);
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
-            NamedNulleableBoolToggle(
-              isSelected: locationdata.needs_schluessel,
-              label: "Benötigt Schlüssel",
-              onSelected: (val) {
-                locationdata.needs_schluessel = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
-              },
-            ),
+            Divider(),
+            _Schluessel(locationdata, updateData: updateData),
+            Divider(),
             NamedNulleableBoolToggle(
               label: "WC Vorort",
               isSelected: locationdata.has_wc,
               onSelected: (val) {
                 locationdata.has_wc = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
-            NamedNulleableBoolToggle(
-              label: "Steckdosen verfügbar",
-              isSelected: locationdata.has_steckdosen,
-              onSelected: (val) {
-                locationdata.has_steckdosen = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
-              },
-            ),
+            Divider(),
+            _SteckDosen(locationdata, updateData: updateData),
+            Divider(),
             NamedNulleableBoolToggle(
               label: "Lagerraum verfügbar",
               isSelected: locationdata.has_lagerraeume,
               onSelected: (val) {
                 locationdata.has_lagerraeume = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
+            Divider(),
           ],
         ),
       );
+
+  Future<String?> updateData(InspectionLocation loc) async {
+    var val = await Backend().update(loc);
+    showToast("update successful: $val");
+    return val;
+  }
 
   Widget _previewImg() => Container(
         height: 100,
@@ -381,6 +357,147 @@ class NamedNulleableBoolToggle extends StatelessWidget {
           isSelected: isSelected,
           onSelected: onSelected,
         ),
+      ],
+    );
+  }
+}
+
+class _ASP extends StatefulWidget {
+  InspectionLocation loc;
+  Function(InspectionLocation) updateData;
+  _ASP(this.loc, {required this.updateData, Key? key}) : super(key: key);
+
+  @override
+  State<_ASP> createState() => __ASPState();
+}
+
+class __ASPState extends State<_ASP> {
+  @override
+  void initState() {
+    isOn = widget.loc.asp_required;
+    super.initState();
+  }
+
+  bool? isOn;
+  @override
+  Widget build(BuildContext context) {
+    var locationdata = widget.loc;
+    return Column(
+      children: [
+        NamedNulleableBoolToggle(
+          label: "Ansprechpartner nötig",
+          isSelected: locationdata.asp_required,
+          onSelected: (val) {
+            locationdata.asp_required = val;
+            widget.updateData(locationdata);
+            setState(() {
+              isOn = val;
+            });
+          },
+        ),
+        if (isOn ?? false)
+          EditableText(
+            label: "Ansprechpartner",
+            text: locationdata.ansprechpartner,
+            onChanged: (val) {
+              locationdata.ansprechpartner = val;
+              widget.updateData(locationdata);
+            },
+          ),
+      ],
+    );
+  }
+}
+
+class _Schluessel extends StatefulWidget {
+  InspectionLocation loc;
+  Function(InspectionLocation) updateData;
+  _Schluessel(this.loc, {required this.updateData, Key? key}) : super(key: key);
+
+  @override
+  State<_Schluessel> createState() => __SchluesselState();
+}
+
+class __SchluesselState extends State<_Schluessel> {
+  @override
+  void initState() {
+    isOn = widget.loc.needs_schluessel;
+    super.initState();
+  }
+
+  bool? isOn;
+  @override
+  Widget build(BuildContext context) {
+    var locationdata = widget.loc;
+    return Column(
+      children: [
+        NamedNulleableBoolToggle(
+          isSelected: locationdata.needs_schluessel,
+          label: "Benötigt Schlüssel",
+          onSelected: (val) {
+            locationdata.needs_schluessel = val;
+            widget.updateData(locationdata);
+            setState(() {
+              isOn = val;
+            });
+          },
+        ),
+        if (isOn ?? true)
+          EditableText(
+            label: "Anmerkung Schlüssel",
+            text: locationdata.schlussel_description,
+            onChanged: (val) {
+              locationdata.schlussel_description;
+              widget.updateData(locationdata);
+            },
+          ),
+      ],
+    );
+  }
+}
+
+class _SteckDosen extends StatefulWidget {
+  InspectionLocation loc;
+  Function(InspectionLocation) updateData;
+  _SteckDosen(this.loc, {required this.updateData, Key? key}) : super(key: key);
+
+  @override
+  State<_SteckDosen> createState() => __SteckDosenState();
+}
+
+class __SteckDosenState extends State<_SteckDosen> {
+  @override
+  void initState() {
+    isOn = widget.loc.has_steckdosen;
+    super.initState();
+  }
+
+  bool? isOn;
+  @override
+  Widget build(BuildContext context) {
+    var locationdata = widget.loc;
+    return Column(
+      children: [
+        NamedNulleableBoolToggle(
+          label: "Steckdosen verfügbar",
+          isSelected: locationdata.has_steckdosen,
+          onSelected: (val) {
+            locationdata.has_steckdosen = val;
+            widget.updateData(locationdata);
+            setState(() {
+              isOn = val;
+            });
+          },
+        ),
+        if (isOn ?? false)
+          EditableText(
+            label: "Anmerkung Steckdosen",
+            text: locationdata.steckdosen_description,
+            onChanged: (val) {
+              locationdata.steckdosen_description = val;
+              widget.updateData(locationdata);
+            },
+          ),
       ],
     );
   }

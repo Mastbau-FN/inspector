@@ -21,7 +21,10 @@ SELECT "MGAUFTR"."PjNr", -- Mastbau Projektnummer
 	"Insp_STANDORT_Infos"."Lagerraeume",
 	"Insp_STANDORT_Infos"."Steigschutzschluessel",
 	"V_StO_Koordinaten"."X",
-	"V_StO_Koordinaten"."Y"
+	"V_StO_Koordinaten"."Y",
+	"Insp_STANDORT_Infos"."ASP_required",
+	"Insp_STANDORT_Infos"."Steckdosen_description",
+	"Insp_STANDORT_Infos"."Schlüssel_description"
 FROM (
 	"MGAUFTR" INNER JOIN "STANDORT" ON "MGAUFTR"."StONr" = "STANDORT"."StONr"
 	)
