@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
+import '../generated/l10n.dart';
 import 'galleryWrapper.dart';
 
 class ImageWrap<T extends Object> extends StatelessWidget {
   static _default(Object _) {
-    showToast("Not Available");
+    showToast(S.current.notAvailable);
   }
 
   final Function(T) onDelete;
@@ -85,7 +86,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
 class OpenableImageView<T extends Object> extends StatelessWidget {
   static _default(_) {
-    showToast("Not Available");
+    showToast(S.current.notAvailable);
   }
 
   final Function(T) onDelete;
@@ -197,11 +198,11 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
-            title: const Text('Bild-Optionen:'),
+            title: Text(S.of(context).optionsForThisImageHeadLine),
             children: <Widget>[
               _option(
                 context: context,
-                description: 'Bild dauerhaft entfernen',
+                description: S.of(context).permanentlyRemoveImage,
                 icon: Icon(
                   Icons.delete,
                   color: Colors.red,
@@ -210,7 +211,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               ),
               _option(
                 context: context,
-                description: 'Bild als Vorschaubild setzen',
+                description: S.of(context).setAsMainImage,
                 icon: Icon(
                   Icons.star,
                   color: Colors.amber[300],
@@ -219,7 +220,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               ),
               _option(
                 context: context,
-                description: 'Bild teilen',
+                description: S.of(context).shareImage,
                 icon: Icon(
                   Icons.share,
                   color: Colors.blue,
@@ -325,7 +326,7 @@ class FullImagePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Bild")),
+      appBar: AppBar(title: Text(S.of(context).image)),
       body: Hero(
         child: PhotoView(
           imageProvider: img.image,

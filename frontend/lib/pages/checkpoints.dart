@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,8 +73,8 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
           },
           onCancel: onCancel,
           textfield_list: [
-            InputData("KurzText", hint: "Name"),
-            InputData("LangText", hint: "Beschreibung"),
+            InputData("KurzText", hint: S.current.kurzTextHint),
+            InputData("LangText", hint: S.current.langTextHint),
           ],
         ),
       );

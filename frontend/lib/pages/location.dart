@@ -14,6 +14,7 @@ import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
+import '../generated/l10n.dart';
 import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation, Null> {
@@ -102,7 +103,7 @@ class LocationDetailPage extends StatelessWidget {
         child: Column(
           children: [
             EditableText(
-              label: "Eigentümer",
+              label: S.current.localtionOwner,
               text: locationdata.eigentuemer,
               onChanged: (val) {
                 locationdata.eigentuemer = val;
@@ -113,7 +114,7 @@ class LocationDetailPage extends StatelessWidget {
             _ASP(locationdata, updateData: updateData),
             Divider(),
             EditableText(
-              label: "Steigweg-Typ",
+              label: S.current.locationWayUp,
               text: locationdata.steigwegtyp,
               onChanged: (val) {
                 locationdata.steigwegtyp = val;
@@ -122,7 +123,7 @@ class LocationDetailPage extends StatelessWidget {
             ),
             Divider(),
             EditableText(
-              label: "Abschaltungen",
+              label: S.current.locationAbschaltung,
               text: locationdata.abschaltungen,
               onChanged: (val) {
                 locationdata.abschaltungen = val;
@@ -131,7 +132,7 @@ class LocationDetailPage extends StatelessWidget {
             ),
             Divider(),
             EditableText(
-              label: "SSSchlüssel",
+              label: S.current.locationSteigschutzKey,
               text: locationdata.steigschutzschluessel,
               onChanged: (val) {
                 locationdata.steigschutzschluessel = val;
@@ -141,7 +142,7 @@ class LocationDetailPage extends StatelessWidget {
             Divider(),
             EditableText(
               keyboardType: TextInputType.number,
-              label: "Höhe",
+              label: S.current.locationHeight,
               text: locationdata.bauwerkhoehe.toString(),
               onChanged: (val) {
                 locationdata.bauwerkhoehe = int.tryParse(val);
@@ -151,7 +152,7 @@ class LocationDetailPage extends StatelessWidget {
             Divider(),
             EditableText(
               keyboardType: TextInputType.number,
-              label: "Baujahr",
+              label: S.current.locationYearOfBuild,
               text: locationdata.baujahr.toString(),
               onChanged: (val) {
                 locationdata.baujahr = int.tryParse(val);
@@ -162,7 +163,7 @@ class LocationDetailPage extends StatelessWidget {
             _Schluessel(locationdata, updateData: updateData),
             Divider(),
             NamedNulleableBoolToggle(
-              label: "WC Vorort",
+              label: S.current.locationHasWCLabel,
               isSelected: locationdata.has_wc,
               onSelected: (val) {
                 locationdata.has_wc = val;
@@ -173,7 +174,7 @@ class LocationDetailPage extends StatelessWidget {
             _SteckDosen(locationdata, updateData: updateData),
             Divider(),
             NamedNulleableBoolToggle(
-              label: "Lagerraum verfügbar",
+              label: S.current.locationHasStorageSpaceLabel,
               isSelected: locationdata.has_lagerraeume,
               onSelected: (val) {
                 locationdata.has_lagerraeume = val;
@@ -187,7 +188,7 @@ class LocationDetailPage extends StatelessWidget {
 
   Future<String?> updateData(InspectionLocation loc) async {
     var val = await Backend().update(loc);
-    showToast("update successful: $val");
+    showToast(S.current.updateSuccessful + ": $val");
     return val;
   }
 
@@ -385,7 +386,7 @@ class __ASPState extends State<_ASP> {
     return Column(
       children: [
         NamedNulleableBoolToggle(
-          label: "Ansprechpartner nötig",
+          label: S.current.locationASPRequieredLabel,
           isSelected: locationdata.asp_required,
           onSelected: (val) {
             locationdata.asp_required = val;
@@ -397,7 +398,7 @@ class __ASPState extends State<_ASP> {
         ),
         if (isOn ?? false)
           EditableText(
-            label: "Ansprechpartner",
+            label: S.current.locationASPLabel,
             text: locationdata.ansprechpartner,
             onChanged: (val) {
               locationdata.ansprechpartner = val;
@@ -433,7 +434,7 @@ class __SchluesselState extends State<_Schluessel> {
       children: [
         NamedNulleableBoolToggle(
           isSelected: locationdata.needs_schluessel,
-          label: "Benötigt Schlüssel",
+          label: S.current.locationRequiresKeyLabel,
           onSelected: (val) {
             locationdata.needs_schluessel = val;
             widget.updateData(locationdata);
@@ -444,7 +445,7 @@ class __SchluesselState extends State<_Schluessel> {
         ),
         if (isOn ?? true)
           EditableText(
-            label: "Anmerkung Schlüssel",
+            label: S.current.locationKeyAddintionalInfoLabel,
             text: locationdata.schlussel_description,
             onChanged: (val) {
               locationdata.schlussel_description;
@@ -479,7 +480,7 @@ class __SteckDosenState extends State<_SteckDosen> {
     return Column(
       children: [
         NamedNulleableBoolToggle(
-          label: "Steckdosen verfügbar",
+          label: S.current.locationHasSteckdosenLabel,
           isSelected: locationdata.has_steckdosen,
           onSelected: (val) {
             locationdata.has_steckdosen = val;
@@ -491,7 +492,7 @@ class __SteckDosenState extends State<_SteckDosen> {
         ),
         if (isOn ?? false)
           EditableText(
-            label: "Anmerkung Steckdosen",
+            label: S.current.locationAdditionalInfoSteckdosenLabel,
             text: locationdata.steckdosen_description,
             onChanged: (val) {
               locationdata.steckdosen_description = val;

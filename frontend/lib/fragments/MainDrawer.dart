@@ -8,17 +8,19 @@ import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
+import '../generated/l10n.dart';
+
 class MainDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var unlimiteddoggosTile = OpenNewViewTile(
-      title: 'see some Doggos',
+      title: S.of(context).seeSomeDoggos,
       icon: Icons.child_care,
       newView: RandomDogsScrollView(),
     );
 
     var settingsTile = OpenNewViewTile(
-      title: 'Settings',
+      title: S.of(context).settings,
       icon: Icons.settings,
       newView: SettingsView(
         logoutcontext: context,

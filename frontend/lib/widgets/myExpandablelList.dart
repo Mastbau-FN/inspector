@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 abstract class ExpandablesRadio extends StatelessWidget {
@@ -42,7 +43,7 @@ class ExpandableCard2 extends ExpandablesRadio {
   }) : this.key = key ?? UniqueKey();
 
   factory ExpandableCard2.fake() {
-    return ExpandableCard2._(opacity: 0.4, title: 'loading...');
+    return ExpandableCard2._(opacity: 0.4, title: S.current.loading);
   }
 
   Color _color(isExpanded, context) => !isExpanded

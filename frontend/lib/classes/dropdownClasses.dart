@@ -12,6 +12,7 @@ import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
 
+import '../generated/l10n.dart';
 import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
@@ -150,8 +151,8 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   void update(ChildData data, txt) async {
     data.langText = txt;
-    showToast(await Backend().update(data) ??
-        "we sent the request but we didnt get any response");
+    showToast(
+        await Backend().update(data) ?? S.current.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
 
@@ -207,7 +208,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         //s ?.map((e) => e.asBroadcastStream())
                         // .toList(),
                         onNewImages: (files) async {
-                          showToast("new image sending, this may take a sec");
+                          showToast(
+                              S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
                               (data) => Backend().uploadFiles(data, files));
 
@@ -215,7 +217,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           return value;
                         },
                         onStar: (hash) {
-                          showToast("setting main image, this may take a sec");
+                          showToast(
+                              S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => Backend()
                                   .setMainImageByHash(data, hash.toString()))
@@ -225,7 +228,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           });
                         },
                         onDelete: (hash) {
-                          showToast("Deleting Image, this may take a sec");
+                          showToast(S.of(context).deletingImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) =>
                                   Backend().deleteImageByHash(hash.toString()))
@@ -237,7 +240,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)
                         Card(
-                          child: Text("please wait, data is beeing synced"),
+                          child:
+                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
                         ),
                     ],
                   );
