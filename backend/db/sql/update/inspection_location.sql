@@ -9,5 +9,8 @@ UPDATE "Insp_STANDORT_Infos" SET
 	"Steckdosen"=$9, 
 	"WC"=$10, 
 	"Lagerraeume"=$11, 
-	"Steigschutzschluessel"=$12
+	"Steigschutzschluessel"=$12,
+	"ASP_required"=$???,
+	"Steckdosen_description"=$???,
+	"Schlüssel_description"=$???
 WHERE "Insp_STANDORT_Infos"."PjNr" = $1;
