@@ -272,7 +272,8 @@ class Backend {
                 // .asBroadcastStream()
                 .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
-          .toList() /*.sublist(first_working_image_index + 1)*/;
+          .toList()
+          .sublist((__hash == Options.no_image_placeholder_name) ? 1 : 0);
 
       return data;
     };
