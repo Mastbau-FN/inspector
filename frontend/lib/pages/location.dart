@@ -106,9 +106,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.eigentuemer,
               onChanged: (val) {
                 locationdata.eigentuemer = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             EditableText(
@@ -116,9 +114,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.ansprechpartner,
               onChanged: (val) {
                 locationdata.ansprechpartner = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             EditableText(
@@ -126,9 +122,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.steigwegtyp,
               onChanged: (val) {
                 locationdata.steigwegtyp = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             EditableText(
@@ -136,9 +130,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.abschaltungen,
               onChanged: (val) {
                 locationdata.abschaltungen = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             EditableText(
@@ -146,9 +138,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.steigschutzschluessel,
               onChanged: (val) {
                 locationdata.steigschutzschluessel = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             EditableText(
@@ -156,9 +146,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.bauwerkhoehe.toString(),
               onChanged: (val) {
                 locationdata.bauwerkhoehe = int.tryParse(val);
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             EditableText(
@@ -166,9 +154,7 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.baujahr.toString(),
               onChanged: (val) {
                 locationdata.baujahr = int.tryParse(val);
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             NamedNulleableBoolToggle(
@@ -176,9 +162,7 @@ class LocationDetailPage extends StatelessWidget {
               label: "Benötigt Schlüssel",
               onSelected: (val) {
                 locationdata.needs_schluessel = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             NamedNulleableBoolToggle(
@@ -186,9 +170,7 @@ class LocationDetailPage extends StatelessWidget {
               isSelected: locationdata.has_wc,
               onSelected: (val) {
                 locationdata.has_wc = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             NamedNulleableBoolToggle(
@@ -196,9 +178,7 @@ class LocationDetailPage extends StatelessWidget {
               isSelected: locationdata.has_steckdosen,
               onSelected: (val) {
                 locationdata.has_steckdosen = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
               },
             ),
             NamedNulleableBoolToggle(
@@ -206,14 +186,26 @@ class LocationDetailPage extends StatelessWidget {
               isSelected: locationdata.has_lagerraeume,
               onSelected: (val) {
                 locationdata.has_lagerraeume = val;
-                Backend()
-                    .update(locationdata)
-                    .then((value) => showToast("update successful"));
+                updateData(locationdata);
+              },
+            ),
+            NamedNulleableBoolToggle(
+              label: "ASP nötig",
+              isSelected: locationdata.asp_required,
+              onSelected: (val) {
+                locationdata.asp_required = val;
+                updateData(locationdata);
               },
             ),
           ],
         ),
       );
+
+  Future<String?> updateData(InspectionLocation loc) async {
+    var val = await Backend().update(loc);
+    showToast("update successful: $val");
+    return val;
+  }
 
   Widget _previewImg() => Container(
         height: 100,
