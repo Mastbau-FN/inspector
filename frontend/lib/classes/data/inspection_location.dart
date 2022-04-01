@@ -125,15 +125,12 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
 
 Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
   if (latlng == null) return {};
-  var coords = latlng.toJson()['coordinates'];
-  return {'lat': coords[0], 'lng': coords[1]};
+  return {'lat': latlng.latitude, 'lng': latlng.longitude};
 }
 
 LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
   try {
-    return LatLng.fromJson({
-      'coordinates': [map['lat'], map['lng']]
-    });
+    return LatLng(map['lat'], map['lng']);
   } catch (e) {
     return null;
   }

@@ -241,7 +241,7 @@ class LocationDetailPage extends StatelessWidget {
                   child: FlutterMap(
                     options: MapOptions(
                       center: locationdata.coords!,
-                      zoom: 13.0,
+                      zoom: 8.0,
                     ),
                     layers: [
                       TileLayerOptions(
