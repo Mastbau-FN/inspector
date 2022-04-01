@@ -200,20 +200,20 @@ class S {
     );
   }
 
-  /// `probier\'s nochmal`
+  /// `try again`
   String get addingDataTryAgain {
     return Intl.message(
-      'probier\\\'s nochmal',
+      'try again',
       name: 'addingDataTryAgain',
       desc: '',
       args: [],
     );
   }
 
-  /// `Irgendwas stimmt hier noch nicht`
+  /// `Something here isnt quite right`
   String get addingDataSomethingWrong {
     return Intl.message(
-      'Irgendwas stimmt hier noch nicht',
+      'Something here isnt quite right',
       name: 'addingDataSomethingWrong',
       desc: '',
       args: [],
@@ -380,10 +380,10 @@ class S {
     );
   }
 
-  /// `Passwort`
+  /// `Password`
   String get loginLabelPassword {
     return Intl.message(
-      'Passwort',
+      'Password',
       name: 'loginLabelPassword',
       desc: '',
       args: [],
@@ -420,10 +420,10 @@ class S {
     );
   }
 
-  /// `Lokale Bilder löschen`
+  /// `delete local image cache`
   String get deleteLocalImagesButton {
     return Intl.message(
-      'Lokale Bilder löschen',
+      'delete local image cache',
       name: 'deleteLocalImagesButton',
       desc: '',
       args: [],

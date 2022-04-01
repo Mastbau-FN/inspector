@@ -25,9 +25,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "addingDataEnterSomethingHere":
             MessageLookupByLibrary.simpleMessage("gib hier etwas ein"),
         "addingDataSomethingWrong": MessageLookupByLibrary.simpleMessage(
-            "Irgendwas stimmt hier noch nicht"),
-        "addingDataTryAgain":
-            MessageLookupByLibrary.simpleMessage("probier\\\'s nochmal"),
+            "Something here isnt quite right"),
+        "addingDataTryAgain": MessageLookupByLibrary.simpleMessage("try again"),
         "advancedSettingsHeadline":
             MessageLookupByLibrary.simpleMessage("advanced & experimental"),
         "anUnknownErrorOccured":
@@ -39,7 +38,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("could not parse response: "),
         "couldntReach": MessageLookupByLibrary.simpleMessage("couldn\'t reach"),
         "deleteLocalImagesButton":
-            MessageLookupByLibrary.simpleMessage("Lokale Bilder löschen"),
+            MessageLookupByLibrary.simpleMessage("delete local image cache"),
         "deleteUnseccessful":
             MessageLookupByLibrary.simpleMessage("delete unseccessful"),
         "deletingImageThisMayTakeASec": MessageLookupByLibrary.simpleMessage(
@@ -85,7 +84,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Bitte Passwort eingeben"),
         "loginErrorPleaseEnterUserName":
             MessageLookupByLibrary.simpleMessage("Bitte Kürzel eingeben"),
-        "loginLabelPassword": MessageLookupByLibrary.simpleMessage("Passwort"),
+        "loginLabelPassword": MessageLookupByLibrary.simpleMessage("Password"),
         "loginUsername": MessageLookupByLibrary.simpleMessage("Kürzel"),
         "logoutButton": MessageLookupByLibrary.simpleMessage("Logout"),
         "mobileNetworkNotAllowed":

@@ -97,6 +97,7 @@ dev_dependencies:
   # for unit test mocking (see https://flutter.dev/docs/cookbook/testing/unit/mocking)
   mockito: ^5.0.0
   build_runner: ^2.0.6
+  intl_utils: ^2.6.0
 
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
   flutter_launcher_icons: "^0.9.1"

@@ -110,7 +110,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("set as main image"),
         "settingMainImageThisMayTakeASec": MessageLookupByLibrary.simpleMessage(
             "setting main image, this may take a sec"),
-        "settings": MessageLookupByLibrary.simpleMessage("Settings"),
+        "settings": MessageLookupByLibrary.simpleMessage("Einstellungen"),
         "shareImage": MessageLookupByLibrary.simpleMessage("share image"),
         "somethingWentWrong":
             MessageLookupByLibrary.simpleMessage("Something went wrong"),
