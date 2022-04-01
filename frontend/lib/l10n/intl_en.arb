@@ -1,0 +1,5 @@
+{
+  "exceptionNoUrlToConnectToProvided": "no url provided",
+  "noNetworkAvailable": "no network available",
+  "mobileNetworkNotAllowed": "mobile network not allowed"
+}

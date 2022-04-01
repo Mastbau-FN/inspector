@@ -13,6 +13,7 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:tuple/tuple.dart';
+import '../generated/l10n.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -74,15 +75,16 @@ class Backend {
     Duration? timeout,
   }) async {
     if (_baseurl == null)
-      throw NoConnectionToBackendException("no url provided");
+      throw NoConnectionToBackendException(
+          S.current.exceptionNoUrlToConnectToProvided);
 
     //check network
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
-      throw NoConnectionToBackendException("no network available");
+      throw NoConnectionToBackendException(S.current.noNetworkAvailable);
     if (!Options.canUseMobileNetworkIfPossible &&
         connection == ConnectivityResult.mobile)
-      throw NoConnectionToBackendException("mobile network not allowed");
+      throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
     try {
       // check if we can reach our api
