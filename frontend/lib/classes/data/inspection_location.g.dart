@@ -32,6 +32,9 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..has_wc = json['WC'] as bool?
       ..has_lagerraeume = json['Lagerraeume'] as bool?
       ..steigschutzschluessel = json['Steigschutzschluessel'] as String?
+      ..asp_required = json['ASP_required'] as bool?
+      ..steckdosen_description = json['Steckdosen_description'] as String?
+      ..schlussel_description = json['Schluessel_description'] as String?
       ..x = json['X'] as String?
       ..y = json['Y'] as String?
       ..imagehashes =
@@ -60,8 +63,11 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'WC': instance.has_wc,
       'Lagerraeume': instance.has_lagerraeume,
       'Steigschutzschluessel': instance.steigschutzschluessel,
+      'ASP_required': instance.asp_required,
+      'Steckdosen_description': instance.steckdosen_description,
+      'Schluessel_description': instance.schlussel_description,
       'X': instance.x,
       'Y': instance.y,
-      'latLng': _toplevelhelperLatLng_toJson(instance.coords),
+      'latLng': _toplevelhelperLatLng_toJson(instance.fallback_coords),
       'images': instance.imagehashes,
     };
