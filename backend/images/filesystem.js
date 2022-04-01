@@ -3,7 +3,7 @@ const fsp = fs.promises;
 
 const pathm = require("path");
 
-const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally
+const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally, dont forget to also mount the correct drives in docker-compose
 
 ///removes the drive and replaces it with our given root path
 const formatpath = (path) => {
