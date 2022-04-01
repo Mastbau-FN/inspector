@@ -80,9 +80,8 @@
                   return Stack(
                     children: [
                       ImagesPage.streamed(
-                        &#47;&#47; TODO hier klappt scheinbar irgendwas von #36 noch nicht... eigtl müsste das ja neu gebaut werden wenn der consumer hier durch das notifylistners getriggert wird
-                        &#47;&#47; und es wird auch neu gebaut!
-                        &#47;&#47; deshalb ist wahrscheinlich einfach nur, dass das data (und damit data.image_streams) nicht erneuert wird...
+                        hasMainImage:
+                            (snapshot.data ?? data)?.mainImage != null,
                         imageStreams: (snapshot.data ?? data)?.image_streams,
                         &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
                         &#47;&#47; .toList(),
@@ -182,7 +181,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.23+23
+      1.0.24+24
   </span>
 
   

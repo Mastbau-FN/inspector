@@ -53,7 +53,7 @@
       <span class="name ">ImageWrap&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;.streamed</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="streamed-param-images">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-async/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../classes_imageData/ImageData-class.html">ImageData</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span>?</span>&gt;</span></span>&gt;</span></span> <span class="parameter-name">images</span>, </span></li>
 <li><span class="parameter" id="streamed-param-columnCount"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">columnCount</span> = <span class="default-value">4</span>, </span></li>
 <li><span class="parameter" id="streamed-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>, </span></li>
-<li><span class="parameter" id="streamed-param-chosenOne"><span class="type-annotation"><a href="../../classes_imageData/ImageData-class.html">ImageData</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span>?</span> <span class="parameter-name">chosenOne</span>, </span></li>
+<li><span class="parameter" id="streamed-param-hasFav"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">hasFav</span>, </span></li>
 <li><span class="parameter" id="streamed-param-onDelete"><span class="type-annotation">dynamic</span> <span class="parameter-name">onDelete</span>(<ol class="parameter-list"><li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>
 ) = <span class="default-value">_default</span>, </span></li>
@@ -76,7 +76,7 @@
   required this.images,
   this.columnCount = 4,
   Key? key,
-  this.chosenOne,
+  this.hasFav,
   this.onDelete = _default,
   this.onStar = _default,
   this.onShare = _default,
@@ -115,8 +115,8 @@
     <li class="section-title">
       <a href="../../fragments_imageWrap/ImageWrap-class.html#instance-properties">Properties</a>
     </li>
-    <li><a href="../../fragments_imageWrap/ImageWrap/chosenOne.html">chosenOne</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/columnCount.html">columnCount</a></li>
+    <li><a href="../../fragments_imageWrap/ImageWrap/hasFav.html">hasFav</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/images.html">images</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/key.html">key</a></li>
@@ -155,7 +155,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.23+23
+      1.0.24+24
   </span>
 
   

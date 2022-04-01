@@ -9,6 +9,7 @@ class Options {
   static const infinitelyreloadPictures = true;
   static var reloadTries = 5;
   static var showDoggo = false;
+  static const no_image_placeholder_name = "no_default_picture_yet";
 }
 
 class Design {

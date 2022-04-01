@@ -121,8 +121,9 @@ Widget build(BuildContext context) =&gt; Builder(
                   onShare: onShare,
                   onStar: onStar,
                   currentIndex: i,
-                  chosenIndex:
-                      0, &#47;&#47;&#47;&#47; make this dynamic on callback or something for #20
+                  chosenIndex: (hasFav ?? true)
+                      ? 0
+                      : -1, &#47;&#47;&#47;&#47; make this dynamic on callback or something for #20
                   &#47;&#47; instead solve #36 and move chosen image to front
                   allImages: _allImages,
                 ));
@@ -160,8 +161,8 @@ Widget build(BuildContext context) =&gt; Builder(
     <li class="section-title">
       <a href="../../fragments_imageWrap/ImageWrap-class.html#instance-properties">Properties</a>
     </li>
-    <li><a href="../../fragments_imageWrap/ImageWrap/chosenOne.html">chosenOne</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/columnCount.html">columnCount</a></li>
+    <li><a href="../../fragments_imageWrap/ImageWrap/hasFav.html">hasFav</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
     <li><a href="../../fragments_imageWrap/ImageWrap/images.html">images</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/key.html">key</a></li>
@@ -200,7 +201,7 @@ Widget build(BuildContext context) =&gt; Builder(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.23+23
+      1.0.24+24
   </span>
 
   
