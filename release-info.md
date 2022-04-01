@@ -1,4 +1,3 @@
 # Changes
 
-- 🐛 bug fixes
-- 🚀 mehr info über die location
+- location wird korrekt dargestellt

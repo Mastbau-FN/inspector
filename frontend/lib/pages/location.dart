@@ -270,7 +270,8 @@ class LocationDetailPage extends StatelessWidget {
                     onPressed: () {
                       MapsLauncher.launchCoordinates(
                           locationdata.coords!.latitude,
-                          locationdata.coords!.longitude);
+                          locationdata.coords!.longitude,
+                          locationdata.pjName);
                     },
                   ),
                 ),
