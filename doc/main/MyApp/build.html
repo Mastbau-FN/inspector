@@ -119,6 +119,10 @@ Widget build(BuildContext context) {
         brightness: Brightness.dark,
       ),
     ),
+    localizationsDelegates: [
+      S.delegate,
+    ],
+    supportedLocales: S.delegate.supportedLocales,
     home: kIsWeb
         ? WebWrap(
             title: appTitle,
@@ -190,7 +194,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

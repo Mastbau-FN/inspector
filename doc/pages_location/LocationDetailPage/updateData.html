@@ -67,7 +67,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; updateData(InspectionLocation loc) async {
   var val = await Backend().update(loc);
-  showToast(&quot;update successful: $val&quot;);
+  showToast(S.current.updateSuccessful + &quot;: $val&quot;);
   return val;
 }</code></pre>
 </section>
@@ -136,7 +136,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

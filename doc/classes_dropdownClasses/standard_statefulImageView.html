@@ -86,7 +86,8 @@
                         &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
                         &#47;&#47; .toList(),
                         onNewImages: (files) async {
-                          showToast(&quot;new image sending, this may take a sec&quot;);
+                          showToast(
+                              S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
                               (data) =&gt; Backend().uploadFiles(data, files));
 
@@ -94,7 +95,8 @@
                           return value;
                         },
                         onStar: (hash) {
-                          showToast(&quot;setting main image, this may take a sec&quot;);
+                          showToast(
+                              S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) =&gt; Backend()
                                   .setMainImageByHash(data, hash.toString()))
@@ -104,7 +106,7 @@
                           });
                         },
                         onDelete: (hash) {
-                          showToast(&quot;Deleting Image, this may take a sec&quot;);
+                          showToast(S.of(context).deletingImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) =&gt;
                                   Backend().deleteImageByHash(hash.toString()))
@@ -116,7 +118,8 @@
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)
                         Card(
-                          child: Text(&quot;please wait, data is beeing synced&quot;),
+                          child:
+                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
                         ),
                     ],
                   );
@@ -181,7 +184,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

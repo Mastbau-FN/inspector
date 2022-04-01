@@ -73,21 +73,23 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
   Duration? timeout,
 }) async {
   if (_baseurl == null)
-    throw NoConnectionToBackendException(&quot;no url provided&quot;);
+    throw NoConnectionToBackendException(
+        S.current.exceptionNoUrlToConnectToProvided);
 
   &#47;&#47;check network
   var connection = await (Connectivity().checkConnectivity());
   if (connection == ConnectivityResult.none)
-    throw NoConnectionToBackendException(&quot;no network available&quot;);
+    throw NoConnectionToBackendException(S.current.noNetworkAvailable);
   if (!Options.canUseMobileNetworkIfPossible &amp;&amp;
       connection == ConnectivityResult.mobile)
-    throw NoConnectionToBackendException(&quot;mobile network not allowed&quot;);
+    throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
   try {
     &#47;&#47; check if we can reach our api
     await post_JSON(&#39;&#47;login&#39;, timeout: timeout);
   } catch (e) {
-    throw NoConnectionToBackendException(&quot;couldn&#39;t reach $_baseurl&quot;);
+    throw NoConnectionToBackendException(
+        S.current.couldntReach + &quot; $_baseurl&quot;);
   }
 }</code></pre>
 </section>
@@ -164,7 +166,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

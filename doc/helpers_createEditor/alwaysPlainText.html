@@ -85,7 +85,7 @@
                       title: (snapshot.data ?? data).title,
                       details: (snapshot.data ?? data).langText,
                       onChanged: (txt) {
-                        showToast(&quot;uploading..&quot;);
+                        showToast(S.of(context).uploading);
                         model.updateCurrentChild((p0) =&gt; uploadString(p0, txt));
                       });
                 });
@@ -134,7 +134,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

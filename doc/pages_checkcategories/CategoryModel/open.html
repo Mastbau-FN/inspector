@@ -84,12 +84,12 @@ void open(
   currentlyChosenChildData = Future.sync(() =&gt; data);
   Navigator.of(context).push(
     MaterialPageRoute(builder: (newcontext) {
+      if (tiledata.title == S.current.imagesButton)
+        return standard_statefulImageView(this, data);
       switch (tiledata.title) {
         case _nextViewTitle:
           return nextModel&lt;CheckPoint, CheckCategory, CheckPointsModel&gt;(
               CheckPointsModel(data));
-        case &#39;Fotos&#39;:
-          return standard_statefulImageView(this, data);
 
         default:
           return alwaysPlainText(this, data, update);
@@ -168,7 +168,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

@@ -108,7 +108,7 @@ and</li>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(title: Text(&quot;Bild&quot;)),
+    appBar: AppBar(title: Text(S.of(context).image)),
     body: Hero(
       child: PhotoView(
         imageProvider: img.image,
@@ -185,7 +185,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   

@@ -108,13 +108,13 @@ and</li>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
   var unlimiteddoggosTile = OpenNewViewTile(
-    title: &#39;see some Doggos&#39;,
+    title: S.of(context).seeSomeDoggos,
     icon: Icons.child_care,
     newView: RandomDogsScrollView(),
   );
 
   var settingsTile = OpenNewViewTile(
-    title: &#39;Settings&#39;,
+    title: S.of(context).settings,
     icon: Icons.settings,
     newView: SettingsView(
       logoutcontext: context,
@@ -205,7 +205,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.0.24+24
+      1.0.25+25
   </span>
 
   
