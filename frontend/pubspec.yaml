@@ -80,6 +80,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.17.0
+
   # to pass variables from a .env file (e.g. used for secrets like API-Key)
   flutter_dotenv: ^5.0.0
 
@@ -114,6 +118,8 @@ flutter_icons:
 
 # The following section is specific to Flutter.
 flutter:
+
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

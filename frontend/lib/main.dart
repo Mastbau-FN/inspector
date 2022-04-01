@@ -1,10 +1,13 @@
-import 'package:camera/camera.dart';
+// import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:MBG_Inspektionen/pages/login/loginView.dart';
 import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
+
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future main() async {
   //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
@@ -29,6 +32,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       title: appTitle,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
