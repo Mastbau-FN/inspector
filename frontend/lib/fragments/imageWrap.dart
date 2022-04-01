@@ -16,14 +16,14 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   final Function(T) onStar;
   final Function(T) onShare;
 
-  final ImageData<T>? chosenOne;
+  final bool? hasFav;
   final List<Stream<ImageData<T>?>> images;
   final int columnCount;
   ImageWrap.constant({
     List<ImageData<T>> images = const [],
     this.columnCount = 4,
     Key? key,
-    this.chosenOne,
+    this.hasFav,
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
@@ -35,7 +35,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     required this.images,
     this.columnCount = 4,
     Key? key,
-    this.chosenOne,
+    this.hasFav,
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
@@ -47,7 +47,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     required this.images,
     this.columnCount = 4,
     Key? key,
-    this.chosenOne,
+    this.hasFav,
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
@@ -73,8 +73,9 @@ class ImageWrap<T extends Object> extends StatelessWidget {
                     onShare: onShare,
                     onStar: onStar,
                     currentIndex: i,
-                    chosenIndex:
-                        0, //// make this dynamic on callback or something for #20
+                    chosenIndex: (hasFav ?? true)
+                        ? 0
+                        : -1, //// make this dynamic on callback or something for #20
                     // instead solve #36 and move chosen image to front
                     allImages: _allImages,
                   ));

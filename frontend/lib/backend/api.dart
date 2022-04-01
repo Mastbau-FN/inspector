@@ -244,8 +244,10 @@ class Backend {
         return data;
 
       int first_working_image_index = 0;
-      data.mainImage =
-          _fetchImage(data.imagehashes![first_working_image_index]);
+      String __hash = data.imagehashes![first_working_image_index];
+      data.mainImage = (__hash == Options.no_image_placeholder_name)
+          ? null
+          : _fetchImage(__hash);
       first_working_image_index++;
 
       //but we get another image anyway, since we want one that we can show as preview
@@ -270,7 +272,8 @@ class Backend {
                 // .asBroadcastStream()
                 .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
           )
-          .toList() /*.sublist(first_working_image_index + 1)*/;
+          .toList()
+          .sublist((__hash == Options.no_image_placeholder_name) ? 1 : 0);
 
       return data;
     };

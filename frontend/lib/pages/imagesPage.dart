@@ -18,6 +18,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   List<Stream<ImageData<T>?>> _images = [];
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
+  final bool hasMainImage;
 
   static Future<String?> _defaultAdd(List<XFile> list) async {
     showToast("no callback provided");
@@ -38,41 +39,44 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final Function(T) onStar;
   final Function(T) onShare;
 
-  ImagesPage.constant(
-      {List<ImageData<T>?>? images = const [],
-      this.columnCount = 4,
-      Key? key,
-      this.onNewImages = _defaultAdd,
-      this.onDelete = _defaultDelete,
-      this.onStar = _default,
-      this.onShare = _default})
-      : super(key: key) {
+  ImagesPage.constant({
+    List<ImageData<T>?>? images = const [],
+    this.columnCount = 4,
+    Key? key,
+    this.onNewImages = _defaultAdd,
+    this.onDelete = _defaultDelete,
+    this.onStar = _default,
+    this.onShare = _default,
+    this.hasMainImage = false,
+  }) : super(key: key) {
     this._images =
         images?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
   }
 
-  ImagesPage.futured(
-      {List<Future<ImageData<T>?>>? future_images = const [],
-      this.columnCount = 4,
-      Key? key,
-      this.onNewImages = _defaultAdd,
-      this.onDelete = _defaultDelete,
-      this.onStar = _default,
-      this.onShare = _default})
-      : super(key: key) {
+  ImagesPage.futured({
+    List<Future<ImageData<T>?>>? future_images = const [],
+    this.columnCount = 4,
+    Key? key,
+    this.onNewImages = _defaultAdd,
+    this.onDelete = _defaultDelete,
+    this.onStar = _default,
+    this.onShare = _default,
+    this.hasMainImage = false,
+  }) : super(key: key) {
     this._images =
         future_images?.map((e) => Stream.fromFuture(e)).toList() ?? [];
   }
 
-  ImagesPage.streamed(
-      {List<Stream<ImageData<T>?>>? imageStreams = const [],
-      this.columnCount = 4,
-      Key? key,
-      this.onNewImages = _defaultAdd,
-      this.onDelete = _defaultDelete,
-      this.onStar = _default,
-      this.onShare = _default})
-      : super(key: key) {
+  ImagesPage.streamed({
+    List<Stream<ImageData<T>?>>? imageStreams = const [],
+    this.columnCount = 4,
+    Key? key,
+    this.onNewImages = _defaultAdd,
+    this.onDelete = _defaultDelete,
+    this.onStar = _default,
+    this.onShare = _default,
+    this.hasMainImage = false,
+  }) : super(key: key) {
     this._images = imageStreams ?? [];
   }
 
@@ -91,6 +95,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
             onDelete: onDelete,
             onShare: onShare,
             onStar: onStar,
+            hasFav: hasMainImage,
           ),
         ),
         ChangeNotifierProvider(
