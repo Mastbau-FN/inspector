@@ -109,14 +109,24 @@ class LocationDetailPage extends StatelessWidget {
                 updateData(locationdata);
               },
             ),
-            EditableText(
-              label: "Ansprechpartner",
-              text: locationdata.ansprechpartner,
-              onChanged: (val) {
-                locationdata.ansprechpartner = val;
-                updateData(locationdata);
-              },
-            ),
+            ...[
+              NamedNulleableBoolToggle(
+                label: "Ansprechpartner nötig",
+                isSelected: locationdata.asp_required,
+                onSelected: (val) {
+                  locationdata.asp_required = val;
+                  updateData(locationdata);
+                },
+              ),
+              EditableText(
+                label: "Ansprechpartner",
+                text: locationdata.ansprechpartner,
+                onChanged: (val) {
+                  locationdata.ansprechpartner = val;
+                  updateData(locationdata);
+                },
+              ),
+            ],
             EditableText(
               label: "Steigweg-Typ",
               text: locationdata.steigwegtyp,
@@ -152,21 +162,31 @@ class LocationDetailPage extends StatelessWidget {
             ),
             EditableText(
               keyboardType: TextInputType.number,
-              label: "BauJahr",
+              label: "Baujahr",
               text: locationdata.baujahr.toString(),
               onChanged: (val) {
                 locationdata.baujahr = int.tryParse(val);
                 updateData(locationdata);
               },
             ),
-            NamedNulleableBoolToggle(
-              isSelected: locationdata.needs_schluessel,
-              label: "Benötigt Schlüssel",
-              onSelected: (val) {
-                locationdata.needs_schluessel = val;
-                updateData(locationdata);
-              },
-            ),
+            ...[
+              NamedNulleableBoolToggle(
+                isSelected: locationdata.needs_schluessel,
+                label: "Benötigt Schlüssel",
+                onSelected: (val) {
+                  locationdata.needs_schluessel = val;
+                  updateData(locationdata);
+                },
+              ),
+              EditableText(
+                label: "Anmerkung Schlüssel",
+                text: locationdata.schlussel_description,
+                onChanged: (val) {
+                  locationdata.schlussel_description;
+                  updateData(locationdata);
+                },
+              ),
+            ],
             NamedNulleableBoolToggle(
               label: "WC Vorort",
               isSelected: locationdata.has_wc,
@@ -175,43 +195,29 @@ class LocationDetailPage extends StatelessWidget {
                 updateData(locationdata);
               },
             ),
-            NamedNulleableBoolToggle(
-              label: "Steckdosen verfügbar",
-              isSelected: locationdata.has_steckdosen,
-              onSelected: (val) {
-                locationdata.has_steckdosen = val;
-                updateData(locationdata);
-              },
-            ),
+            ...[
+              NamedNulleableBoolToggle(
+                label: "Steckdosen verfügbar",
+                isSelected: locationdata.has_steckdosen,
+                onSelected: (val) {
+                  locationdata.has_steckdosen = val;
+                  updateData(locationdata);
+                },
+              ),
+              EditableText(
+                label: "Anmerkung Steckdosen",
+                text: locationdata.steckdosen_description,
+                onChanged: (val) {
+                  locationdata.steckdosen_description = val;
+                  updateData(locationdata);
+                },
+              ),
+            ],
             NamedNulleableBoolToggle(
               label: "Lagerraum verfügbar",
               isSelected: locationdata.has_lagerraeume,
               onSelected: (val) {
                 locationdata.has_lagerraeume = val;
-                updateData(locationdata);
-              },
-            ),
-            NamedNulleableBoolToggle(
-              label: "ASP nötig",
-              isSelected: locationdata.asp_required,
-              onSelected: (val) {
-                locationdata.asp_required = val;
-                updateData(locationdata);
-              },
-            ),
-            EditableText(
-              label: "Anmerkung Steckdosen",
-              text: locationdata.steckdosen_description,
-              onChanged: (val) {
-                locationdata.steckdosen_description = val;
-                updateData(locationdata);
-              },
-            ),
-            EditableText(
-              label: "Anmerkung Schlüssel",
-              text: locationdata.schlussel_description,
-              onChanged: (val) {
-                locationdata.schlussel_description;
                 updateData(locationdata);
               },
             ),
