@@ -142,6 +142,7 @@ class LocationDetailPage extends StatelessWidget {
               },
             ),
             EditableText(
+              keyboardType: TextInputType.number,
               label: "Höhe",
               text: locationdata.bauwerkhoehe.toString(),
               onChanged: (val) {
@@ -150,6 +151,7 @@ class LocationDetailPage extends StatelessWidget {
               },
             ),
             EditableText(
+              keyboardType: TextInputType.number,
               label: "BauJahr",
               text: locationdata.baujahr.toString(),
               onChanged: (val) {
@@ -194,6 +196,22 @@ class LocationDetailPage extends StatelessWidget {
               isSelected: locationdata.asp_required,
               onSelected: (val) {
                 locationdata.asp_required = val;
+                updateData(locationdata);
+              },
+            ),
+            EditableText(
+              label: "Anmerkung Steckdosen",
+              text: locationdata.steckdosen_description,
+              onChanged: (val) {
+                locationdata.steckdosen_description = val;
+                updateData(locationdata);
+              },
+            ),
+            EditableText(
+              label: "Anmerkung Schlüssel",
+              text: locationdata.schlussel_description,
+              onChanged: (val) {
+                locationdata.schlussel_description;
                 updateData(locationdata);
               },
             ),
