@@ -11,6 +11,7 @@ import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
+import '../generated/l10n.dart';
 import 'imagesPage.dart';
 
 class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
@@ -25,11 +26,11 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
       icon: Icons.checklist,
     ),
     MyListTileData(
-      title: "Fotos",
+      title: S.current.imagesButton,
       icon: Icons.photo_library,
     ),
     MyListTileData(
-      title: "Kommentar",
+      title: S.current.commentsOrDetailsButton,
       icon: Icons.text_snippet,
     ),
   ];
@@ -43,12 +44,12 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
     currentlyChosenChildData = Future.sync(() => data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
+        if (tiledata.title == S.current.imagesButton)
+          return standard_statefulImageView(this, data);
         switch (tiledata.title) {
           case _nextViewTitle:
             return nextModel<CheckPoint, CheckCategory, CheckPointsModel>(
                 CheckPointsModel(data));
-          case 'Fotos':
-            return standard_statefulImageView(this, data);
 
           default:
             return alwaysPlainText(this, data, update);
@@ -71,8 +72,8 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
           },
           onCancel: onCancel,
           textfield_list: [
-            InputData("KurzText", hint: "Name"),
-            InputData("LangText", hint: "Beschreibung"),
+            InputData("KurzText", hint: S.current.kurzTextHint),
+            InputData("LangText", hint: S.current.langTextHint),
           ],
         ),
       );

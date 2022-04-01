@@ -3,6 +3,8 @@ import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
+import '../generated/l10n.dart';
+
 //should be held up to date with FloatingActionButton
 const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
   width: 56.0,
@@ -193,8 +195,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
           actions: <Widget>[
             DismissTextButton(),
           ],
-          bodyLines: ['probier\'s nochmal'],
-          title: 'Irgendwas stimmt hier noch nicht',
+          bodyLines: [S.of(context).addingDataTryAgain],
+          title: S.of(context).addingDataSomethingWrong,
         );
       },
     );
@@ -378,7 +380,8 @@ class InputData {
 
   static const defaultVerification = nonempty;
 
-  static String? nonempty(String? str) =>
-      (str != null && str.isNotEmpty) ? null : 'gib hier etwas ein';
+  static String? nonempty(String? str) => (str != null && str.isNotEmpty)
+      ? null
+      : S.current.addingDataEnterSomethingHere;
   static String? alwaysCorrect(String? str) => null;
 }

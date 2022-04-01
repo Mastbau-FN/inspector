@@ -6,6 +6,8 @@ import 'package:MBG_Inspektionen/pages/login/loginView.dart';
 import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 
+import 'generated/l10n.dart';
+
 Future main() async {
   //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
   // could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
@@ -40,6 +42,10 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
+      localizationsDelegates: [
+        S.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
       home: kIsWeb
           ? WebWrap(
               title: appTitle,

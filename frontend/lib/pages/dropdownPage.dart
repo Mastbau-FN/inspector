@@ -13,6 +13,7 @@ import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
+import '../generated/l10n.dart';
 
 // XXX get to new page with hero transition
 
@@ -111,8 +112,9 @@ class _DropDownBodyState<
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ErrorText(
-                    'Something went wrong:\n${snapshot.error ?? ''} \n\nPlease drag down to reload this page'),
+                child: ErrorText(S.of(context).somethingWentWrong +
+                    ':\n${snapshot.error ?? ''} \n\n' +
+                    S.of(context).pleaseDragDownToReloadThisPage),
               ),
             ),
           if (snapshot.hasData)
@@ -146,7 +148,8 @@ class _DropDownBodyState<
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
                       delete: () => Backend().delete<ChildData>(data).then(
-                          (value) => showToast(value ?? "delete unseccessful")),
+                          (value) => showToast(
+                              value ?? S.of(context).deleteUnseccessful)),
                       confirm_name: data.title,
                     );
                 } catch (e) {}

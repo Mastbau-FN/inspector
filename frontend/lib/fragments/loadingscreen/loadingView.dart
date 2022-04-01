@@ -1,6 +1,8 @@
 import 'package:MBG_Inspektionen/widgets/rotating.dart';
 import 'package:flutter/material.dart';
 
+import '../../generated/l10n.dart';
+
 class LoadingView extends StatelessWidget {
   const LoadingView({Key? key, this.fixedSize = true}) : super(key: key);
   final bool fixedSize;
@@ -34,7 +36,7 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("loading..."),
+        title: Text(S.of(context).loading),
       ),
       body: Padding(
         padding: const EdgeInsets.all(80.0),

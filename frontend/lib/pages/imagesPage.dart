@@ -6,6 +6,7 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
@@ -21,11 +22,11 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final bool hasMainImage;
 
   static Future<String?> _defaultAdd(List<XFile> list) async {
-    showToast("no callback provided");
+    showToast(S.current.notAvailable);
     return "";
   }
 
-  static _default(Object _) => showToast("Not Available");
+  static _default(Object _) => showToast(S.current.notAvailable);
 
   static _defaultDelete(Object id) async {
     try {
@@ -280,10 +281,10 @@ class _ImageAddButtonState extends State<ImageAddButton>
     XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
     var resstring = pic != null
         ? await widget.onNewImages([pic])
-        : "sorry no image to upload";
+        : S.of(context).sorryNoImageToUpload;
     debugPrint(resstring);
     showToast(resstring ??
-        "upload finished (no idea whether successed or failed tho)");
+        S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
     collapse();
   }
 
@@ -315,7 +316,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
           final List<XFile>? new_images = await widget._picker.pickMultiImage();
           var resstring = await widget.onNewImages(new_images ?? []);
           showToast(resstring ??
-              "upload finished (no idea of successed or failed tho)");
+              S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
         },
       );
 

@@ -7,6 +7,7 @@ import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:provider/provider.dart';
 
+import '../../generated/l10n.dart';
 import 'loginModel.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 
@@ -141,7 +142,8 @@ class _LoginFieldState extends State<LoginField> {
     });
     if (_formKey.currentState!.validate()) {
       final controller = ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Daten werden überprüft..')),
+        SnackBar(
+            content: Text(S.of(context).loginCredentialsAreBeeingVerified)),
       );
       try {
         _formKey.currentState!.save();
@@ -210,14 +212,14 @@ class _LoginFieldState extends State<LoginField> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Bitte Kürzel eingeben';
+                        return S.of(context).loginErrorPleaseEnterUserName;
                       }
                       return null;
                     },
                     autofocus: widget.autofocus,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Kürzel',
+                      labelText: S.of(context).loginUsername,
                     ),
                     textInputAction: TextInputAction.next,
                   ),
@@ -230,7 +232,7 @@ class _LoginFieldState extends State<LoginField> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Bitte Passwort eingeben';
+                        return S.of(context).loginErrorPleaseEnterPassword;
                       }
                       return null;
                     },
@@ -239,7 +241,7 @@ class _LoginFieldState extends State<LoginField> {
                     autocorrect: false,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      labelText: 'Passwort',
+                      labelText: S.of(context).loginLabelPassword,
                     ),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => logmein(context),
@@ -249,7 +251,7 @@ class _LoginFieldState extends State<LoginField> {
                   onPressed: () {
                     logmein(context);
                   },
-                  child: const Text('Login'),
+                  child: Text(S.of(context).loginButton),
                 ),
               ],
             ),

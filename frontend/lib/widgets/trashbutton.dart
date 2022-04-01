@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/rotating.dart';
 import 'package:flutter/material.dart';
 
+import '../generated/l10n.dart';
 import 'mySimpleAlertBox.dart';
 
 class TrashButton extends StatefulWidget {
@@ -36,12 +37,13 @@ class _TrashButtonState extends State<TrashButton> {
                   _delete();
                   Navigator.of(context).pop();
                 },
-                child: Text('ja, sicher, Löschen!'))
+                child: Text(S.of(context).validateDeletionSure))
           ],
           title: 'Sicher?',
           bodyLines: [
-            '${widget.confirm_name != null ? '"' + widget.confirm_name! + '"' : ''} wirklich Löschen?',
-            'diese Aktion ist entgültig und nicht wiederherstellbar'
+            '${widget.confirm_name != null ? '"' + widget.confirm_name! + '"' : ''}' +
+                S.of(context).validateDeletionPromtHeadline,
+            S.of(context).validateDeletionPromtWarning
           ],
         );
       },

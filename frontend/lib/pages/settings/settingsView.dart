@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
 import '../../backend/api.dart';
+import '../../generated/l10n.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
@@ -12,7 +13,7 @@ class SettingsView extends StatelessWidget {
 
   Widget get uploadSyncTile => MyCardListTile1(
         icon: Icons.sync,
-        text: 'uploadSync',
+        text: S.current.uploadAndSyncData,
         onTap: Backend().retryFailedrequests,
       );
 
@@ -20,7 +21,7 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: Text(S.of(context).settings),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -32,7 +33,7 @@ class SettingsView extends StatelessWidget {
             ),
             Spacer(),
             Divider(),
-            Text("advanced & experimental"),
+            Text(S.of(context).advancedSettingsHeadline),
             uploadSyncTile,
             // DeleteCachedImages(),
           ],
@@ -52,7 +53,7 @@ class DeleteCachedImages extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.delete),
-            Text("Lokale Bilder löschen"),
+            Text(S.of(context).deleteLocalImagesButton),
           ],
         ));
   }
@@ -81,7 +82,7 @@ class Logout extends StatelessWidget {
   Widget build(BuildContext context) {
     return MyCardListTile1(
       icon: Icons.exit_to_app,
-      text: "Logout",
+      text: S.of(context).logoutButton,
       onTap: () => _logout(context),
     );
     // return TextButton(

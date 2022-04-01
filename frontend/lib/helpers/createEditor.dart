@@ -6,6 +6,8 @@ import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../generated/l10n.dart';
+
 // rich was totally removed
 // DetailsPage createRichIfPossibleEditor<DataT extends WithLangText>(
 //     DataT data, Function(DataT, String) uploadString) {
@@ -54,7 +56,7 @@ Widget alwaysPlainText<ChildData extends WithLangText,
                       title: (snapshot.data ?? data).title,
                       details: (snapshot.data ?? data).langText,
                       onChanged: (txt) {
-                        showToast("uploading..");
+                        showToast(S.of(context).uploading);
                         model.updateCurrentChild((p0) => uploadString(p0, txt));
                       });
                 });

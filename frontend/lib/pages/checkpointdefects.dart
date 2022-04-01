@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -97,7 +98,7 @@ class CheckPointDefectsModel
         ],
         textfield_list: [
           // InputData("KurzText", hint: "Name"), //removed according to #48
-          InputData("LangText", hint: "Beschreibung"),
+          InputData("LangText", hint: S.current.langTextHint),
           InputData("Insp_Stelle",
               hint: "Position / Höhe"), //added according to 49
         ],

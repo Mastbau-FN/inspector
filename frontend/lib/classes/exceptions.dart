@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../generated/l10n.dart';
+
 class NoConnectionToBackendException extends BackendCommunicationException {
   @override
   String toString() {
@@ -20,11 +22,11 @@ class ResponseException implements Exception {
       try {
         error = jsonDecode(res!.body)['error'];
       } catch (e) {
-        'the body had no error field';
+        S.current.theBodyHadNoErrorField;
       }
       return '${res?.statusCode}: ${error}';
     }
-    return 'no response';
+    return S.current.noResponse;
   }
 
   ResponseException(this.res);
@@ -36,7 +38,7 @@ class BackendCommunicationException implements Exception {
   String? cause;
   @override
   String toString() {
-    return cause ?? 'Something went wrong while communicating with the API';
+    return cause ?? S.current.somethingWentWrongWhileCommunicatingWithTheApi;
   }
 
   BackendCommunicationException(this.cause);

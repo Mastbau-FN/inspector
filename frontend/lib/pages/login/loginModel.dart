@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 
+import '../../generated/l10n.dart';
+
 class LoginModel extends ChangeNotifier {
   LoginModel();
 
@@ -13,7 +15,7 @@ class LoginModel extends ChangeNotifier {
   Future login(String? username, String? password) async {
     // current kürzel and password for testing are HH testpass
     if (username == null || password == null) {
-      throw Exception("username or password was not given");
+      throw Exception(S.current.usernameOrPasswordWasNotGiven);
     }
 
     var res = await Backend().login(User(username, password));

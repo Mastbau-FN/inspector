@@ -13,6 +13,7 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:tuple/tuple.dart';
+import '../generated/l10n.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -74,21 +75,23 @@ class Backend {
     Duration? timeout,
   }) async {
     if (_baseurl == null)
-      throw NoConnectionToBackendException("no url provided");
+      throw NoConnectionToBackendException(
+          S.current.exceptionNoUrlToConnectToProvided);
 
     //check network
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
-      throw NoConnectionToBackendException("no network available");
+      throw NoConnectionToBackendException(S.current.noNetworkAvailable);
     if (!Options.canUseMobileNetworkIfPossible &&
         connection == ConnectivityResult.mobile)
-      throw NoConnectionToBackendException("mobile network not allowed");
+      throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
     try {
       // check if we can reach our api
       await post_JSON('/login', timeout: timeout);
     } catch (e) {
-      throw NoConnectionToBackendException("couldn't reach $_baseurl");
+      throw NoConnectionToBackendException(
+          S.current.couldntReach + " $_baseurl");
     }
   }
 
@@ -288,8 +291,8 @@ class Backend {
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
   }) async {
-    assert((await user) != null,
-        'no one is logged in so we refuse to get any data');
+    assert(
+        (await user) != null, S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
     String _id = id ?? json?['local_id'] ?? (await user)!.name;
     Map<String, dynamic> _json = {};
     try {
@@ -300,7 +303,7 @@ class Backend {
       ));
       final body = res?.forceRes()?.body;
       _json = jsonDecode(
-        body ?? '{"error":"failed"}',
+        body ?? '{"error":"failed decoding json"}',
       );
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
@@ -487,7 +490,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
     debugPrint(
         'could not parse response: ' + e.toString() + '<--' + jsonEncode(json));
     throw BackendCommunicationException(
-        'could not parse response: ' + jsonEncode(json));
+        S.current.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
 }
