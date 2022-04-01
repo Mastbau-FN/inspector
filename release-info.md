@@ -1,3 +1,4 @@
 # Changes
 
-die Ortsübersicht hat nun alle Daten, und diese sind auch bearbeitbar 😎
+- 🐛 bug fixes
+- 🚀 mehr info über die location
