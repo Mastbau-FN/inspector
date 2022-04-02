@@ -24,9 +24,10 @@ runs:
         echo "API_KEY=$API_KEY" >> .env
         echo "API_URL=$API_URL" >> .env
       shell: bash
-    - name: install dependencies
+    - name: install dependencies and run code gen
       run: |
         cd frontend/
         flutter pub get #make sure this path is correct
+N       flutter pub run intl_utils:generate
       shell: bash
 
