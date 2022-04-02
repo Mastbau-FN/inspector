@@ -28,6 +28,6 @@ runs:
       run: |
         cd frontend/
         flutter pub get #make sure this path is correct
-N       flutter pub run intl_utils:generate
+        flutter pub run intl_utils:generate
       shell: bash
 
