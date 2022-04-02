@@ -78,8 +78,6 @@ jobs:
           printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
           ls 
           pwd
-      - name: generate locales
-        run: flutter pub run intl_utils:generate
 
       - name: Build ${{matrix.platform}}
         run: flutter build ${{matrix.platform}}
