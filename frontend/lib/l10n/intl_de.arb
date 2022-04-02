@@ -33,7 +33,7 @@
   "loginUsername": "Kürzel",
   "loginErrorPleaseEnterPassword": "Bitte Passwort eingeben",
   "loginLabelPassword": "Passwort",
-  "loginButton": "Login",
+  "loginButton": "Einloggen",
   "uploadAndSyncData": "uploadSync",
   "advancedSettingsHeadline": "advanced & experimental",
   "deleteLocalImagesButton": "Lokale Bilder löschen",

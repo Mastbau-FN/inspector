@@ -7,6 +7,7 @@ import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 
 import 'generated/l10n.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future main() async {
   //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
@@ -43,6 +44,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
         S.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,

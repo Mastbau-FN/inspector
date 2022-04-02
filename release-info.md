@@ -1,4 +1,3 @@
 # Changes
 
-- location wird korrekt dargestellt
-(testing new cicd)
+- location wird korrekt dargestellt (hopefully)
