@@ -1,3 +1,3 @@
 # Changes
 
-- location wird korrekt dargestellt
+- location wird korrekt dargestellt.
