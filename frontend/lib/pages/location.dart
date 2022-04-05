@@ -223,56 +223,104 @@ class LocationDetailPage extends StatelessWidget {
           Text("${locationdata.strasse}"),
           Text("${locationdata.plz}, ${locationdata.ort}"),
           Container(height: 10),
-          _map(),
+          _Map(locationdata: locationdata),
         ],
       );
+}
 
-  Widget _map() => //Container();
-      locationdata.coords == null
+class _Map extends StatefulWidget {
+  final bool showsMapPerDefault;
+  const _Map({
+    Key? key,
+    required this.locationdata,
+    this.showsMapPerDefault = false,
+  }) : super(key: key);
+
+  final InspectionLocation locationdata;
+
+  @override
+  State<_Map> createState() => _MapState();
+}
+
+class _MapState extends State<_Map> {
+  bool showsMap = false;
+  @override
+  void initState() {
+    showsMap = widget.showsMapPerDefault;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) => //Container();
+      widget.locationdata.coords == null
           ? Container(
               height: 20,
             )
           : Stack(
               alignment: Alignment.bottomRight,
               children: [
-                Container(
-                  height:
-                      400, //XXX expanded to take available space would be much better than giving a fixed height
-                  child: FlutterMap(
-                    options: MapOptions(
-                      center: locationdata.coords!,
-                      zoom: 8.0,
-                    ),
-                    layers: [
-                      TileLayerOptions(
-                          urlTemplate:
-                              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                          subdomains: ['a', 'b', 'c']),
-                      MarkerLayerOptions(
-                        markers: [
-                          Marker(
-                            width: 80.0,
-                            height: 80.0,
-                            point: locationdata.coords!,
-                            builder: (ctx) => Container(
-                              child: Icon(Icons.location_on),
-                            ),
+                showsMap
+                    ? Container(
+                        height:
+                            400, //XXX expanded to take available space would be much better than giving a fixed height
+                        child: FlutterMap(
+                          options: MapOptions(
+                            center: widget.locationdata.coords!,
+                            zoom: 8.0,
                           ),
-                        ],
+                          layers: [
+                            TileLayerOptions(
+                                urlTemplate:
+                                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                subdomains: ['a', 'b', 'c']),
+                            MarkerLayerOptions(
+                              markers: [
+                                Marker(
+                                  width: 80.0,
+                                  height: 80.0,
+                                  point: widget.locationdata.coords!,
+                                  builder: (ctx) => Container(
+                                    child: Icon(Icons.location_on),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )
+                    : Align(
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                    'lat: ${widget.locationdata.coords?.latitude}, lng:${widget.locationdata.coords?.latitude}'),
+                                TextButton(
+                                    onPressed: (() => setState(() {
+                                          showsMap = true;
+                                        })),
+                                    child: Icon(Icons.map))
+                              ],
+                            ),
+                            SizedBox(height: 20),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FloatingActionButton(
-                    child: Icon(Icons.navigation_rounded),
-                    onPressed: () {
-                      MapsLauncher.launchCoordinates(
-                          locationdata.coords!.latitude,
-                          locationdata.coords!.longitude,
-                          locationdata.pjName);
-                    },
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FloatingActionButton(
+                      child: Icon(Icons.navigation_rounded),
+                      onPressed: () {
+                        MapsLauncher.launchCoordinates(
+                            widget.locationdata.coords!.latitude,
+                            widget.locationdata.coords!.longitude,
+                            widget.locationdata.pjName);
+                      },
+                    ),
                   ),
                 ),
               ],
