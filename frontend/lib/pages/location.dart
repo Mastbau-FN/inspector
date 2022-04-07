@@ -296,7 +296,7 @@ class _MapState extends State<_Map> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                    'lat: ${widget.locationdata.coords?.latitude}, lng:${widget.locationdata.coords?.latitude}'),
+                                    'lat: ${widget.locationdata.coords?.latitude}, lng:${widget.locationdata.coords?.longitude}'),
                                 TextButton(
                                     onPressed: (() => setState(() {
                                           showsMap = true;

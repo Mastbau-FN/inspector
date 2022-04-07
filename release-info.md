@@ -1,3 +1,1 @@
-# Changes
-
-- location wird korrekt dargestellt.
+# first useable release
