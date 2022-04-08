@@ -170,15 +170,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
   switch (data.type) {
     case identifiers.category:
       queryfile = folder+"/check_categories";
-      params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL];
+      params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
     case identifiers.checkpoint:
       queryfile = folder+"/check_points";
-      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL];
+      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
     case identifiers.defect:
       queryfile = folder+"/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL];
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
   
     default:
@@ -207,15 +207,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      //console.log("updating category")
      //console.log(ld.Link);
      queryfile = folder+"/check_categories";
-     params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
+     params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
    case identifiers.checkpoint:
      queryfile = folder+"/check_points";
-     params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
+     params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
      break;
    case identifiers.defect:
      queryfile = folder+"/check_point_defects";
-     params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
+     params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
      break;
   case identifiers.location:
     queryfile = folder+"/inspection_location";
