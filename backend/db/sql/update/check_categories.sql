@@ -5,7 +5,8 @@ SET
 "LangText" =$4,
 "Link" = $5,
 "LinkOrdner" = $6,
-"Zusatz_Info" = $7 /*ggf. neuer Parameter?*/
+"Zusatz_Info" = $7, /*ggf. neuer Parameter?*/
+"ErDat" = $??? 
 WHERE
 "EREArt" = 5100 /*Prüfkategorie*/
 AND ("E1" = $2 /*neuer Parameter*/
