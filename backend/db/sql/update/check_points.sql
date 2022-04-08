@@ -3,8 +3,8 @@ UPDATE "Events"
 SET 
 "KurzText" = $4,
 "LangText" =$5,
-"Link" = $6,
-"LinkOrdner" = $7,
+"Link" = COALESCE($6,"Link"),
+"LinkOrdner" = COALESCE($7,"LinkOrdner"),
 "Zusatz_Info" = $8, /*ggf. neuer Parameter?*/
 "ErDat" = $9 /*aktuelles Datum*/ 
 WHERE

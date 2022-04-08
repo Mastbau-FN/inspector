@@ -4,8 +4,8 @@ with events_update as (
 		"PjNr" = $1,
 		"KurzText" = $16,
 		"LangText" =$17,
-		"Link" = $18,
-		"LinkOrdner" = $19,
+		"Link" = COALESCE($18,"Link"),
+		"LinkOrdner" = COALESCE($19,"LinkOrdner"),
 		"Zusatz_Info" = $20
 		WHERE
 		"EREArt" = 5100 /*Prüfkategorie*/
