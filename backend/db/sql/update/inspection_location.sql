@@ -1,4 +1,20 @@
-UPDATE "Insp_STANDORT_Infos" SET
+with events_update as (
+	UPDATE "Events"  
+		SET 
+		"PjNr" = $1,
+		"KurzText" = $16,
+		"LangText" =$17,
+		"Link" = $18,
+		"LinkOrdner" = $19,
+		"Zusatz_Info" = $20
+		WHERE
+		"EREArt" = 5100 /*Prüfkategorie*/
+		AND ("E1" = 0 OR "E2" is null)
+		AND ("E2" = 0 OR "E2" is null)
+		AND ("E3" = 0 OR "E3" is null)
+	returning "PjNr"
+)
+UPDATE "Insp_STANDORT_Infos" 
 	"Eigentuemer"=$2, 
 	"Bauwerkhoehe"=$3, 
 	"Baujahr"=$4, 
@@ -13,4 +29,4 @@ UPDATE "Insp_STANDORT_Infos" SET
 	"ASP_required"=$13,
 	"Steckdosen_description"=$14,
 	"Schlüssel_description"=$15
-WHERE "Insp_STANDORT_Infos"."PjNr" = $1;
+WHERE ("PjNr") IN (select "PjNr" from events_update);
