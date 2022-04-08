@@ -65,8 +65,10 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Y")
   String? y;
 
-  LatLng? get coords =>
-      _toplevelhelperLatLng_fromJson({'lat': x, 'lng': y}) ?? fallback_coords;
+  LatLng? get coords => y != null && x != null
+      ? LatLng(double.parse(y!.replaceAll(',', '.')),
+          double.parse(x!.replaceAll(',', '.')))
+      : fallback_coords;
 
   @JsonKey(
     name: 'latLng',
