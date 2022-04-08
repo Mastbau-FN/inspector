@@ -17,7 +17,7 @@ ORDER BY COALESCE("E2",0) DESC LIMIT 1),
 0,
 NULL,
 $7, /*Autor/KZL (ersteller des neuen Datenpunktes)*/
-$??? /*ErDat, aktuelles Datum*/  
+$8 /*ErDat, aktuelles Datum*/  
 )
 RETURNING "E2"
 ;

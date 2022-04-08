@@ -13,7 +13,7 @@ $3, /*required: Wert der Ebene 2*/
 (SELECT COALESCE("E3",0) + 1 AS "E3" FROM "Events" WHERE "PjNr" = $1 /*Projektnummer*/ AND "E1" = $2 /*Wert für Ebene 1*/ AND "E2" = $3 /*Wert für Ebene 2*/ ORDER BY COALESCE("E3",0) DESC LIMIT 1),
 $6, /*Höhenangabe*/
 $10, /*Autor/KZL (ersteller des neuen Datenpunktes)*/
-$??? /*ErDat, aktuelles Datum*/  
+$11 /*ErDat, aktuelles Datum*/  
 )
 RETURNING "E3"
 ;
