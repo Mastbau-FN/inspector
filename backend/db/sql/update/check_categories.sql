@@ -6,7 +6,7 @@ SET
 "Link" = $5,
 "LinkOrdner" = $6,
 "Zusatz_Info" = $7, /*ggf. neuer Parameter?*/
-"ErDat" = $??? 
+"ErDat" = $??? /*aktuelles Datum*/  
 WHERE
 "EREArt" = 5100 /*Prüfkategorie*/
 AND ("E1" = $2 /*neuer Parameter*/
