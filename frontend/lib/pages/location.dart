@@ -263,27 +263,42 @@ class _MapState extends State<_Map> {
                     ? Container(
                         height:
                             400, //XXX expanded to take available space would be much better than giving a fixed height
-                        child: FlutterMap(
-                          options: MapOptions(
-                            center: widget.locationdata.coords!,
-                            zoom: 8.0,
-                          ),
-                          layers: [
-                            TileLayerOptions(
-                                urlTemplate:
-                                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                subdomains: ['a', 'b', 'c']),
-                            MarkerLayerOptions(
-                              markers: [
-                                Marker(
-                                  width: 80.0,
-                                  height: 80.0,
-                                  point: widget.locationdata.coords!,
-                                  builder: (ctx) => Container(
-                                    child: Icon(Icons.location_on),
-                                  ),
+                        child: Stack(
+                          children: [
+                            FlutterMap(
+                              options: MapOptions(
+                                center: widget.locationdata.coords!,
+                                zoom: 8.0,
+                              ),
+                              layers: [
+                                TileLayerOptions(
+                                    urlTemplate:
+                                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                    subdomains: ['a', 'b', 'c']),
+                                MarkerLayerOptions(
+                                  markers: [
+                                    Marker(
+                                      width: 80.0,
+                                      height: 80.0,
+                                      point: widget.locationdata.coords!,
+                                      builder: (ctx) => Container(
+                                        child: Icon(Icons.location_on),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    showsMap = false;
+                                  });
+                                },
+                                icon: Icon(Icons.close),
+                              ),
                             ),
                           ],
                         ),
