@@ -219,10 +219,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      break;
   case identifiers.location:
     queryfile = folder+"/inspection_location";
-    params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description];
-    console.log(ld);//XXX: hier sind wahrscheinlich link etc null? , aber haben eh vor die beiden queries wieder in eine zu vereinen
-    params2 = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
-    await queryFileWithParams(queryfile+"_part2", params2);
+    params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info];
     break;
  
    default:
