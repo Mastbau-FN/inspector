@@ -65,8 +65,10 @@
 
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">LatLng? get coords =&gt;
-    _toplevelhelperLatLng_fromJson({&#39;lat&#39;: x, &#39;lng&#39;: y}) ?? fallback_coords;</code></pre>
+  <pre class="language-dart"><code class="language-dart">LatLng? get coords =&gt; y != null &amp;&amp; x != null
+    ? LatLng(double.parse(y!.replaceAll(&#39;,&#39;, &#39;.&#39;)),
+        double.parse(x!.replaceAll(&#39;,&#39;, &#39;.&#39;)))
+    : fallback_coords;</code></pre>
 </section>
 
 </section>
@@ -164,7 +166,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.0+29
+      1.1.1+30
   </span>
 
   
