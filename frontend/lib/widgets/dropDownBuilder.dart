@@ -4,8 +4,8 @@ import '../classes/data/weather.dart';
 import '../fragments/weather/helpers.dart';
 
 class DropDownBuilder<T> extends StatefulWidget {
-  final List<T> possibilities;
-  final Widget Function(T) builder;
+  final List<T?> possibilities;
+  final Widget Function(T?) builder;
   final T? selected;
   final Function(T) onChanged;
   DropDownBuilder({
@@ -17,7 +17,7 @@ class DropDownBuilder<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<DropDownBuilder> createState() => _DropDownBuilderState();
+  State<DropDownBuilder<T>> createState() => _DropDownBuilderState<T>();
 }
 
 class _DropDownBuilderState<T> extends State<DropDownBuilder<T>> {
@@ -37,17 +37,17 @@ class _DropDownBuilderState<T> extends State<DropDownBuilder<T>> {
       // style: const TextStyle(color: Colors.deepPurple),
       underline: Container(
         height: 0,
-        color: Colors.deepPurpleAccent,
+        color: Theme.of(context).primaryColor,
       ),
       onChanged: (T? newValue) {
         setState(() {
           _selected = newValue;
         });
       },
-      items: widget.possibilities.map<DropdownMenuItem<T>>((T value) {
+      items: widget.possibilities.map<DropdownMenuItem<T>>((T? value) {
         return DropdownMenuItem<T>(
           value: value,
-          child: Container(child: widget.builder(value)),
+          child: widget.builder(value),
         );
       }).toList(),
     );

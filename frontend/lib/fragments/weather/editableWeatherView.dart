@@ -126,8 +126,8 @@ class WeatherIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropDownBuilder<Weather>(
-        possibilities: Weather.values,
-        builder: (Weather weather) => Icon(weather2icon(weather)),
+        possibilities: [null, ...Weather.values],
+        builder: (weather) => Icon(weather2icon(weather)),
         selected: weather,
         onChanged: onChanged);
   }
