@@ -1,19 +1,17 @@
 import 'package:json_annotation/json_annotation.dart';
 
 enum Weather {
-  @JsonValue('Niederschlag')
-  rain,
+  @JsonValue('Niesel')
+  slightly_rainy,
   @JsonValue('Regen')
-  rain_snow,
+  rain,
   @JsonValue('Schnee')
   snow,
-  @JsonValue('Sonne')
-  sun,
   @JsonValue('Sonnig')
-  sun_sunny,
-  @JsonValue('Wolken')
+  sunny,
+  @JsonValue('Wolkig')
   clouds,
-  @JsonValue('Wind')
+  @JsonValue('Windig')
   wind,
   @JsonValue('Gewitter')
   thunderstorm,
@@ -26,13 +24,11 @@ enum Weather {
 }
 
 enum WindPower {
-  @JsonValue('0')
+  @JsonValue('windstill')
   none,
-  @JsonValue('1')
-  light,
-  @JsonValue('2')
+  @JsonValue('mäßig')
   medium,
-  @JsonValue('3')
+  @JsonValue('stark')
   strong,
 }
 
@@ -69,4 +65,14 @@ enum WindDirection {
   north_west,
   @JsonValue('NNW')
   north_north_west,
+}
+
+class WeatherData {
+  int? temperature;
+  Weather? weather;
+  WindPower? wind_speed;
+  WindDirection? wind_direction;
+
+  WeatherData(
+      {this.temperature, this.weather, this.wind_speed, this.wind_direction});
 }
