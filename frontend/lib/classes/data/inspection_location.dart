@@ -59,6 +59,16 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Schlüssel_description")
   String? schlussel_description;
 
+  //Wetter
+  @JsonKey(name: "Temperatur")
+  String? temp;
+  @JsonKey(name: "Wetter")
+  String? weather;
+  @JsonKey(name: "Wind")
+  String? wind;
+  @JsonKey(name: "Windrichtung")
+  String? wind_direction;
+
 //XXX: ist das redundand mit den latLng?
   @JsonKey(name: "X")
   String? x;
