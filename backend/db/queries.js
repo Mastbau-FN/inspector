@@ -220,7 +220,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
   case identifiers.location:
     queryfile = folder+"/inspection_location";
     params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description];
-    params2 = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
+    params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
     await queryFileWithParams(queryfile+"_part2", params2);
     break;
  

@@ -1,6 +1,5 @@
 UPDATE "Events"  
 SET 
-"KurzText" = $2,
 "LangText" =$3,
 "Link" = COALESCE($4,"Link"),
 "LinkOrdner" = COALESCE($5,"LinkOrdner"),
