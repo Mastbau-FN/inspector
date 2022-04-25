@@ -67,6 +67,8 @@ enum WindDirection {
   north_north_west,
 }
 
+// String wd2string(WindDirection wd) =>
+
 class WeatherData {
   int? temperature;
   Weather? weather;
