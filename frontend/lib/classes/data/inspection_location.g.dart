@@ -82,13 +82,12 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
     };
 
 const _$WeatherEnumMap = {
-  Weather.rain: 'Niederschlag',
-  Weather.rain_snow: 'Regen',
+  Weather.slightly_rainy: 'Niesel',
+  Weather.rain: 'Regen',
   Weather.snow: 'Schnee',
-  Weather.sun: 'Sonne',
-  Weather.sun_sunny: 'Sonnig',
-  Weather.clouds: 'Wolken',
-  Weather.wind: 'Wind',
+  Weather.sunny: 'Sonnig',
+  Weather.clouds: 'Wolkig',
+  Weather.wind: 'Windig',
   Weather.thunderstorm: 'Gewitter',
   Weather.hail: 'Hagel',
   Weather.fog: 'Nebel',
@@ -96,10 +95,9 @@ const _$WeatherEnumMap = {
 };
 
 const _$WindPowerEnumMap = {
-  WindPower.none: '0',
-  WindPower.light: '1',
-  WindPower.medium: '2',
-  WindPower.strong: '3',
+  WindPower.none: 'windstill',
+  WindPower.medium: 'mäßig',
+  WindPower.strong: 'stark',
 };
 
 const _$WindDirectionEnumMap = {
