@@ -7,7 +7,7 @@ class DropDownBuilder<T> extends StatefulWidget {
   final List<T?> possibilities;
   final Widget Function(T?) builder;
   final T? selected;
-  final Function(T) onChanged;
+  final Function(T?) onChanged;
   DropDownBuilder({
     Key? key,
     required this.possibilities,
@@ -42,6 +42,7 @@ class _DropDownBuilderState<T> extends State<DropDownBuilder<T>> {
       onChanged: (T? newValue) {
         setState(() {
           _selected = newValue;
+          widget.onChanged(newValue);
         });
       },
       items: widget.possibilities.map<DropdownMenuItem<T>>((T? value) {

@@ -116,7 +116,7 @@ class WindDirectionIcon extends StatelessWidget {
 
 class WeatherIcon extends StatelessWidget {
   final Weather? weather;
-  final Function(Weather) onChanged;
+  final Function(Weather?) onChanged;
   const WeatherIcon({
     required this.weather,
     required this.onChanged,
