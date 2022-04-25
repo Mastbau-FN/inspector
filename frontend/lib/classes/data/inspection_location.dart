@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:http/http.dart';
 import 'package:json_annotation/json_annotation.dart';
 import "package:latlong2/latlong.dart";
 
@@ -70,6 +71,19 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   WindPower? wind_speed;
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
+
+  WeatherData get weatherData => WeatherData(
+      temperature: temp,
+      weather: weather,
+      wind_speed: wind_speed,
+      wind_direction: wind_direction);
+
+  set weatherData(WeatherData value) {
+    temp = value.temperature;
+    weather = value.weather;
+    wind_speed = value.wind_speed;
+    wind_direction = value.wind_direction;
+  }
 
 //XXX: ist das redundand mit den latLng?
   @JsonKey(name: "X")

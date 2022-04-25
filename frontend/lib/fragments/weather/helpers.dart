@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/classes/data/weather.dart';
 import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:flutter/material.dart';
 import 'package:weather_icons/weather_icons.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 IconData weather2icon(Weather? w) => w == Weather.slightly_rainy
     ? WeatherIcons.rain_mix
@@ -14,7 +15,7 @@ IconData weather2icon(Weather? w) => w == Weather.slightly_rainy
                 : w == Weather.clouds
                     ? WeatherIcons.cloud
                     : w == Weather.wind
-                        ? WeatherIcons.wind
+                        ? WeatherIcons.windy
                         : w == Weather.thunderstorm
                             ? WeatherIcons.thunderstorm
                             : w == Weather.hail
@@ -25,43 +26,34 @@ IconData weather2icon(Weather? w) => w == Weather.slightly_rainy
                                         ? WeatherIcons.strong_wind
                                         : WeatherIcons.na;
 
-String windDir2string(WindDirection? wd) {
-  switch (wd) {
-    case WindDirection.north:
-      return "N";
-    case WindDirection.north_north_east:
-      return "NNO";
-    case WindDirection.north_east:
-      return "NO";
-    case WindDirection.east_north_east:
-      return "ONO";
-    case WindDirection.east:
-      return "O";
-    case WindDirection.east_south_east:
-      return "OSO";
-    case WindDirection.south_east:
-      return "SO";
-    case WindDirection.south_south_east:
-      return "SSO";
-    case WindDirection.south:
-      return "S";
-    case WindDirection.south_south_west:
-      return "SSW";
-    case WindDirection.south_west:
-      return "SW";
-    case WindDirection.west_south_west:
-      return "WSW";
-    case WindDirection.west:
-      return "W";
-    case WindDirection.north_west:
-      return "NW";
-    case WindDirection.north_north_west:
-      return "NNW";
-    default:
-      return "";
-  }
-}
+const $WindDirectionEnumMap = {
+  WindDirection.north: 'N',
+  WindDirection.north_north_east: 'NNO',
+  WindDirection.north_east: 'NO',
+  WindDirection.east_north_east: 'ONO',
+  WindDirection.east: 'O',
+  WindDirection.east_south_east: 'OSO',
+  WindDirection.south_east: 'SO',
+  WindDirection.south_south_east: 'SSO',
+  WindDirection.south: 'S',
+  WindDirection.south_south_west: 'SSW',
+  WindDirection.south_west: 'SW',
+  WindDirection.west_south_west: 'WSW',
+  WindDirection.west: 'W',
+  WindDirection.west_north_west: 'WNW',
+  WindDirection.north_west: 'NW',
+  WindDirection.north_north_west: 'NNW',
+};
 
-IconData windDir2icon(WindDirection? wd) => wd == null
-    ? WeatherIcons.na
-    : WeatherIcons.fromString('towards_${windDir2string(wd).toLowerCase()}');
+String? windDir2string(WindDirection? wd) => $WindDirectionEnumMap[wd];
+
+IconData windDir2icon(WindDirection? wd) => wd != null
+    ? WeatherIcons.fromString('towards_${windDir2string(wd)!.toLowerCase()}')
+    : WeatherIcons.na;
+
+//no idea why i'd need this but hey
+WindDirection? string2windDir(String? s) =>
+    ($WindDirectionEnumMap as Map<WindDirection?, String>)
+        .entries
+        .firstWhere((e) => e.value == s, orElse: () => MapEntry(null, 'null'))
+        .key;
