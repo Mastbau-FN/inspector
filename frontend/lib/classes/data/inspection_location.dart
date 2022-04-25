@@ -4,6 +4,8 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 import "package:latlong2/latlong.dart";
 
+import 'weather.dart';
+
 part 'inspection_location.g.dart';
 
 /// stores all the data needed for a specific location in a type-safe way
@@ -61,13 +63,13 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
 
   //Wetter
   @JsonKey(name: "Temperatur")
-  String? temp;
+  int? temp;
   @JsonKey(name: "Wetter")
-  String? weather;
+  Weather? weather;
   @JsonKey(name: "Wind")
-  String? wind;
+  WindPower? wind_speed;
   @JsonKey(name: "Windrichtung")
-  String? wind_direction;
+  WindDirection? wind_direction;
 
 //XXX: ist das redundand mit den latLng?
   @JsonKey(name: "X")
