@@ -43,6 +43,11 @@ dependencies:
 
   # annotation for classes so i can stay DRY, alternatively this https://javiercbk.github.io/json_to_dart/ would also work
   json_serializable: ^6.1.1
+  # # using a special fork for (de)serialization of enums (used for weather)
+  # json_serializable:
+  #   git:
+  #     url: https://github.com/Mastbau-FN/json_serializable.dart.git
+  #     path: json_serializable
 
   # for editing descriptions 
   flutter_quill: ^4.0.0
