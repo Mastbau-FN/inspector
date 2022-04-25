@@ -50,7 +50,7 @@ class WeatherPreview extends StatelessWidget {
             onChanged(weatherData);
           },
         ),
-        WindPreview(weatherData: weatherData),
+        WindPreview(weatherData: weatherData, onChanged: onChanged),
         TemperaturePreview(temperature: weatherData.temperature),
       ],
     );
@@ -75,13 +75,23 @@ class TemperaturePreview extends StatelessWidget {
 
 class WindPreview extends StatelessWidget {
   final WeatherData weatherData;
-  const WindPreview({required this.weatherData, Key? key}) : super(key: key);
+  final Function(WeatherData) onChanged;
+  const WindPreview(
+      {required this.weatherData, Key? key, required this.onChanged})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        WindDirectionIcon(dir: weatherData.wind_direction),
+        WindDirectionIcon(
+          dir: weatherData.wind_direction,
+          onChanged: (wd) {
+            //XXX: stateful und setState besser?
+            weatherData.wind_direction = wd;
+            onChanged(weatherData);
+          },
+        ),
         WindSpeedIcon(windSpeed: weatherData.wind_speed)
       ],
     );
@@ -106,11 +116,20 @@ class WindSpeedIcon extends StatelessWidget {
 
 class WindDirectionIcon extends StatelessWidget {
   final WindDirection? dir;
-  const WindDirectionIcon({Key? key, required this.dir}) : super(key: key);
+  final Function(WindDirection?) onChanged;
+  const WindDirectionIcon({
+    Key? key,
+    required this.dir,
+    required this.onChanged,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Icon(windDir2icon(dir));
+    return DropDownBuilder<WindDirection>(
+        possibilities: [null, ...WindDirection.values],
+        builder: (dir) => Icon(windDir2icon(dir)),
+        selected: dir,
+        onChanged: onChanged);
   }
 }
 

@@ -24,7 +24,8 @@ environment:
 dependencies:
 
   # special weather icons, like sunny etc
-  weather_icons: ^3.0.0
+  weather_icons: 
+    git: https://github.com/Mastbau-FN/weather_icons.git
 
   # to display current app-version
   package_info_plus: ^1.0.6

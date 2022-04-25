@@ -48,7 +48,8 @@ const $WindDirectionEnumMap = {
 String? windDir2string(WindDirection? wd) => $WindDirectionEnumMap[wd];
 
 IconData windDir2icon(WindDirection? wd) => wd != null
-    ? WeatherIcons.fromString('towards_${windDir2string(wd)!.toLowerCase()}')
+    ? WeatherIcons.fromString('towards_${windDir2string(wd)!.toLowerCase()}',
+        fallback: WeatherIcons.na)
     : WeatherIcons.na;
 
 //no idea why i'd need this but hey

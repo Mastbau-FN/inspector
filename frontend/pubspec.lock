@@ -1248,10 +1248,12 @@ packages:
   weather_icons:
     dependency: "direct main"
     description:
-      name: weather_icons
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.0.0"
+      path: "."
+      ref: HEAD
+      resolved-ref: "47dce008cff9192e76c4fcd762d3dcfcd457f23f"
+      url: "https://github.com/Mastbau-FN/weather_icons.git"
+    source: git
+    version: "0.0.0"
   web_socket_channel:
     dependency: transitive
     description:
