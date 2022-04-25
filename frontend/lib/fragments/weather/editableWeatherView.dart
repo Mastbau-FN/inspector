@@ -51,19 +51,29 @@ class WeatherPreview extends StatelessWidget {
           },
         ),
         WindPreview(weatherData: weatherData, onChanged: onChanged),
-        TemperaturePreview(temperature: weatherData.temperature),
+        TemperaturePreview(
+          temperature: weatherData.temperature,
+          onChanged: (t) {
+            //XXX: stateful und setState besser?
+            weatherData.temperature = t;
+            onChanged(weatherData);
+          },
+        ),
       ],
     );
   }
 }
 
 class TemperaturePreview extends StatelessWidget {
+  final Function(int?) onChanged;
   final int? temperature;
-  const TemperaturePreview({required this.temperature, Key? key})
+  const TemperaturePreview(
+      {required this.temperature, Key? key, required this.onChanged})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    //TODO: make it editable
     return temperature != null
         ? Text(
             "$temperature°C",
