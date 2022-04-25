@@ -1,10 +1,10 @@
 UPDATE "Events"  
 SET 
-"LangText" =$3,
-"Link" = COALESCE($4,"Link"),
-"LinkOrdner" = COALESCE($5,"LinkOrdner"),
-"Zusatz_Info" = $6,
-"ErDat" = $7 /*aktuelles Datum*/ 
+"LangText" =$2,
+"Link" = COALESCE($3,"Link"),
+"LinkOrdner" = COALESCE($4,"LinkOrdner"),
+"Zusatz_Info" = $5,
+"ErDat" = $6 /*aktuelles Datum*/ 
 WHERE
 -- "EREArt" -- @MbgBn hier: was wär hier die nummer um sicherzustellen dass es ein inspektionsort ist?
 -- AND 
