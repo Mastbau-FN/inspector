@@ -147,9 +147,11 @@ class _DropDownBodyState<
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend().delete<ChildData>(data).then(
-                          (value) => showToast(
-                              value ?? S.of(context).deleteUnseccessful)),
+                      delete: () =>
+                          Backend().delete<ChildData>(data).then((value) {
+                        showToast(value ?? S.of(context).deleteUnseccessful);
+                        _refresh();
+                      }),
                       confirm_name: data.title,
                     );
                 } catch (e) {}

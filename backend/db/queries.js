@@ -266,7 +266,7 @@ const delete_ = async (data, KZL) => {
   //console.log([ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL])
   let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]).id;//, false,true);
   // console.log(res)
-  res.success = true;
+  try {res.success = true}catch(e){false&&console.warn('couldnt set success')};
   return res;
 }
 
