@@ -92,7 +92,14 @@ class WindPreview extends StatelessWidget {
             onChanged(weatherData);
           },
         ),
-        WindSpeedIcon(windSpeed: weatherData.wind_speed)
+        WindSpeedIcon(
+          windSpeed: weatherData.wind_speed,
+          onChanged: (wp) {
+            //XXX: stateful und setState besser?
+            weatherData.wind_speed = wp;
+            onChanged(weatherData);
+          },
+        )
       ],
     );
   }
@@ -100,18 +107,28 @@ class WindPreview extends StatelessWidget {
 
 class WindSpeedIcon extends StatelessWidget {
   final WindPower? windSpeed;
-  const WindSpeedIcon({Key? key, required this.windSpeed}) : super(key: key);
+  final Function(WindPower?) onChanged;
+  const WindSpeedIcon(
+      {Key? key, required this.windSpeed, required this.onChanged})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Text(windSpeed == WindPower.none
-        ? "windstill"
-        : windSpeed == WindPower.medium
-            ? "mäßiger wind"
-            : windSpeed == WindPower.strong
-                ? "starker wind"
-                : "unbekannter wind");
+    return DropDownBuilder<WindPower>(
+        possibilities: [null, ...WindPower.values],
+        builder: builder,
+        selected: windSpeed,
+        onChanged: onChanged);
+    ;
   }
+
+  Widget builder(WindPower? wp) => Text(windSpeed == WindPower.none
+      ? "windstill"
+      : windSpeed == WindPower.medium
+          ? "mäßiger wind"
+          : windSpeed == WindPower.strong
+              ? "starker wind"
+              : "unbekannter wind");
 }
 
 class WindDirectionIcon extends StatelessWidget {
