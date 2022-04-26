@@ -24,7 +24,7 @@ SELECT "MGAUFTR"."PjNr", -- Mastbau Projektnummer
 	"V_StO_Koordinaten"."Y",
 	"Insp_STANDORT_Infos"."ASP_required",
 	"Insp_STANDORT_Infos"."Steckdosen_description",
-	"Insp_STANDORT_Infos"."Schlüssel_description"	
+	"Insp_STANDORT_Infos"."Schlüssel_description",	
 	"Insp_STANDORT_Infos"."Temperatur",
 	"Insp_STANDORT_Infos"."Wetter",
 	"Insp_STANDORT_Infos"."Wind",
