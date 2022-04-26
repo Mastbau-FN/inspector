@@ -240,6 +240,7 @@ class LocationDetailPage extends StatelessWidget {
                 locationdata.weatherData = newweather;
                 updateData(locationdata);
               }),
+          Divider(),
         ],
       );
 }

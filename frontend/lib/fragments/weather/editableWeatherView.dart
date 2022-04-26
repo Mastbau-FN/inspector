@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/data/weather.dart';
+import 'package:MBG_Inspektionen/pages/location.dart' as L;
 import 'package:MBG_Inspektionen/widgets/dropDownBuilder.dart';
 import 'package:flutter/material.dart';
 import 'package:weather_icons/weather_icons.dart';
@@ -73,13 +74,12 @@ class TemperaturePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //TODO: make it editable
-    return temperature != null
-        ? Text(
-            "$temperature°C",
-            style: TextStyle(fontSize: 20),
-          )
-        : Icon(WeatherIcons.na);
+    return DropDownBuilder<int>(
+      possibilities: [null, ...List.generate(100, (index) => index - 30)],
+      builder: (i) => Text(i == null ? '--' : (i.toString() + '°C')),
+      selected: temperature,
+      onChanged: onChanged,
+    );
   }
 }
 
@@ -132,13 +132,16 @@ class WindSpeedIcon extends StatelessWidget {
     ;
   }
 
-  Widget builder(WindPower? wp) => Text(windSpeed == WindPower.none
-      ? "windstill"
-      : windSpeed == WindPower.medium
-          ? "mäßiger wind"
-          : windSpeed == WindPower.strong
-              ? "starker wind"
-              : "unbekannter wind");
+  Widget builder(WindPower? wp) => Text(
+        wp == WindPower.none
+            ? "windstill"
+            : wp == WindPower.medium
+                ? "mäßiger wind"
+                : wp == WindPower.strong
+                    ? "starker wind"
+                    : "unbekannter wind",
+        style: TextStyle(fontSize: 8),
+      );
 }
 
 class WindDirectionIcon extends StatelessWidget {
@@ -154,7 +157,15 @@ class WindDirectionIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropDownBuilder<WindDirection>(
         possibilities: [null, ...WindDirection.values],
-        builder: (dir) => Icon(windDir2icon(dir)),
+        builder: (dir) => Row(
+              children: [
+                windDir2icon(dir),
+                Text(
+                  windDir2string(dir) ?? '',
+                  style: TextStyle(fontSize: 8),
+                ),
+              ],
+            ),
         selected: dir,
         onChanged: onChanged);
   }
