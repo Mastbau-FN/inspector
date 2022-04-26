@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/material.dart';
@@ -90,6 +91,8 @@ class LocationDetailPage extends StatelessWidget {
             _previewImg(),
             Container(height: 20),
             _mgauftr(),
+            Container(height: 20),
+            _weatherBlock,
             Container(height: 20),
             _additionalInfo,
             Container(height: 20),
@@ -224,6 +227,20 @@ class LocationDetailPage extends StatelessWidget {
           Text("${locationdata.plz}, ${locationdata.ort}"),
           Container(height: 10),
           _Map(locationdata: locationdata),
+        ],
+      );
+
+  Widget get _weatherBlock => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Divider(),
+          WeatherSet(
+              weatherData: locationdata.weatherData,
+              onChanged: (newweather) {
+                locationdata.weatherData = newweather;
+                updateData(locationdata);
+              }),
+          Divider(),
         ],
       );
 }

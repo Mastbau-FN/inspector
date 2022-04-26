@@ -35,6 +35,11 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..asp_required = json['ASP_required'] as bool?
       ..steckdosen_description = json['Steckdosen_description'] as String?
       ..schlussel_description = json['Schlüssel_description'] as String?
+      ..temp = json['Temperatur'] as int?
+      ..weather = $enumDecodeNullable(_$WeatherEnumMap, json['Wetter'])
+      ..wind_speed = $enumDecodeNullable(_$WindPowerEnumMap, json['Wind'])
+      ..wind_direction =
+          $enumDecodeNullable(_$WindDirectionEnumMap, json['Windrichtung'])
       ..x = json['X'] as String?
       ..y = json['Y'] as String?
       ..imagehashes =
@@ -66,8 +71,50 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'ASP_required': instance.asp_required,
       'Steckdosen_description': instance.steckdosen_description,
       'Schlüssel_description': instance.schlussel_description,
+      'Temperatur': instance.temp,
+      'Wetter': _$WeatherEnumMap[instance.weather],
+      'Wind': _$WindPowerEnumMap[instance.wind_speed],
+      'Windrichtung': _$WindDirectionEnumMap[instance.wind_direction],
       'X': instance.x,
       'Y': instance.y,
       'latLng': _toplevelhelperLatLng_toJson(instance.fallback_coords),
       'images': instance.imagehashes,
     };
+
+const _$WeatherEnumMap = {
+  Weather.slightly_rainy: 'Niesel',
+  Weather.rain: 'Regen',
+  Weather.snow: 'Schnee',
+  Weather.sunny: 'Sonnig',
+  Weather.clouds: 'Wolkig',
+  Weather.wind: 'Windig',
+  Weather.thunderstorm: 'Gewitter',
+  Weather.hail: 'Hagel',
+  Weather.fog: 'Nebel',
+  Weather.storm: 'Sturm',
+};
+
+const _$WindPowerEnumMap = {
+  WindPower.none: 'windstill',
+  WindPower.medium: 'mäßig',
+  WindPower.strong: 'stark',
+};
+
+const _$WindDirectionEnumMap = {
+  WindDirection.north: 'N',
+  WindDirection.north_north_east: 'NNO',
+  WindDirection.north_east: 'NO',
+  WindDirection.east_north_east: 'ONO',
+  WindDirection.east: 'O',
+  WindDirection.east_south_east: 'OSO',
+  WindDirection.south_east: 'SO',
+  WindDirection.south_south_east: 'SSO',
+  WindDirection.south: 'S',
+  WindDirection.south_south_west: 'SSW',
+  WindDirection.south_west: 'SW',
+  WindDirection.west_south_west: 'WSW',
+  WindDirection.west: 'W',
+  WindDirection.west_north_west: 'WNW',
+  WindDirection.north_west: 'NW',
+  WindDirection.north_north_west: 'NNW',
+};

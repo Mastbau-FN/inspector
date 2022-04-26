@@ -15,13 +15,17 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.1.1+30
+version: 1.1.2+31
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
   flutter: ^2.10.0
 
 dependencies:
+
+  # special weather icons, like sunny etc
+  weather_icons: 
+    git: https://github.com/Mastbau-FN/weather_icons.git
 
   # to display current app-version
   package_info_plus: ^1.0.6
@@ -40,6 +44,11 @@ dependencies:
 
   # annotation for classes so i can stay DRY, alternatively this https://javiercbk.github.io/json_to_dart/ would also work
   json_serializable: ^6.1.1
+  # # using a special fork for (de)serialization of enums (used for weather)
+  # json_serializable:
+  #   git:
+  #     url: https://github.com/Mastbau-FN/json_serializable.dart.git
+  #     path: json_serializable
 
   # for editing descriptions 
   flutter_quill: ^4.0.0
