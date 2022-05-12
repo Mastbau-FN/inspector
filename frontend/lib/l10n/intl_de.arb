@@ -25,6 +25,7 @@
   "shareImage": "Fotos teilen",
   "image": "Foto",
   "seeSomeDoggos": "see some Doggos",
+  "heightNotOptional":"Bitte Höhe angeben",
   "settings": "Einstellungen",
   "uploading": "wird hochgeladen...",
   "usernameOrPasswordWasNotGiven": "Name oder Passwort nicht angegeben",

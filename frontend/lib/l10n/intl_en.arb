@@ -24,6 +24,7 @@
   "setAsMainImage": "set as main image",
   "shareImage": "share image",
   "image": "Image",
+  "heightNotOptional":"Please set a height",
   "seeSomeDoggos": "see some Doggos",
   "settings": "Settings",
   "uploading": "uploading..",
