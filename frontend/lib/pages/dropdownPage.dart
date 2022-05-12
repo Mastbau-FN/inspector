@@ -152,6 +152,7 @@ class _DropDownBodyState<
                           (value) => value != null
                               ? (kDebugMode ? showToast(value) : (_) {})
                               : showToast(S.of(context).deleteUnseccessful)),
+
                       confirm_name: data.title,
                     );
                 } catch (e) {}
