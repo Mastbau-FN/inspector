@@ -144,11 +144,12 @@ class LocationDetailPage extends StatelessWidget {
             ),
             Divider(),
             EditableText(
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: false),
               label: S.current.locationHeight,
               text: locationdata.bauwerkhoehe.toString(),
               onChanged: (val) {
-                locationdata.bauwerkhoehe = int.tryParse(val);
+                locationdata.bauwerkhoehe =
+                    int.tryParse(val.replaceAll(new RegExp(r'[^0-9]'), ''));
                 updateData(locationdata);
               },
             ),
