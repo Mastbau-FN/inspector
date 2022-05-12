@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
@@ -148,8 +149,9 @@ class _DropDownBodyState<
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
                       delete: () => Backend().delete<ChildData>(data).then(
-                          (value) => showToast(
-                              value ?? S.of(context).deleteUnseccessful)),
+                          (value) => value != null
+                              ? (kDebugMode ? showToast(value) : (_) {})
+                              : showToast(S.of(context).deleteUnseccessful)),
                       confirm_name: data.title,
                     );
                 } catch (e) {}
