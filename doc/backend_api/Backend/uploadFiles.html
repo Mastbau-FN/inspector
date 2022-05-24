@@ -74,9 +74,13 @@
 ) async {
   &#47;&#47;&#47;&#47;ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
   debugPrint(&#39;uploading images ${files}&#39;);
+  var json_data = data.toJson();
   var res = await post_JSON(
     _uploadImage_r,
-    json: data.toJson(),
+    json: {
+      &#39;type&#39;: Helper.getIdentifierFromData(data),
+      &#39;data&#39;: json.encode(json_data),
+    },
     multipart_files: files,
   ); &#47;&#47;wont work
   if (res?.statusCode != 200) {
@@ -161,7 +165,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.3+33
+      1.1.4+34
   </span>
 
   
