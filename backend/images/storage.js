@@ -24,6 +24,7 @@ const mstorage = multer.diskStorage({
           if (files.length < 3) {
             rf.filename = file.originalname;
             req.body.hash = memorize_link(rf);
+            //this unfortunately wont work, since req.body has no .data
             setMainImgByHash(req, {}, (err, res) => {});
           }
         });
