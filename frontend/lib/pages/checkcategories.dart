@@ -73,7 +73,8 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
           onCancel: onCancel,
           textfield_list: [
             InputData("KurzText", hint: S.current.kurzTextHint),
-            InputData("LangText", hint: S.current.langTextHint),
+            InputData("LangText",
+                hint: S.current.langTextHint, verify: InputData.alwaysCorrect),
           ],
         ),
       );
