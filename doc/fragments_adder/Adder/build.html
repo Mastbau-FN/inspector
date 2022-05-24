@@ -21,8 +21,7 @@
 </head>
 
 
-<body data-base-href="../../"
-      data-using-base-href="false">
+<body data-base-href="../../" data-using-base-href="false">
 
 <div id="overlay-under-drawer"></div>
 
@@ -109,6 +108,7 @@ and</li>
 Widget build(BuildContext context) {
   return Form(
     key: _formKey,
+    &#47;&#47; autovalidateMode: AutovalidateMode.onUserInteraction,
     child: Column(
       children: &lt;Widget&gt;[
         Spacer(),
@@ -131,6 +131,7 @@ Widget build(BuildContext context) {
             &#47;&#47; },
             &#47;&#47; fn: _textfield_focusnode_list[i],
             c: _textfield_controller_list[i],
+            validator: textfield_list[i].verify,
           ),
         ),
         Row(
@@ -144,8 +145,7 @@ Widget build(BuildContext context) {
             _PaddedButton(
               icon: Icons.check_circle,
               onPressed: () {
-                set(context);
-                onCancel?.call(); &#47;&#47;as requested by #118
+                if (set(context)) onCancel?.call(); &#47;&#47;as requested by #118
               },
             ),
           ],
@@ -177,8 +177,8 @@ Widget build(BuildContext context) {
     <h5>Adder class</h5>
     <ol>
 
-    <li class="section-title"><a href="../../fragments_adder/Adder-class.html#constructors">Constructors</a></li>
-    <li><a href="../../fragments_adder/Adder/Adder.html">Adder</a></li>
+        <li class="section-title"><a href="../../fragments_adder/Adder-class.html#constructors">Constructors</a></li>
+          <li><a href="../../fragments_adder/Adder/Adder.html">Adder</a></li>
 
 
     <li class="section-title">
@@ -225,7 +225,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.2+31
+      1.1.3+33
   </span>
 
   
@@ -234,7 +234,7 @@ Widget build(BuildContext context) {
 
 
 <script src="../../static-assets/highlight.pack.js?v1"></script>
-<script src="../../static-assets/script.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
 
 
 

@@ -21,8 +21,7 @@
 </head>
 
 
-<body data-base-href="../"
-      data-using-base-href="false">
+<body data-base-href="../" data-using-base-href="false">
 
 <div id="overlay-under-drawer"></div>
 
@@ -56,19 +55,20 @@
 
 
 
-    <section class="summary offset-anchor" id="constructors">
-      <h2>Constructors</h2>
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
 
-      <dl class="constructor-summary-list">
+    <dl class="constructor-summary-list">
         <dt id="Backend" class="callable">
           <span class="name"><a href="../backend_api/Backend/Backend.html">Backend</a></span><span class="signature">()</span>
         </dt>
         <dd>
-           
-          <div class="constructor-modifier features">factory</div>
+          
+            <div class="constructor-modifier features">factory</div>
         </dd>
-      </dl>
-    </section>
+    </dl>
+  </section>
 
     <section class="summary offset-anchor" id="instance-properties">
       <h2>Properties</h2>
@@ -80,7 +80,7 @@
 
 </dt>
 <dd>
-  removes all locally stored images via <a href="../backend_offlineProvider/backend_offlineProvider-library.html">OP</a> 
+  removes all locally stored images via <a href="../backend_offlineProvider/backend_offlineProvider-library.html">OP</a>
   <div class="features">final</div>
 
 </dd>
@@ -91,7 +91,7 @@
 
 </dt>
 <dd class="inherited">
-  The hash code for this object. <a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">[...]</a>
+  The hash code for this object.
   <div class="features">read-only, inherited</div>
 
 </dd>
@@ -102,7 +102,7 @@
 
 </dt>
 <dd>
-  checks whether anyone is currently logged in 
+  checks whether anyone is currently logged in
   <div class="features">read-only</div>
 
 </dd>
@@ -113,7 +113,7 @@
 
 </dt>
 <dd class="inherited">
-  A representation of the runtime type of the object. 
+  A representation of the runtime type of the object.
   <div class="features">read-only, inherited</div>
 
 </dd>
@@ -124,7 +124,7 @@
 
 </dt>
 <dd>
-  gets the currently logged in <code>DisplayUser</code>, which is the current <a href="../classes_user/User-class.html">User</a> but with removed <a href="../classes_user/User/pass.html">User.pass</a> to avoid abuse 
+  gets the currently logged in <code>DisplayUser</code>, which is the current <a href="../classes_user/User-class.html">User</a> but with removed <a href="../classes_user/User/pass.html">User.pass</a> to avoid abuse
   <div class="features">read-only</div>
 
 </dd>
@@ -132,9 +132,12 @@
       </dl>
     </section>
 
-    <section class="summary offset-anchor" id="instance-methods">
-      <h2>Methods</h2>
-      <dl class="callables">
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
         <dt id="connectionGuard" class="callable">
   <span class="name"><a href="../backend_api/Backend/connectionGuard.html">connectionGuard</a></span><span class="signature">(<wbr><span class="parameter" id="connectionGuard-param-timeout">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>}</span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a></span>
@@ -144,7 +147,7 @@
 </dt>
 <dd>
   checks whether a connection to the backend is possible
-throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html">NoConnectionToBackendException</a> or <a href="https://api.flutter.dev/flutter/dart-io/SocketException-class.html">SocketException</a> if its not. 
+throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html">NoConnectionToBackendException</a> or <a href="https://api.flutter.dev/flutter/dart-io/SocketException-class.html">SocketException</a> if its not.
   
 
 </dd>
@@ -157,7 +160,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
 </dt>
 <dd>
-  deletes a <code>DataT</code> and returns the response 
+  deletes a <code>DataT</code> and returns the response
   
 
 </dd>
@@ -170,7 +173,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 
 </dt>
 <dd>
-  deletes an image specified by its hash and returns the response 
+  deletes an image specified by its hash and returns the response
   
 
 </dd>
@@ -184,7 +187,7 @@ throws <a href="../classes_exceptions/NoConnectionToBackendException-class.html"
 </dt>
 <dd>
   gets all the <code>ChildData</code>points for the given <code>ParentData</code>
-if no <code>ParentData</code> is given it defaults to root 
+if no <code>ParentData</code> is given it defaults to root
   
 
 </dd>
@@ -197,7 +200,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  checks whether the given user is currently logged in 
+  checks whether the given user is currently logged in
   
 
 </dd>
@@ -210,7 +213,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  login a <a href="../classes_user/User-class.html">User</a> by checking if he exists in the remote database 
+  login a <a href="../classes_user/User-class.html">User</a> by checking if he exists in the remote database
   
 
 </dd>
@@ -223,7 +226,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  removes the credentials from local storage and therefors logs out 
+  removes the credentials from local storage and therefors logs out
   
 
 </dd>
@@ -236,7 +239,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  make an actual API request to a route, and always append the API_KEY as authorization-header 
+  make an actual API request to a route, and always append the API_KEY as authorization-header
   
 
 </dd>
@@ -249,7 +252,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd class="inherited">
-  Invoked when a non-existent method or property is accessed. <a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">[...]</a>
+  Invoked when a non-existent method or property is accessed.
   <div class="features">inherited</div>
 
 </dd>
@@ -262,7 +265,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  make an actual API request to a route, and always append the API_KEY as authorization-header 
+  make an actual API request to a route, and always append the API_KEY as authorization-header
   
 
 </dd>
@@ -275,7 +278,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  post_JSON to our backend as the user 
+  post_JSON to our backend as the user
   
 
 </dd>
@@ -288,7 +291,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-   
+  
   
 
 </dd>
@@ -301,7 +304,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-   
+  
   
 
 </dd>
@@ -314,7 +317,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  sets an image specified by its hash as the new main image 
+  sets an image specified by its hash as the new main image
   
 
 </dd>
@@ -327,7 +330,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  sets a new <code>DataT</code> 
+  sets a new <code>DataT</code>
   
 
 </dd>
@@ -340,7 +343,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd class="inherited">
-  A string representation of this object. <a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">[...]</a>
+  A string representation of this object.
   <div class="features">inherited</div>
 
 </dd>
@@ -353,7 +356,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  updates a <code>DataT</code> and returns the response 
+  updates a <code>DataT</code> and returns the response
   
 
 </dd>
@@ -366,17 +369,19 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd>
-  upload a bunch of images 
+  upload a bunch of images
   
 
 </dd>
 
-      </dl>
-    </section>
-
-    <section class="summary offset-anchor inherited" id="operators">
-      <h2>Operators</h2>
-      <dl class="callables">
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
         <dt id="operator ==" class="callable inherited">
   <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
@@ -385,15 +390,16 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dt>
 <dd class="inherited">
-  The equality operator. <a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">[...]</a>
+  The equality operator.
   <div class="features">inherited</div>
 
 </dd>
 
-      </dl>
-    </section>
-
-
+    </dl>
+  </section>
+    
+    
+    
 
 
   </div> <!-- /.main-content -->
@@ -434,8 +440,8 @@ if no <code>ParentData</code> is given it defaults to root
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
     <ol>
 
-    <li class="section-title"><a href="../backend_api/Backend-class.html#constructors">Constructors</a></li>
-    <li><a href="../backend_api/Backend/Backend.html">Backend</a></li>
+        <li class="section-title"><a href="../backend_api/Backend-class.html#constructors">Constructors</a></li>
+          <li><a href="../backend_api/Backend/Backend.html">Backend</a></li>
 
 
     <li class="section-title">
@@ -482,7 +488,7 @@ if no <code>ParentData</code> is given it defaults to root
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.2+31
+      1.1.3+33
   </span>
 
   
@@ -491,7 +497,7 @@ if no <code>ParentData</code> is given it defaults to root
 
 
 <script src="../static-assets/highlight.pack.js?v1"></script>
-<script src="../static-assets/script.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
 
 
 

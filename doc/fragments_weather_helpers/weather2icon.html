@@ -21,8 +21,7 @@
 </head>
 
 
-<body data-base-href="../"
-      data-using-base-href="false">
+<body data-base-href="../" data-using-base-href="false">
 
 <div id="overlay-under-drawer"></div>
 
@@ -63,27 +62,15 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">IconData weather2icon(Weather? w) =&gt; w == Weather.slightly_rainy
-    ? WeatherIcons.rain_mix
-    : w == Weather.rain
-        ? WeatherIcons.rain
-        : w == Weather.snow
-            ? WeatherIcons.snow
-            : w == Weather.sunny
-                ? WeatherIcons.day_sunny
-                : w == Weather.clouds
-                    ? WeatherIcons.cloud
-                    : w == Weather.wind
-                        ? WeatherIcons.windy
-                        : w == Weather.thunderstorm
-                            ? WeatherIcons.thunderstorm
-                            : w == Weather.hail
-                                ? WeatherIcons.hail
-                                : w == Weather.fog
-                                    ? WeatherIcons.fog
-                                    : w == Weather.storm
-                                        ? WeatherIcons.strong_wind
-                                        : WeatherIcons.na;</code></pre>
+  <pre class="language-dart"><code class="language-dart">IconData weather2icon(Weather? w) =&gt; w == Weather.rain
+    ? WeatherIcons.rain
+    : w == Weather.kinda_cloudy_but_some_sunshine
+        ? WeatherIcons.day_cloudy
+        : w == Weather.sunny
+            ? WeatherIcons.day_sunny
+            : w == Weather.clouds
+                ? WeatherIcons.cloud
+                : WeatherIcons.na;</code></pre>
 </section>
 
 
@@ -132,7 +119,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.2+31
+      1.1.3+33
   </span>
 
   
@@ -141,7 +128,7 @@
 
 
 <script src="../static-assets/highlight.pack.js?v1"></script>
-<script src="../static-assets/script.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
 
 
 
