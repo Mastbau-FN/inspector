@@ -144,11 +144,12 @@ class LocationDetailPage extends StatelessWidget {
             ),
             Divider(),
             EditableText(
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: false),
               label: S.current.locationHeight,
               text: locationdata.bauwerkhoehe.toString(),
               onChanged: (val) {
-                locationdata.bauwerkhoehe = int.tryParse(val);
+                locationdata.bauwerkhoehe =
+                    int.tryParse(val.replaceAll(new RegExp(r'[^0-9]'), ''));
                 updateData(locationdata);
               },
             ),
@@ -527,9 +528,9 @@ class __SchluesselState extends State<_Schluessel> {
         if (isOn ?? true)
           EditableText(
             label: S.current.locationKeyAddintionalInfoLabel,
-            text: locationdata.schlussel_description,
+            text: locationdata.schluessel_description,
             onChanged: (val) {
-              locationdata.schlussel_description;
+              locationdata.schluessel_description = val;
               widget.updateData(locationdata);
             },
           ),
