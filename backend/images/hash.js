@@ -48,8 +48,11 @@ const memorize = (rootpath, link, filename) => {
   return key;
 };
 
+const memorize_link = (link)=>memorize(link.rootfolder, link.link, link.filename);
+
 module.exports = {
   getFileFromHash,
   getPathFromHash,
   memorize,
+  memorize_link,
 };
