@@ -8,6 +8,7 @@ import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 
@@ -30,7 +31,9 @@ class ImagesPage<T extends Object> extends StatelessWidget {
 
   static _defaultDelete(Object id) async {
     try {
-      showToast((await Backend().deleteImageByHash(id.toString())).toString());
+      if (kDebugMode)
+        showToast(
+            (await Backend().deleteImageByHash(id.toString())).toString());
     } catch (e) {
       showToast(e.toString());
     }
@@ -283,8 +286,9 @@ class _ImageAddButtonState extends State<ImageAddButton>
         ? await widget.onNewImages([pic])
         : S.of(context).sorryNoImageToUpload;
     debugPrint(resstring);
-    showToast(resstring ??
-        S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
+    if (kDebugMode)
+      showToast(resstring ??
+          S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
     collapse();
   }
 
@@ -315,8 +319,9 @@ class _ImageAddButtonState extends State<ImageAddButton>
           // multipicker is a great solution for now, but could be much better (maybe use adder fragment)
           final List<XFile>? new_images = await widget._picker.pickMultiImage();
           var resstring = await widget.onNewImages(new_images ?? []);
-          showToast(resstring ??
-              S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
+          if (kDebugMode)
+            showToast(resstring ??
+                S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
         },
       );
 
