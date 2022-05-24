@@ -22,7 +22,7 @@ const mstorage = multer.diskStorage({
       if (set_first_image_as_main && rf.mainImg == no_image_placeholder_name)
         fs.readdir(path, {}, (err, files) => {
           if (files.length < 3) {
-            rf.mainImg = file.originalname;
+            rf.filename = file.originalname;
             req.body.hash = memorize_link(rf);
             setMainImgByHash(req, {}, (err, res) => {});
           }
