@@ -17,6 +17,7 @@ const mstorage = multer.diskStorage({
     });
   },
   filename: (req, file, cb) => {
+    //TODO: if destination (extract above) is empty -> set the new image as main (aka as req.body.Link; update)
     cb(null, file.originalname);
   },
 });
