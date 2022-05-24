@@ -72,12 +72,12 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
 
+  // this should be ignored by json codegen, but isnt?
   WeatherData get weatherData => WeatherData(
       temperature: temp,
       weather: weather,
       wind_speed: wind_speed,
       wind_direction: wind_direction);
-
   set weatherData(WeatherData value) {
     temp = value.temperature;
     weather = value.weather;
