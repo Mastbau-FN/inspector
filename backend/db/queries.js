@@ -194,15 +194,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
 /**
  *
  * this does pretty much the same as addNew
- * @param data consisting of type and data
+ * @param body consisting of type and data
  * @returns  an empty  Promise
  */
- const update = async (data) => {
+ const update = async (body) => {
   const folder = "update";
- let ld = data.data;
+ let ld = body.data;
  let params;
  let queryfile;
- switch (data.type) {
+ switch (body.type) {
    case identifiers.category:
      //console.log("updating category")
      //console.log(ld.Link);
@@ -229,7 +229,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
     break;
  
    default:
-     console.log(`someone tried to update ${data.type}`);
+     console.log(`someone tried to update ${body.type}`);
      return;
  }
  let res = await queryFileWithParams(queryfile, params);
