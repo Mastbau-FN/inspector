@@ -8,7 +8,7 @@ const { setMainImgByHash } = require("../api");
 
 const fs = require("fs");
 const multer = require("multer");
-const { set_first_image_as_main } = require("../options");
+const { set_first_image_as_main, no_image_placeholder_name } = require("../options");
 
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
@@ -19,7 +19,7 @@ const mstorage = multer.diskStorage({
       fs.mkdirSync(path, { recursive: true });
       cb(null, path);
       //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
-      if (set_first_image_as_main)
+      if (set_first_image_as_main && rf.mainImg == no_image_placeholder_name)
         fs.readdir(path, {}, (err, files) => {
           if (files.length < 3) {
             rf.mainImg = file.originalname;
