@@ -448,7 +448,10 @@ class Backend {
     debugPrint('uploading images ${files}');
     var res = await post_JSON(
       _uploadImage_r,
-      json: data.toJson(),
+      json: {
+        'type': Helper.getIdentifierFromData(data),
+        'data': data.toJson(),
+      },
       multipart_files: files,
     ); //wont work
     if (res?.statusCode != 200) {
