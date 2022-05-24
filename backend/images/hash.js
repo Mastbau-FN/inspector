@@ -1,6 +1,6 @@
 const imgfiler = require("./filesystem");
 
-const hashkeks = require('crypto');
+const crypto = require('crypto');
 
 // XXX: for #92 use https://www.npmjs.com/package/data-store
 const NanoCache = require("nano-cache");
@@ -38,7 +38,7 @@ const getPathFromHash = (hash) => {
 
 const memorize = (rootpath, link, filename) => {
   // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
-  let key = (filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : hashkeks.createHash('sha1').update(rootpath + link + filename+ 'v1').digest('base64');
+  let key = (filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename+ 'v1').digest('base64');
 
   //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
   cache.set(key + "r", rootpath);
@@ -48,8 +48,11 @@ const memorize = (rootpath, link, filename) => {
   return key;
 };
 
+const memorize_link = (link)=>memorize(link.rootfolder, link.link, link.filename);
+
 module.exports = {
   getFileFromHash,
   getPathFromHash,
   memorize,
+  memorize_link,
 };
