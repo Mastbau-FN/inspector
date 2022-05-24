@@ -60,7 +60,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Steckdosen_description")
   String? steckdosen_description;
   @JsonKey(name: "Schlüssel_description")
-  String? schlussel_description;
+  String? schluessel_description;
 
   //Wetter
   @JsonKey(name: "Temperatur")

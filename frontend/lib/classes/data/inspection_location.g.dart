@@ -34,7 +34,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..steigschutzschluessel = json['Steigschutzschluessel'] as String?
       ..asp_required = json['ASP_required'] as bool?
       ..steckdosen_description = json['Steckdosen_description'] as String?
-      ..schlussel_description = json['Schlüssel_description'] as String?
+      ..schluessel_description = json['Schlüssel_description'] as String?
       ..temp = json['Temperatur'] as int?
       ..weather = $enumDecodeNullable(_$WeatherEnumMap, json['Wetter'])
       ..wind_speed = $enumDecodeNullable(_$WindPowerEnumMap, json['Wind'])
@@ -70,7 +70,7 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Steigschutzschluessel': instance.steigschutzschluessel,
       'ASP_required': instance.asp_required,
       'Steckdosen_description': instance.steckdosen_description,
-      'Schlüssel_description': instance.schlussel_description,
+      'Schlüssel_description': instance.schluessel_description,
       'Temperatur': instance.temp,
       'Wetter': _$WeatherEnumMap[instance.weather],
       'Wind': _$WindPowerEnumMap[instance.wind_speed],

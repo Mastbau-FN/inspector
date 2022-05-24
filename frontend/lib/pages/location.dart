@@ -528,9 +528,9 @@ class __SchluesselState extends State<_Schluessel> {
         if (isOn ?? true)
           EditableText(
             label: S.current.locationKeyAddintionalInfoLabel,
-            text: locationdata.schlussel_description,
+            text: locationdata.schluessel_description,
             onChanged: (val) {
-              locationdata.schlussel_description;
+              locationdata.schluessel_description = val;
               widget.updateData(locationdata);
             },
           ),
