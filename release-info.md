@@ -1,3 +1,4 @@
 # changes
 
-- wetterinformationen ❄️
+- 🐛 multiple bugfixes
+- ❄️ less weather possibilities (as wished)
