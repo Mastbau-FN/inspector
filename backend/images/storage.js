@@ -13,6 +13,8 @@ const { set_first_image_as_main, no_image_placeholder_name } = require("../optio
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
+    req.body.data = JSON.parse(req.body.data);
+    console.log(req.body.data)
     rootfolder(req.body.data).then((rf) => {
       console.log("multi-upload", rf);
       const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
@@ -21,11 +23,12 @@ const mstorage = multer.diskStorage({
       //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
       if (set_first_image_as_main && rf.mainImg == no_image_placeholder_name)
         fs.readdir(path, {}, (err, files) => {
-          if (files.length < 3) {
+          if (files.length < 2) {
+            console.log(files)
             rf.filename = file.originalname;
             req.body.hash = memorize_link(rf)
             console.log(req.body)
-            setMainImgByHash(req, {}, (err, res) => {});
+            setMainImgByHash(req, {status: ()=>{}}, (err, res) => {});
           }
         });
     });
