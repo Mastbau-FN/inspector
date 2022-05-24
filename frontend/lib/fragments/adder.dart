@@ -202,11 +202,11 @@ class Adder extends StatelessWidget implements JsonExtractable {
     );
   }
 
-  void set(context) {
+  bool set(context) {
     if (!_formKey.currentState!.validate()) {
       //removed for now since formdata validate already shows problem
-      //_alert(context);
-      return;
+      // _alert(context);
+      return false;
     }
 
     for (var i = 0; i < textfield_list.length; i++) {
@@ -217,6 +217,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
       json[name]![child.name] = child.json;
     });
     onSet?.call(json);
+    return true;
   }
 
   //XXX: i kinda feel bad about a static key, wouldnt all adders have the same key now?
@@ -228,6 +229,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
+      // autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         children: <Widget>[
           Spacer(),
@@ -250,6 +252,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
               // },
               // fn: _textfield_focusnode_list[i],
               c: _textfield_controller_list[i],
+              validator: textfield_list[i].verify,
             ),
           ),
           Row(
@@ -263,8 +266,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
               _PaddedButton(
                 icon: Icons.check_circle,
                 onPressed: () {
-                  set(context);
-                  onCancel?.call(); //as requested by #118
+                  if (set(context)) onCancel?.call(); //as requested by #118
                 },
               ),
             ],
