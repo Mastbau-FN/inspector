@@ -50,10 +50,10 @@ const _addfoldername = async (data)=>{
   //let data_copy = _removeHighestLevel(data);
   data.Link = null;
   //to then get parent folder
-  const {rootfolder, link, mainImg} = await getLink(data);
+  const {rootfolder, link, filename} = await getLink(data);
 
    //ODO: check if this worked
-  data.Link = path.join(rootfolder,link,mainImg)
+  data.Link = path.join(rootfolder,link,filename)
   data.LinkOrdner = path.join(rootfolder,link)
 
   return data;
@@ -327,9 +327,9 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
 
     
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
-  let mainImg = path.basename(convertpath(_link));
+  let filename = path.basename(convertpath(_link));
 
-  const res = { rootfolder, link, mainImg };
+  const res = { rootfolder, link, filename };
 
   if(andSet)_magic_setLink(data,res);
 
@@ -374,12 +374,12 @@ const hashImagesAndCreateIds = async (tthis) => {
   // console.log({hashing: tthis})
   for (var thingy of tthis) {
     if (thingy.Link) {
-      let { rootfolder, link, mainImg } = await getLink(thingy);
+      let { rootfolder, link, filename } = await getLink(thingy);
 
       // get all *other* image names
       let imageNames = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      ).filter((v) => v != mainImg);
+      ).filter((v) => v != filename);
 
       // append their hashes to the returned obj
       const images = 
@@ -390,11 +390,11 @@ const hashImagesAndCreateIds = async (tthis) => {
       // console.log(images)
 
       // set main image at first index
-      let mainHash = imghasher.memorize(rootfolder, link, mainImg);
+      let mainHash = imghasher.memorize(rootfolder, link, filename);
       images.unshift(mainHash);
 
       thingy['images'] = images??["error_ couldnt set image hashes"];
-      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainImg,mainHash});
+      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {filename,mainHash});
   }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
@@ -433,7 +433,7 @@ const __magic_part = (data)=>
  * this query is used to update the Link and LinkOrdner, by identifying it via its event levels instead of an index
  * @returns nothing really
  */
-const _magic_setLink = (data, {link, mainImg})=>pool.asyncQuery(
+const _magic_setLink = (data, {link, filename})=>pool.asyncQuery(
   `
     UPDATE
      "Events"
@@ -448,7 +448,7 @@ const _magic_setLink = (data, {link, mainImg})=>pool.asyncQuery(
   + __magic_part(data)
   +`);`,
 
-  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,mainImg)]
+  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,filename)]
 );
 
 const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
