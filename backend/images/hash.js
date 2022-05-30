@@ -32,23 +32,23 @@ const getPathFromHash = (hash) => {
   return {
     rootpath: cache.get(hash + "r") ?? throwE(),
     link:     cache.get(hash + "l") ?? throwE(),
-    filename: cache.get(hash + "f") ?? throwE()
+    mainfilename: cache.get(hash + "f") ?? throwE()
   }
 };
 
-const memorize = (rootpath, link, filename) => {
+const memorize = (rootpath, link, mainfilename) => {
   // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
-  let key = (filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename+ 'v1').digest('base64');
+  let key = (mainfilename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + mainfilename+ 'v1').digest('base64');
 
   //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
   cache.set(key + "r", rootpath);
   cache.set(key + "l", link);
-  cache.set(key + "f", filename);
+  cache.set(key + "f", mainfilename);
 
   return key;
 };
 
-const memorize_link = (link)=>memorize(link.rootfolder, link.link, link.filename);
+const memorize_link = (link)=>memorize(link.rootfolder, link.link, link.mainfilename);
 
 module.exports = {
   getFileFromHash,

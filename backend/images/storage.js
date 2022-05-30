@@ -21,10 +21,10 @@ const mstorage = multer.diskStorage({
       fs.mkdirSync(path, { recursive: true });
       cb(null, path);
       //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
-      if (set_first_image_as_main && rf.filename == no_image_placeholder_name)
+      if (set_first_image_as_main && rf.mainfilename == no_image_placeholder_name)
         fs.readdir(path, {}, (err, files) => {
-          rf.filename = file.originalname;
-          if (files.length < (1 + files.includes(rf.filename))) { //lil race condition workaround: if file already added length is increased by 1
+          rf.mainfilename = file.originalname;
+          if (files.length < (1 + files.includes(rf.mainfilename))) { //lil race condition workaround: if file already added length is increased by 1
             // console.log(files)
             req.body.hash = memorize_link(rf)
             // console.log(req.body)
@@ -33,7 +33,7 @@ const mstorage = multer.diskStorage({
         });
     });
   },
-  filename: (req, file, cb) => {
+  mainfilename: (req, file, cb) => {
     cb(null, file.originalname);
   },
 });

@@ -13,8 +13,8 @@ const formatpath = (path) => {
   return path;
 };
 
-const getImageFrom = (rootpath, link, filename) => {
-  let pathname = formatpath(pathm.join(rootpath, link, filename));
+const getImageFrom = (rootpath, link, mainfilename) => {
+  let pathname = formatpath(pathm.join(rootpath, link, mainfilename));
   ////console.log("serving: "+pathname);
   return fsp.readFile(pathname);}
 

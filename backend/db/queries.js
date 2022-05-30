@@ -50,10 +50,10 @@ const _addfoldername = async (data)=>{
   //let data_copy = _removeHighestLevel(data);
   data.Link = null;
   //to then get parent folder
-  const {rootfolder, link, filename} = await getLink(data);
+  const {rootfolder, link, mainfilename} = await getLink(data);
 
    //ODO: check if this worked
-  data.Link = path.join(rootfolder,link,filename)
+  data.Link = path.join(rootfolder,link,mainfilename)
   data.LinkOrdner = path.join(rootfolder,link)
 
   return data;
@@ -327,9 +327,9 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
 
     
   let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
-  let filename = path.basename(convertpath(_link));
+  let mainfilename = path.basename(convertpath(_link));
 
-  const res = { rootfolder, link, filename };
+  const res = { rootfolder, link, mainfilename };
 
   if(andSet)_magic_setLink(data,res);
 
@@ -340,14 +340,14 @@ const deleteImgByHash = async (hash)=>{
   let p = imghasher.getPathFromHash(hash);
   //console.log(p)
   //TODO: errorhandling
-  const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
+  const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.mainfilename));
   const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
   try {
     await fsp.mkdir(newDir)
   } catch (error) {
     
   }
-  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/' , p.filename));
+  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/' , p.mainfilename));
   console.log(oldpath,newpath)
   let ret = await fsp.rename( oldpath , newpath );
   return {response: ret}
@@ -374,12 +374,12 @@ const hashImagesAndCreateIds = async (tthis) => {
   // console.log({hashing: tthis})
   for (var thingy of tthis) {
     if (thingy.Link) {
-      let { rootfolder, link, filename } = await getLink(thingy);
+      let { rootfolder, link, mainfilename } = await getLink(thingy);
 
       // get all *other* image names
       let imageNames = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      ).filter((v) => v != filename);
+      ).filter((v) => v != mainfilename);
 
       // append their hashes to the returned obj
       const images = 
@@ -390,11 +390,11 @@ const hashImagesAndCreateIds = async (tthis) => {
       // console.log(images)
 
       // set main image at first index
-      let mainHash = imghasher.memorize(rootfolder, link, filename);
+      let mainHash = imghasher.memorize(rootfolder, link, mainfilename);
       images.unshift(mainHash);
 
       thingy['images'] = images??["error_ couldnt set image hashes"];
-      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {filename,mainHash});
+      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {mainfilename,mainHash});
   }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
@@ -433,7 +433,7 @@ const __magic_part = (data)=>
  * this query is used to update the Link and LinkOrdner, by identifying it via its event levels instead of an index
  * @returns nothing really
  */
-const _magic_setLink = (data, {link, filename})=>pool.asyncQuery(
+const _magic_setLink = (data, {link, mainfilename})=>pool.asyncQuery(
   `
     UPDATE
      "Events"
@@ -448,7 +448,7 @@ const _magic_setLink = (data, {link, filename})=>pool.asyncQuery(
   + __magic_part(data)
   +`);`,
 
-  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,filename)]
+  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,mainfilename)]
 );
 
 const _magic_query = (data,hasLink = true)=>pool.asyncQuery(

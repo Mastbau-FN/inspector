@@ -157,8 +157,8 @@ const deleteImgByHash = (req, res, next) =>
 
 const setMainImgByHash = (req, res, next) => {
   const pathparts = imghasher.getPathFromHash(req.body.hash);
-  const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
-  // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
+  const newLink = path.join(pathparts.link, pathparts.mainfilename); // LinkOrdner+/+mainfilename 
+  // const newLink = path.join(pathparts.mainfilename); // LinkOrdner+/+mainfilename 
   console.log(req.body.hash,newLink);
   req.body.data.Link = newLink;
   return update(req, res, next);
