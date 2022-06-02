@@ -1,3 +1,5 @@
 # changes
 
-- wetterinformationen ❄️
+- 🐛 multiple bugfixes
+- ❄️ less weather possibilities (as wished)
+- ⭐️ automatic initialization of main image

@@ -4,27 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:weather_icons/weather_icons.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-IconData weather2icon(Weather? w) => w == Weather.slightly_rainy
-    ? WeatherIcons.rain_mix
-    : w == Weather.rain
-        ? WeatherIcons.rain
-        : w == Weather.snow
-            ? WeatherIcons.snow
-            : w == Weather.sunny
-                ? WeatherIcons.day_sunny
-                : w == Weather.clouds
-                    ? WeatherIcons.cloud
-                    : w == Weather.wind
-                        ? WeatherIcons.windy
-                        : w == Weather.thunderstorm
-                            ? WeatherIcons.thunderstorm
-                            : w == Weather.hail
-                                ? WeatherIcons.hail
-                                : w == Weather.fog
-                                    ? WeatherIcons.fog
-                                    : w == Weather.storm
-                                        ? WeatherIcons.strong_wind
-                                        : WeatherIcons.na;
+IconData weather2icon(Weather? w) => w == Weather.rain
+    ? WeatherIcons.rain
+    : w == Weather.kinda_cloudy_but_some_sunshine
+        ? WeatherIcons.day_cloudy
+        : w == Weather.sunny
+            ? WeatherIcons.day_sunny
+            : w == Weather.clouds
+                ? WeatherIcons.cloud
+                : WeatherIcons.na;
 
 const $WindDirectionEnumMap = {
   WindDirection.north: 'N',

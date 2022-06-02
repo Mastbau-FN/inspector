@@ -459,9 +459,13 @@ class Backend {
   ) async {
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
     debugPrint('uploading images ${files}');
+    var json_data = data.toJson();
     var res = await post_JSON(
       _uploadImage_r,
-      json: data.toJson(),
+      json: {
+        'type': Helper.getIdentifierFromData(data),
+        'data': json.encode(json_data),
+      },
       multipart_files: files,
     ); //wont work
     if (res?.statusCode != 200) {
