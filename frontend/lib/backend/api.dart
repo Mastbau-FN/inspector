@@ -303,10 +303,8 @@ class Backend {
         json: json,
         timeout: Duration(seconds: 10),
       ));
-      final body = res?.forceRes()?.body;
-      _json = jsonDecode(
-        body ?? '{"error":"failed decoding json"}',
-      );
+      final body = res!.forceRes()!.body;
+      _json = jsonDecode(body);
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
       try {
