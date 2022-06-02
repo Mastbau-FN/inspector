@@ -142,7 +142,9 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   DropDownModel(this.currentData);
 
   /// returns a [List] of all the [Data] for this Model
-  Future<List<ChildData>> get all => Backend().getNextDatapoint(currentData);
+  Future<List<ChildData>> get all => Backend()
+      .getNextDatapoint<ChildData, ParentData>(currentData)
+      .last; //TODO: not use last, but buffer latest element somehow if even possible?
 
   /// a [List] which all the actions that could be made for a specific DropDown
   List<MyListTileData> get actions {

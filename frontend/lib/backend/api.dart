@@ -239,15 +239,16 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> _fetchImage_fut(String hash) async {
     bool cacheHit = false;
-    try {
-      final img = await OP.readImage(hash);
-      if (img == null) throw Exception("no img cached");
-      return ImageData(img, id: hash);
-      cacheHit = true;
-    } catch (e) {
-      //yield null;
-    }
-    if (!cacheHit || Options.preferRemoteImages) {
+    if (!Options.preferRemoteImages) {
+      try {
+        final img = await OP.readImage(hash);
+        if (img == null) throw Exception("no img cached");
+        return ImageData(img, id: hash);
+        cacheHit = true;
+      } catch (e) {
+        //yield null;
+      }
+    } else {
       http.Response? res = (await post_JSON(
         _getImageFromHash_r,
         json: {
@@ -320,18 +321,57 @@ class Backend {
   }
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
-  Future<List<ChildData>>
+  Stream<List<ChildData>>
       _getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
     required String route,
     required String jsonResponseID,
     Map<String, dynamic>? json,
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
-  }) async {
+  }) async* {
+    await for (var l in __getAllForNextLevel(
+        route: route,
+        jsonResponseID: jsonResponseID,
+        fromJson: fromJson,
+        id: id,
+        json: json)) {
+      debugPrint('new value $l');
+      yield l;
+    }
+  }
+
+  Stream<List<ChildData>>
+      __getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
+    required String route,
+    required String jsonResponseID,
+    Map<String, dynamic>? json,
+    required ChildData? Function(Map<String, dynamic>) fromJson,
+    String? id,
+  }) async* {
+    // yield [];
     assert(
         (await user) != null, S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
     String _id = id ?? json?['local_id'] ?? (await user)!.name;
     Map<String, dynamic> _json = {};
+    Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
+        _generateImageFetcher(fromJson);
+
+    Future<List<ChildData>> __parse(__json) => getListFromJson(
+          __json,
+          imageFetcher,
+          // _generateImageFetcher(fromJson),
+          objName: jsonResponseID,
+        );
+
+    try {
+      _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
+          // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
+          (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
+      yield await __parse(_json);
+    } catch (e) {
+      debugPrint("couldnt read data from disk..: " + e.toString());
+    }
+
     try {
       final res = (await post_JSON(
         route,
@@ -340,30 +380,19 @@ class Backend {
       ));
       final body = res!.forceRes()!.body;
       _json = jsonDecode(body);
+      var datapoints = await __parse(_json);
+      yield datapoints;
+      for (var data in datapoints) {
+        String childId = await OP.storeData(data, forId: _id);
+        if (Options.debugLocalMirror)
+          debugPrint("stored new child with id: " + childId);
+      }
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
-      try {
-        _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
-            // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
-            (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
-      } catch (e) {
-        debugPrint("also couldnt read data from disk..: " + e.toString());
-        return [];
-      }
     }
+
     if (Options.debugAllResponses)
       debugPrint("_getAllForNextLevel received: " + jsonEncode(json));
-    final datapoints = await getListFromJson(
-      _json,
-      _generateImageFetcher(fromJson),
-      objName: jsonResponseID,
-    );
-    for (var data in datapoints) {
-      String childId = await OP.storeData(data, forId: _id);
-      if (Options.debugLocalMirror)
-        debugPrint("stored new child with id: " + childId);
-    }
-    return datapoints;
   }
 
   /// sends a [DataT] with the corresponding identifier to the given route
@@ -436,7 +465,7 @@ class Backend {
 
   /// gets all the [ChildData]points for the given [ParentData]
   /// if no [ParentData] is given it defaults to root
-  Future<List<ChildData>>
+  Stream<List<ChildData>>
       getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
     ParentData data,
   ) {

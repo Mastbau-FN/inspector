@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Options {
   static const canUseMobileNetworkIfPossible = true;
-  static var preferRemoteImages = true;
+  static var preferRemoteImages = false;
   static const debugAllResponses = false;
   static const debugLocalMirror = true;
   static const debugImages = false;
