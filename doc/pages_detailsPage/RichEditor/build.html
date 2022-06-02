@@ -105,20 +105,9 @@ and</li>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget build(BuildContext context) =&gt; Column(
-      children: [
-        if (isEditing)
-          q.QuillToolbar.basic(locale: Locale(&#39;de&#39;), controller: _controller),
-        Expanded(
-          child: Container(
-            child: q.QuillEditor.basic(
-              controller: _controller,
-              readOnly: !isEditing,
-            ),
-          ),
-        )
-      ],
-    );</code></pre>
+Widget build(BuildContext context) {
+  throw UnimplementedError(&quot;depricated&quot;);
+}</code></pre>
 </section>
 
 
@@ -186,7 +175,7 @@ Widget build(BuildContext context) =&gt; Column(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.4+34
+      1.1.5+35
   </span>
 
   

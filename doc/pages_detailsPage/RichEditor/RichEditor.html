@@ -62,12 +62,12 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">RichEditor({Key? key, this.isEditing = false, required this.richDetails})
-    : this._controller = q.QuillController(
-        document: q.Document.fromJson(
-            richDetails), &#47;&#47;widget.isRich ? widget.details : null,
-        selection: TextSelection.collapsed(offset: 0),
-      ),
-      super(key: key);</code></pre>
+    &#47;&#47; &#47;&#47; : this._controller = q.QuillController(
+    &#47;&#47; &#47;&#47;     document: q.Document.fromJson(
+    &#47;&#47; &#47;&#47;         richDetails), &#47;&#47;widget.isRich ? widget.details : null,
+    &#47;&#47; &#47;&#47;     selection: TextSelection.collapsed(offset: 0),
+    &#47;&#47; &#47;&#47;   ),
+    : super(key: key);</code></pre>
 </section>
 
 
@@ -135,7 +135,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.4+34
+      1.1.5+35
   </span>
 
   
