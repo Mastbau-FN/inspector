@@ -80,15 +80,15 @@ class _DropDownBodyState<
 
   @override
   void didChangeDependencies() {
-    _future = Provider.of<DDModel>(context, listen: false).all;
+    _future = Provider.of<DDModel>(context, listen: false).all.last;
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      return FutureBuilder<List<ChildData>>(
-        future: ddmodel.all,
+      return StreamBuilder<List<ChildData>>(
+        stream: ddmodel.all,
         builder: (context, snapshot) => RefreshIndicator(
           onRefresh: _refresh,
           child: _list(snapshot, context),
@@ -98,15 +98,21 @@ class _DropDownBodyState<
   }
 
   Future<void> _refresh() async {
-    List<ChildData> freshall =
-        await Provider.of<DDModel>(context, listen: false).all;
-    setState(() {
-      _future = Future.value(freshall);
-    });
+    await __refresh().last;
+  }
+
+  Stream<bool> __refresh() async* {
+    await for (var freshall
+        in Provider.of<DDModel>(context, listen: false).all) {
+      setState(() {
+        _future = Future.value(freshall);
+      });
+      yield true;
+    }
   }
 
   Widget _list(AsyncSnapshot<List<ChildData>> snapshot, BuildContext context) {
-    if (snapshot.connectionState == ConnectionState.done) {
+    if (snapshot.connectionState != ConnectionState.waiting) {
       return ListView(
         children: [
           if (snapshot.hasError)
@@ -119,10 +125,14 @@ class _DropDownBodyState<
               ),
             ),
           if (snapshot.hasData)
-            ExpandablesListRadio(
-                children: snapshot.data!
-                    .map((e) => dropDown_element(e, context, widget.ddmodel))
-                    .toList()),
+            Opacity(
+              opacity:
+                  snapshot.connectionState != ConnectionState.done ? 0.5 : 1,
+              child: ExpandablesListRadio(
+                  children: snapshot.data!
+                      .map((e) => dropDown_element(e, context, widget.ddmodel))
+                      .toList()),
+            ),
         ],
       );
     }
