@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' as q;
 
 import '../classes/dropdownClasses.dart';
@@ -93,11 +94,13 @@ class PlainEditor extends StatelessWidget {
   final bool isEditing;
   final String sdetails;
   final TextInputType keyboardType;
+  final List<TextInputFormatter> inputFormatters;
   PlainEditor({
     Key? key,
     this.isEditing = false,
     required this.sdetails,
     this.keyboardType = TextInputType.text,
+    this.inputFormatters = const [],
   })  : this.controller = TextEditingController(text: sdetails),
         super(key: key);
 
@@ -113,6 +116,7 @@ class PlainEditor extends StatelessWidget {
       ); //// ?? "");
 
   Widget get _inEdit => TextFormField(
+        inputFormatters: inputFormatters,
         keyboardType: keyboardType,
         minLines: 1,
         maxLines: 15,
