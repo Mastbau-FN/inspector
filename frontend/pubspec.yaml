@@ -51,11 +51,7 @@ dependencies:
   #     path: json_serializable
 
   # for editing descriptions 
-<<<<<<< HEAD
   # flutter_quill: ^4.0.0
-=======
-  flutter_quill: ^5.0.0
->>>>>>> main
 
   # to flatten json for multipart requests (uploading images)
   flat: ^0.4.0
