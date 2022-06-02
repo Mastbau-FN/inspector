@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
@@ -151,7 +152,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   void update(ChildData data, txt) async {
     data.langText = txt;
-    showToast(
+    _maybeShowToast(
         await Backend().update(data) ?? S.current.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
@@ -186,6 +187,12 @@ Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
       child: DropDownPage<ChildData, ParentData, DDModel>(),
     );
 
+void _maybeShowToast(String? message) {
+  if (kDebugMode) if (message != null && message != "") {
+    showToast(message);
+  }
+}
+
 Widget standard_statefulImageView<ChildData extends WithLangText,
             DDModel extends DropDownModel<ChildData, Data?>>(
         DDModel model, ChildData? data) =>
@@ -213,7 +220,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           var value = await model.updateCurrentChild(
                               (data) => Backend().uploadFiles(data, files));
 
-                          if (value != null) showToast(value);
+                          _maybeShowToast(value);
                           return value;
                         },
                         onStar: (hash) {
@@ -223,7 +230,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                               .updateCurrentChild((data) => Backend()
                                   .setMainImageByHash(data, hash.toString()))
                               .then((value) {
-                            if (value != null && value != "") showToast(value);
+                            _maybeShowToast(value);
                             return value;
                           });
                         },
@@ -233,7 +240,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                               .updateCurrentChild((data) =>
                                   Backend().deleteImageByHash(hash.toString()))
                               .then((value) {
-                            if (value != null && value != "") showToast(value);
+                            _maybeShowToast(value);
                             return value;
                           });
                         },

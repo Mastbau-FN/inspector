@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -14,6 +15,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:tuple/tuple.dart';
 import '../generated/l10n.dart';
+import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -349,7 +351,18 @@ class Backend {
         ?.forceRes();
     if (Options.debugAllResponses)
       debugPrint("and we received :" + (res?.body.toString() ?? ""));
+
+    if (res?.statusCode != 200) {
+      _maybeShowToast(
+          "${S.current.anUnknownErrorOccured}, ${res?.statusCode}: ${res?.reasonPhrase}");
+    }
     return res;
+  }
+
+  void _maybeShowToast(String? message) {
+    if (message != null && message != "") {
+      showToast(message);
+    }
   }
 
   // MARK: API
@@ -446,9 +459,13 @@ class Backend {
   ) async {
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
     debugPrint('uploading images ${files}');
+    var json_data = data.toJson();
     var res = await post_JSON(
       _uploadImage_r,
-      json: data.toJson(),
+      json: {
+        'type': Helper.getIdentifierFromData(data),
+        'data': json.encode(json_data),
+      },
       multipart_files: files,
     ); //wont work
     if (res?.statusCode != 200) {

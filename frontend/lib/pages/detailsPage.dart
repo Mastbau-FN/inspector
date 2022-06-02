@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart' as q;
+import 'package:flutter/services.dart';
+// import 'package:flutter_quill/flutter_quill.dart' as q;
 
 import '../classes/dropdownClasses.dart';
 
@@ -93,11 +94,13 @@ class PlainEditor extends StatelessWidget {
   final bool isEditing;
   final String sdetails;
   final TextInputType keyboardType;
+  final List<TextInputFormatter> inputFormatters;
   PlainEditor({
     Key? key,
     this.isEditing = false,
     required this.sdetails,
     this.keyboardType = TextInputType.text,
+    this.inputFormatters = const [],
   })  : this.controller = TextEditingController(text: sdetails),
         super(key: key);
 
@@ -113,6 +116,7 @@ class PlainEditor extends StatelessWidget {
       ); //// ?? "");
 
   Widget get _inEdit => TextFormField(
+        inputFormatters: inputFormatters,
         keyboardType: keyboardType,
         minLines: 1,
         maxLines: 15,
@@ -126,32 +130,37 @@ class RichEditor extends StatelessWidget {
   final bool isEditing;
   final List<dynamic> richDetails;
   RichEditor({Key? key, this.isEditing = false, required this.richDetails})
-      : this._controller = q.QuillController(
-          document: q.Document.fromJson(
-              richDetails), //widget.isRich ? widget.details : null,
-          selection: TextSelection.collapsed(offset: 0),
-        ),
-        super(key: key);
+      // // : this._controller = q.QuillController(
+      // //     document: q.Document.fromJson(
+      // //         richDetails), //widget.isRich ? widget.details : null,
+      // //     selection: TextSelection.collapsed(offset: 0),
+      // //   ),
+      : super(key: key);
 
-  List<dynamic> get details => _controller.document.toDelta().toJson();
+  List<dynamic> get details => ['depricated'];
+  // // _controller.document.toDelta().toJson();
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          if (isEditing)
-            q.QuillToolbar.basic(locale: Locale('de'), controller: _controller),
-          Expanded(
-            child: Container(
-              child: q.QuillEditor.basic(
-                controller: _controller,
-                readOnly: !isEditing,
-              ),
-            ),
-          )
-        ],
-      );
+  Widget build(BuildContext context) {
+    throw UnimplementedError("depricated");
+  }
+  // // =>
+  // // Column(
+  // //       children: [
+  //         // if (isEditing)
+  //         //   q.QuillToolbar.basic(locale: Locale('de'), controller: _controller),
+  //         // Expanded(
+  //         //   child: Container(
+  //         //     child: q.QuillEditor.basic(
+  //         //       controller: _controller,
+  //         //       readOnly: !isEditing,
+  //         //     ),
+  //         //   ),
+  //         // )
+  // //       ],
+  // //     );
 
-  final q.QuillController _controller;
+  // // final q.QuillController _controller;
 }
 
 // Widget detailBuilder<DataT extends Data>(DataT data, Function<String> onDone) {

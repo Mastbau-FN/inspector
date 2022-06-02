@@ -194,15 +194,15 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
 /**
  *
  * this does pretty much the same as addNew
- * @param data consisting of type and data
+ * @param body consisting of type and data
  * @returns  an empty  Promise
  */
- const update = async (data) => {
+ const update = async (body) => {
   const folder = "update";
- let ld = data.data;
+ let ld = body.data;
  let params;
  let queryfile;
- switch (data.type) {
+ switch (body.type) {
    case identifiers.category:
      //console.log("updating category")
      //console.log(ld.Link);
@@ -219,13 +219,17 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
      break;
   case identifiers.location:
     queryfile = folder+"/inspection_location";
-    params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluess, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description];
+    params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluessel, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description, 
+    ld.Temperatur,
+    ld.Wetter,
+    ld.Wind,
+    ld.Windrichtung]
     params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
     await queryFileWithParams(queryfile+"_part2", params2);
     break;
  
    default:
-     console.log(`someone tried to update ${data.type}`);
+     console.log(`someone tried to update ${body.type}`);
      return;
  }
  let res = await queryFileWithParams(queryfile, params);
@@ -266,7 +270,7 @@ const delete_ = async (data, KZL) => {
   //console.log([ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL])
   let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]).id;//, false,true);
   // console.log(res)
-  res.success = true;
+  try {res.success = true}catch(e){false&&console.warn('couldnt set success')};
   return res;
 }
 

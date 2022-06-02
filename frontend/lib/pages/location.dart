@@ -1,9 +1,12 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
 import 'package:flutter_map/flutter_map.dart';
@@ -91,6 +94,8 @@ class LocationDetailPage extends StatelessWidget {
             Container(height: 20),
             _mgauftr(),
             Container(height: 20),
+            _weatherBlock,
+            Container(height: 20),
             _additionalInfo,
             Container(height: 20),
             _standort(),
@@ -141,9 +146,12 @@ class LocationDetailPage extends StatelessWidget {
             ),
             Divider(),
             EditableText(
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               label: S.current.locationHeight,
               text: locationdata.bauwerkhoehe.toString(),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^-?[0-9]+'))
+              ],
               onChanged: (val) {
                 locationdata.bauwerkhoehe = int.tryParse(val);
                 updateData(locationdata);
@@ -188,7 +196,7 @@ class LocationDetailPage extends StatelessWidget {
 
   Future<String?> updateData(InspectionLocation loc) async {
     var val = await Backend().update(loc);
-    showToast(S.current.updateSuccessful + ": $val");
+    _maybeShowToast(S.current.updateSuccessful + ": $val");
     return val;
   }
 
@@ -224,6 +232,20 @@ class LocationDetailPage extends StatelessWidget {
           Text("${locationdata.plz}, ${locationdata.ort}"),
           Container(height: 10),
           _Map(locationdata: locationdata),
+        ],
+      );
+
+  Widget get _weatherBlock => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Divider(),
+          WeatherSet(
+              weatherData: locationdata.weatherData,
+              onChanged: (newweather) {
+                locationdata.weatherData = newweather;
+                updateData(locationdata);
+              }),
+          Divider(),
         ],
       );
 }
@@ -349,12 +371,14 @@ class EditableText extends StatefulWidget {
     required this.text,
     required this.onChanged,
     this.keyboardType = TextInputType.text,
+    this.inputFormatters = const [],
   }) : super(key: key);
 
   final String label;
   String? text;
   final Function(String) onChanged;
   final TextInputType keyboardType;
+  final List<TextInputFormatter> inputFormatters;
 
   @override
   State<EditableText> createState() => _EditableTextState();
@@ -365,6 +389,7 @@ class _EditableTextState extends State<EditableText> {
   @override
   Widget build(BuildContext context) {
     var editor = PlainEditor(
+      inputFormatters: widget.inputFormatters,
       sdetails: widget.text ?? "--",
       isEditing: isEditing,
       keyboardType: widget.keyboardType,
@@ -510,9 +535,9 @@ class __SchluesselState extends State<_Schluessel> {
         if (isOn ?? true)
           EditableText(
             label: S.current.locationKeyAddintionalInfoLabel,
-            text: locationdata.schlussel_description,
+            text: locationdata.schluessel_description,
             onChanged: (val) {
-              locationdata.schlussel_description;
+              locationdata.schluessel_description = val;
               widget.updateData(locationdata);
             },
           ),
@@ -565,5 +590,11 @@ class __SteckDosenState extends State<_SteckDosen> {
           ),
       ],
     );
+  }
+}
+
+void _maybeShowToast(String? message) {
+  if (kDebugMode) if (message != null && message != "") {
+    showToast(message);
   }
 }

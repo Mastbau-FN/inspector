@@ -100,7 +100,10 @@ class CheckPointDefectsModel
           // InputData("KurzText", hint: "Name"), //removed according to #48
           InputData("LangText", hint: S.current.langTextHint),
           InputData("Insp_Stelle",
-              hint: "Position / Höhe"), //added according to 49
+              hint: "Position / Höhe",
+              verify: (val) => (val == null || val.length < 1)
+                  ? S.current.heightNotOptional
+                  : null), //added according to 49
         ],
       ),
     );

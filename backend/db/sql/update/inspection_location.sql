@@ -12,5 +12,9 @@ UPDATE "Insp_STANDORT_Infos" SET
 	"Steigschutzschluessel"=$12,
 	"ASP_required"=$13,
 	"Steckdosen_description"=$14,
-	"Schlüssel_description"=$15
+	"Schlüssel_description"=$15,
+	"Temperatur"=$16,
+	"Wetter"=$17,
+	"Wind"=$18,
+	"Windrichtung"=$19
 WHERE "Insp_STANDORT_Infos"."PjNr" = $1;
