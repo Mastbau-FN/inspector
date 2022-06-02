@@ -6,6 +6,7 @@ import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 
 import 'package:flutter_map/flutter_map.dart';
@@ -145,12 +146,14 @@ class LocationDetailPage extends StatelessWidget {
             ),
             Divider(),
             EditableText(
-              keyboardType: TextInputType.numberWithOptions(decimal: false),
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               label: S.current.locationHeight,
               text: locationdata.bauwerkhoehe.toString(),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^-?[0-9]+'))
+              ],
               onChanged: (val) {
-                locationdata.bauwerkhoehe =
-                    int.tryParse(val.replaceAll(new RegExp(r'[^0-9]'), ''));
+                locationdata.bauwerkhoehe = int.tryParse(val);
                 updateData(locationdata);
               },
             ),
@@ -368,12 +371,14 @@ class EditableText extends StatefulWidget {
     required this.text,
     required this.onChanged,
     this.keyboardType = TextInputType.text,
+    this.inputFormatters = const [],
   }) : super(key: key);
 
   final String label;
   String? text;
   final Function(String) onChanged;
   final TextInputType keyboardType;
+  final List<TextInputFormatter> inputFormatters;
 
   @override
   State<EditableText> createState() => _EditableTextState();
@@ -384,6 +389,7 @@ class _EditableTextState extends State<EditableText> {
   @override
   Widget build(BuildContext context) {
     var editor = PlainEditor(
+      inputFormatters: widget.inputFormatters,
       sdetails: widget.text ?? "--",
       isEditing: isEditing,
       keyboardType: widget.keyboardType,
