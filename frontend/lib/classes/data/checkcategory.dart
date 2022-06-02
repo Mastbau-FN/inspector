@@ -37,11 +37,11 @@ class CheckCategory extends Data with WithLangText, WithImgHashes, WithAuthor {
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Stream<ImageData?>>? image_streams;
+  List<Future<ImageData?>>? image_futures;
   @JsonKey(ignore: true)
-  Stream<ImageData?>? mainImage;
+  Future<ImageData?>? mainImage;
   @JsonKey(ignore: true)
-  Stream<ImageData?> previewImage = Stream.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
 
   CheckCategory(
       {required this.pjNr,

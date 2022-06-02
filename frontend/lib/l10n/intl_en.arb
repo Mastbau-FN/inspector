@@ -24,7 +24,7 @@
   "setAsMainImage": "set as main image",
   "shareImage": "share image",
   "image": "Image",
-  "heightNotOptional":"Please set a height",
+  "heightNotOptional": "Please set a height",
   "seeSomeDoggos": "see some Doggos",
   "settings": "Settings",
   "uploading": "uploading..",
@@ -67,5 +67,6 @@
   "dismiss": "dismiss",
   "validateDeletionSure": "ja, sicher, Löschen!",
   "validateDeletionPromtHeadline": "wirklich Löschen?",
-  "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar"
+  "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar",
+  "tryAgainLater_noNetwork": "try again later"
 }

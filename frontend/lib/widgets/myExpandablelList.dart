@@ -11,7 +11,7 @@ abstract class ExpandablesRadio extends StatelessWidget {
 }
 
 class ExpandableCard2 extends ExpandablesRadio {
-  final Stream<ImageData?>? previewImg;
+  final Future<ImageData?>? previewImg;
   final Color? color;
   final String title;
   final String? subtitle;
@@ -65,10 +65,13 @@ class ExpandableCard2 extends ExpandablesRadio {
                 child: ClipOval(
                   child: AspectRatio(
                     aspectRatio: 1.0,
-                    child: StreamBuilder<ImageData?>(
-                        stream: previewImg,
+                    child: FutureBuilder<ImageData?>(
+                        future: previewImg,
                         builder: (context, snapshot) {
-                          return snapshot.data?.image ??
+                          var imagep = snapshot.data?.image.image;
+                          return (imagep != null
+                                  ? Image(image: imagep, fit: BoxFit.fill)
+                                  : null) ??
                               Icon(
                                 Icons.construction,
                                 color: _color(isExpanded, context),

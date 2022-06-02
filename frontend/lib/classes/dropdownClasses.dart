@@ -18,9 +18,9 @@ import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Stream<ImageData?>? mainImage = Stream.value(null);
-  Stream<ImageData?> previewImage = Stream.value(null);
-  List<Stream<ImageData?>>? image_streams = [];
+  Future<ImageData?>? mainImage = Future.value(null);
+  Future<ImageData?> previewImage = Future.value(null);
+  List<Future<ImageData?>>? image_futures = [];
   //Null Function() onNextImageLoaded = () {};
 }
 
@@ -77,24 +77,28 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
     if (notify) notifyListeners();
   }
 
-  Future<ChildData?> _getCurrentlyChosenChildData({int? remainingTries}) async {
+  Stream<ChildData?> _getCurrentlyChosenChildData(
+      {int? remainingTries}) async* {
     int reloadTries = (remainingTries ?? Options.reloadTries) - 1;
     debugPrint('getting ${currentlyChosenChildId}');
-    if (currentlyChosenChildId == null) return null;
-    try {
-      return (await all).firstWhere((child) {
-        // debugPrint('comparing ${child?.id} to ${currentlyChosenChildId}');
-        return child.id == currentlyChosenChildId;
-      });
-    } catch (e) {
-      return await _getCurrentlyChosenChildData(
-          remainingTries:
-              reloadTries); //refetch //XXX: this will result in a stack overflow if no data can be retreived
+    await for (var a in all) {
+      if (currentlyChosenChildId == null) yield null;
+
+      try {
+        a.firstWhere((child) {
+          // debugPrint('comparing ${child?.id} to ${currentlyChosenChildId}');
+          return child.id == currentlyChosenChildId;
+        });
+      } catch (e) {
+        // yield await _getCurrentlyChosenChildData(
+        //     remainingTries:
+        //         reloadTries); //refetch //XXX: this will result in a stack overflow if no data can be retreived
+      }
     }
   }
 
   Future<ChildData?> get currentlyChosenChildData =>
-      _getCurrentlyChosenChildData();
+      _getCurrentlyChosenChildData().first;
   // int? _currentlyChosenChildDataIndex;
   // // ChildData? _currentlyChosenChildData;
   // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
@@ -142,7 +146,9 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   DropDownModel(this.currentData);
 
   /// returns a [List] of all the [Data] for this Model
-  Future<List<ChildData>> get all => Backend().getNextDatapoint(currentData);
+  Stream<List<ChildData>> get all => Backend().getNextDatapoint<ChildData,
+          ParentData>(
+      currentData); //TO/DO: not use last, but buffer latest element somehow if even possible?
 
   /// a [List] which all the actions that could be made for a specific DropDown
   List<MyListTileData> get actions {
@@ -208,10 +214,10 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                 builder: (context, snapshot) {
                   return Stack(
                     children: [
-                      ImagesPage.streamed(
+                      ImagesPage.futured(
                         hasMainImage:
                             (snapshot.data ?? data)?.mainImage != null,
-                        imageStreams: (snapshot.data ?? data)?.image_streams,
+                        future_images: (snapshot.data ?? data)?.image_futures,
                         //s ?.map((e) => e.asBroadcastStream())
                         // .toList(),
                         onNewImages: (files) async {

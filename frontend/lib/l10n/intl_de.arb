@@ -25,7 +25,7 @@
   "shareImage": "Fotos teilen",
   "image": "Foto",
   "seeSomeDoggos": "see some Doggos",
-  "heightNotOptional":"Bitte Höhe angeben",
+  "heightNotOptional": "Bitte Höhe angeben",
   "settings": "Einstellungen",
   "uploading": "wird hochgeladen...",
   "usernameOrPasswordWasNotGiven": "Name oder Passwort nicht angegeben",
@@ -67,5 +67,6 @@
   "dismiss": "doch nicht",
   "validateDeletionSure": "ja, sicher, Löschen!",
   "validateDeletionPromtHeadline": "wirklich Löschen?",
-  "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar"
+  "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar",
+  "tryAgainLater_noNetwork": "probiere es später nochmal"
 }
