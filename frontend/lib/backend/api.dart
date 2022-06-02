@@ -399,7 +399,13 @@ class Backend {
   Future<http.Response?> _sendDataToRoute<DataT extends Data>(
       {required DataT? data,
       required String route,
-      Map<String, dynamic> other = const {}}) async {
+      Map<String, dynamic> other = const {},
+      bool networkIsCrucial = false}) async {
+    if (networkIsCrucial) {
+      connectionGuard().onError((error, trace) => showToast(
+          error.toString() + "\n" + S.current.tryAgainLater_noNetwork));
+      return null;
+    }
     if (Options.debugAllResponses)
       debugPrint(
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
@@ -481,18 +487,24 @@ class Backend {
 
   /// sets a new [DataT]
   Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
-    var body = (await _sendDataToRoute(data: data, route: _addNew_r))?.body;
+    var body = (await _sendDataToRoute(
+            data: data, route: _addNew_r, networkIsCrucial: true))
+        ?.body;
     //XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
     return body == null ? null : data;
   }
 
   /// updates a [DataT] and returns the response
   Future<String?> update<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(data: data, route: _update_r))?.body;
+      (await _sendDataToRoute(
+              data: data, route: _update_r, networkIsCrucial: true))
+          ?.body;
 
   /// deletes a [DataT] and returns the response
   Future<String?> delete<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(data: data, route: _delete_r))?.body;
+      (await _sendDataToRoute(
+              data: data, route: _delete_r, networkIsCrucial: true))
+          ?.body;
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
