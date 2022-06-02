@@ -68,7 +68,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; delete&lt;DataT extends Data&gt;(DataT? data) async =&gt;
-    (await _sendDataToRoute(data: data, route: _delete_r))?.body;</code></pre>
+    (await _sendDataToRoute(
+            data: data, route: _delete_r, networkIsCrucial: true))
+        ?.body;</code></pre>
 </section>
 
 
@@ -143,7 +145,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.5+35
+      1.1.6+36
   </span>
 
   

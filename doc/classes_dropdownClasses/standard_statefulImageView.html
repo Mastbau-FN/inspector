@@ -78,10 +78,10 @@
                 builder: (context, snapshot) {
                   return Stack(
                     children: [
-                      ImagesPage.streamed(
+                      ImagesPage.futured(
                         hasMainImage:
                             (snapshot.data ?? data)?.mainImage != null,
-                        imageStreams: (snapshot.data ?? data)?.image_streams,
+                        future_images: (snapshot.data ?? data)?.image_futures,
                         &#47;&#47;s ?.map((e) =&gt; e.asBroadcastStream())
                         &#47;&#47; .toList(),
                         onNewImages: (files) async {
@@ -183,7 +183,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.5+35
+      1.1.6+36
   </span>
 
   

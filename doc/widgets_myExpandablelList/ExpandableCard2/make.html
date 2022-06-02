@@ -84,10 +84,13 @@ ExpansionPanelRadio make(BuildContext context) {
               child: ClipOval(
                 child: AspectRatio(
                   aspectRatio: 1.0,
-                  child: StreamBuilder&lt;ImageData?&gt;(
-                      stream: previewImg,
+                  child: FutureBuilder&lt;ImageData?&gt;(
+                      future: previewImg,
                       builder: (context, snapshot) {
-                        return snapshot.data?.image ??
+                        var imagep = snapshot.data?.image.image;
+                        return (imagep != null
+                                ? Image(image: imagep, fit: BoxFit.fill)
+                                : null) ??
                             Icon(
                               Icons.construction,
                               color: _color(isExpanded, context),
@@ -189,7 +192,7 @@ ExpansionPanelRadio make(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.5+35
+      1.1.6+36
   </span>
 
   

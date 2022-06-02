@@ -68,7 +68,9 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;DataT?&gt; setNew&lt;DataT extends Data&gt;(DataT? data) async {
-  var body = (await _sendDataToRoute(data: data, route: _addNew_r))?.body;
+  var body = (await _sendDataToRoute(
+          data: data, route: _addNew_r, networkIsCrucial: true))
+      ?.body;
   &#47;&#47;XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
   return body == null ? null : data;
 }</code></pre>
@@ -146,7 +148,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.5+35
+      1.1.6+36
   </span>
 
   

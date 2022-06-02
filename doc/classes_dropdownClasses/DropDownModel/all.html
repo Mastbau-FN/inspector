@@ -53,7 +53,7 @@
 <section id="getter">
 
 <section class="multi-line-signature">
-  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
+  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
   <span class="name ">all</span>
   
 
@@ -67,7 +67,9 @@
 
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;ChildData&gt;&gt; get all =&gt; Backend().getNextDatapoint(currentData);</code></pre>
+  <pre class="language-dart"><code class="language-dart">Stream&lt;List&lt;ChildData&gt;&gt; get all =&gt; Backend().getNextDatapoint&lt;ChildData,
+        ParentData&gt;(
+    currentData);</code></pre>
 </section>
 
 </section>
@@ -141,7 +143,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.5+35
+      1.1.6+36
   </span>
 
   
