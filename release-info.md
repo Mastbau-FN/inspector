@@ -1,3 +1,3 @@
 # changes
 
-- 🐛 minor bugfixes
+- 🔌 Caching of data for offline viewing
