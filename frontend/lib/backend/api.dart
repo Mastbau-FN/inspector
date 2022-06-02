@@ -236,6 +236,42 @@ class Backend {
     }
   }
 
+  //final _imageStreamController = BehaviorSubject<String>();
+  Future<ImageData?> _fetchImage_fut(String hash) async {
+    bool cacheHit = false;
+    try {
+      final img = await OP.readImage(hash);
+      if (img == null) throw Exception("no img cached");
+      return ImageData(img, id: hash);
+      cacheHit = true;
+    } catch (e) {
+      //yield null;
+    }
+    if (!cacheHit || Options.preferRemoteImages) {
+      http.Response? res = (await post_JSON(
+        _getImageFromHash_r,
+        json: {
+          'imghash': hash,
+        },
+        returnsBinary: true,
+      ))
+          ?.forceRes();
+      if (res == null || res.statusCode != 200)
+        return null;
+      else {
+        try {
+          await OP.storeImage(res.bodyBytes, hash);
+          return ImageData(
+            (await OP.readImage(hash))!,
+            id: hash,
+          );
+        } catch (e) {
+          debugPrint("failed to load webimg: " + e.toString());
+        }
+      }
+    }
+  }
+
   Future<DataT?> Function(Map<String, dynamic>)
       _generateImageFetcher<DataT extends Data>(
     DataT? Function(Map<String, dynamic>) jsoner,
@@ -252,15 +288,15 @@ class Backend {
       String __hash = data.imagehashes![first_working_image_index];
       data.mainImage = (__hash == Options.no_image_placeholder_name)
           ? null
-          : _fetchImage(__hash);
+          : _fetchImage_fut(__hash);
       first_working_image_index++;
 
       //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage = IterateStream.firstNonNull(data.imagehashes?.map(
-            (hash) => _fetchImage(hash)
-                //.asBroadcastStream()
-                .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-          ) ??
+      data.previewImage = IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
+              (hash) => _fetchImage_fut(hash)
+              //.asBroadcastStream()
+              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+              ) ??
           []);
       //Future.doWhile(() => fetchdata)
       //Future.any(data.imagehashes?.map(
@@ -271,12 +307,11 @@ class Backend {
       if (Options.debugImages)
         debugPrint("image-hashes: " + data.imagehashes.toString());
 
-      data.image_streams = data.imagehashes
-          ?.map(
-            (hash) => _fetchImage(hash)
-                // .asBroadcastStream()
-                .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-          )
+      data.image_futures = data.imagehashes
+          ?.map((hash) => _fetchImage_fut(hash)
+              // .asBroadcastStream()
+              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
+              )
           .toList()
           .sublist((__hash == Options.no_image_placeholder_name) ? 1 : 0);
 

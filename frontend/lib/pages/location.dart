@@ -207,8 +207,8 @@ class LocationDetailPage extends StatelessWidget {
           child: Container(
             height: 100,
             width: 100,
-            child: StreamBuilder<ImageData?>(
-                stream: locationdata.mainImage,
+            child: FutureBuilder<ImageData?>(
+                future: locationdata.mainImage,
                 builder: (context, snapshot) =>
                     snapshot.data?.image ?? Icon(Icons.construction)),
           ),
