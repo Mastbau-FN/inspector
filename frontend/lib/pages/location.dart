@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:maps_launcher/maps_launcher.dart';
@@ -195,7 +196,7 @@ class LocationDetailPage extends StatelessWidget {
 
   Future<String?> updateData(InspectionLocation loc) async {
     var val = await Backend().update(loc);
-    showToast(S.current.updateSuccessful + ": $val");
+    _maybeShowToast(S.current.updateSuccessful + ": $val");
     return val;
   }
 
@@ -589,5 +590,11 @@ class __SteckDosenState extends State<_SteckDosen> {
           ),
       ],
     );
+  }
+}
+
+void _maybeShowToast(String? message) {
+  if (kDebugMode) if (message != null && message != "") {
+    showToast(message);
   }
 }
