@@ -121,7 +121,7 @@ Widget build(BuildContext context) {
           Spacer(),
           Divider(),
           Text(S.of(context).advancedSettingsHeadline),
-          uploadSyncTile,
+          if (Options.canBeOffline) uploadSyncTile,
           &#47;&#47; DeleteCachedImages(),
         ],
       ),
@@ -194,7 +194,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.6+36
+      1.1.7+37
   </span>
 
   

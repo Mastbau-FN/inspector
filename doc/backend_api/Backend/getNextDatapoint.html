@@ -71,15 +71,25 @@ if no <code>ParentData</code> is given it defaults to root</p>
   <pre class="language-dart"><code class="language-dart">Stream&lt;List&lt;ChildData&gt;&gt;
     getNextDatapoint&lt;ChildData extends Data, ParentData extends Data?&gt;(
   ParentData data,
-) {
+) async* {
+  if (!Options.canBeOffline)
+    try {
+      await connectionGuard();
+    } catch (error) {
+      showToast(error.toString() + &quot;\n&quot; + S.current.tryAgainLater_noNetwork);
+      yield [];
+    }
   final childTypeStr = Helper.getIdentifierFromData&lt;ChildData&gt;(null);
   if (childTypeStr == null) throw Exception(&#39;type not supported&#39;);
-  return _getAllForNextLevel(
+  await for (var l in _getAllForNextLevel(
     route: routesFromData&lt;ChildData&gt;(null),
     jsonResponseID: childTypeStr + &#39;s&#39;,
     json: data?.toSmallJson(),
     fromJson: (json) =&gt; &#47;*Child*&#47; Data.fromJson&lt;ChildData&gt;(json),
-  );
+  )) {
+    debugPrint(&#39;new value $l&#39;);
+    yield l;
+  }
 }</code></pre>
 </section>
 
@@ -155,7 +165,7 @@ if no <code>ParentData</code> is given it defaults to root</p>
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.6+36
+      1.1.7+37
   </span>
 
   
