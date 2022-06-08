@@ -2,9 +2,8 @@ on:
   #pull_request: #ODO: remove
   push:
     branches:
-      - main
+      - staging
       - release
-      - 'releases/**'
     
     paths:
       - 'release-info.md'
@@ -157,7 +156,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: release_v_${{ github.run_number }}
+          tag_name: release_v_${{ github.run_number }}${{ github.ref_name != release && "-dev" || "" }}
           release_name: AutoRelease (v${{ github.run_number }})
           body: ${{ steps.release-info.outputs.content }}
           draft: false
@@ -177,6 +176,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   release-playstore:
+    if: github.ref_name == 'release'
     needs: build-app
     name: Release to the google playstore
     runs-on: ubuntu-latest
