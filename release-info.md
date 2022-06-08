@@ -1,3 +1,3 @@
 # changes
 
-- 🔌 Caching of data for offline viewing
+- 🔌 Caching of data for offline viewing.
