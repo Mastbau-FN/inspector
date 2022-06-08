@@ -1,3 +1,3 @@
 # changes
 
-- 🔌 Caching of data for offline viewing.
+- this version is online only for now to avoid confusion, offline functionality is on the way

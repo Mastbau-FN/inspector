@@ -329,25 +329,6 @@ class Backend {
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
   }) async* {
-    await for (var l in __getAllForNextLevel(
-        route: route,
-        jsonResponseID: jsonResponseID,
-        fromJson: fromJson,
-        id: id,
-        json: json)) {
-      debugPrint('new value $l');
-      yield l;
-    }
-  }
-
-  Stream<List<ChildData>>
-      __getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
-    required String route,
-    required String jsonResponseID,
-    Map<String, dynamic>? json,
-    required ChildData? Function(Map<String, dynamic>) fromJson,
-    String? id,
-  }) async* {
     // yield [];
     assert(
         (await user) != null, S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
@@ -362,15 +343,15 @@ class Backend {
           // _generateImageFetcher(fromJson),
           objName: jsonResponseID,
         );
-
-    try {
-      _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
-          // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
-          (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
-      yield await __parse(_json);
-    } catch (e) {
-      debugPrint("couldnt read data from disk..: " + e.toString());
-    }
+    if (Options.canBeOffline)
+      try {
+        _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
+            // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
+            (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
+        yield await __parse(_json);
+      } catch (e) {
+        debugPrint("couldnt read data from disk..: " + e.toString());
+      }
 
     try {
       final res = (await post_JSON(
@@ -401,11 +382,14 @@ class Backend {
       required String route,
       Map<String, dynamic> other = const {},
       bool networkIsCrucial = false}) async {
-    if (networkIsCrucial) {
-      connectionGuard().onError((error, trace) => showToast(
-          error.toString() + "\n" + S.current.tryAgainLater_noNetwork));
-      return null;
-    }
+    if (networkIsCrucial || !Options.canBeOffline)
+      try {
+        await connectionGuard();
+      } catch (error) {
+        showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+        return null;
+      }
+
     if (Options.debugAllResponses)
       debugPrint(
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
@@ -474,15 +458,25 @@ class Backend {
   Stream<List<ChildData>>
       getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
     ParentData data,
-  ) {
+  ) async* {
+    if (!Options.canBeOffline)
+      try {
+        await connectionGuard();
+      } catch (error) {
+        showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+        yield [];
+      }
     final childTypeStr = Helper.getIdentifierFromData<ChildData>(null);
     if (childTypeStr == null) throw Exception('type not supported');
-    return _getAllForNextLevel(
+    await for (var l in _getAllForNextLevel(
       route: routesFromData<ChildData>(null),
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
-    );
+    )) {
+      debugPrint('new value $l');
+      yield l;
+    }
   }
 
   /// sets a new [DataT]

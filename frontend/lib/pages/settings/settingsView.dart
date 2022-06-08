@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
@@ -34,7 +35,7 @@ class SettingsView extends StatelessWidget {
             Spacer(),
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
-            uploadSyncTile,
+            if (Options.canBeOffline) uploadSyncTile,
             // DeleteCachedImages(),
           ],
         ),
