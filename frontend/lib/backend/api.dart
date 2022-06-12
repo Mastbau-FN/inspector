@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -558,6 +559,26 @@ class Backend {
         final res = http.Response.fromStream(await req.send());
         OP.failedRequestWasSuccesful(docID);
       } finally {}
+    }
+  }
+
+  /// recursivle cache all elements that underly the caller
+  Future<bool> loadAndCacheAll<ParentData extends Data>(
+      ParentData caller) async {
+    //base-case: CheckPointDefects have no children
+    if (typeOf<ParentData>() == CheckPointDefect) return true;
+    try {
+      //fail early if no connection
+      await connectionGuard();
+      //get all children, this will also cache them internally
+      var children = await getNextDatapoint(caller).last;
+      var didSucceed =
+          await Future.wait(children.map((child) => loadAndCacheAll(child)));
+      //if all children succeeded recursive calling succeeded
+      return didSucceed.every((el) => el);
+    } catch (error) {
+      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+      return false; //failed
     }
   }
 }
