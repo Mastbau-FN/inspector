@@ -1,4 +1,7 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:http/http.dart';
@@ -137,6 +140,9 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @override
   String get title => toString();
 
+  @override
+  Widget? get extra => RecursiveDownloadButton(caller: this);
+
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
       return _$InspectionLocationFromJson(json);
@@ -161,5 +167,56 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
     return LatLng(map['lat'], map['lng']);
   } catch (e) {
     return null;
+  }
+}
+
+class RecursiveDownloadButton<ChildData extends Data, ParentData extends Data>
+    extends StatefulWidget {
+  RecursiveDownloadButton({required this.caller, Key? key}) : super(key: key);
+
+  ParentData caller;
+
+  @override
+  State<RecursiveDownloadButton> createState() =>
+      _RecursiveDownloadButtonState<ChildData, ParentData>();
+}
+
+class _RecursiveDownloadButtonState<ChildData extends Data,
+    ParentData extends Data> extends State<RecursiveDownloadButton> {
+  bool wasPressed = false;
+  bool? success;
+  void press() {
+    setState(() {
+      success = null;
+      wasPressed = true;
+    });
+    Backend()
+        .loadAndCacheAll<ChildData, Data>(widget.caller)
+        .then((succs) => setState(
+              () {
+                this.success = succs;
+              },
+            ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!wasPressed) {
+      return IconButton(
+          onPressed: press,
+          icon: Icon(
+            Icons.download,
+          ));
+    }
+    if (success == null) {
+      return LoadingView();
+    }
+    if (success!) {
+      return Icon(
+        Icons.check,
+        color: Colors.green,
+      );
+    }
+    return IconButton(onPressed: press, icon: Icon(Icons.refresh));
   }
 }
