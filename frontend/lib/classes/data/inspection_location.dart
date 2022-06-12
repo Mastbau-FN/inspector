@@ -205,8 +205,12 @@ class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
           ));
     }
     if (success == null) {
-      return LoadingView(
-        fixedSize: false,
+      return IconButton(
+        onPressed: (() {}),
+        icon: Opacity(
+          child: LoadingView(),
+          opacity: 0.5,
+        ),
       );
     }
     if (success!) {

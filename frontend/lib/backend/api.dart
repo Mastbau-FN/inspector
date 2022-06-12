@@ -569,7 +569,7 @@ class Backend {
           DDModel extends DropDownModel<ChildData, ParentData>>(
       DDModel caller) async {
     //base-case: CheckPointDefects have no children
-    if (typeOf<DDModel>() == CheckPointDefect) return true;
+    if (typeOf<ChildData>() == CheckPointDefect) return true;
     try {
       //fail early if no connection
       await connectionGuard();
