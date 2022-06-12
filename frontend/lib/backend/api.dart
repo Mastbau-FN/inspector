@@ -562,25 +562,35 @@ class Backend {
     }
   }
 
+  //TODO: so ganz scheint das noch nicht zu gehen, da iwie alles bei allem angezeigt wird, fehler könnte aber auch im OP liegen
   /// recursivle cache all elements that underly the caller
   Future<bool> loadAndCacheAll<
-          ChildData extends WithLangText,
-          ParentData extends Data,
-          DDModel extends DropDownModel<ChildData, ParentData>>(
-      DDModel caller, int depth) async {
-    depth--; //TODO: laden wir die mängel gerade?
+      ChildData extends WithLangText,
+      ParentData extends Data,
+      DDModel extends DropDownModel<ChildData, ParentData>>(
+    DDModel caller,
+    int depth, {
+    String? name,
+  }) async {
     debugPrint('loading ${depth}');
     //base-case: CheckPointDefects have no children
-    // if (typeOf<ChildData>() == CheckPointDefect) return true;//TODO: shit, this generic bums wont work
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
+    depth--;
     try {
       //fail early if no connection
       await connectionGuard();
       //get all children, this will also cache them internally
       var children = await caller.all.last;
-      var didSucceed = await Future.wait(children.map((child) =>
-          //TODO: so ganz scheint das noch nicht zu gehen, da iwie alles bei allem angezeigt wird..
-          loadAndCacheAll(caller.generateNextModel(child), depth - 1)));
+      var didSucceed = await Future.wait(children.map((child) {
+        String _name = '$name -> ${child.title}';
+        debugPrint('__1234 got $depth: $_name');
+        if (depth == 0)
+          return Future.value(
+              true); //base-case as to not call generateNextModel
+        return loadAndCacheAll(caller.generateNextModel(child), depth,
+            name: _name);
+      }));
       //if all children succeeded recursive calling succeeded
       return didSucceed.every((el) => el);
     } catch (error) {
