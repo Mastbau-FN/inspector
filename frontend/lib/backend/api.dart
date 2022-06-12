@@ -562,7 +562,7 @@ class Backend {
     }
   }
 
-  //TODO: so ganz scheint das noch nicht zu gehen, da iwie alles bei allem angezeigt wird, fehler könnte aber auch im OP liegen
+  //TODO: das klappt zwar, aber das abspeichern selbst oder anzeigen nicht, wird aber OP liegen
   /// recursivle cache all elements that underly the caller
   Future<bool> loadAndCacheAll<
       ChildData extends WithLangText,
