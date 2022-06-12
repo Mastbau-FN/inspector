@@ -187,11 +187,9 @@ class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
       success = null;
       wasPressed = true;
     });
-    Backend().loadAndCacheAll(widget.caller).then((succs) => setState(
-          () {
-            this.success = succs;
-          },
-        ));
+    Backend().loadAndCacheAll(widget.caller).then((succs) => setState(() {
+          this.success = succs;
+        }));
   }
 
   @override
