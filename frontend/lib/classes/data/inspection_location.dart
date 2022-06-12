@@ -172,8 +172,10 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
 }
 
 class RecursiveDownloadButton extends StatefulWidget {
-  RecursiveDownloadButton({required this.caller, Key? key}) : super(key: key);
+  RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
+      : super(key: key);
 
+  final int depth;
   CategoryModel
       caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
 
@@ -190,9 +192,11 @@ class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
       success = null;
       wasPressed = true;
     });
-    Backend().loadAndCacheAll(widget.caller).then((succs) => setState(() {
-          this.success = succs;
-        }));
+    Backend()
+        .loadAndCacheAll(widget.caller, widget.depth)
+        .then((succs) => setState(() {
+              this.success = succs;
+            }));
   }
 
   @override

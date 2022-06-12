@@ -475,7 +475,7 @@ class Backend {
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
     )) {
-      debugPrint('new value $l');
+      // debugPrint('new value $l');
       yield l;
     }
   }
@@ -567,16 +567,18 @@ class Backend {
           ChildData extends WithLangText,
           ParentData extends Data,
           DDModel extends DropDownModel<ChildData, ParentData>>(
-      DDModel caller) async {
+      DDModel caller, int depth) async {
+    debugPrint('loading ${depth}');
     //base-case: CheckPointDefects have no children
-    if (typeOf<ChildData>() == CheckPointDefect) return true;
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//TODO: shit, this generic bums wont work
+    if (depth == 0) return true;
     try {
       //fail early if no connection
       await connectionGuard();
       //get all children, this will also cache them internally
-      List<ChildData> children = await caller.all.last;
-      var didSucceed = await Future.wait(children
-          .map((child) => loadAndCacheAll(caller.generateNextModel(child))));
+      var children = await caller.all.last;
+      var didSucceed = await Future.wait(children.map((child) =>
+          loadAndCacheAll(caller.generateNextModel(child), depth - 1)));
       //if all children succeeded recursive calling succeeded
       return didSucceed.every((el) => el);
     } catch (error) {
