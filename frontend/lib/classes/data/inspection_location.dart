@@ -202,7 +202,9 @@ class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
           ));
     }
     if (success == null) {
-      return LoadingView();
+      return LoadingView(
+        fixedSize: false,
+      );
     }
     if (success!) {
       return Icon(
