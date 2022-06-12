@@ -1,5 +1,4 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
-import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:flutter/material.dart';
@@ -170,19 +169,17 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
   }
 }
 
-class RecursiveDownloadButton<ChildData extends Data, ParentData extends Data>
-    extends StatefulWidget {
+class RecursiveDownloadButton extends StatefulWidget {
   RecursiveDownloadButton({required this.caller, Key? key}) : super(key: key);
 
-  ParentData caller;
+  Data caller;
 
   @override
   State<RecursiveDownloadButton> createState() =>
-      _RecursiveDownloadButtonState<ChildData, ParentData>();
+      _RecursiveDownloadButtonState();
 }
 
-class _RecursiveDownloadButtonState<ChildData extends Data,
-    ParentData extends Data> extends State<RecursiveDownloadButton> {
+class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
   bool wasPressed = false;
   bool? success;
   void press() {
@@ -190,13 +187,11 @@ class _RecursiveDownloadButtonState<ChildData extends Data,
       success = null;
       wasPressed = true;
     });
-    Backend()
-        .loadAndCacheAll<ChildData, Data>(widget.caller)
-        .then((succs) => setState(
-              () {
-                this.success = succs;
-              },
-            ));
+    Backend().loadAndCacheAll(widget.caller).then((succs) => setState(
+          () {
+            this.success = succs;
+          },
+        ));
   }
 
   @override
