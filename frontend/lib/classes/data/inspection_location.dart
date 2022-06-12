@@ -1,6 +1,8 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/pages/checkcategories.dart';
+import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:http/http.dart';
@@ -140,7 +142,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   String get title => toString();
 
   @override
-  Widget? get extra => RecursiveDownloadButton(caller: this);
+  Widget? get extra => RecursiveDownloadButton(caller: CategoryModel(this));
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
@@ -172,7 +174,8 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
 class RecursiveDownloadButton extends StatefulWidget {
   RecursiveDownloadButton({required this.caller, Key? key}) : super(key: key);
 
-  Data caller;
+  CategoryModel
+      caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
 
   @override
   State<RecursiveDownloadButton> createState() =>

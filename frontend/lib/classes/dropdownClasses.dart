@@ -66,7 +66,7 @@ mixin WithAuthor on Data {
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
 class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
-    extends ChangeNotifier {
+    extends ChangeNotifier implements KnowsNext<ChildData> {
   /// could be used for the scaffold appbar title
   String get title => currentData?.title ?? "root";
 
@@ -184,6 +184,16 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)
   Widget? floatingActionButton = null;
+
+  @override
+  DropDownModel<WithLangText, ChildData> generateNextModel(ChildData data) {
+    // XXX: this class itself should be abstract..
+    throw UnimplementedError();
+  }
+}
+
+abstract class KnowsNext<ChildData extends Data> {
+  KnowsNext generateNextModel(ChildData data);
 }
 
 Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,

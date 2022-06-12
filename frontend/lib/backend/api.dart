@@ -563,19 +563,20 @@ class Backend {
   }
 
   /// recursivle cache all elements that underly the caller
-  Future<bool> loadAndCacheAll<ParentData extends Data>(
-      ParentData caller) async {
+  Future<bool> loadAndCacheAll<
+          ChildData extends WithLangText,
+          ParentData extends Data,
+          DDModel extends DropDownModel<ChildData, ParentData>>(
+      DDModel caller) async {
     //base-case: CheckPointDefects have no children
-    if (typeOf<ParentData>() == CheckPointDefect) return true;
+    if (typeOf<DDModel>() == CheckPointDefect) return true;
     try {
       //fail early if no connection
       await connectionGuard();
       //get all children, this will also cache them internally
-      var children = await getNextDatapoint(
-              caller) //TODO: we need to pass what type the child data is supposed to be.. ; most probably via the correct dropdownmodels .all
-          .last;
-      var didSucceed =
-          await Future.wait(children.map((child) => loadAndCacheAll(child)));
+      List<ChildData> children = await caller.all.last;
+      var didSucceed = await Future.wait(children
+          .map((child) => loadAndCacheAll(caller.generateNextModel(child))));
       //if all children succeeded recursive calling succeeded
       return didSucceed.every((el) => el);
     } catch (error) {

@@ -14,7 +14,8 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'detailsPage.dart';
 import 'imagesPage.dart';
 
-class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
+class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
+    implements KnowsNext<CheckPoint> {
   CheckPointsModel(CheckCategory p) : super(p);
 
   static const _nextViewTitle = "Mängel";
@@ -36,6 +37,11 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
   ];
 
   @override
+  CheckPointDefectsModel generateNextModel(CheckPoint data) {
+    return CheckPointDefectsModel(data);
+  }
+
+  @override
   void open(
     BuildContext context,
     CheckPoint data,
@@ -47,7 +53,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
         switch (tiledata.title) {
           case _nextViewTitle:
             return nextModel<CheckPointDefect, CheckPoint,
-                CheckPointDefectsModel>(CheckPointDefectsModel(data));
+                CheckPointDefectsModel>(generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
 
