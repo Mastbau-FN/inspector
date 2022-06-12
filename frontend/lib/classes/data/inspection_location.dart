@@ -223,6 +223,11 @@ class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
         color: Colors.green,
       );
     }
-    return IconButton(onPressed: press, icon: Icon(Icons.refresh));
+    return IconButton(
+        onPressed: press,
+        icon: Icon(
+          Icons.refresh,
+          color: Colors.red,
+        ));
   }
 }
