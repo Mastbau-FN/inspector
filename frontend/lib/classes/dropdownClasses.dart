@@ -135,6 +135,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   Future<T?> updateCurrentChild<T>(
       Future<T> Function(ChildData) updater) async {
+    //TODO: das hier caused den zweiten teil von #182
     ChildData? childD = await currentlyChosenChildData;
     if (childD != null) {
       T ret = await updater(childD);
