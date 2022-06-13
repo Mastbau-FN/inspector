@@ -80,7 +80,7 @@ void open(
   InspectionLocation data,
   MyListTileData tiledata,
 ) {
-  currentlyChosenChildData = Future.sync(() =&gt; data);
+  currentlyChosenChildData = Future.value(data);
   Navigator.of(context).push(
     MaterialPageRoute(builder: (context) {
       switch (tiledata.title) {
@@ -169,7 +169,7 @@ void open(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.7+37
+      1.1.8+38
   </span>
 
   

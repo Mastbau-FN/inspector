@@ -67,6 +67,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void chooseChild(ChildData? child, {bool notify = false}) {
   currentlyChosenChildId = child?.id;
+  debugPrint(&#39;chose child ${child?.title} (id: ${child?.id})&#39;);
   if (notify) notifyListeners();
 }</code></pre>
 </section>
@@ -140,7 +141,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.7+37
+      1.1.8+38
   </span>
 
   

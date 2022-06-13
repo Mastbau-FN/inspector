@@ -68,6 +68,8 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;T?&gt; updateCurrentChild&lt;T&gt;(
     Future&lt;T&gt; Function(ChildData) updater) async {
+  &#47;&#47;TODO: das hier caused den zweiten teil von #182
+  debugPrint(&#39;you about to change $currentlyChosenChildId&#39;);
   ChildData? childD = await currentlyChosenChildData;
   if (childD != null) {
     T ret = await updater(childD);
@@ -146,7 +148,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.7+37
+      1.1.8+38
   </span>
 
   
