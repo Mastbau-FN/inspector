@@ -12,12 +12,6 @@ class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;
   const SettingsView({Key? key, required this.logoutcontext}) : super(key: key);
 
-  Widget get uploadSyncTile => MyCardListTile1(
-        icon: Icons.sync,
-        text: S.current.uploadAndSyncData,
-        onTap: Backend().retryFailedrequests,
-      );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,13 +29,26 @@ class SettingsView extends StatelessWidget {
             Spacer(),
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
-            if (Options.canBeOffline) uploadSyncTile,
+            if (Options.canBeOffline) UploadSyncTile(),
             // DeleteCachedImages(),
           ],
         ),
       ),
     );
   }
+}
+
+class UploadSyncTile extends StatelessWidget {
+  const UploadSyncTile({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) => MyCardListTile1(
+        icon: Icons.sync,
+        text: S.current.uploadAndSyncData,
+        onTap: Backend().retryFailedrequests,
+      );
 }
 
 class DeleteCachedImages extends StatelessWidget {

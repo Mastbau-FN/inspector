@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 import 'dart:typed_data';
@@ -135,43 +136,23 @@ Future<String> logFailedReq<T extends http.BaseRequest>(T req) async {
 ///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]
 Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
     getAllFailedRequests() async {
-  requestFromJson(Map<String, dynamic> json) async {
-    switch (json['type']) {
-      case 'Request':
-        return Tuple2(
-            http.Request(json['method'], Uri.parse(json['url']))
-              ..headers.addAll(json['headers'])
-              ..encoding = json['encoding']
-              ..body = json['body'],
-            null);
-      case 'MultipartRequest':
-        return Tuple2(
-            null,
-            http.MultipartRequest(json['method'], Uri.parse(json['url']))
-              ..headers.addAll(json['headers'])
-              ..fields.addAll(json['body'])
-              ..files.addAll(
-                List<http.MultipartFile>.from((await Future.wait(
-                  json['file-names'].map(
-                    (String name) async => http.MultipartFile.fromPath(
-                        'package',
-                        (await _localFile(name))
-                            .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-                  ),
-                ))
-                    .whereType<http.MultipartFile>()),
-              ));
-      default:
-        throw UnimplementedError();
-    }
-  }
-
   final docs = (await failedReqLogCollection
       .get()); //TODO: das muss in-order sein, sonst könnte es probleme geben..
 
   if (docs == null) return null;
-  var reqs = (await Future.wait(docs.entries
-      .map((e) async => Tuple2(e.key, await requestFromJson(e.value)))));
+  final docsWithTimeStr =
+      docs.map((key, value) => MapEntry(key.split('/').last, value));
+  final docsWithTimeAsFutureTuple = docsWithTimeStr.entries.map((e) async {
+    final m = e.value as Map<String, dynamic>;
+    try {
+      final parsedReq = await _requestFromJson(m);
+      return Tuple2(e.key, parsedReq);
+    } catch (e) {
+      debugPrint('failed parse of request hm, $e, $m');
+    }
+    return Tuple2(e.key, Tuple2(null, null));
+  });
+  var reqs = (await Future.wait(docsWithTimeAsFutureTuple));
   reqs.sort(((a, b) =>
       int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
   return reqs;
@@ -252,3 +233,35 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 //     }
 //   }
 // }
+
+Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
+    Map<String, dynamic> json) async {
+  switch (json['type']) {
+    case 'Request':
+      return Tuple2(
+          http.Request(json['method'], Uri.parse(json['url']))
+            ..headers.addAll(json['headers'])
+            ..encoding = json['encoding']
+            ..body = json['body'],
+          null);
+    case 'MultipartRequest':
+      return Tuple2(
+          null,
+          http.MultipartRequest(json['method'], Uri.parse(json['url']))
+            ..headers.addAll(json['headers'])
+            ..fields.addAll(json['body'])
+            ..files.addAll(
+              List<http.MultipartFile>.from((await Future.wait(
+                json['file-names'].map(
+                  (String name) async => http.MultipartFile.fromPath(
+                      'package',
+                      (await _localFile(name))
+                          .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+                ),
+              ))
+                  .whereType<http.MultipartFile>()),
+            ));
+    default:
+      throw UnimplementedError();
+  }
+}

@@ -626,15 +626,16 @@ class Backend {
   final deleteCache = OP.deleteAll;
 
   retryFailedrequests() async {
+    final failedReqs = await OP.getAllFailedRequests() ?? [];
     for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
-        in await OP.getAllFailedRequests() ?? []) {
+        in failedReqs) {
       final docID = reqd.item1;
       final _reqTuple = reqd.item2;
       try {
         final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
         final res = http.Response.fromStream(await req.send());
         OP.failedRequestWasSuccesful(docID);
-      } finally {}
+      } catch (e) {}
     }
   }
 
