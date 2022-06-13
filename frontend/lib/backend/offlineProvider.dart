@@ -81,7 +81,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
   debugPrint('_32 loading collection ${collectionName}');
 
   var json = data.toJson();
-  String? oldId = json['local_id'];
+  String? oldId = data.id ?? json['local_id'];
 
   //create a new document with new id if wanted
   final id = (override && oldId != null)

@@ -69,14 +69,14 @@ mixin WithAuthor on Data {
 // @JsonSerializable()
 mixin WithOffline on Data {
   @JsonKey(name: 'offline')
-  bool? _forceOffline = false;
+  bool? forceOffline_nullable = false;
 
   @JsonKey(ignore: true)
-  bool get forceOffline => _forceOffline ?? false;
+  bool get forceOffline => forceOffline_nullable ?? false;
 
   @JsonKey(ignore: true)
   void set forceOffline(bool? next) {
-    _forceOffline = next ?? false;
+    forceOffline_nullable = next ?? false;
   }
 }
 
