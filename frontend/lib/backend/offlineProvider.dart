@@ -78,7 +78,6 @@ String _getCollectionNameForData<DataT extends Data>(String parentId) {
 Future<String> storeData<DataT extends Data>(DataT data,
     {required String forId, bool addId = true, bool override = true}) async {
   final collectionName = _getCollectionNameForData<DataT>(forId);
-  debugPrint('_32 loading collection ${collectionName}');
 
   var json = data.toJson();
   String? oldId = data.id ?? json['local_id'];

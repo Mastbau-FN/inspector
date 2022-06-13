@@ -599,7 +599,6 @@ class Backend {
     String? name,
     String? parentID,
   }) async {
-    debugPrint('_32 loading ${depth}');
     //base-case: CheckPointDefects have no children
     // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
@@ -622,13 +621,13 @@ class Backend {
         // } catch (e) {}
         return child_succeeded;
       }));
-      debugPrint('_32 loading. ${depth + 1}');
+
       //if all children succeeded recursive calling succeeded
       bool success = didSucceed.every((el) => el);
       if (success) {
         caller.currentData.forceOffline = true;
         if (parentID == null) return false;
-        debugPrint('_32 loading. ${depth + 1} storing ');
+
         try {
           var id = await OP.storeData(caller.currentData, forId: parentID);
           debugPrint(
@@ -638,7 +637,6 @@ class Backend {
         }
       }
 
-      debugPrint('_32 loading.. ${depth + 1}');
       return success;
     } catch (error) {
       debugPrint('failed! ${depth + 1}');
