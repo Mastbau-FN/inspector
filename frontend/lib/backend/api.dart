@@ -323,6 +323,8 @@ class Backend {
     };
   }
 
+  Future<String> get rootID async => (await user)!.name;
+
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   Stream<List<ChildData>>
       _getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
@@ -331,11 +333,13 @@ class Backend {
     Map<String, dynamic>? json,
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
+    forceOffline = false,
   }) async* {
+    bool _forceOffline = forceOffline ?? false;
     // yield [];
     assert(
         (await user) != null, S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
-    String _id = id ?? json?['local_id'] ?? (await user)!.name;
+    String _id = id ?? json?['local_id'] ?? await rootID;
     Map<String, dynamic> _json = {};
     Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
         _generateImageFetcher(fromJson);
@@ -346,34 +350,52 @@ class Backend {
           // _generateImageFetcher(fromJson),
           objName: jsonResponseID,
         );
+
+    List<ChildData>? cached;
     if (Options.canBeOffline)
       try {
         _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
             // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
             (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
-        yield await __parse(_json);
+        cached = await __parse(_json);
+        yield cached;
       } catch (e) {
         debugPrint("couldnt read data from disk..: " + e.toString());
       }
 
-    try {
-      final res = (await post_JSON(
-        route,
-        json: json,
-        timeout: Duration(seconds: 10),
-      ));
-      final body = res!.forceRes()!.body;
-      _json = jsonDecode(body);
-      var datapoints = await __parse(_json);
-      yield datapoints;
-      for (var data in datapoints) {
-        String childId = await OP.storeData(data, forId: _id);
-        if (Options.debugLocalMirror)
-          debugPrint("stored new child with id: " + childId);
+    if (!_forceOffline ||
+        Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent)
+      try {
+        final res = (await post_JSON(
+          route,
+          json: json,
+          timeout: Duration(seconds: 10),
+        ));
+        final body = res!.forceRes()!.body;
+        _json = jsonDecode(body);
+        var datapoints = await __parse(_json);
+        yield datapoints;
+        if (Options.mergeLoadedDataIntoOnlineData && cached != null) {
+          try {
+            cached.retainWhere(
+                (element) => (element as WithOffline).forceOffline);
+            var cachedIds = cached.map((element) => element.id).toList();
+            datapoints.retainWhere((element) =>
+                element.id != null && !cachedIds.contains(element.id));
+            datapoints.addAll(cached);
+            yield datapoints;
+          } catch (e) {
+            debugPrint("error merging data: " + e.toString());
+          }
+        }
+        for (var data in datapoints) {
+          String childId = await OP.storeData(data, forId: _id);
+          if (Options.debugLocalMirror)
+            debugPrint("stored new child with id: " + childId);
+        }
+      } catch (e) {
+        debugPrint("couldnt reach API: " + e.toString());
       }
-    } catch (e) {
-      debugPrint("couldnt reach API: " + e.toString());
-    }
 
     if (Options.debugAllResponses)
       debugPrint("_getAllForNextLevel received: " + jsonEncode(json));
@@ -459,7 +481,7 @@ class Backend {
   /// gets all the [ChildData]points for the given [ParentData]
   /// if no [ParentData] is given it defaults to root
   Stream<List<ChildData>>
-      getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
+      getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
     ParentData data,
   ) async* {
     if (!Options.canBeOffline)
@@ -477,6 +499,7 @@ class Backend {
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
       id: data?.id,
+      forceOffline: data?.forceOffline,
     )) {
       // debugPrint('new value $l');
       yield l;
@@ -569,13 +592,13 @@ class Backend {
   /// recursivle cache all elements that underly the caller
   Future<bool> loadAndCacheAll<
       ChildData extends WithLangText,
-      ParentData extends Data,
+      ParentData extends WithOffline,
       DDModel extends DropDownModel<ChildData, ParentData>>(
     DDModel caller,
     int depth, {
     String? name,
+    String? parentID,
   }) async {
-    debugPrint('loading ${depth}');
     //base-case: CheckPointDefects have no children
     // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
@@ -585,18 +608,38 @@ class Backend {
       await connectionGuard();
       //get all children, this will also cache them internally
       var children = await caller.all.last;
-      var didSucceed = await Future.wait(children.map((child) {
+      var didSucceed = await Future.wait(children.map((child) async {
         String _name = '$name -> ${child.title}';
         debugPrint('__1234 got $depth: $_name');
         if (depth == 0)
-          return Future.value(
-              true); //base-case as to not call generateNextModel
-        return loadAndCacheAll(caller.generateNextModel(child), depth,
-            name: _name);
+          return true; //base-case as to not call generateNextModel
+        bool child_succeeded = await loadAndCacheAll(
+            caller.generateNextModel(child), depth,
+            name: _name, parentID: caller.currentData.id);
+        // try {
+
+        // } catch (e) {}
+        return child_succeeded;
       }));
+
       //if all children succeeded recursive calling succeeded
-      return didSucceed.every((el) => el);
+      bool success = didSucceed.every((el) => el);
+      if (success) {
+        caller.currentData.forceOffline = true;
+        if (parentID == null) return false;
+
+        try {
+          var id = await OP.storeData(caller.currentData, forId: parentID);
+          debugPrint(
+              '_32 loading. ${depth + 1} stored : ${id}  ${caller.currentData.title}');
+        } catch (e) {
+          return false;
+        }
+      }
+
+      return success;
     } catch (error) {
+      debugPrint('failed! ${depth + 1}');
       showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
       return false; //failed
     }

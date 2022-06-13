@@ -64,9 +64,11 @@ deleteAll() async => Directory(await _localPath).delete();
 
 final db = Localstore.instance;
 
-/// non-null wrapper for [Helper.getIdentifierFromData]
-/// a collection is always named via the scheme `${DataT}-${ParentId}`
+/// @depricated, its now only the parentID
+/// ~~non-null wrapper for [Helper.getIdentifierFromData]~~
+/// ~~a collection is always named via the scheme `${DataT}-${ParentId}`~~
 String _getCollectionNameForData<DataT extends Data>(String parentId) {
+  return parentId;
   final dataName = Helper.getIdentifierFromData<DataT>(null);
   if (dataName == null) throw Exception('could not get collection ${dataName}');
   return dataName + '-' + parentId;
@@ -78,7 +80,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
   final collectionName = _getCollectionNameForData<DataT>(forId);
 
   var json = data.toJson();
-  String? oldId = json['local_id'];
+  String? oldId = data.id ?? json['local_id'];
 
   //create a new document with new id if wanted
   final id = (override && oldId != null)
