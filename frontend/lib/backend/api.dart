@@ -177,7 +177,7 @@ class Backend {
               : await mreq.send().timeout(timeout);
           return res;
         } on Exception catch (e) {
-          OP.logFailedReq(mreq!);
+          OP.logFailedReq(mreq: mreq!);
           debugPrint('multipartRequest, failed, we logged it');
           throw e;
         }
@@ -190,7 +190,7 @@ class Backend {
             returnsBinary: returnsBinary,
           );
         } catch (e) {
-          OP.logFailedReq(req);
+          OP.logFailedReq(req: req);
           debugPrint('request, failed, we logged it');
           throw e;
         }
@@ -625,18 +625,27 @@ class Backend {
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
 
-  retryFailedrequests() async {
+  Future<bool> retryFailedrequests() async {
     final failedReqs = await OP.getAllFailedRequests() ?? [];
-    for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
-        in failedReqs) {
+    bool success = true;
+    for (final reqd in failedReqs) {
       final docID = reqd.item1;
       final _reqTuple = reqd.item2;
       try {
         final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
-        final res = http.Response.fromStream(await req.send());
-        OP.failedRequestWasSuccesful(docID);
-      } catch (e) {}
+        final res = await http.Response.fromStream(await req.send());
+        //nur 200er als ok einstufen
+        if (res.statusCode == 200) {
+          OP.failedRequestWasSuccesful(docID);
+        } else {
+          success = false;
+        }
+      } catch (e) {
+        debugPrint('failed to retry request: $e');
+        success = false;
+      }
     }
+    return success;
   }
 
   //TODO: das klappt zwar, aber das abspeichern selbst oder anzeigen nicht, wird aber OP liegen

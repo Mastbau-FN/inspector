@@ -124,12 +124,17 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
 
 final failedReqLogCollection = (db).collection('failed-requests');
 
-Future<String> logFailedReq<T extends http.BaseRequest>(T req) async {
+Future<String> logFailedReq({
+  http.Request? req,
+  http.MultipartRequest? mreq,
+}) async {
   final doc = failedReqLogCollection
       .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
-  ///TODO: idk if this uses the baserquest to json, which it shouldnt..
-  await doc.set(req.toJson);
+  //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
+  final json = (req?.toJson ??
+      mreq?.toJson)!; //TODO: create custom parser (toJson and fromJson) for everything i use in requests.. (multipart also has images somewhere taht need to be handled (as hashes))
+  await doc.set(json);
   return doc.id;
 }
 
@@ -234,8 +239,8 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 //   }
 // }
 
-Tuple2<http.Request?, http.MultipartRequest?> _requestFromJson(
-    Map<String, dynamic> json) {
+Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
+    Map<String, dynamic> json) async {
   final headers = Map<String, String>.from(json['headers']);
   switch (json['type']) {
     case 'Request':
@@ -245,23 +250,22 @@ Tuple2<http.Request?, http.MultipartRequest?> _requestFromJson(
       if (json['body'] != null) req.body = conv.json.encode(json['body']);
       return Tuple2(req, null);
     case 'MultipartRequest':
-      return Tuple2(
-          null,
-          // http.MultipartRequest(json['method'], Uri.parse(json['url']))
-          //   ..headers.addAll(json['headers'])
-          //   ..fields.addAll(json['body'])
-          //   ..files.addAll(
-          //     List<http.MultipartFile>.from((await Future.wait(
-          //       json['file-names'].map(
-          //         (String name) async => http.MultipartFile.fromPath(
-          //             'package',
-          //             (await _localFile(name))
-          //                 .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-          //       ),
-          //     ))
-          //         .whereType<http.MultipartFile>()),
-          // )
-          null);
+      var req = http.MultipartRequest(json['method'], Uri.parse(json['url']))
+        ..headers.addAll(headers)
+        ..files.addAll(
+          List<http.MultipartFile>.from((await Future.wait(
+            json['file-names'].map(
+              (String name) async => http.MultipartFile.fromPath(
+                  'package',
+                  (await _localFile(name))
+                      .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+            ),
+          ))
+              .whereType<http.MultipartFile>()),
+        );
+      if (json['body'] != null) req.fields.addAll(json['body']);
+
+      return Tuple2(null, req);
     default:
       throw UnimplementedError();
   }
