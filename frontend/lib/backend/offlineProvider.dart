@@ -124,7 +124,8 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
 final failedReqLogCollection = (db).collection('failed-requests');
 
 Future<String> logFailedReq<T extends http.BaseRequest>(T req) async {
-  final doc = failedReqLogCollection.doc();
+  final doc = failedReqLogCollection
+      .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
   ///TODO: idk if this uses the baserquest to json, which it shouldnt..
   await doc.set(req.toJson);
@@ -168,10 +169,12 @@ Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
   final docs = (await failedReqLogCollection
       .get()); //TODO: das muss in-order sein, sonst könnte es probleme geben..
 
-  return (docs == null)
-      ? null
-      : Future.wait(docs.entries
-          .map((e) async => Tuple2(e.key, await requestFromJson(e.value))));
+  if (docs == null) return null;
+  var reqs = (await Future.wait(docs.entries
+      .map((e) async => Tuple2(e.key, await requestFromJson(e.value)))));
+  reqs.sort(((a, b) =>
+      int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
+  return reqs;
 }
 
 failedRequestWasSuccesful(String id) {
