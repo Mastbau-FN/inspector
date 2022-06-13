@@ -66,7 +66,7 @@ mixin WithAuthor on Data {
 }
 
 //TODO: i have no idea what happens on JSONSERIALIZABLE mixins
-@JsonSerializable()
+// @JsonSerializable()
 mixin WithOffline on Data {
   @JsonKey(name: 'offline')
   bool forceOffline = false;

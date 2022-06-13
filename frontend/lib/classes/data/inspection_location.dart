@@ -16,7 +16,8 @@ part 'inspection_location.g.dart';
 /// stores all the data needed for a specific location in a type-safe way
 
 @JsonSerializable()
-class InspectionLocation extends Data with WithImgHashes, WithLangText {
+class InspectionLocation extends Data
+    with WithImgHashes, WithLangText, WithOffline {
   @JsonKey(name: 'local_id')
   String? id;
   @JsonKey(name: 'PjNr')
@@ -76,12 +77,14 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
 
-  // this should be ignored by json codegen, but isnt?
+  @JsonKey(ignore: true)
   WeatherData get weatherData => WeatherData(
       temperature: temp,
       weather: weather,
       wind_speed: wind_speed,
       wind_direction: wind_direction);
+
+  @JsonKey(ignore: true)
   set weatherData(WeatherData value) {
     temp = value.temperature;
     weather = value.weather;
