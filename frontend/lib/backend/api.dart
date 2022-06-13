@@ -245,12 +245,13 @@ class Backend {
       try {
         final img = await OP.readImage(hash);
         if (img == null) throw Exception("no img cached");
-        return ImageData(img, id: hash);
         cacheHit = true;
+        return ImageData(img, id: hash);
       } catch (e) {
         //yield null;
       }
-    } else {
+    }
+    if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res = (await post_JSON(
         _getImageFromHash_r,
         json: {
