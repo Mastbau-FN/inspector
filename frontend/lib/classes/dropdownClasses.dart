@@ -81,8 +81,9 @@ mixin WithOffline on Data {
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
-class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
-    extends ChangeNotifier implements KnowsNext<ChildData> {
+class DropDownModel<ChildData extends WithLangText,
+        ParentData extends WithOffline?> extends ChangeNotifier
+    implements KnowsNext<ChildData> {
   /// could be used for the scaffold appbar title
   String get title => currentData?.title ?? "root";
 
@@ -164,6 +165,8 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   DropDownModel(this.currentData);
 
+  bool get isOffline => currentData?.forceOffline ?? false;
+
   /// returns a [List] of all the [Data] for this Model
   Stream<List<ChildData>> get all => Backend().getNextDatapoint<ChildData,
           ParentData>(
@@ -205,7 +208,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   Widget? floatingActionButton = null;
 
   @override
-  DropDownModel<WithLangText, ChildData> generateNextModel(ChildData data) {
+  DropDownModel<WithLangText, WithOffline> generateNextModel(ChildData data) {
     // XXX: this class itself should be abstract..
     throw UnimplementedError();
   }
@@ -215,7 +218,9 @@ abstract class KnowsNext<ChildData extends Data> {
   KnowsNext generateNextModel(ChildData data);
 }
 
-Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
+Widget nextModel<
+        ChildData extends WithLangText,
+        ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>(DDModel child) =>
     ChangeNotifierProvider<DDModel>.value(
       value: child,
@@ -229,7 +234,7 @@ void _maybeShowToast(String? message) {
 }
 
 Widget standard_statefulImageView<ChildData extends WithLangText,
-            DDModel extends DropDownModel<ChildData, Data?>>(
+            DDModel extends DropDownModel<ChildData, WithOffline?>>(
         DDModel model, ChildData? data) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,

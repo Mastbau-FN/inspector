@@ -40,8 +40,10 @@ import '../generated/l10n.dart';
 // }
 
 Widget alwaysPlainText<ChildData extends WithLangText,
-            DDModel extends DropDownModel<ChildData, Data?>>(DDModel model,
-        ChildData data, Function(ChildData, String) uploadString) =>
+            DDModel extends DropDownModel<ChildData, WithOffline?>>(
+        DDModel model,
+        ChildData data,
+        Function(ChildData, String) uploadString) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,
         // child: ChangeNotifierProvider<ChildData>.value(

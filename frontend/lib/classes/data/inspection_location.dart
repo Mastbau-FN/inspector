@@ -145,7 +145,7 @@ class InspectionLocation extends Data
   String get title => toString();
 
   @override
-  Widget? get extra => RecursiveDownloadButton(caller: CategoryModel(this));
+  Widget? get extra => _RecursiveDownloadButton(caller: CategoryModel(this));
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
@@ -174,8 +174,8 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
   }
 }
 
-class RecursiveDownloadButton extends StatefulWidget {
-  RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
+class _RecursiveDownloadButton extends StatefulWidget {
+  _RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
       : super(key: key);
 
   final int depth;
@@ -183,20 +183,23 @@ class RecursiveDownloadButton extends StatefulWidget {
       caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
 
   @override
-  State<RecursiveDownloadButton> createState() =>
+  State<_RecursiveDownloadButton> createState() =>
       _RecursiveDownloadButtonState();
 }
 
-class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
+class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   bool wasPressed = false;
   bool? success;
-  void press() {
+  void press() async {
     setState(() {
       success = null;
       wasPressed = true;
     });
+    //also edit this for finer granularity
+    var rootid = await Backend().rootID;
     Backend()
-        .loadAndCacheAll(widget.caller, widget.depth, name: widget.caller.title)
+        .loadAndCacheAll(widget.caller, widget.depth,
+            name: widget.caller.title, parentID: rootid)
         .then((succs) => setState(() {
               this.success = succs;
             }));
@@ -204,6 +207,8 @@ class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.caller.isOffline)
+      return Icon(Icons.offline_pin, color: Colors.green);
     if (!wasPressed) {
       return IconButton(
           onPressed: press,
