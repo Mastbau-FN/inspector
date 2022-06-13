@@ -509,7 +509,16 @@ class Backend {
   }
 
   /// sets a new [DataT]
-  Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
+  Future<DataT?> setNew<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null && data != null && caller.id != null) {
+      data.id = '_on_' + (data.id ?? '__new__');
+      OP.storeData<DataT>(data, forId: caller.id!);
+    }
+
     var body = (await _sendDataToRoute(
             data: data, route: _addNew_r, networkIsCrucial: true))
         ?.body;
@@ -518,16 +527,38 @@ class Backend {
   }
 
   /// updates a [DataT] and returns the response
-  Future<String?> update<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(
-              data: data, route: _update_r, networkIsCrucial: true))
-          ?.body;
+  Future<String?> update<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null && data != null && caller.id != null) {
+      data.id = '_oe_' + (data.id ?? '__new__');
+      OP.storeData<DataT>(data, forId: caller.id!);
+    }
+
+    return (await _sendDataToRoute(
+            data: data, route: _update_r, networkIsCrucial: true))
+        ?.body;
+  }
 
   /// deletes a [DataT] and returns the response
-  Future<String?> delete<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(
-              data: data, route: _delete_r, networkIsCrucial: true))
-          ?.body;
+  Future<String?> delete<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null &&
+        data != null &&
+        caller.id != null &&
+        data.id != null) {
+      OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+    }
+
+    return (await _sendDataToRoute(
+            data: data, route: _delete_r, networkIsCrucial: true))
+        ?.body;
+  }
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
