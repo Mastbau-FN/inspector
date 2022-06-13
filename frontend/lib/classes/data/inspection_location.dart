@@ -16,7 +16,8 @@ part 'inspection_location.g.dart';
 /// stores all the data needed for a specific location in a type-safe way
 
 @JsonSerializable()
-class InspectionLocation extends Data with WithImgHashes, WithLangText {
+class InspectionLocation extends Data
+    with WithImgHashes, WithLangText, WithOffline {
   @JsonKey(name: 'local_id')
   String? id;
   @JsonKey(name: 'PjNr')
@@ -76,12 +77,14 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
 
-  // this should be ignored by json codegen, but isnt?
+  @JsonKey(ignore: true)
   WeatherData get weatherData => WeatherData(
       temperature: temp,
       weather: weather,
       wind_speed: wind_speed,
       wind_direction: wind_direction);
+
+  @JsonKey(ignore: true)
   set weatherData(WeatherData value) {
     temp = value.temperature;
     weather = value.weather;
@@ -142,7 +145,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   String get title => toString();
 
   @override
-  Widget? get extra => RecursiveDownloadButton(caller: CategoryModel(this));
+  Widget? get extra => _RecursiveDownloadButton(caller: CategoryModel(this));
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
@@ -171,8 +174,8 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
   }
 }
 
-class RecursiveDownloadButton extends StatefulWidget {
-  RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
+class _RecursiveDownloadButton extends StatefulWidget {
+  _RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
       : super(key: key);
 
   final int depth;
@@ -180,20 +183,23 @@ class RecursiveDownloadButton extends StatefulWidget {
       caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
 
   @override
-  State<RecursiveDownloadButton> createState() =>
+  State<_RecursiveDownloadButton> createState() =>
       _RecursiveDownloadButtonState();
 }
 
-class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
+class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   bool wasPressed = false;
   bool? success;
-  void press() {
+  void press() async {
     setState(() {
       success = null;
       wasPressed = true;
     });
+    //also edit this for finer granularity
+    var rootid = await Backend().rootID;
     Backend()
-        .loadAndCacheAll(widget.caller, widget.depth, name: widget.caller.title)
+        .loadAndCacheAll(widget.caller, widget.depth,
+            name: widget.caller.title, parentID: rootid)
         .then((succs) => setState(() {
               this.success = succs;
             }));
