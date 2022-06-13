@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:convert' as conv;
 import 'dart:core';
 import 'dart:io';
 import 'dart:typed_data';
@@ -143,12 +143,12 @@ Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
   final docsWithTimeStr =
       docs.map((key, value) => MapEntry(key.split('/').last, value));
   final docsWithTimeAsFutureTuple = docsWithTimeStr.entries.map((e) async {
-    final m = e.value as Map<String, dynamic>;
     try {
+      final m = e.value as Map<String, dynamic>;
       final parsedReq = await _requestFromJson(m);
       return Tuple2(e.key, parsedReq);
     } catch (e) {
-      debugPrint('failed parse of request hm, $e, $m');
+      debugPrint('failed parse of request hm, $e');
     }
     return Tuple2(e.key, Tuple2(null, null));
   });
@@ -234,33 +234,34 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 //   }
 // }
 
-Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
-    Map<String, dynamic> json) async {
+Tuple2<http.Request?, http.MultipartRequest?> _requestFromJson(
+    Map<String, dynamic> json) {
+  final headers = Map<String, String>.from(json['headers']);
   switch (json['type']) {
     case 'Request':
-      return Tuple2(
-          http.Request(json['method'], Uri.parse(json['url']))
-            ..headers.addAll(json['headers'])
-            ..encoding = json['encoding']
-            ..body = json['body'],
-          null);
+      var req = http.Request(json['method'], Uri.parse(json['url']))
+        ..headers.addAll(headers);
+      if (json['encoding'] != null) req.encoding = json['encoding'];
+      if (json['body'] != null) req.body = conv.json.encode(json['body']);
+      return Tuple2(req, null);
     case 'MultipartRequest':
       return Tuple2(
           null,
-          http.MultipartRequest(json['method'], Uri.parse(json['url']))
-            ..headers.addAll(json['headers'])
-            ..fields.addAll(json['body'])
-            ..files.addAll(
-              List<http.MultipartFile>.from((await Future.wait(
-                json['file-names'].map(
-                  (String name) async => http.MultipartFile.fromPath(
-                      'package',
-                      (await _localFile(name))
-                          .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-                ),
-              ))
-                  .whereType<http.MultipartFile>()),
-            ));
+          // http.MultipartRequest(json['method'], Uri.parse(json['url']))
+          //   ..headers.addAll(json['headers'])
+          //   ..fields.addAll(json['body'])
+          //   ..files.addAll(
+          //     List<http.MultipartFile>.from((await Future.wait(
+          //       json['file-names'].map(
+          //         (String name) async => http.MultipartFile.fromPath(
+          //             'package',
+          //             (await _localFile(name))
+          //                 .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+          //       ),
+          //     ))
+          //         .whereType<http.MultipartFile>()),
+          // )
+          null);
     default:
       throw UnimplementedError();
   }
