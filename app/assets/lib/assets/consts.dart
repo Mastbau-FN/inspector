@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class Options {
-  static const canBeOffline = false;
+  static const canBeOffline = true;
   static const canUseMobileNetworkIfPossible = true;
   static var preferRemoteImages = false;
   static const debugAllResponses = false;
-  static const debugLocalMirror = true;
+  static const debugLocalMirror = false;
   static const debugImages = false;
   static const infinitelyreloadPictures = true;
   static var reloadTries = 5;

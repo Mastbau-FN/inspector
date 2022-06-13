@@ -86,7 +86,7 @@ void open(
       switch (tiledata.title) {
         case _nextViewTitle:
           return nextModel&lt;CheckCategory, InspectionLocation, CategoryModel&gt;(
-              CategoryModel(data));
+              generateNextModel(data));
         case &#39;Fotos&#39;:
           return standard_statefulImageView(this, data);
         default:
@@ -143,6 +143,7 @@ void open(
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
     <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/chooseChild.html">chooseChild</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
+    <li><a href="../../pages_location/LocationModel/generateNextModel.html">generateNextModel</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/notifyListeners.html">notifyListeners</a></li>
     <li><a href="../../pages_location/LocationModel/open.html">open</a></li>

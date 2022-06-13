@@ -86,8 +86,9 @@ if no <code>ParentData</code> is given it defaults to root</p>
     jsonResponseID: childTypeStr + &#39;s&#39;,
     json: data?.toSmallJson(),
     fromJson: (json) =&gt; &#47;*Child*&#47; Data.fromJson&lt;ChildData&gt;(json),
+    id: data?.id,
   )) {
-    debugPrint(&#39;new value $l&#39;);
+    &#47;&#47; debugPrint(&#39;new value $l&#39;);
     yield l;
   }
 }</code></pre>
@@ -133,6 +134,7 @@ if no <code>ParentData</code> is given it defaults to root</p>
     <li><a href="../../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
     <li><a href="../../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/loadAndCacheAll.html">loadAndCacheAll</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>
     <li><a href="../../backend_api/Backend/makepost.html">makepost</a></li>

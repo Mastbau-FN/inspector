@@ -205,6 +205,19 @@ if no <code>ParentData</code> is given it defaults to root
 
 </dd>
 
+        <dt id="loadAndCacheAll" class="callable">
+  <span class="name"><a href="../backend_api/Backend/loadAndCacheAll.html">loadAndCacheAll</a></span><span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends <a href="../classes_dropdownClasses/WithLangText-mixin.html">WithLangText</a></span>, <span class="type-parameter">ParentData extends <a href="../classes_dropdownClasses/Data-class.html">Data</a></span>, <span class="type-parameter">DDModel extends <a href="../classes_dropdownClasses/DropDownModel-class.html">DropDownModel</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>&gt;</span></span>&gt;</span><span class="signature">(<wbr><span class="parameter" id="loadAndCacheAll-param-caller"><span class="type-annotation">DDModel</span> <span class="parameter-name">caller</span>, </span><span class="parameter" id="loadAndCacheAll-param-depth"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">depth</span>, </span><span class="parameter" id="loadAndCacheAll-param-name">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">name</span>}</span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  recursivle cache all elements that underly the caller
+  
+
+</dd>
+
         <dt id="login" class="callable">
   <span class="name"><a href="../backend_api/Backend/login.html">login</a></span><span class="signature">(<wbr><span class="parameter" id="login-param-user"><span class="type-annotation"><a href="../classes_user/User-class.html">User</a></span> <span class="parameter-name">user</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../classes_user/DisplayUser-class.html">DisplayUser</a>?</span>&gt;</span></span>
@@ -459,6 +472,7 @@ if no <code>ParentData</code> is given it defaults to root
     <li><a href="../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
     <li><a href="../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
+    <li><a href="../backend_api/Backend/loadAndCacheAll.html">loadAndCacheAll</a></li>
     <li><a href="../backend_api/Backend/login.html">login</a></li>
     <li><a href="../backend_api/Backend/logout.html">logout</a></li>
     <li><a href="../backend_api/Backend/makepost.html">makepost</a></li>
