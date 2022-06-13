@@ -375,7 +375,9 @@ class Backend {
         _json = jsonDecode(body);
         var datapoints = await __parse(_json);
         yield datapoints;
-        if (Options.mergeLoadedDataIntoOnlineData && cached != null) {
+        if ((Options.mergeLoadedDataIntoOnlineData ||
+                Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
+            cached != null) {
           try {
             cached.retainWhere(
                 (element) => (element as WithOffline).forceOffline);
