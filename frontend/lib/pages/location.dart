@@ -49,18 +49,22 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
   String get title => 'Inspektionen: $user';
 
   @override
+  CategoryModel generateNextModel(InspectionLocation data) =>
+      CategoryModel(data);
+
+  @override
   void open(
     BuildContext context,
     InspectionLocation data,
     MyListTileData tiledata,
   ) {
-    currentlyChosenChildData = Future.sync(() => data);
+    currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
           case _nextViewTitle:
             return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
-                CategoryModel(data));
+                generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
           default:

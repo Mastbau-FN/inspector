@@ -80,6 +80,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
   var json = data.toJson();
   String? oldId = json['local_id'];
 
+  //create a new document with new id if wanted
   final id = (override && oldId != null)
       ? oldId
       : db.collection(collectionName).doc().id;
@@ -88,7 +89,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
   if (Options.debugLocalMirror) debugPrint("stored json: " + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
-  return forId + '-' + id;
+  return id;
 }
 
 /// retrieves a DataT via its [id] and corresponding [parentId]

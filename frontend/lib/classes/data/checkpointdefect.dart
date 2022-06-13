@@ -110,8 +110,13 @@ class CheckPointDefect extends Data
   Map<String, dynamic> toJson() => _$CheckPointDefectToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() =>
-      {'PjNr': pjNr, 'E1': category_index, 'E2': check_index, 'E3': index};
+  Map<String, dynamic> toSmallJson() => {
+        'PjNr': pjNr,
+        'E1': category_index,
+        'E2': check_index,
+        'E3': index,
+        'local_id': id
+      };
 }
 
 class ChipData {

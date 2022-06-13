@@ -66,7 +66,7 @@ mixin WithAuthor on Data {
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
 class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
-    extends ChangeNotifier {
+    extends ChangeNotifier implements KnowsNext<ChildData> {
   /// could be used for the scaffold appbar title
   String get title => currentData?.title ?? "root";
 
@@ -74,6 +74,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   String? currentlyChosenChildId;
   void chooseChild(ChildData? child, {bool notify = false}) {
     currentlyChosenChildId = child?.id;
+    debugPrint('chose child ${child?.title} (id: ${child?.id})');
     if (notify) notifyListeners();
   }
 
@@ -85,7 +86,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
       if (currentlyChosenChildId == null) yield null;
 
       try {
-        a.firstWhere((child) {
+        yield a.firstWhere((child) {
           // debugPrint('comparing ${child?.id} to ${currentlyChosenChildId}');
           return child.id == currentlyChosenChildId;
         });
@@ -135,6 +136,8 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   Future<T?> updateCurrentChild<T>(
       Future<T> Function(ChildData) updater) async {
+    //TODO: das hier caused den zweiten teil von #182
+    debugPrint('you about to change $currentlyChosenChildId');
     ChildData? childD = await currentlyChosenChildData;
     if (childD != null) {
       T ret = await updater(childD);
@@ -184,6 +187,16 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)
   Widget? floatingActionButton = null;
+
+  @override
+  DropDownModel<WithLangText, ChildData> generateNextModel(ChildData data) {
+    // XXX: this class itself should be abstract..
+    throw UnimplementedError();
+  }
+}
+
+abstract class KnowsNext<ChildData extends Data> {
+  KnowsNext generateNextModel(ChildData data);
 }
 
 Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,

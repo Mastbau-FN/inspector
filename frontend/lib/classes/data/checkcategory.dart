@@ -70,5 +70,6 @@ class CheckCategory extends Data with WithLangText, WithImgHashes, WithAuthor {
   Map<String, dynamic> toJson() => _$CheckCategoryToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'E1': index};
+  Map<String, dynamic> toSmallJson() =>
+      {'PjNr': pjNr, 'E1': index, 'local_id': id};
 }
