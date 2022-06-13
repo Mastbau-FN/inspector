@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -203,14 +204,15 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Stream<ImageData?> _fetchImage(String hash) async* {
     bool cacheHit = false;
-    try {
-      final img = await OP.readImage(hash);
-      if (img == null) throw Exception("no img cached");
-      yield ImageData(img, id: hash);
-      cacheHit = true;
-    } catch (e) {
-      //yield null;
-    }
+    if (Options.canBeOffline)
+      try {
+        final img = await OP.readImage(hash);
+        if (img == null) throw Exception("no img cached");
+        yield ImageData(img, id: hash);
+        cacheHit = true;
+      } catch (e) {
+        //yield null;
+      }
     if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res = (await post_JSON(
         _getImageFromHash_r,
@@ -239,16 +241,17 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> _fetchImage_fut(String hash) async {
     bool cacheHit = false;
-    if (!Options.preferRemoteImages) {
+    if (Options.canBeOffline && !Options.preferRemoteImages) {
       try {
         final img = await OP.readImage(hash);
         if (img == null) throw Exception("no img cached");
-        return ImageData(img, id: hash);
         cacheHit = true;
+        return ImageData(img, id: hash);
       } catch (e) {
         //yield null;
       }
-    } else {
+    }
+    if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res = (await post_JSON(
         _getImageFromHash_r,
         json: {
@@ -473,8 +476,9 @@ class Backend {
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      id: data?.id,
     )) {
-      debugPrint('new value $l');
+      // debugPrint('new value $l');
       yield l;
     }
   }
@@ -558,6 +562,43 @@ class Backend {
         final res = http.Response.fromStream(await req.send());
         OP.failedRequestWasSuccesful(docID);
       } finally {}
+    }
+  }
+
+  //TODO: das klappt zwar, aber das abspeichern selbst oder anzeigen nicht, wird aber OP liegen
+  /// recursivle cache all elements that underly the caller
+  Future<bool> loadAndCacheAll<
+      ChildData extends WithLangText,
+      ParentData extends Data,
+      DDModel extends DropDownModel<ChildData, ParentData>>(
+    DDModel caller,
+    int depth, {
+    String? name,
+  }) async {
+    debugPrint('loading ${depth}');
+    //base-case: CheckPointDefects have no children
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
+    if (depth == 0) return true;
+    depth--;
+    try {
+      //fail early if no connection
+      await connectionGuard();
+      //get all children, this will also cache them internally
+      var children = await caller.all.last;
+      var didSucceed = await Future.wait(children.map((child) {
+        String _name = '$name -> ${child.title}';
+        debugPrint('__1234 got $depth: $_name');
+        if (depth == 0)
+          return Future.value(
+              true); //base-case as to not call generateNextModel
+        return loadAndCacheAll(caller.generateNextModel(child), depth,
+            name: _name);
+      }));
+      //if all children succeeded recursive calling succeeded
+      return didSucceed.every((el) => el);
+    } catch (error) {
+      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+      return false; //failed
     }
   }
 }

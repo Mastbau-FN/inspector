@@ -73,5 +73,5 @@ class CheckPoint extends Data with WithLangText, WithImgHashes, WithAuthor {
 
   @override
   Map<String, dynamic> toSmallJson() =>
-      {'PjNr': pjNr, 'E1': category_index, 'E2': index};
+      {'PjNr': pjNr, 'E1': category_index, 'E2': index, 'local_id': id};
 }

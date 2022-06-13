@@ -1,4 +1,8 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/pages/checkcategories.dart';
+import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:http/http.dart';
@@ -137,6 +141,9 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @override
   String get title => toString();
 
+  @override
+  Widget? get extra => RecursiveDownloadButton(caller: CategoryModel(this));
+
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
       return _$InspectionLocationFromJson(json);
@@ -148,7 +155,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr};
+  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'local_id': id};
 }
 
 Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
@@ -161,5 +168,66 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
     return LatLng(map['lat'], map['lng']);
   } catch (e) {
     return null;
+  }
+}
+
+class RecursiveDownloadButton extends StatefulWidget {
+  RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
+      : super(key: key);
+
+  final int depth;
+  CategoryModel
+      caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
+
+  @override
+  State<RecursiveDownloadButton> createState() =>
+      _RecursiveDownloadButtonState();
+}
+
+class _RecursiveDownloadButtonState extends State<RecursiveDownloadButton> {
+  bool wasPressed = false;
+  bool? success;
+  void press() {
+    setState(() {
+      success = null;
+      wasPressed = true;
+    });
+    Backend()
+        .loadAndCacheAll(widget.caller, widget.depth, name: widget.caller.title)
+        .then((succs) => setState(() {
+              this.success = succs;
+            }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!wasPressed) {
+      return IconButton(
+          onPressed: press,
+          icon: Icon(
+            Icons.download,
+          ));
+    }
+    if (success == null) {
+      return IconButton(
+        onPressed: (() {}),
+        icon: Opacity(
+          child: LoadingView(),
+          opacity: 0.5,
+        ),
+      );
+    }
+    if (success!) {
+      return Icon(
+        Icons.check,
+        color: Colors.green,
+      );
+    }
+    return IconButton(
+        onPressed: press,
+        icon: Icon(
+          Icons.refresh,
+          color: Colors.red,
+        ));
   }
 }

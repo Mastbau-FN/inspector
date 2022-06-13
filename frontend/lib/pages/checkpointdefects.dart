@@ -10,8 +10,8 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'package:provider/provider.dart';
 
-class CheckPointDefectsModel
-    extends DropDownModel<CheckPointDefect, CheckPoint> {
+class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
+    implements KnowsNext<CheckPointDefect> {
   CheckPointDefectsModel(CheckPoint data) : super(data);
 
   @override
@@ -32,7 +32,7 @@ class CheckPointDefectsModel
     CheckPointDefect data,
     MyListTileData tiledata,
   ) {
-    currentlyChosenChildData = Future.sync(() => data);
+    currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
@@ -52,6 +52,12 @@ class CheckPointDefectsModel
         }
       }),
     );
+  }
+
+  @override
+  DropDownModel<WithLangText, CheckPointDefect> generateNextModel(
+      CheckPointDefect data) {
+    throw UnimplementedError('thats the last one baby');
   }
 
   @override
