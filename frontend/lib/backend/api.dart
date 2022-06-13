@@ -476,6 +476,7 @@ class Backend {
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      id: data?.id,
     )) {
       // debugPrint('new value $l');
       yield l;

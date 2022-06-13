@@ -155,7 +155,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr};
+  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'local_id': id};
 }
 
 Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
