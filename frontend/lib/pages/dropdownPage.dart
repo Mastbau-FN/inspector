@@ -149,7 +149,7 @@ class _DropDownBodyState<
     try {
       if ((data as WithOffline).forceOffline)
         return Icon(
-          Icons.offline_pin,
+          Icons.cloud_off,
           color: Colors.green,
           size: 20,
         );
