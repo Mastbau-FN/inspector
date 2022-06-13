@@ -207,8 +207,6 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.caller.isOffline)
-      return Icon(Icons.offline_pin, color: Colors.green);
     if (!wasPressed) {
       return IconButton(
           onPressed: press,

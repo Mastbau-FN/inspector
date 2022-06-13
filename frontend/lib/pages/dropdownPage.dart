@@ -145,6 +145,18 @@ class _DropDownBodyState<
     return ExpandablesListRadio.fake(3);
   }
 
+  Widget offlineIndicator(ChildData data) {
+    try {
+      if ((data as WithOffline).forceOffline)
+        return Icon(
+          Icons.offline_pin,
+          color: Colors.green,
+          size: 20,
+        );
+    } catch (e) {}
+    return Container();
+  }
+
   ExpandableCard2 dropDown_element(
       ChildData data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
@@ -174,6 +186,7 @@ class _DropDownBodyState<
                 return Container();
               },
             ),
+            offlineIndicator(data),
           ],
         ),
         children: ddmodel.actions
