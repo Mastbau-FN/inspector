@@ -350,17 +350,21 @@ class Backend {
           // _generateImageFetcher(fromJson),
           objName: jsonResponseID,
         );
+
+    List<ChildData>? cached;
     if (Options.canBeOffline)
       try {
         _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
             // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
             (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
-        yield await __parse(_json);
+        cached = await __parse(_json);
+        yield cached;
       } catch (e) {
         debugPrint("couldnt read data from disk..: " + e.toString());
       }
 
-    if (!_forceOffline)
+    if (!_forceOffline ||
+        Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent)
       try {
         final res = (await post_JSON(
           route,
@@ -371,6 +375,19 @@ class Backend {
         _json = jsonDecode(body);
         var datapoints = await __parse(_json);
         yield datapoints;
+        if (Options.mergeLoadedDataIntoOnlineData && cached != null) {
+          try {
+            cached.retainWhere(
+                (element) => (element as WithOffline).forceOffline);
+            var cachedIds = cached.map((element) => element.id).toList();
+            datapoints.retainWhere((element) =>
+                element.id != null && !cachedIds.contains(element.id));
+            datapoints.addAll(cached);
+            yield datapoints;
+          } catch (e) {
+            debugPrint("error merging data: " + e.toString());
+          }
+        }
         for (var data in datapoints) {
           String childId = await OP.storeData(data, forId: _id);
           if (Options.debugLocalMirror)
@@ -582,7 +599,7 @@ class Backend {
     String? name,
     String? parentID,
   }) async {
-    debugPrint('loading ${depth}');
+    debugPrint('_32 loading ${depth}');
     //base-case: CheckPointDefects have no children
     // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
@@ -599,25 +616,32 @@ class Backend {
           return true; //base-case as to not call generateNextModel
         bool child_succeeded = await loadAndCacheAll(
             caller.generateNextModel(child), depth,
-            name: _name, parentID: child.id);
+            name: _name, parentID: caller.currentData.id);
         // try {
 
         // } catch (e) {}
         return child_succeeded;
       }));
+      debugPrint('_32 loading. ${depth + 1}');
       //if all children succeeded recursive calling succeeded
       bool success = didSucceed.every((el) => el);
       if (success) {
         caller.currentData.forceOffline = true;
         if (parentID == null) return false;
+        debugPrint('_32 loading. ${depth + 1} storing ');
         try {
-          OP.storeData(caller.currentData, forId: parentID);
+          var id = await OP.storeData(caller.currentData, forId: parentID);
+          debugPrint(
+              '_32 loading. ${depth + 1} stored : ${id}  ${caller.currentData.title}');
         } catch (e) {
           return false;
         }
       }
+
+      debugPrint('_32 loading.. ${depth + 1}');
       return success;
     } catch (error) {
+      debugPrint('failed! ${depth + 1}');
       showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
       return false; //failed
     }
