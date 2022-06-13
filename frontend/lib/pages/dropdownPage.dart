@@ -176,8 +176,9 @@ class _DropDownBodyState<
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend().delete<ChildData>(data).then(
-                          (value) => value != null
+                      delete: () => Backend()
+                          .delete<ChildData>(data, caller: ddmodel.currentData)
+                          .then((value) => value != null
                               ? (kDebugMode ? showToast(value) : (_) {})
                               : showToast(S.of(context).deleteUnseccessful)),
                       confirm_name: data.title,

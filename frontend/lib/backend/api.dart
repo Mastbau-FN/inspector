@@ -515,7 +515,7 @@ class Backend {
   }) async {
     //offline procedure, needs some stuff changed and added..
     if (caller != null && data != null && caller.id != null) {
-      data.id = '_on_' + (data.id ?? '__new__');
+      data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
       OP.storeData<DataT>(data, forId: caller.id!);
     }
 
@@ -530,11 +530,12 @@ class Backend {
   Future<String?> update<DataT extends Data>(
     DataT? data, {
     Data? caller,
+    bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if (caller != null && data != null && caller.id != null) {
-      data.id = '_oe_' + (data.id ?? '__new__');
-      OP.storeData<DataT>(data, forId: caller.id!);
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+      OP.storeData<DataT>(data, forId: caller?.id ?? await rootID);
     }
 
     return (await _sendDataToRoute(
