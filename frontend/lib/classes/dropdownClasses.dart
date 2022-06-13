@@ -11,6 +11,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/l10n.dart';
@@ -62,6 +63,13 @@ mixin WithLangText on Data {
 
 mixin WithAuthor on Data {
   String? get author;
+}
+
+//TODO: i have no idea what happens on JSONSERIALIZABLE mixins
+@JsonSerializable()
+mixin WithOffline on Data {
+  @JsonKey(name: 'offline')
+  bool forceOffline = false;
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
