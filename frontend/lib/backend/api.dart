@@ -571,15 +571,31 @@ class Backend {
 
   /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
-          DataT? data, String hash) async =>
-      (await _sendDataToRoute(
-        data: data,
-        route: _setMainImageByHash_r,
-        other: {
-          'hash': hash,
-        },
-      ))
-          ?.body;
+    DataT? data,
+    String hash, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      try {
+        data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+        data.imagehashes!.remove(hash);
+        data.imagehashes!.insert(0, hash);
+        OP.storeData<DataT>(data, forId: caller?.id ?? await rootID);
+      } catch (e) {
+        debugPrint('failed to update main image locally');
+      }
+    }
+    return (await _sendDataToRoute(
+      data: data,
+      route: _setMainImageByHash_r,
+      other: {
+        'hash': hash,
+      },
+    ))
+        ?.body;
+  }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(

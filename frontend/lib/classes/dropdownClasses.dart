@@ -268,7 +268,9 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                               S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => Backend()
-                                  .setMainImageByHash(data, hash.toString()))
+                                  .setMainImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
                               .then((value) {
                             _maybeShowToast(value);
                             return value;
