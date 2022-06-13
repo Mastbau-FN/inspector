@@ -41,7 +41,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory> {
     CheckPoint data,
     MyListTileData tiledata,
   ) {
-    currentlyChosenChildData = Future.sync(() => data);
+    currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {

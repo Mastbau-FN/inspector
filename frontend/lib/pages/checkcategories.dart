@@ -41,7 +41,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation> {
     CheckCategory data,
     MyListTileData tiledata,
   ) {
-    currentlyChosenChildData = Future.sync(() => data);
+    currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         if (tiledata.title == S.current.imagesButton)

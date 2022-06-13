@@ -74,6 +74,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   String? currentlyChosenChildId;
   void chooseChild(ChildData? child, {bool notify = false}) {
     currentlyChosenChildId = child?.id;
+    debugPrint('chose child ${child?.title} (id: ${child?.id})');
     if (notify) notifyListeners();
   }
 
@@ -85,7 +86,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
       if (currentlyChosenChildId == null) yield null;
 
       try {
-        a.firstWhere((child) {
+        yield a.firstWhere((child) {
           // debugPrint('comparing ${child?.id} to ${currentlyChosenChildId}');
           return child.id == currentlyChosenChildId;
         });
@@ -136,6 +137,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   Future<T?> updateCurrentChild<T>(
       Future<T> Function(ChildData) updater) async {
     //TODO: das hier caused den zweiten teil von #182
+    debugPrint('you about to change $currentlyChosenChildId');
     ChildData? childD = await currentlyChosenChildData;
     if (childD != null) {
       T ret = await updater(childD);
