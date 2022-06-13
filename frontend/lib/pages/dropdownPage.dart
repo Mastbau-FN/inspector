@@ -98,7 +98,9 @@ class _DropDownBodyState<
   }
 
   Future<void> _refresh() async {
+    // try {
     await __refresh().last;
+    // } catch (e) {}
   }
 
   Stream<bool> __refresh() async* {

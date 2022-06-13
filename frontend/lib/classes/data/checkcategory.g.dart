@@ -21,7 +21,6 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
       e2: json['E2'] as int?,
       e3: json['E3'] as int?,
     )
-      ..forceOffline = json['offline'] as bool
       ..id = json['local_id'] as String?
       ..author = json['Autor'] as String?
       ..imagehashes =
@@ -29,7 +28,6 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>
     <String, dynamic>{
-      'offline': instance.forceOffline,
       'local_id': instance.id,
       'PjNr': instance.pjNr,
       'Bauleitung': instance.bauleitung,

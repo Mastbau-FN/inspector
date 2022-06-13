@@ -69,7 +69,15 @@ mixin WithAuthor on Data {
 // @JsonSerializable()
 mixin WithOffline on Data {
   @JsonKey(name: 'offline')
-  bool forceOffline = false;
+  bool? _forceOffline = false;
+
+  @JsonKey(ignore: true)
+  bool get forceOffline => _forceOffline ?? false;
+
+  @JsonKey(ignore: true)
+  void set forceOffline(bool? next) {
+    _forceOffline = next ?? false;
+  }
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]

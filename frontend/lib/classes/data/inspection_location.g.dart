@@ -20,7 +20,6 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
           json['latLng'] as Map<String, dynamic>),
     )
       ..langText = json['langText'] as String?
-      ..forceOffline = json['offline'] as bool
       ..id = json['local_id'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
       ..bauwerkhoehe = json['Bauwerkhoehe'] as int?
@@ -49,7 +48,6 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
     <String, dynamic>{
       'langText': instance.langText,
-      'offline': instance.forceOffline,
       'local_id': instance.id,
       'PjNr': instance.pjNr,
       'PjName': instance.pjName,
