@@ -58,7 +58,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     InspectionLocation data,
     MyListTileData tiledata,
   ) {
-    currentlyChosenChildData = Future.sync(() => data);
+    currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {

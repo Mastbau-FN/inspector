@@ -204,14 +204,15 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Stream<ImageData?> _fetchImage(String hash) async* {
     bool cacheHit = false;
-    try {
-      final img = await OP.readImage(hash);
-      if (img == null) throw Exception("no img cached");
-      yield ImageData(img, id: hash);
-      cacheHit = true;
-    } catch (e) {
-      //yield null;
-    }
+    if (Options.canBeOffline)
+      try {
+        final img = await OP.readImage(hash);
+        if (img == null) throw Exception("no img cached");
+        yield ImageData(img, id: hash);
+        cacheHit = true;
+      } catch (e) {
+        //yield null;
+      }
     if (!cacheHit || Options.preferRemoteImages) {
       http.Response? res = (await post_JSON(
         _getImageFromHash_r,
@@ -240,7 +241,7 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> _fetchImage_fut(String hash) async {
     bool cacheHit = false;
-    if (!Options.preferRemoteImages) {
+    if (Options.canBeOffline && !Options.preferRemoteImages) {
       try {
         final img = await OP.readImage(hash);
         if (img == null) throw Exception("no img cached");
