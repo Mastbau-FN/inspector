@@ -4,6 +4,7 @@ class MyCardListTile1 extends StatelessWidget {
   IconData icon;
   String text;
   String? subtext;
+  Widget? child;
   void Function()? onTap;
 
   MyCardListTile1({
@@ -11,6 +12,7 @@ class MyCardListTile1 extends StatelessWidget {
     this.text = "Click mich doch",
     this.subtext,
     this.onTap,
+    this.child,
   }) : this.icon = icon ?? Icons.apps;
 
   @override
@@ -19,10 +21,24 @@ class MyCardListTile1 extends StatelessWidget {
       onTap: onTap,
       contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
       leading: Icon(icon, color: Colors.amber[400]),
-      title: Text(
-        text,
-        //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
+      title: child != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 140,
+                  child: Text(
+                    text,
+                    //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                child ?? Container(),
+              ],
+            )
+          : Text(
+              text,
+              //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
       subtitle: (subtext != null) ? Text(subtext ?? "") : null,
       trailing:
           Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0),
