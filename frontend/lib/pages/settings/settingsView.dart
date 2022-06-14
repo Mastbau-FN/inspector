@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
@@ -11,12 +12,6 @@ import '../../generated/l10n.dart';
 class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;
   const SettingsView({Key? key, required this.logoutcontext}) : super(key: key);
-
-  Widget get uploadSyncTile => MyCardListTile1(
-        icon: Icons.sync,
-        text: S.current.uploadAndSyncData,
-        onTap: Backend().retryFailedrequests,
-      );
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +30,54 @@ class SettingsView extends StatelessWidget {
             Spacer(),
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
-            if (Options.canBeOffline) uploadSyncTile,
+            if (Options.canBeOffline) UploadSyncTile(),
             // DeleteCachedImages(),
           ],
         ),
       ),
     );
   }
+}
+
+class UploadSyncTile extends StatefulWidget {
+  const UploadSyncTile({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<UploadSyncTile> createState() => _UploadSyncTileState();
+}
+
+class _UploadSyncTileState extends State<UploadSyncTile> {
+  bool loading = false;
+  bool? success;
+  onPress() async {
+    setState(() {
+      loading = true;
+    });
+    bool s = await Backend().retryFailedrequests();
+    setState(() {
+      success = s;
+    });
+    setState(() {
+      loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => MyCardListTile1(
+        icon: Icons.sync,
+        text: S.current.uploadAndSyncData,
+        onTap: onPress,
+        child: loading
+            ? LoadingView()
+            : (success != null
+                ? Icon(
+                    success! ? Icons.check : Icons.error,
+                    color: success! ? Colors.green : Colors.red,
+                  )
+                : null),
+      );
 }
 
 class DeleteCachedImages extends StatelessWidget {

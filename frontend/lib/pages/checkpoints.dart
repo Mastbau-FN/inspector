@@ -74,7 +74,8 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
             checkpoint['PjNr'] = currentData.pjNr;
             checkpoint['E1'] = currentData.index;
             checkpoint['E2'] = -1;
-            await Backend().setNew(CheckPoint.fromJson(checkpoint));
+            await Backend()
+                .setNew(CheckPoint.fromJson(checkpoint), caller: currentData);
             notifyListeners();
           },
           onCancel: onCancel,

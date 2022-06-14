@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -91,7 +92,8 @@ class Backend {
 
     try {
       // check if we can reach our api
-      await post_JSON('/login', timeout: timeout);
+      await post_JSON(
+          RequestData('/login', timeout: timeout, logIfFailed: false));
     } catch (e) {
       throw NoConnectionToBackendException(
           S.current.couldntReach + " $_baseurl");
@@ -142,26 +144,20 @@ class Backend {
   }
 
   /// post_JSON to our backend as the user
-  Future<http.BaseResponse?> post_JSON(
-    String route, {
-    Map<String, dynamic>? json,
-    List<XFile> multipart_files = const [],
-    Duration? timeout,
-    bool returnsBinary = false,
-  }) async {
+  Future<http.BaseResponse?> post_JSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    json = json ?? {};
-    json['user'] = (await _c_user)?.toJson();
+    rd.json = rd.json ?? {};
+    rd.json!['user'] = (await _c_user)?.toJson();
     if (Options.debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
-      if (multipart_files.isNotEmpty) {
+      if (rd.multipart_files.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
-          var fullURL = Uri.parse(_baseurl! + route);
+          var fullURL = Uri.parse(_baseurl! + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
             ..files.addAll(
               List<http.MultipartFile>.from((await Future.wait(
-                multipart_files.map(
+                rd.multipart_files.map(
                   (xfile) => http.MultipartFile.fromPath('package', xfile.path,
                       filename: xfile.name),
                 ),
@@ -169,29 +165,30 @@ class Backend {
                   .whereType<http.MultipartFile>()),
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-            ..fields.addAll(/*flatten()*/ json.map<String, String>(
+            ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
                 (key, value) => MapEntry(key, value.toString())));
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-          var res = (timeout == null)
+          var res = (rd.timeout == null)
               ? await mreq.send()
-              : await mreq.send().timeout(timeout);
+              : await mreq.send().timeout(rd.timeout!);
           return res;
         } on Exception catch (e) {
-          OP.logFailedReq(mreq!);
-          debugPrint('multipartRequest, failed, we logged it');
+          if (rd.logIfFailed) OP.logFailedReq(rd);
+          debugPrint('multipartRequest, failed');
           throw e;
         }
       } else {
-        final req = makepost(route, headers: headers, body: jsonEncode(json));
+        final req =
+            makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
         try {
           return await send(
             req,
-            timeout: timeout,
-            returnsBinary: returnsBinary,
+            timeout: rd.timeout,
+            returnsBinary: rd.returnsBinary,
           );
         } catch (e) {
-          OP.logFailedReq(req);
-          debugPrint('request, failed, we logged it');
+          if (rd.logIfFailed) OP.logFailedReq(rd);
+          debugPrint('request failed');
           throw e;
         }
       }
@@ -214,13 +211,14 @@ class Backend {
         //yield null;
       }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res = (await post_JSON(
+      http.Response? res = (await post_JSON(RequestData(
         _getImageFromHash_r,
         json: {
           'imghash': hash,
         },
         returnsBinary: true,
-      ))
+        logIfFailed: false,
+      )))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
         yield null;
@@ -252,13 +250,14 @@ class Backend {
       }
     }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res = (await post_JSON(
+      http.Response? res = (await post_JSON(RequestData(
         _getImageFromHash_r,
         json: {
           'imghash': hash,
         },
         returnsBinary: true,
-      ))
+        logIfFailed: false,
+      )))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
         return null;
@@ -366,16 +365,21 @@ class Backend {
     if (!_forceOffline ||
         Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent)
       try {
-        final res = (await post_JSON(
+        final res = (await post_JSON(RequestData(
           route,
           json: json,
           timeout: Duration(seconds: 10),
-        ));
+          logIfFailed: false,
+        )));
+
         final body = res!.forceRes()!.body;
         _json = jsonDecode(body);
         var datapoints = await __parse(_json);
         yield datapoints;
-        if (Options.mergeLoadedDataIntoOnlineData && cached != null) {
+        if ((Options.mergeLoadedDataIntoOnlineData ||
+                Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
+            cached != null) {
+
           try {
             cached.retainWhere(
                 (element) => (element as WithOffline).forceOffline);
@@ -420,11 +424,11 @@ class Backend {
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
     if (data == null) return null;
     var json_data = data.toJson();
-    http.Response? res = (await post_JSON(route, json: {
+    http.Response? res = (await post_JSON(RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': json_data,
       ...other
-    }))
+    })))
         ?.forceRes();
     if (Options.debugAllResponses)
       debugPrint("and we received :" + (res?.body.toString() ?? ""));
@@ -459,7 +463,8 @@ class Backend {
     if (await isUserLoggedIn(user)) return await this.user;
     await connectionGuard();
     _user = user;
-    var res = (await post_JSON('/login'))?.forceRes();
+    var res = (await post_JSON(RequestData('/login', logIfFailed: false)))
+        ?.forceRes();
     if (res != null && res.statusCode == 200) {
       //success
       var resb = jsonDecode(res.body)['user'];
@@ -507,7 +512,16 @@ class Backend {
   }
 
   /// sets a new [DataT]
-  Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
+  Future<DataT?> setNew<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null && data != null && caller.id != null) {
+      data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
+      OP.storeData<DataT>(data, forId: caller.id!);
+    }
+
     var body = (await _sendDataToRoute(
             data: data, route: _addNew_r, networkIsCrucial: true))
         ?.body;
@@ -516,36 +530,76 @@ class Backend {
   }
 
   /// updates a [DataT] and returns the response
-  Future<String?> update<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(
-              data: data, route: _update_r, networkIsCrucial: true))
-          ?.body;
+  Future<String?> update<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+      OP.storeData<DataT>(data, forId: caller?.id ?? await rootID);
+    }
+
+    return (await _sendDataToRoute(
+            data: data, route: _update_r, networkIsCrucial: true))
+        ?.body;
+  }
 
   /// deletes a [DataT] and returns the response
-  Future<String?> delete<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(
-              data: data, route: _delete_r, networkIsCrucial: true))
-          ?.body;
+  Future<String?> delete<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null &&
+        data != null &&
+        caller.id != null &&
+        data.id != null) {
+      OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+    }
+
+    return (await _sendDataToRoute(
+            data: data, route: _delete_r, networkIsCrucial: true))
+        ?.body;
+  }
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
     await OP.deleteImage(hash);
-    return (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+    return (await post_JSON(
+            RequestData(_deleteImageByHash_r, json: {'hash': hash})))
         ?.forceRes()
         ?.body;
   }
 
   /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
-          DataT? data, String hash) async =>
-      (await _sendDataToRoute(
-        data: data,
-        route: _setMainImageByHash_r,
-        other: {
-          'hash': hash,
-        },
-      ))
-          ?.body;
+    DataT? data,
+    String hash, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    //offline procedure, needs some stuff changed and added..
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      try {
+        data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+        data.imagehashes!.remove(hash);
+        data.imagehashes!.insert(0, hash);
+        OP.storeData<DataT>(data, forId: caller?.id ?? await rootID);
+      } catch (e) {
+        debugPrint('failed to update main image locally');
+      }
+    }
+    return (await _sendDataToRoute(
+      data: data,
+      route: _setMainImageByHash_r,
+      other: {
+        'hash': hash,
+      },
+    ))
+        ?.body;
+  }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
@@ -555,14 +609,14 @@ class Backend {
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
     debugPrint('uploading images ${files}');
     var json_data = data.toJson();
-    var res = await post_JSON(
+    var res = await post_JSON(RequestData(
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
         'data': json.encode(json_data),
       },
       multipart_files: files,
-    ); //wont work
+    )); //wont work
     if (res?.statusCode != 200) {
       debugPrint('not ok: ${res?.statusCode.toString()}');
       // debugPrint(res?.contentLength.toString());
@@ -575,17 +629,29 @@ class Backend {
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
 
-  retryFailedrequests() async {
-    for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
-        in await OP.getAllFailedRequests() ?? []) {
+  Future<bool> retryFailedrequests() async {
+    final failedReqs = await OP.getAllFailedRequests() ?? [];
+    bool success = true;
+    for (final reqd in failedReqs) {
       final docID = reqd.item1;
-      final _reqTuple = reqd.item2;
-      try {
-        final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
-        final res = http.Response.fromStream(await req.send());
-        OP.failedRequestWasSuccesful(docID);
-      } finally {}
+      final rd = reqd.item2;
+      if (rd != null)
+        try {
+          final res = await Backend().post_JSON(rd);
+          //nur 200er als ok einstufen
+          if (res!.statusCode == 200) {
+            OP.failedRequestWasSuccesful(docID);
+          } else {
+            success = false;
+            //TODO: what todo here?
+            break;
+          }
+        } catch (e) {
+          debugPrint('failed to retry request: $e');
+          success = false;
+        }
     }
+    return success;
   }
 
   //TODO: das klappt zwar, aber das abspeichern selbst oder anzeigen nicht, wird aber OP liegen
