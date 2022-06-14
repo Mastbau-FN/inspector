@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:http/http.dart' as http;
@@ -124,18 +126,16 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
 
 final failedReqLogCollection = (db).collection('failed-requests');
 
-Future<String> logFailedReq({
-  http.Request? req,
-  http.MultipartRequest? mreq,
-}) async {
+Future<String> logFailedReq(RequestData rd) async {
   final doc = failedReqLogCollection
       .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
-  //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
-  final json = (req?.toJson ??
-      mreq?.toJson)!; //TODO: create custom parser (toJson and fromJson) for everything i use in requests.. (multipart also has images somewhere taht need to be handled (as hashes))
-  await doc.set(json);
-  return doc.id;
+  // //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
+  // final json = (req?.toJson ??
+  //     mreq?.toJson)!; //TODO: create custom parser (toJson and fromJson) for everything i use in requests.. (multipart also has images somewhere taht need to be handled (as hashes))
+  // await doc.set(json);
+  // return doc.id;
+  return '';
 }
 
 ///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]

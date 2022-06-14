@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -91,7 +92,8 @@ class Backend {
 
     try {
       // check if we can reach our api
-      await post_JSON('/login', timeout: timeout, logIfFailed: false);
+      await post_JSON(
+          RequestData('/login', timeout: timeout, logIfFailed: false));
     } catch (e) {
       throw NoConnectionToBackendException(
           S.current.couldntReach + " $_baseurl");
@@ -142,27 +144,20 @@ class Backend {
   }
 
   /// post_JSON to our backend as the user
-  Future<http.BaseResponse?> post_JSON(
-    String route, {
-    Map<String, dynamic>? json,
-    List<XFile> multipart_files = const [],
-    Duration? timeout,
-    bool returnsBinary = false,
-    bool logIfFailed = true,
-  }) async {
+  Future<http.BaseResponse?> post_JSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    json = json ?? {};
-    json['user'] = (await _c_user)?.toJson();
+    rd.json = rd.json ?? {};
+    rd.json!['user'] = (await _c_user)?.toJson();
     if (Options.debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
-      if (multipart_files.isNotEmpty) {
+      if (rd.multipart_files.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
-          var fullURL = Uri.parse(_baseurl! + route);
+          var fullURL = Uri.parse(_baseurl! + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
             ..files.addAll(
               List<http.MultipartFile>.from((await Future.wait(
-                multipart_files.map(
+                rd.multipart_files.map(
                   (xfile) => http.MultipartFile.fromPath('package', xfile.path,
                       filename: xfile.name),
                 ),
@@ -170,28 +165,29 @@ class Backend {
                   .whereType<http.MultipartFile>()),
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-            ..fields.addAll(/*flatten()*/ json.map<String, String>(
+            ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
                 (key, value) => MapEntry(key, value.toString())));
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-          var res = (timeout == null)
+          var res = (rd.timeout == null)
               ? await mreq.send()
-              : await mreq.send().timeout(timeout);
+              : await mreq.send().timeout(rd.timeout!);
           return res;
         } on Exception catch (e) {
-          if (logIfFailed) OP.logFailedReq(mreq: mreq!);
+          if (rd.logIfFailed) OP.logFailedReq(rd);
           debugPrint('multipartRequest, failed');
           throw e;
         }
       } else {
-        final req = makepost(route, headers: headers, body: jsonEncode(json));
+        final req =
+            makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
         try {
           return await send(
             req,
-            timeout: timeout,
-            returnsBinary: returnsBinary,
+            timeout: rd.timeout,
+            returnsBinary: rd.returnsBinary,
           );
         } catch (e) {
-          if (logIfFailed) OP.logFailedReq(req: req);
+          if (rd.logIfFailed) OP.logFailedReq(rd);
           debugPrint('request failed');
           throw e;
         }
@@ -215,14 +211,14 @@ class Backend {
         //yield null;
       }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res = (await post_JSON(
+      http.Response? res = (await post_JSON(RequestData(
         _getImageFromHash_r,
         json: {
           'imghash': hash,
         },
         returnsBinary: true,
         logIfFailed: false,
-      ))
+      )))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
         yield null;
@@ -254,14 +250,14 @@ class Backend {
       }
     }
     if (!cacheHit || Options.preferRemoteImages) {
-      http.Response? res = (await post_JSON(
+      http.Response? res = (await post_JSON(RequestData(
         _getImageFromHash_r,
         json: {
           'imghash': hash,
         },
         returnsBinary: true,
         logIfFailed: false,
-      ))
+      )))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
         return null;
@@ -369,12 +365,12 @@ class Backend {
     if (!_forceOffline ||
         Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent)
       try {
-        final res = (await post_JSON(
+        final res = (await post_JSON(RequestData(
           route,
           json: json,
           timeout: Duration(seconds: 10),
           logIfFailed: false,
-        ));
+        )));
         final body = res!.forceRes()!.body;
         _json = jsonDecode(body);
         var datapoints = await __parse(_json);
@@ -426,11 +422,11 @@ class Backend {
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
     if (data == null) return null;
     var json_data = data.toJson();
-    http.Response? res = (await post_JSON(route, json: {
+    http.Response? res = (await post_JSON(RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': json_data,
       ...other
-    }))
+    })))
         ?.forceRes();
     if (Options.debugAllResponses)
       debugPrint("and we received :" + (res?.body.toString() ?? ""));
@@ -465,7 +461,8 @@ class Backend {
     if (await isUserLoggedIn(user)) return await this.user;
     await connectionGuard();
     _user = user;
-    var res = (await post_JSON('/login', logIfFailed: false))?.forceRes();
+    var res = (await post_JSON(RequestData('/login', logIfFailed: false)))
+        ?.forceRes();
     if (res != null && res.statusCode == 200) {
       //success
       var resb = jsonDecode(res.body)['user'];
@@ -568,7 +565,8 @@ class Backend {
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
     await OP.deleteImage(hash);
-    return (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+    return (await post_JSON(
+            RequestData(_deleteImageByHash_r, json: {'hash': hash})))
         ?.forceRes()
         ?.body;
   }
@@ -609,14 +607,14 @@ class Backend {
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
     debugPrint('uploading images ${files}');
     var json_data = data.toJson();
-    var res = await post_JSON(
+    var res = await post_JSON(RequestData(
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
         'data': json.encode(json_data),
       },
       multipart_files: files,
-    ); //wont work
+    )); //wont work
     if (res?.statusCode != 200) {
       debugPrint('not ok: ${res?.statusCode.toString()}');
       // debugPrint(res?.contentLength.toString());
