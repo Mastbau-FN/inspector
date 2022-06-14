@@ -147,8 +147,8 @@ Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
     try {
       final parsedReq = await RequestData.deserialize(e.value);
       return Tuple2(e.key, parsedReq);
-    } catch (e) {
-      debugPrint('failed parse of request hm, $e');
+    } catch (err) {
+      debugPrint('failed parse of request hm, $err');
     }
     return Tuple2(e.key, null);
   });

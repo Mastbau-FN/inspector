@@ -37,7 +37,7 @@ List<String> _multipartFilesToJson(List<XFile> files) => files
         file.path) //XXX: path usage is discouraged as it wont work in web
     .toList();
 
-List<XFile> _multipartFilesFromJson(List<String> files) => files
-    .map((file) =>
-        XFile(file)) //XXX: path usage is discouraged as it wont work in web
+List<XFile> _multipartFilesFromJson(List<dynamic> files) => files
+    .map((file) => XFile(file
+        .toString())) //XXX: path usage is discouraged as it wont work in web
     .toList();

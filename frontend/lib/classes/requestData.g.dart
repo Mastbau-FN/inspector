@@ -11,7 +11,7 @@ RequestData _$RequestDataFromJson(Map<String, dynamic> json) => RequestData(
       json: json['json'] as Map<String, dynamic>?,
       multipart_files: json['multipart_files'] == null
           ? const []
-          : _multipartFilesFromJson(json['multipart_files'] as List<String>),
+          : _multipartFilesFromJson(json['multipart_files'] as List),
       timeout: json['timeout'] == null
           ? null
           : Duration(microseconds: json['timeout'] as int),
