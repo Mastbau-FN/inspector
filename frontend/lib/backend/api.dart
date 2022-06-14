@@ -371,6 +371,7 @@ class Backend {
           timeout: Duration(seconds: 10),
           logIfFailed: false,
         )));
+
         final body = res!.forceRes()!.body;
         _json = jsonDecode(body);
         var datapoints = await __parse(_json);
@@ -378,6 +379,7 @@ class Backend {
         if ((Options.mergeLoadedDataIntoOnlineData ||
                 Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
             cached != null) {
+
           try {
             cached.retainWhere(
                 (element) => (element as WithOffline).forceOffline);
