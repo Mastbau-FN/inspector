@@ -632,20 +632,22 @@ class Backend {
     bool success = true;
     for (final reqd in failedReqs) {
       final docID = reqd.item1;
-      final _reqTuple = reqd.item2;
-      try {
-        final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
-        final res = await http.Response.fromStream(await req.send());
-        //nur 200er als ok einstufen
-        if (res.statusCode == 200) {
-          OP.failedRequestWasSuccesful(docID);
-        } else {
+      final rd = reqd.item2;
+      if (rd != null)
+        try {
+          final res = await Backend().post_JSON(rd);
+          //nur 200er als ok einstufen
+          if (res!.statusCode == 200) {
+            OP.failedRequestWasSuccesful(docID);
+          } else {
+            success = false;
+            //TODO: what todo here?
+            break;
+          }
+        } catch (e) {
+          debugPrint('failed to retry request: $e');
           success = false;
         }
-      } catch (e) {
-        debugPrint('failed to retry request: $e');
-        success = false;
-      }
     }
     return success;
   }

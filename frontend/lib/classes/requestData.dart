@@ -27,8 +27,8 @@ class RequestData {
   @JsonKey(ignore: true)
   bool logIfFailed;
 
-  Map<String, dynamic> serialize() => _$RequestDataToJson(this);
-  RequestData deserialize(Map<String, dynamic> json) =>
+  Map<String, dynamic> get serialized => _$RequestDataToJson(this);
+  static RequestData deserialize(Map<String, dynamic> json) =>
       _$RequestDataFromJson(json);
 }
 

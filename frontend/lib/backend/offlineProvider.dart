@@ -130,34 +130,29 @@ Future<String> logFailedReq(RequestData rd) async {
   final doc = failedReqLogCollection
       .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
-  // //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
-  // final json = (req?.toJson ??
-  //     mreq?.toJson)!; //TODO: create custom parser (toJson and fromJson) for everything i use in requests.. (multipart also has images somewhere taht need to be handled (as hashes))
-  // await doc.set(json);
-  // return doc.id;
-  return '';
+  //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
+  await doc.set(rd.serialized);
+  return doc.id;
 }
 
 ///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]
-Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
-    getAllFailedRequests() async {
+Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
       .get()); //TODO: das muss in-order sein, sonst könnte es probleme geben..
 
   if (docs == null) return null;
   final docsWithTimeStr =
       docs.map((key, value) => MapEntry(key.split('/').last, value));
-  final docsWithTimeAsFutureTuple = docsWithTimeStr.entries.map((e) async {
+  final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
     try {
-      final m = e.value as Map<String, dynamic>;
-      final parsedReq = await _requestFromJson(m);
+      final parsedReq = await RequestData.deserialize(e.value);
       return Tuple2(e.key, parsedReq);
     } catch (e) {
       debugPrint('failed parse of request hm, $e');
     }
-    return Tuple2(e.key, Tuple2(null, null));
+    return Tuple2(e.key, null);
   });
-  var reqs = (await Future.wait(docsWithTimeAsFutureTuple));
+  var reqs = (await Future.wait(docsWithTimeAsFutureTuples));
   reqs.sort(((a, b) =>
       int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
   return reqs;
