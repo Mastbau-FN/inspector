@@ -52,7 +52,8 @@
       
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">DataT?</span>&gt;</span></span>
-<span class="name ">setNew</span>&lt;<wbr><span class="type-parameter">DataT extends Data</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="setNew-param-data"><span class="type-annotation">DataT?</span> <span class="parameter-name">data</span></span></li>
+<span class="name ">setNew</span>&lt;<wbr><span class="type-parameter">DataT extends Data</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="setNew-param-data"><span class="type-annotation">DataT?</span> <span class="parameter-name">data</span>, </span></li>
+<li><span class="parameter" id="setNew-param-caller">{<span class="type-annotation"><a href="../../classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">caller</span>}</span></li>
 </ol>)
 
       
@@ -67,7 +68,16 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;DataT?&gt; setNew&lt;DataT extends Data&gt;(DataT? data) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;DataT?&gt; setNew&lt;DataT extends Data&gt;(
+  DataT? data, {
+  Data? caller,
+}) async {
+  &#47;&#47;offline procedure, needs some stuff changed and added..
+  if (caller != null &amp;&amp; data != null &amp;&amp; caller.id != null) {
+    data.id = &#47;*&#39;_on_&#39; + *&#47; (data.id ?? &#39;__new__&#39; + data.title);
+    OP.storeData&lt;DataT&gt;(data, forId: caller.id!);
+  }
+
   var body = (await _sendDataToRoute(
           data: data, route: _addNew_r, networkIsCrucial: true))
       ?.body;
@@ -107,6 +117,7 @@
     <li><a href="../../backend_api/Backend/deleteCache.html">deleteCache</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li><a href="../../backend_api/Backend/isAnyoneLoggedIn.html">isAnyoneLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/rootID.html">rootID</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
     <li><a href="../../backend_api/Backend/user.html">user</a></li>
 
@@ -149,7 +160,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.8+38
+      1.1.9+39
   </span>
 
   

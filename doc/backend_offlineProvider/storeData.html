@@ -73,7 +73,7 @@
   final collectionName = _getCollectionNameForData&lt;DataT&gt;(forId);
 
   var json = data.toJson();
-  String? oldId = json[&#39;local_id&#39;];
+  String? oldId = data.id ?? json[&#39;local_id&#39;];
 
   &#47;&#47;create a new document with new id if wanted
   final id = (override &amp;&amp; oldId != null)
@@ -146,7 +146,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.8+38
+      1.1.9+39
   </span>
 
   

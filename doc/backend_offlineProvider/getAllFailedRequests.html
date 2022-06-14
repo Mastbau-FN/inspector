@@ -51,7 +51,7 @@
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/Request-class.html">Request</a>?</span>, <span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.4/http/MultipartRequest-class.html">MultipartRequest</a>?</span>&gt;</span></span>&gt;</span></span>&gt;</span>?</span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.0/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="../classes_requestData/RequestData-class.html">RequestData</a>?</span>&gt;</span></span>&gt;</span>?</span>&gt;</span></span>
 <span class="name ">getAllFailedRequests</span>(<wbr>)
 
     </section>
@@ -64,46 +64,26 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;Tuple2&lt;String, Tuple2&lt;http.Request?, http.MultipartRequest?&gt;&gt;&gt;?&gt;
-    getAllFailedRequests() async {
-  requestFromJson(Map&lt;String, dynamic&gt; json) async {
-    switch (json[&#39;type&#39;]) {
-      case &#39;Request&#39;:
-        return Tuple2(
-            http.Request(json[&#39;method&#39;], Uri.parse(json[&#39;url&#39;]))
-              ..headers.addAll(json[&#39;headers&#39;])
-              ..encoding = json[&#39;encoding&#39;]
-              ..body = json[&#39;body&#39;],
-            null);
-      case &#39;MultipartRequest&#39;:
-        return Tuple2(
-            null,
-            http.MultipartRequest(json[&#39;method&#39;], Uri.parse(json[&#39;url&#39;]))
-              ..headers.addAll(json[&#39;headers&#39;])
-              ..fields.addAll(json[&#39;body&#39;])
-              ..files.addAll(
-                List&lt;http.MultipartFile&gt;.from((await Future.wait(
-                  json[&#39;file-names&#39;].map(
-                    (String name) async =&gt; http.MultipartFile.fromPath(
-                        &#39;package&#39;,
-                        (await _localFile(name))
-                            .path), &#47;&#47;TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-                  ),
-                ))
-                    .whereType&lt;http.MultipartFile&gt;()),
-              ));
-      default:
-        throw UnimplementedError();
-    }
-  }
-
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;Tuple2&lt;String, RequestData?&gt;&gt;?&gt; getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
       .get()); &#47;&#47;TODO: das muss in-order sein, sonst könnte es probleme geben..
 
-  return (docs == null)
-      ? null
-      : Future.wait(docs.entries
-          .map((e) async =&gt; Tuple2(e.key, await requestFromJson(e.value))));
+  if (docs == null) return null;
+  final docsWithTimeStr =
+      docs.map((key, value) =&gt; MapEntry(key.split(&#39;&#47;&#39;).last, value));
+  final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
+    try {
+      final parsedReq = await RequestData.deserialize(e.value);
+      return Tuple2(e.key, parsedReq);
+    } catch (err) {
+      debugPrint(&#39;failed parse of request hm, $err&#39;);
+    }
+    return Tuple2(e.key, null);
+  });
+  var reqs = (await Future.wait(docsWithTimeAsFutureTuples));
+  reqs.sort(((a, b) =&gt;
+      int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
+  return reqs;
 }</code></pre>
 </section>
 
@@ -165,7 +145,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.8+38
+      1.1.9+39
   </span>
 
   

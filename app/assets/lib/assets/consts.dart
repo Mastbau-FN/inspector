@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class Options {
   static const canBeOffline = true;
+  static const mergeLoadedDataIntoOnlineData = true;
+  static const mergeLoadedDataIntoOnlineDataEvenInCachedParent = true;
   static const canUseMobileNetworkIfPossible = true;
   static var preferRemoteImages = false;
   static const debugAllResponses = false;

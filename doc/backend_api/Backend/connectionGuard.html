@@ -85,7 +85,8 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 
   try {
     &#47;&#47; check if we can reach our api
-    await post_JSON(&#39;&#47;login&#39;, timeout: timeout);
+    await post_JSON(
+        RequestData(&#39;&#47;login&#39;, timeout: timeout, logIfFailed: false));
   } catch (e) {
     throw NoConnectionToBackendException(
         S.current.couldntReach + &quot; $_baseurl&quot;);
@@ -124,6 +125,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
     <li><a href="../../backend_api/Backend/deleteCache.html">deleteCache</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li><a href="../../backend_api/Backend/isAnyoneLoggedIn.html">isAnyoneLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/rootID.html">rootID</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
     <li><a href="../../backend_api/Backend/user.html">user</a></li>
 
@@ -166,7 +168,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.8+38
+      1.1.9+39
   </span>
 
   
