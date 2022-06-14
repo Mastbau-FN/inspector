@@ -1,3 +1,3 @@
 # changes
 
-- bugfixes for online version
+- crudely working offline functionality
