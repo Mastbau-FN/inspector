@@ -91,7 +91,7 @@ class Backend {
 
     try {
       // check if we can reach our api
-      await post_JSON('/login', timeout: timeout);
+      await post_JSON('/login', timeout: timeout, logIfFailed: false);
     } catch (e) {
       throw NoConnectionToBackendException(
           S.current.couldntReach + " $_baseurl");
@@ -148,6 +148,7 @@ class Backend {
     List<XFile> multipart_files = const [],
     Duration? timeout,
     bool returnsBinary = false,
+    bool logIfFailed = true,
   }) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
@@ -177,8 +178,8 @@ class Backend {
               : await mreq.send().timeout(timeout);
           return res;
         } on Exception catch (e) {
-          OP.logFailedReq(mreq: mreq!);
-          debugPrint('multipartRequest, failed, we logged it');
+          if (logIfFailed) OP.logFailedReq(mreq: mreq!);
+          debugPrint('multipartRequest, failed');
           throw e;
         }
       } else {
@@ -190,8 +191,8 @@ class Backend {
             returnsBinary: returnsBinary,
           );
         } catch (e) {
-          OP.logFailedReq(req: req);
-          debugPrint('request, failed, we logged it');
+          if (logIfFailed) OP.logFailedReq(req: req);
+          debugPrint('request failed');
           throw e;
         }
       }
@@ -220,6 +221,7 @@ class Backend {
           'imghash': hash,
         },
         returnsBinary: true,
+        logIfFailed: false,
       ))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
@@ -258,6 +260,7 @@ class Backend {
           'imghash': hash,
         },
         returnsBinary: true,
+        logIfFailed: false,
       ))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
@@ -370,6 +373,7 @@ class Backend {
           route,
           json: json,
           timeout: Duration(seconds: 10),
+          logIfFailed: false,
         ));
         final body = res!.forceRes()!.body;
         _json = jsonDecode(body);
@@ -461,7 +465,7 @@ class Backend {
     if (await isUserLoggedIn(user)) return await this.user;
     await connectionGuard();
     _user = user;
-    var res = (await post_JSON('/login'))?.forceRes();
+    var res = (await post_JSON('/login', logIfFailed: false))?.forceRes();
     if (res != null && res.statusCode == 200) {
       //success
       var resb = jsonDecode(res.body)['user'];
