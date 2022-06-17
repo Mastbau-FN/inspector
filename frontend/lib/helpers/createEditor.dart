@@ -40,8 +40,12 @@ import '../generated/l10n.dart';
 // }
 
 Widget alwaysPlainText<ChildData extends WithLangText,
-            DDModel extends DropDownModel<ChildData, Data?>>(DDModel model,
-        ChildData data, Function(ChildData, String) uploadString) =>
+        DDModel extends DropDownModel<ChildData, Data?>>(
+  DDModel model,
+  ChildData data,
+  Function(ChildData, String) uploadString, {
+  Widget? child,
+}) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,
         // child: ChangeNotifierProvider<ChildData>.value(
@@ -53,12 +57,14 @@ Widget alwaysPlainText<ChildData extends WithLangText,
                 future: model.currentlyChosenChildData,
                 builder: (context, snapshot) {
                   return DetailsPage(
-                      title: (snapshot.data ?? data).title,
-                      details: (snapshot.data ?? data).langText,
-                      onChanged: (txt) {
-                        showToast(S.of(context).uploading);
-                        model.updateCurrentChild((p0) => uploadString(p0, txt));
-                      });
+                    title: (snapshot.data ?? data).title,
+                    details: (snapshot.data ?? data).langText,
+                    onChanged: (txt) {
+                      showToast(S.of(context).uploading);
+                      model.updateCurrentChild((p0) => uploadString(p0, txt));
+                    },
+                    child: child,
+                  );
                 });
           });
         }));

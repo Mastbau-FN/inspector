@@ -26,6 +26,13 @@ class CheckPointDefectsModel
     ),
   ];
 
+  final _oufnessChooser = OufnessChooser();
+  @override
+  void update(CheckPointDefect data, txt) {
+    data.ereArt = _oufnessChooser.selected;
+    super.update(data, txt);
+  }
+
   @override
   void open(
     BuildContext context,
@@ -40,13 +47,15 @@ class CheckPointDefectsModel
             return standard_statefulImageView(this, data);
 
           default:
+            _oufnessChooser.selected = data.ereArt;
             return Provider<CheckPointDefectsModel>(
               //TODO: wozu ist hier der provider?
               create: (context) =>
                   this, //the injector //XXX: sadly this doesnt work for some reason
               child: Builder(builder: (context) {
                 debugPrint('build new defectsdetails');
-                return alwaysPlainText(this, data, update);
+                return alwaysPlainText(this, data, update,
+                    child: _oufnessChooser);
               }),
             );
         }
@@ -56,7 +65,7 @@ class CheckPointDefectsModel
 
   @override
   Widget? get floatingActionButton {
-    var oufnessChooser = OufnessChooser();
+    // var oufnessChooser = OufnessChooser();
     return TransformableActionbutton(
       expandedHeight: 300,
       expandedChild: (onCancel) => Adder(
@@ -80,11 +89,11 @@ class CheckPointDefectsModel
           /// this solves #48
           defect['KurzText'] = currentData.title +
               "  " +
-              ((defect[oufnessChooser.name].toString() ==
+              ((defect[_oufnessChooser.name].toString() ==
                       OufnessChooser.default_none.toString())
                   ? "ohne Mangel"
                   : ("Mangel " +
-                      (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                      (CheckPointDefect.chipd(defect[_oufnessChooser.name])
                               ?.label ??
                           ""))); //ahhh so thats why we learn functional programming
 
@@ -93,7 +102,7 @@ class CheckPointDefectsModel
         },
         onCancel: onCancel,
         children: [
-          oufnessChooser,
+          _oufnessChooser,
           //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
         ],
         textfield_list: [
@@ -145,9 +154,16 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
 
   static final int default_none = 5204;
 
-  final List<int> choices = [default_none, 5201, 5202, 5203];
+  List<int> get choices => [default_none, 5201, 5202, 5203];
 
   int get _selected => this._state.select;
+
+  int get selected => _selected;
+  void set selected(int? val) {
+    if (val == null) return;
+    this._state.select = val;
+    this._state.setState(() {});
+  }
 
   var _state = _OufnessChooserState();
   @override
