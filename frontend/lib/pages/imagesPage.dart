@@ -218,7 +218,17 @@ class _ImageAddButtonState extends State<ImageAddButton>
                           child: Consumer<CameraModel>(
                             builder: (context, model, child) =>
                                 model.latestPic == null
-                                    ? CameraPreviewOnly()
+                                    ? CameraPreviewOnly(
+                                        children: [
+                                          // Text('he, hier !!'),
+                                          IconButton(
+                                              onPressed: model.nextCamera,
+                                              icon: Icon(
+                                                Icons.switch_camera,
+                                                color: Colors.white,
+                                              )),
+                                        ],
+                                      )
                                     : Image.file(
                                         File(model.latestPic!.path),
                                         fit: BoxFit.fitWidth,
@@ -290,6 +300,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
       showToast(resstring ??
           S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
     collapse();
+    discardShot(context);
   }
 
   FloatingActionButton get add => FloatingActionButton(
