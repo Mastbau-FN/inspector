@@ -41,5 +41,18 @@ class CameraModel extends ChangeNotifier {
 
   Future<CameraDescription> get mainCamera async => (await all_cameras).first;
 
-  Future<CameraDescription> get currentCamera => mainCamera; //XXX
+  int _currentCameraIndex = 0;
+  Future nextCamera() async {
+    int len = (await all_cameras).length;
+    _currentCameraIndex++;
+    _currentCameraIndex %= len;
+  }
+
+  Future<CameraDescription> get currentCamera async {
+    try {
+      return (await all_cameras)[_currentCameraIndex];
+    } catch (e) {}
+
+    return await mainCamera; //XXX (related to #202) use other lenses
+  }
 }
