@@ -5,7 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class CameraPreviewOnly extends StatelessWidget {
-  const CameraPreviewOnly({Key? key}) : super(key: key);
+  final List<Widget> children;
+  const CameraPreviewOnly({this.children = const [], Key? key})
+      : super(key: key);
+
+  Widget _previewWithChildren(CameraController cc) => children.isEmpty
+      ? CameraPreview(cc)
+      : Material(
+          //why the hell would i need a Material, it should be an ancestor already..
+          child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            CameraPreview(cc),
+            Wrap(children: children),
+          ],
+        ));
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +30,7 @@ class CameraPreviewOnly extends StatelessWidget {
             // LoadingView(),
             snapshot.connectionState == ConnectionState.done &&
                     snapshot.data != null
-                ? CameraPreview(snapshot.data!)
+                ? _previewWithChildren(snapshot.data!)
                 : LoadingView(),
       );
     });
