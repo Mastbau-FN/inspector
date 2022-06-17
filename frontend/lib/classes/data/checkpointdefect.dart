@@ -32,7 +32,8 @@ class CheckPointDefect extends Data
   @JsonKey(name: 'E3')
   int index;
 
-  @JsonKey(name: "Zusatz_Info")
+  // @JsonKey(name: "Zusatz_info")
+  // @JsonKey(name: "height") //der ist es momentan
   String? height;
 
   @JsonKey(name: 'Autor')
