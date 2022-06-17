@@ -51,7 +51,7 @@ Widget alwaysPlainText<ChildData extends WithLangText,
         // child: ChangeNotifierProvider<ChildData>.value(
         //   value: data,
         child: Builder(builder: (context) {
-          return Consumer<DDModel>(builder: (context, model, child) {
+          return Consumer<DDModel>(builder: (context, model, _child) {
             // return Consumer<ChildData>(builder: (context, data, child) {
             return FutureBuilder<ChildData?>(
                 future: model.currentlyChosenChildData,

@@ -30,7 +30,7 @@ class CheckPointDefectsModel
   @override
   void update(CheckPointDefect data, txt) {
     data.ereArt = _oufnessChooser.selected;
-    super.update(data, txt);
+    return super.update(data, txt);
   }
 
   @override
@@ -65,7 +65,7 @@ class CheckPointDefectsModel
 
   @override
   Widget? get floatingActionButton {
-    // var oufnessChooser = OufnessChooser();
+    var _oufnessChooser = OufnessChooser(); //dont use this._oufnessChooser
     return TransformableActionbutton(
       expandedHeight: 300,
       expandedChild: (onCancel) => Adder(
@@ -156,13 +156,17 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
 
   List<int> get choices => [default_none, 5201, 5202, 5203];
 
-  int get _selected => this._state.select;
+  int get _selected => this._state.select ?? __selected;
+  int __selected = default_none;
 
   int get selected => _selected;
   void set selected(int? val) {
     if (val == null) return;
-    this._state.select = val;
-    this._state.setState(() {});
+    __selected = val;
+    try {
+      this._state.select = _selected;
+      this._state.setState(() {});
+    } catch (e) {}
   }
 
   var _state = _OufnessChooserState();
@@ -173,7 +177,13 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
 }
 
 class _OufnessChooserState extends State<OufnessChooser> {
-  int select = OufnessChooser.default_none;
+  @override
+  void initState() {
+    super.initState();
+    select = widget.selected;
+  }
+
+  int? select;
 
   @override
   Widget build(BuildContext context) {
