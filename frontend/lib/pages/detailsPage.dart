@@ -15,12 +15,14 @@ class DetailsPage extends StatefulWidget {
   final List<dynamic>? richDetails;
   final void Function(String)? onChanged;
   final void Function(List<dynamic>)? onRichChanged;
+  final Widget? child;
 
   const DetailsPage({
     Key? key,
     required this.title,
     this.details,
     required void Function(String) onChanged,
+    this.child,
   })  : this.isRich = false,
         this.onChanged = onChanged,
         this.onRichChanged = null,
@@ -31,7 +33,8 @@ class DetailsPage extends StatefulWidget {
       {Key? key,
       required this.title,
       required List<dynamic> details,
-      required void Function(List<dynamic>) onChanged})
+      required void Function(List<dynamic>) onChanged,
+      this.child})
       : this.isRich = true,
         this.onRichChanged = onChanged,
         this.richDetails = details,
@@ -80,11 +83,15 @@ class _DetailsPageState extends State<DetailsPage> {
           });
         },
         child: Icon(_isEditing ? Icons.done : Icons.edit),
-        tooltip: "noch in arbeit..",
       ),
       body: Padding(
         padding: EdgeInsets.all(10),
-        child: _body,
+        child: Column(
+          children: [
+            widget.child ?? Container(),
+            _body,
+          ],
+        ),
       ),
     );
   }
