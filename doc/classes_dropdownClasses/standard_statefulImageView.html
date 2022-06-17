@@ -88,7 +88,8 @@
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
-                              (data) =&gt; Backend().uploadFiles(data, files));
+                            (data) =&gt; Backend().uploadFiles(data, files),
+                          );
 
                           _maybeShowToast(value);
                           return value;
@@ -183,7 +184,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.9+39
+      1.1.40+40
   </span>
 
   
