@@ -81,7 +81,7 @@ WeatherData get weatherData =&gt; WeatherData(
 <section class="multi-line-signature">
   <span class="returntype">void</span>
   <span class="name ">weatherData=</span><span class="signature">(<wbr><span class="parameter" id="weatherData=-param-value"><span class="type-annotation"><a href="../../classes_data_weather/WeatherData-class.html">WeatherData</a></span> <span class="parameter-name">value</span></span>)</span>
-  <div class="features">@<a href="https://pub.dev/documentation/json_annotation/4.5.0/json_annotation/JsonKey-class.html">JsonKey</a>(ignore: true)</div>
+  
 
 </section>
 
@@ -90,8 +90,7 @@ WeatherData get weatherData =&gt; WeatherData(
 
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@JsonKey(ignore: true)
-set weatherData(WeatherData value) {
+  <pre class="language-dart"><code class="language-dart">set weatherData(WeatherData value) {
   temp = value.temperature;
   weather = value.weather;
   wind_speed = value.wind_speed;
@@ -136,10 +135,8 @@ set weatherData(WeatherData value) {
     <li><a href="../../classes_data_inspection_location/InspectionLocation/bauwerkhoehe.html">bauwerkhoehe</a></li>
     <li><a href="../../classes_data_inspection_location/InspectionLocation/coords.html">coords</a></li>
     <li><a href="../../classes_data_inspection_location/InspectionLocation/eigentuemer.html">eigentuemer</a></li>
-    <li><a href="../../classes_data_inspection_location/InspectionLocation/extra.html">extra</a></li>
+    <li class="inherited"><a href="../../classes_dropdownClasses/Data/extra.html">extra</a></li>
     <li><a href="../../classes_data_inspection_location/InspectionLocation/fallback_coords.html">fallback_coords</a></li>
-    <li class="inherited"><a href="../../classes_dropdownClasses/WithOffline/forceOffline.html">forceOffline</a></li>
-    <li class="inherited"><a href="../../classes_dropdownClasses/WithOffline/forceOffline_nullable.html">forceOffline_nullable</a></li>
     <li><a href="../../classes_data_inspection_location/InspectionLocation/has_lagerraeume.html">has_lagerraeume</a></li>
     <li><a href="../../classes_data_inspection_location/InspectionLocation/has_steckdosen.html">has_steckdosen</a></li>
     <li><a href="../../classes_data_inspection_location/InspectionLocation/has_wc.html">has_wc</a></li>

@@ -73,9 +73,8 @@
   final collectionName = _getCollectionNameForData&lt;DataT&gt;(forId);
 
   var json = data.toJson();
-  String? oldId = data.id ?? json[&#39;local_id&#39;];
+  String? oldId = json[&#39;local_id&#39;];
 
-  &#47;&#47;create a new document with new id if wanted
   final id = (override &amp;&amp; oldId != null)
       ? oldId
       : db.collection(collectionName).doc().id;
@@ -84,7 +83,7 @@
   if (Options.debugLocalMirror) debugPrint(&quot;stored json: &quot; + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
-  return id;
+  return forId + &#39;-&#39; + id;
 }</code></pre>
 </section>
 
