@@ -227,7 +227,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
-                              (data) => Backend().uploadFiles(data, files));
+                            (data) => Backend().uploadFiles(data, files),
+                          );
 
                           _maybeShowToast(value);
                           return value;
