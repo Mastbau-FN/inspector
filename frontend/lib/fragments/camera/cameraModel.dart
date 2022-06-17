@@ -48,6 +48,12 @@ class CameraModel extends ChangeNotifier {
     _currentCameraIndex %= len;
   }
 
+  Future prevCamera() async {
+    int len = (await all_cameras).length;
+    _currentCameraIndex--;
+    _currentCameraIndex %= len;
+  }
+
   Future<CameraDescription> get currentCamera async {
     try {
       return (await all_cameras)[_currentCameraIndex];

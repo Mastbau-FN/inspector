@@ -290,6 +290,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
       showToast(resstring ??
           S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
     collapse();
+    discardShot(context);
   }
 
   FloatingActionButton get add => FloatingActionButton(
