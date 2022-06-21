@@ -33,7 +33,9 @@ class CheckPointDefect extends Data
   int index;
 
   // @JsonKey(name: "Zusatz_info")
-  // @JsonKey(name: "height") //der ist es momentan
+  @JsonKey(
+      name:
+          "height") //der ist es momentan, also dont forget to change it in https://github.com/Mastbau-FN/inspector/blob/6d81894f150484821a3e377bfd89d6f51471f6f0/frontend/lib/pages/checkpointdefects.dart#L111-L112
   String? height;
 
   @JsonKey(name: 'Autor')

@@ -99,11 +99,11 @@ class CheckPointDefectsModel
         textfield_list: [
           // InputData("KurzText", hint: "Name"), //removed according to #48
           InputData("LangText", hint: S.current.langTextHint),
-          InputData("Insp_Stelle",
-              hint: "Position / Höhe",
+          InputData("height",
+              hint: S.current.positionHeightHint,
               verify: (val) => (val == null || val.length < 1)
                   ? S.current.heightNotOptional
-                  : null), //added according to 49
+                  : null), //added according to #49
         ],
       ),
     );
