@@ -9,39 +9,50 @@ part 'checkpointdefect.g.dart';
 @JsonSerializable()
 class CheckPointDefect extends Data
     with WithLangText, WithImgHashes, WithAuthor {
-  @JsonKey(name: 'local_id')
+  static const id_key = 'local_id';
+  @JsonKey(name: id_key)
   String? id;
-  @JsonKey(name: 'PjNr')
+  static const pjNr_key = 'PjNr';
+  @JsonKey(name: pjNr_key)
   int pjNr;
-  @JsonKey(name: 'Bauleitung')
+  static const bauleitung_key = 'Bauleitung';
+  @JsonKey(name: bauleitung_key)
   String? bauleitung;
-  @JsonKey(name: 'KurzText')
+  static const kurzText_key = 'KurzText';
+  @JsonKey(name: kurzText_key)
   String? kurzText;
-  @JsonKey(name: 'LangText')
+  static const langText_key = 'LangText';
+  @JsonKey(name: langText_key)
   String? langText;
-  @JsonKey(name: 'ErDat')
+  static const erDate_key = 'ErDat';
+  @JsonKey(name: erDate_key)
   DateTime? erDate;
-  @JsonKey(name: 'EventID')
+  static const eventID_key = 'EventID';
+  @JsonKey(name: eventID_key)
   int? eventID;
-  @JsonKey(name: 'EREArt')
+  static const ereArt_key = 'EREArt';
+  @JsonKey(name: ereArt_key)
   int? ereArt;
-  @JsonKey(name: 'E1')
+  static const E1_key = 'E1';
+  @JsonKey(name: E1_key)
   int category_index;
-  @JsonKey(name: 'E2')
+  static const E2_key = 'E2';
+  @JsonKey(name: E2_key)
   int check_index;
-  @JsonKey(name: 'E3')
+  static const E3_key = 'E3';
+  @JsonKey(name: E3_key)
   int index;
 
-  // @JsonKey(name: "Zusatz_info")
-  @JsonKey(
-      name:
-          "height") //der ist es momentan, also dont forget to change it in https://github.com/Mastbau-FN/inspector/blob/6d81894f150484821a3e377bfd89d6f51471f6f0/frontend/lib/pages/checkpointdefects.dart#L111-L112
+  static const height_json_key = "Zusatz_Info";
+  @JsonKey(name: height_json_key)
   String? height;
 
-  @JsonKey(name: 'Autor')
+  static const author_key = 'Autor';
+  @JsonKey(name: author_key)
   String? author;
 
-  @JsonKey(name: 'images')
+  static const imagehashes_key = 'images'; //should  use_key = 'images';
+  @JsonKey(name: imagehashes_key)
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
   List<Future<ImageData?>>? image_futures;
