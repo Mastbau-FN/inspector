@@ -178,7 +178,7 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
       break;
     case identifiers.defect:
       queryfile = folder+"/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.heigth , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL, new Date()];
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.Zusatz_Info , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
   
     default:
