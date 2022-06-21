@@ -79,9 +79,9 @@ Widget? get floatingActionButton {
         Map&lt;String, dynamic&gt; defect = json[&#39;checkpointdefect&#39;];
         debugPrint(&quot;set ${json[&#39;checkpointdefect&#39;].toString()}&quot;);
         defect[&#39;PjNr&#39;] = currentData.pjNr;
-        defect[&#39;E1&#39;] = currentData.category_index;
-        defect[&#39;E2&#39;] = currentData.index;
-        defect[&#39;E3&#39;] = -1;
+        defect[CheckPointDefect.E1_key] = currentData.category_index;
+        defect[CheckPointDefect.E2_key] = currentData.index;
+        defect[CheckPointDefect.E3_key] = -1;
 
         &#47;&#47; debugPrint(defect[oufnessChooser.name].toString() +
         &#47;&#47;     &quot;?=&quot; +
@@ -92,7 +92,7 @@ Widget? get floatingActionButton {
         &#47;&#47;         .toString());
 
         &#47;&#47;&#47; this solves #48
-        defect[&#39;KurzText&#39;] = currentData.title +
+        defect[CheckPointDefect.kurzText_key] = currentData.title +
             &quot;  &quot; +
             ((defect[oufnessChooser.name].toString() ==
                     OufnessChooser.default_none.toString())
@@ -112,12 +112,13 @@ Widget? get floatingActionButton {
       ],
       textfield_list: [
         &#47;&#47; InputData(&quot;KurzText&quot;, hint: &quot;Name&quot;), &#47;&#47;removed according to #48
-        InputData(&quot;LangText&quot;, hint: S.current.langTextHint),
-        InputData(&quot;Insp_Stelle&quot;,
-            hint: &quot;Position &#47; Höhe&quot;,
+        InputData(CheckPointDefect.langText_key,
+            hint: S.current.langTextHint),
+        InputData(CheckPointDefect.height_json_key,
+            hint: S.current.positionHeightHint,
             verify: (val) =&gt; (val == null || val.length &lt; 1)
                 ? S.current.heightNotOptional
-                : null), &#47;&#47;added according to 49
+                : null), &#47;&#47;added according to #49
       ],
     ),
   );
@@ -219,7 +220,7 @@ for adding new <code>DataT</code> to this level (or other additional functionali
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.1.40+40
+      1.1.41+41
   </span>
 
   
