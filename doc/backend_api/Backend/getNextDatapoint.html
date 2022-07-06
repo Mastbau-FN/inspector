@@ -31,7 +31,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../backend_api/backend_api-library.html">api</a></li>
     <li><a href="../../backend_api/Backend-class.html">Backend</a></li>
-    <li class="self-crumb">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt; method</li>
+    <li class="self-crumb">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends WithOffline?</span>&gt; method</li>
   </ol>
   <div class="self-name">getNextDatapoint</div>
   <form class="search navbar-right" role="search">
@@ -44,7 +44,7 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-method">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt;</span> method 
+<h1><span class="kind-method">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends WithOffline?</span>&gt;</span> method 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
@@ -52,7 +52,7 @@
       
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
-<span class="name ">getNextDatapoint</span>&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="getNextDatapoint-param-data"><span class="type-annotation">ParentData</span> <span class="parameter-name">data</span></span></li>
+<span class="name ">getNextDatapoint</span>&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends WithOffline?</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="getNextDatapoint-param-data"><span class="type-annotation">ParentData</span> <span class="parameter-name">data</span></span></li>
 </ol>)
 
       
@@ -69,7 +69,7 @@ if no <code>ParentData</code> is given it defaults to root</p>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Stream&lt;List&lt;ChildData&gt;&gt;
-    getNextDatapoint&lt;ChildData extends Data, ParentData extends Data?&gt;(
+    getNextDatapoint&lt;ChildData extends Data, ParentData extends WithOffline?&gt;(
   ParentData data,
 ) async* {
   if (!Options.canBeOffline)
@@ -86,8 +86,10 @@ if no <code>ParentData</code> is given it defaults to root</p>
     jsonResponseID: childTypeStr + &#39;s&#39;,
     json: data?.toSmallJson(),
     fromJson: (json) =&gt; &#47;*Child*&#47; Data.fromJson&lt;ChildData&gt;(json),
+    id: data?.id,
+    forceOffline: data?.forceOffline,
   )) {
-    debugPrint(&#39;new value $l&#39;);
+    &#47;&#47; debugPrint(&#39;new value $l&#39;);
     yield l;
   }
 }</code></pre>
@@ -107,7 +109,7 @@ if no <code>ParentData</code> is given it defaults to root</p>
   <li><a href="../../index.html">MBG_Inspektionen</a></li>
   <li><a href="../../backend_api/backend_api-library.html">api</a></li>
   <li><a href="../../backend_api/Backend-class.html">Backend</a></li>
-  <li class="self-crumb">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends Data?</span>&gt; method</li>
+  <li class="self-crumb">getNextDatapoint&lt;<wbr><span class="type-parameter">ChildData extends Data</span>, <span class="type-parameter">ParentData extends WithOffline?</span>&gt; method</li>
 </ol>
 
 
@@ -124,6 +126,7 @@ if no <code>ParentData</code> is given it defaults to root</p>
     <li><a href="../../backend_api/Backend/deleteCache.html">deleteCache</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li><a href="../../backend_api/Backend/isAnyoneLoggedIn.html">isAnyoneLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/rootID.html">rootID</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
     <li><a href="../../backend_api/Backend/user.html">user</a></li>
 
@@ -133,6 +136,7 @@ if no <code>ParentData</code> is given it defaults to root</p>
     <li><a href="../../backend_api/Backend/deleteImageByHash.html">deleteImageByHash</a></li>
     <li><a href="../../backend_api/Backend/getNextDatapoint.html">getNextDatapoint</a></li>
     <li><a href="../../backend_api/Backend/isUserLoggedIn.html">isUserLoggedIn</a></li>
+    <li><a href="../../backend_api/Backend/loadAndCacheAll.html">loadAndCacheAll</a></li>
     <li><a href="../../backend_api/Backend/login.html">login</a></li>
     <li><a href="../../backend_api/Backend/logout.html">logout</a></li>
     <li><a href="../../backend_api/Backend/makepost.html">makepost</a></li>

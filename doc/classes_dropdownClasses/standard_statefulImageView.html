@@ -30,7 +30,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
-    <li class="self-crumb">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">Data?</span>&gt;</span>&gt; function</li>
+    <li class="self-crumb">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt; function</li>
   </ol>
   <div class="self-name">standard_statefulImageView</div>
   <form class="search navbar-right" role="search">
@@ -43,7 +43,7 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-function">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">Data?</span>&gt;</span>&gt;</span> function 
+<h1><span class="kind-function">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt;</span> function 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
  
 </h1></div>
@@ -52,7 +52,7 @@
         
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>
-<span class="name ">standard_statefulImageView</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">Data?</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="standard_statefulImageView-param-model"><span class="type-annotation">DDModel</span> <span class="parameter-name">model</span>, </span></li>
+<span class="name ">standard_statefulImageView</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="standard_statefulImageView-param-model"><span class="type-annotation">DDModel</span> <span class="parameter-name">model</span>, </span></li>
 <li><span class="parameter" id="standard_statefulImageView-param-data"><span class="type-annotation">ChildData?</span> <span class="parameter-name">data</span></span></li>
 </ol>)
 
@@ -64,7 +64,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget standard_statefulImageView&lt;ChildData extends WithLangText,
-            DDModel extends DropDownModel&lt;ChildData, Data?&gt;&gt;(
+            DDModel extends DropDownModel&lt;ChildData, WithOffline?&gt;&gt;(
         DDModel model, ChildData? data) =&gt;
     ChangeNotifierProvider&lt;DDModel&gt;.value(
         value: model,
@@ -99,7 +99,9 @@
                               S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) =&gt; Backend()
-                                  .setMainImageByHash(data, hash.toString()))
+                                  .setMainImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
                               .then((value) {
                             _maybeShowToast(value);
                             return value;
@@ -145,7 +147,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../index.html">MBG_Inspektionen</a></li>
   <li><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
-  <li class="self-crumb">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">Data?</span>&gt;</span>&gt; function</li>
+  <li class="self-crumb">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt; function</li>
 </ol>
 
 
@@ -154,12 +156,14 @@
   <li class="section-title"><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html#classes">Classes</a></li>
   <li><a href="../classes_dropdownClasses/Data-class.html">Data</a></li>
   <li><a href="../classes_dropdownClasses/DropDownModel-class.html">DropDownModel</a></li>
+  <li><a href="../classes_dropdownClasses/KnowsNext-class.html">KnowsNext</a></li>
   <li><a href="../classes_dropdownClasses/WithImgHashes-class.html">WithImgHashes</a></li>
 
 
   <li class="section-title"><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html#mixins">Mixins</a></li>
   <li><a href="../classes_dropdownClasses/WithAuthor-mixin.html">WithAuthor</a></li>
   <li><a href="../classes_dropdownClasses/WithLangText-mixin.html">WithLangText</a></li>
+  <li><a href="../classes_dropdownClasses/WithOffline-mixin.html">WithOffline</a></li>
 
 
 
