@@ -71,9 +71,9 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           Map<String, dynamic> defect = json['checkpointdefect'];
           debugPrint("set ${json['checkpointdefect'].toString()}");
           defect['PjNr'] = currentData.pjNr;
-          defect['E1'] = currentData.category_index;
-          defect['E2'] = currentData.index;
-          defect['E3'] = -1;
+          defect[CheckPointDefect.E1_key] = currentData.category_index;
+          defect[CheckPointDefect.E2_key] = currentData.index;
+          defect[CheckPointDefect.E3_key] = -1;
 
           // debugPrint(defect[oufnessChooser.name].toString() +
           //     "?=" +
@@ -84,7 +84,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           //         .toString());
 
           /// this solves #48
-          defect['KurzText'] = currentData.title +
+          defect[CheckPointDefect.kurzText_key] = currentData.title +
               "  " +
               ((defect[oufnessChooser.name].toString() ==
                       OufnessChooser.default_none.toString())
@@ -105,12 +105,13 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
         ],
         textfield_list: [
           // InputData("KurzText", hint: "Name"), //removed according to #48
-          InputData("LangText", hint: S.current.langTextHint),
-          InputData("Insp_Stelle",
-              hint: "Position / Höhe",
+          InputData(CheckPointDefect.langText_key,
+              hint: S.current.langTextHint),
+          InputData(CheckPointDefect.height_json_key,
+              hint: S.current.positionHeightHint,
               verify: (val) => (val == null || val.length < 1)
                   ? S.current.heightNotOptional
-                  : null), //added according to 49
+                  : null), //added according to #49
         ],
       ),
     );
@@ -148,7 +149,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
   dynamic get json => _selected;
-  String get name => "EREArt";
+  String get name => CheckPointDefect.ereArt_key;
 
   static final int default_none = 5204;
 

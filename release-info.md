@@ -1,3 +1,3 @@
 # changes
 
-- crudely working offline functionality
+- merged online hotfixes into offline

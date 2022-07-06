@@ -68,5 +68,6 @@
   "validateDeletionSure": "ja, sicher, Löschen!",
   "validateDeletionPromtHeadline": "wirklich Löschen?",
   "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar",
-  "tryAgainLater_noNetwork": "probiere es später nochmal"
+  "tryAgainLater_noNetwork": "probiere es später nochmal",
+  "positionHeightHint": "Position / Höhe"
 }
