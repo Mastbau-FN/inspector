@@ -169,7 +169,8 @@ class Backend {
                 (key, value) => MapEntry(key, value.toString())));
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
-              ? await mreq.send()
+              ? await mreq
+                  .send() //XXX: use client.send(mreq) for every request here
               : await mreq.send().timeout(rd.timeout!);
           return res;
         } on Exception catch (e) {
@@ -379,7 +380,6 @@ class Backend {
         if ((Options.mergeLoadedDataIntoOnlineData ||
                 Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
             cached != null) {
-
           try {
             cached.retainWhere(
                 (element) => (element as WithOffline).forceOffline);
