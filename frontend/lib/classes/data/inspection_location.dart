@@ -35,7 +35,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
   @JsonKey(name: "Bauwerkhoehe")
-  int? bauwerkhoehe;
+  double? bauwerkhoehe;
   @JsonKey(name: "Baujahr")
   int? baujahr;
   @JsonKey(name: "Ansprechpartner")
