@@ -63,7 +63,7 @@
   "locationRequiresKeyLabel": "Schlüssel",
   "locationKeyAddintionalInfoLabel": "Anmerkung Schlüssel",
   "locationHasSteckdosenLabel": "Steckdosen",
-  "locationAdditionalInfoSteckdosenLabel": "Anmerkung Steckdosen",
+  "locationAdditionalInfoSteckdosenLabel": "Steckdosentyp (Volt/Ampere)",
   "dismiss": "doch nicht",
   "validateDeletionSure": "ja, sicher, Löschen!",
   "validateDeletionPromtHeadline": "wirklich Löschen?",
