@@ -1,3 +1,4 @@
 # changes
 
-- hotfix'ed (#198): Höhe/Position wird jetzt gespeichert.
+- height is a double
+- change in german locale
