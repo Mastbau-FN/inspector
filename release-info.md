@@ -1,3 +1,4 @@
 # changes
 
-- merged online hotfixes into offline
+- height is a double
+- change in german locale

@@ -40,7 +40,7 @@ class InspectionLocation extends Data
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
   @JsonKey(name: "Bauwerkhoehe")
-  int? bauwerkhoehe;
+  double? bauwerkhoehe;
   @JsonKey(name: "Baujahr")
   int? baujahr;
   @JsonKey(name: "Ansprechpartner")
