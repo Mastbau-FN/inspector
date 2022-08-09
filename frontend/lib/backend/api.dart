@@ -86,7 +86,8 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException(S.current.noNetworkAvailable);
-    if (!Options.canUseMobileNetworkIfPossible &&
+    if (!Options
+            .canUseMobileNetworkIfPossible && //TODO: add parameter to say whether this is up or download, and split the Options. .. (#206)
         connection == ConnectivityResult.mobile)
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
@@ -379,7 +380,6 @@ class Backend {
         if ((Options.mergeLoadedDataIntoOnlineData ||
                 Options.mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
             cached != null) {
-
           try {
             cached.retainWhere(
                 (element) => (element as WithOffline).forceOffline);
