@@ -418,6 +418,7 @@ class Backend {
       {required DataT? data,
       required String route,
       Map<String, dynamic> other = const {},
+      Helper.SimulatedRequestType? requestType,
       bool networkIsCrucial = false}) async {
     if (networkIsCrucial || !Options.canBeOffline)
       try {
@@ -432,12 +433,18 @@ class Backend {
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
     if (data == null) return null;
     var json_data = data.toJson();
-    http.Response? res = (await post_JSON(RequestData(route, json: {
+    final reqData = RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': json_data,
       ...other
-    })))
-        ?.forceRes();
+    });
+    try {
+      await connectionGuard(requestType: requestType);
+    } catch (e) {
+      OP.logFailedReq(reqData);
+      return null;
+    }
+    http.Response? res = (await post_JSON(reqData))?.forceRes();
     if (Options.debugAllResponses)
       debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
@@ -537,9 +544,10 @@ class Backend {
     }
 
     var body = (await _sendDataToRoute(
+      requestType: requestType,
       data: data,
       route: _addNew_r,
-      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
     ))
         ?.body;
     //XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
@@ -561,6 +569,7 @@ class Backend {
     }
 
     return (await _sendDataToRoute(
+      requestType: requestType,
       data: data,
       route: _update_r,
       // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
@@ -585,6 +594,7 @@ class Backend {
     }
 
     return (await _sendDataToRoute(
+      requestType: requestType,
       data: data,
       route: _delete_r,
       // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
@@ -630,6 +640,7 @@ class Backend {
       }
     }
     return (await _sendDataToRoute(
+      requestType: requestType,
       data: data,
       route: _setMainImageByHash_r,
       other: {
@@ -649,11 +660,10 @@ class Backend {
         Helper.SimulatedRequestType.PUT;
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
 
-    //TODO: #206
-    //add offline procedure
+    //TODO: #211 add offline procedure
     debugPrint('uploading images ${files}');
     var json_data = data.toJson();
-    var res = await post_JSON(RequestData(
+    final reqData = RequestData(
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
@@ -661,20 +671,32 @@ class Backend {
       },
       multipart_files: files,
       logIfFailed: requestType != Helper.SimulatedRequestType.GET,
-    )); //wont work
-    if (res?.statusCode != 200) {
-      debugPrint('not ok: ${res?.statusCode.toString()}');
-      // debugPrint(res?.contentLength.toString());
+    );
+    try {
+      await connectionGuard(requestType: requestType);
+      var res = await post_JSON(reqData);
+      if (res?.statusCode != 200) {
+        debugPrint('not ok: ${res?.statusCode.toString()}');
+        // debugPrint(res?.contentLength.toString());
+      }
+      return (res.runtimeType == http.Response)
+          ? (res as http.Response?)?.body //TODO meh remove crash und stuff
+          : await (res as http.StreamedResponse?)?.stream.bytesToString();
+    } catch (e) {
+      OP.logFailedReq(reqData);
     }
-    return (res.runtimeType == http.Response)
-        ? (res as http.Response?)?.body //TODO meh remove crash und stuff
-        : await (res as http.StreamedResponse?)?.stream.bytesToString();
   }
 
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
 
   Future<bool> retryFailedrequests(BuildContext? context) async {
+    try {
+      await connectionGuard(requestType: Helper.SimulatedRequestType.PUT);
+    } catch (e) {
+      showToast(S.current.noViableInternetConnection);
+      return false;
+    }
     final failedReqs = await OP.getAllFailedRequests() ?? [];
     bool success = true;
     for (final reqd in failedReqs) {
