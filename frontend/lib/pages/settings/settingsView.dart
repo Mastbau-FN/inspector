@@ -51,11 +51,11 @@ class UploadSyncTile extends StatefulWidget {
 class _UploadSyncTileState extends State<UploadSyncTile> {
   bool loading = false;
   bool? success;
-  onPress() async {
+  onPress(c) async {
     setState(() {
       loading = true;
     });
-    bool s = await Backend().retryFailedrequests();
+    bool s = await Backend().retryFailedrequests(c);
     setState(() {
       success = s;
     });
@@ -68,7 +68,7 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   Widget build(BuildContext context) => MyCardListTile1(
         icon: Icons.sync,
         text: S.current.uploadAndSyncData,
-        onTap: onPress,
+        onTap: () => onPress(context),
         child: loading
             ? LoadingView()
             : (success != null

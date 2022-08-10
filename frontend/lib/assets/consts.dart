@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class Options {
   static const canBeOffline = true;
-  static const mergeLoadedDataIntoOnlineData = true;
-  static const mergeLoadedDataIntoOnlineDataEvenInCachedParent = true;
+  static const mergeLoadedDataIntoOnlineData =
+      true; //XXX: make false to solve #212
+  static const mergeLoadedDataIntoOnlineDataEvenInCachedParent = false;
   static const canUseMobileNetworkIfPossible = true;
   static const useMobileNetworkForUpload = false;
   static const useMobileNetworkForDownload = true;

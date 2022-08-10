@@ -166,9 +166,9 @@ Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
   return {'lat': latlng.latitude, 'lng': latlng.longitude};
 }
 
-LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
+LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic>? map) {
   try {
-    return LatLng(map['lat'], map['lng']);
+    return LatLng(map!['lat'], map['lng']);
   } catch (e) {
     return null;
   }
