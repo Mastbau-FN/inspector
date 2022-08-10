@@ -5,6 +5,8 @@ class Options {
   static const mergeLoadedDataIntoOnlineData = true;
   static const mergeLoadedDataIntoOnlineDataEvenInCachedParent = true;
   static const canUseMobileNetworkIfPossible = true;
+  static const useMobileNetworkForUpload = false;
+  static const useMobileNetworkForDownload = true;
   static var preferRemoteImages = false;
   static const debugAllResponses = false;
   static const debugLocalMirror = false;
