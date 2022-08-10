@@ -360,9 +360,11 @@ class Backend {
     List<ChildData>? cached;
     if (Options.canBeOffline)
       try {
-        _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
+        final childD = await OP.getAllChildrenFrom<ChildData>(_id);
+        _json =
+            // {"$jsonResponseID": childD};
             // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
-            (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
+            jsonDecode("{\"$jsonResponseID\": ${jsonEncode(childD)}}");
         cached = await __parse(_json);
         yield cached;
       } catch (e) {
@@ -697,8 +699,14 @@ class Backend {
     }
     if (success && context != null) {
       final model = Provider.of<LocationModel>(context, listen: false);
-      for (final loc in await model.all.last) {
-        setOnlineAll(CategoryModel(loc), 3);
+      for (final loc in await model.all.first) {
+        final caller = CategoryModel(loc);
+        await setOnlineAll(
+          caller,
+          3,
+          name: caller.title,
+          parentID: await rootID,
+        );
       }
     }
     return success;
@@ -762,7 +770,7 @@ class Backend {
   }
 
   //this is probably more complicated than it needs to be, but it works (copied from loadAndCacheAll)
-  Future<bool> setOnlineAll<
+  Future setOnlineAll<
       ChildData extends WithLangText,
       ParentData extends WithOffline,
       DDModel extends DropDownModel<ChildData, ParentData>>(
@@ -775,31 +783,17 @@ class Backend {
     // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
     depth--;
-    try {
-      var children = await caller.all.last;
-      var didSucceed = await Future.wait(children.map((child) async {
-        String _name = '$name -> ${child.title}';
-        debugPrint('__1234 got $depth: $_name');
-        if (depth == 0)
-          return true; //base-case as to not call generateNextModel
-        bool child_succeeded = await setOnlineAll(
-            caller.generateNextModel(child), depth,
-            name: _name, parentID: caller.currentData.id);
-        return child_succeeded;
-      }));
-
-      //if all children succeeded recursive calling succeeded
-      bool success = didSucceed.every((el) => el);
-      if (success) {
-        caller.currentData.forceOffline = false;
-        if (parentID == null) return false;
-      }
-
-      return success;
-    } catch (error) {
-      debugPrint('failed! ${depth + 1}');
-      return false; //failed
-    }
+    var children = await caller.all.last;
+    caller.currentData.forceOffline = false;
+    if (parentID != null) OP.storeData(caller.currentData, forId: parentID);
+    final nextid = caller.currentData.id;
+    children.map((child) {
+      String _name = '$name -> ${child.title}';
+      debugPrint('__12342 got $depth: $_name');
+      if (depth == 0) return; //base-case as to not call generateNextModel
+      setOnlineAll(caller.generateNextModel(child), depth,
+          name: _name, parentID: nextid);
+    });
   }
 }
 
