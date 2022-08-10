@@ -699,7 +699,8 @@ class Backend {
     }
     if (success && context != null) {
       final model = Provider.of<LocationModel>(context, listen: false);
-      for (final loc in await model.all.first) {
+      final locations = await model.all.last;
+      for (final loc in locations) {
         final caller = CategoryModel(loc);
         await setOnlineAll(
           caller,
@@ -787,13 +788,14 @@ class Backend {
     caller.currentData.forceOffline = false;
     if (parentID != null) OP.storeData(caller.currentData, forId: parentID);
     final nextid = caller.currentData.id;
-    children.map((child) {
+    for (final child in children) {
       String _name = '$name -> ${child.title}';
       debugPrint('__12342 got $depth: $_name');
       if (depth == 0) return; //base-case as to not call generateNextModel
       setOnlineAll(caller.generateNextModel(child), depth,
           name: _name, parentID: nextid);
-    });
+    }
+    ;
   }
 }
 

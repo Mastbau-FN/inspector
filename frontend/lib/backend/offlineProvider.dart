@@ -120,8 +120,9 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
   final collectionName = _getCollectionNameForData<ChildData>(id);
   final items = await db.collection(collectionName).get();
   return items?.values
-      .map((data) => Data.fromJson<ChildData>(data ?? {}))
-      .toList();
+          .map((data) => Data.fromJson<ChildData>(data ?? {}))
+          .toList() ??
+      [];
 }
 
 final failedReqLogCollection = (db).collection('failed-requests');
