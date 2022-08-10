@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
+import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -15,9 +16,11 @@ import 'package:MBG_Inspektionen/assets/consts.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import '../generated/l10n.dart';
 import '../helpers/toast.dart';
+import '../pages/location.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -558,7 +561,7 @@ class Backend {
     return (await _sendDataToRoute(
       data: data,
       route: _update_r,
-      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
     ))
         ?.body;
   }
@@ -582,7 +585,7 @@ class Backend {
     return (await _sendDataToRoute(
       data: data,
       route: _delete_r,
-      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
     ))
         ?.body;
   }
@@ -630,7 +633,7 @@ class Backend {
       other: {
         'hash': hash,
       },
-      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
     ))
         ?.body;
   }
@@ -669,7 +672,7 @@ class Backend {
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
 
-  Future<bool> retryFailedrequests() async {
+  Future<bool> retryFailedrequests(BuildContext? context) async {
     final failedReqs = await OP.getAllFailedRequests() ?? [];
     bool success = true;
     for (final reqd in failedReqs) {
@@ -677,6 +680,7 @@ class Backend {
       final rd = reqd.item2;
       if (rd != null)
         try {
+          rd.logIfFailed = false;
           final res = await Backend().post_JSON(rd);
           //nur 200er als ok einstufen
           if (res!.statusCode == 200) {
@@ -690,6 +694,12 @@ class Backend {
           debugPrint('failed to retry request: $e');
           success = false;
         }
+    }
+    if (success && context != null) {
+      final model = Provider.of<LocationModel>(context, listen: false);
+      for (final loc in await model.all.last) {
+        setOnlineAll(CategoryModel(loc), 3);
+      }
     }
     return success;
   }
@@ -705,13 +715,13 @@ class Backend {
     String? name,
     String? parentID,
   }) async {
-    //base-case: CheckPointDefects have no children
+    // base-case: CheckPointDefects have no children
     // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
     depth--;
     try {
       //fail early if no connection
-      await connectionGuard(requestType: Helper.SimulatedRequestType.PUT);
+      await connectionGuard(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
       var children = await caller.all.last;
       var didSucceed = await Future.wait(children.map((child) async {
@@ -747,6 +757,47 @@ class Backend {
     } catch (error) {
       debugPrint('failed! ${depth + 1}');
       showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+      return false; //failed
+    }
+  }
+
+  //this is probably more complicated than it needs to be, but it works (copied from loadAndCacheAll)
+  Future<bool> setOnlineAll<
+      ChildData extends WithLangText,
+      ParentData extends WithOffline,
+      DDModel extends DropDownModel<ChildData, ParentData>>(
+    DDModel caller,
+    int depth, {
+    String? name,
+    String? parentID,
+  }) async {
+    // base-case: CheckPointDefects have no children
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
+    if (depth == 0) return true;
+    depth--;
+    try {
+      var children = await caller.all.last;
+      var didSucceed = await Future.wait(children.map((child) async {
+        String _name = '$name -> ${child.title}';
+        debugPrint('__1234 got $depth: $_name');
+        if (depth == 0)
+          return true; //base-case as to not call generateNextModel
+        bool child_succeeded = await setOnlineAll(
+            caller.generateNextModel(child), depth,
+            name: _name, parentID: caller.currentData.id);
+        return child_succeeded;
+      }));
+
+      //if all children succeeded recursive calling succeeded
+      bool success = didSucceed.every((el) => el);
+      if (success) {
+        caller.currentData.forceOffline = false;
+        if (parentID == null) return false;
+      }
+
+      return success;
+    } catch (error) {
+      debugPrint('failed! ${depth + 1}');
       return false; //failed
     }
   }

@@ -138,8 +138,9 @@ Future<String> logFailedReq(RequestData rd) async {
 ///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]
 Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
-      .get()); //TODO: das muss in-order sein, sonst könnte es probleme geben..
+      .get()); //TO-DO: das muss in-order sein, sonst könnte es probleme geben..
 
+//TODO: warum ist docs null?!
   if (docs == null) return null;
   final docsWithTimeStr =
       docs.map((key, value) => MapEntry(key.split('/').last, value));
