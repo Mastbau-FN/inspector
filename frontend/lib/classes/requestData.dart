@@ -18,12 +18,23 @@ class RequestData {
     this.logIfFailed = true,
   });
 
+  /// the route to the api
   String route;
+
+  /// the json data to send
   Map<String, dynamic>? json;
+
+  /// the files to send
   @JsonKey(toJson: _multipartFilesToJson, fromJson: _multipartFilesFromJson)
   List<XFile> multipart_files;
+
+  /// the timeout for the request
   Duration? timeout;
+
+  /// if the request should return binary data
   bool returnsBinary;
+
+  /// if the request should log if it failed
   @JsonKey(ignore: true)
   bool logIfFailed;
 

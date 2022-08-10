@@ -77,6 +77,7 @@ class Backend {
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
   Future connectionGuard({
     Duration? timeout,
+    Helper.SimulatedRequestType? requestType,
   }) async {
     if (_baseurl == null)
       throw NoConnectionToBackendException(
@@ -86,9 +87,11 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException(S.current.noNetworkAvailable);
-    if (!Options
-            .canUseMobileNetworkIfPossible && //TODO: add parameter to say whether this is up or download, and split the Options. .. (#206)
-        connection == ConnectivityResult.mobile)
+    if (connection == ConnectivityResult.mobile &&
+        (!Options.canUseMobileNetworkIfPossible ||
+            (requestType != Helper.SimulatedRequestType.GET &&
+                !Options.useMobileNetworkForUpload) ||
+            !Options.useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
     try {
@@ -459,9 +462,11 @@ class Backend {
 
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.GET;
     // if user is already logged in
     if (await isUserLoggedIn(user)) return await this.user;
-    await connectionGuard();
+    await connectionGuard(requestType: requestType);
     _user = user;
     var res = (await post_JSON(RequestData('/login', logIfFailed: false)))
         ?.forceRes();
@@ -489,9 +494,11 @@ class Backend {
       getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
     ParentData data,
   ) async* {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.GET;
     if (!Options.canBeOffline)
       try {
-        await connectionGuard();
+        await connectionGuard(requestType: requestType);
       } catch (error) {
         showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
         yield [];
@@ -516,6 +523,8 @@ class Backend {
     DataT? data, {
     Data? caller,
   }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
     //offline procedure, needs some stuff changed and added..
     if (caller != null && data != null && caller.id != null) {
       data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
@@ -523,7 +532,10 @@ class Backend {
     }
 
     var body = (await _sendDataToRoute(
-            data: data, route: _addNew_r, networkIsCrucial: true))
+      data: data,
+      route: _addNew_r,
+      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
         ?.body;
     //XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
     return body == null ? null : data;
@@ -535,6 +547,8 @@ class Backend {
     Data? caller,
     bool forceUpdate = false,
   }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
@@ -542,7 +556,10 @@ class Backend {
     }
 
     return (await _sendDataToRoute(
-            data: data, route: _update_r, networkIsCrucial: true))
+      data: data,
+      route: _update_r,
+      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
         ?.body;
   }
 
@@ -551,6 +568,9 @@ class Backend {
     DataT? data, {
     Data? caller,
   }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.DELETE;
+    //TODO
     //offline procedure, needs some stuff changed and added..
     if (caller != null &&
         data != null &&
@@ -560,15 +580,24 @@ class Backend {
     }
 
     return (await _sendDataToRoute(
-            data: data, route: _delete_r, networkIsCrucial: true))
+      data: data,
+      route: _delete_r,
+      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
         ?.body;
   }
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
+    //TODO: #211
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.DELETE;
     await OP.deleteImage(hash);
-    return (await post_JSON(
-            RequestData(_deleteImageByHash_r, json: {'hash': hash})))
+    return (await post_JSON(RequestData(
+      _deleteImageByHash_r,
+      json: {'hash': hash},
+      logIfFailed: requestType != Helper.SimulatedRequestType.GET,
+    )))
         ?.forceRes()
         ?.body;
   }
@@ -580,6 +609,10 @@ class Backend {
     Data? caller,
     bool forceUpdate = false,
   }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
+
+    //TODO: #211
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
@@ -597,6 +630,7 @@ class Backend {
       other: {
         'hash': hash,
       },
+      networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
     ))
         ?.body;
   }
@@ -606,7 +640,12 @@ class Backend {
     DataT data,
     List<XFile> files,
   ) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+
+    //TODO: #206
+    //add offline procedure
     debugPrint('uploading images ${files}');
     var json_data = data.toJson();
     var res = await post_JSON(RequestData(
@@ -616,6 +655,7 @@ class Backend {
         'data': json.encode(json_data),
       },
       multipart_files: files,
+      logIfFailed: requestType != Helper.SimulatedRequestType.GET,
     )); //wont work
     if (res?.statusCode != 200) {
       debugPrint('not ok: ${res?.statusCode.toString()}');
@@ -671,7 +711,7 @@ class Backend {
     depth--;
     try {
       //fail early if no connection
-      await connectionGuard();
+      await connectionGuard(requestType: Helper.SimulatedRequestType.PUT);
       //get all children, this will also cache them internally
       var children = await caller.all.last;
       var didSucceed = await Future.wait(children.map((child) async {

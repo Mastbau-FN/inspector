@@ -8,6 +8,13 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+enum SimulatedRequestType {
+  GET,
+  PUT,
+  DELETE,
+  POST,
+}
+
 /// since the backend api knows on which level we are by the identifier string, this function gets the identifiers for each kind of [DataT]
 /// it is very import to keep these in sinc with the actual backend
 String? getIdentifierFromData<DataT extends Data>(DataT? data) {
