@@ -69,10 +69,10 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
       loading = true;
     });
     bool s = await FailedRequestmanager().retryFailedrequests();
-    if (s)
-      setState(() {
-        success = s;
-      });
+    if (s) FailedRequestmanager().setOnlineTotal(c);
+    setState(() {
+      success = s;
+    });
     setState(() {
       loading = false;
     });
