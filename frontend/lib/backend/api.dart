@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
+import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -13,9 +16,11 @@ import 'package:MBG_Inspektionen/Options.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import '../generated/l10n.dart';
 import '../helpers/toast.dart';
+import '../pages/location.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
@@ -75,6 +80,7 @@ class Backend {
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
   Future connectionGuard({
     Duration? timeout,
+    Helper.SimulatedRequestType? requestType,
   }) async {
     if (_baseurl == null)
       throw NoConnectionToBackendException(
@@ -84,13 +90,17 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException(S.current.noNetworkAvailable);
-    if (!Options().canUseMobileNetworkIfPossible &&
-        connection == ConnectivityResult.mobile)
+    if (connection == ConnectivityResult.mobile &&
+        (!Options().canUseMobileNetworkIfPossible ||
+            (requestType != Helper.SimulatedRequestType.GET &&
+                !Options().useMobileNetworkForUpload) ||
+            !Options().useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
     try {
       // check if we can reach our api
-      await post_JSON('/login', timeout: timeout);
+      await post_JSON(
+          RequestData('/login', timeout: timeout, logIfFailed: false));
     } catch (e) {
       throw NoConnectionToBackendException(
           S.current.couldntReach + " $_baseurl");
@@ -141,26 +151,20 @@ class Backend {
   }
 
   /// post_JSON to our backend as the user
-  Future<http.BaseResponse?> post_JSON(
-    String route, {
-    Map<String, dynamic>? json,
-    List<XFile> multipart_files = const [],
-    Duration? timeout,
-    bool returnsBinary = false,
-  }) async {
+  Future<http.BaseResponse?> post_JSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    json = json ?? {};
-    json['user'] = (await _c_user)?.toJson();
+    rd.json = rd.json ?? {};
+    rd.json!['user'] = (await _c_user)?.toJson();
     if (Options().debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
-      if (multipart_files.isNotEmpty) {
+      if (rd.multipart_files.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
-          var fullURL = Uri.parse(_baseurl! + route);
+          var fullURL = Uri.parse(_baseurl! + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
             ..files.addAll(
               List<http.MultipartFile>.from((await Future.wait(
-                multipart_files.map(
+                rd.multipart_files.map(
                   (xfile) => http.MultipartFile.fromPath('package', xfile.path,
                       filename: xfile.name),
                 ),
@@ -168,29 +172,30 @@ class Backend {
                   .whereType<http.MultipartFile>()),
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-            ..fields.addAll(/*flatten()*/ json.map<String, String>(
+            ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
                 (key, value) => MapEntry(key, value.toString())));
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-          var res = (timeout == null)
+          var res = (rd.timeout == null)
               ? await mreq.send()
-              : await mreq.send().timeout(timeout);
+              : await mreq.send().timeout(rd.timeout!);
           return res;
         } on Exception catch (e) {
-          OP.logFailedReq(mreq!);
-          debugPrint('multipartRequest, failed, we logged it');
+          if (rd.logIfFailed) OP.logFailedReq(rd);
+          debugPrint('multipartRequest, failed');
           throw e;
         }
       } else {
-        final req = makepost(route, headers: headers, body: jsonEncode(json));
+        final req =
+            makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
         try {
           return await send(
             req,
-            timeout: timeout,
-            returnsBinary: returnsBinary,
+            timeout: rd.timeout,
+            returnsBinary: rd.returnsBinary,
           );
         } catch (e) {
-          OP.logFailedReq(req);
-          debugPrint('request, failed, we logged it');
+          if (rd.logIfFailed) OP.logFailedReq(rd);
+          debugPrint('request failed');
           throw e;
         }
       }
@@ -213,13 +218,14 @@ class Backend {
         //yield null;
       }
     if (!cacheHit || Options().preferRemoteImages) {
-      http.Response? res = (await post_JSON(
+      http.Response? res = (await post_JSON(RequestData(
         _getImageFromHash_r,
         json: {
           'imghash': hash,
         },
         returnsBinary: true,
-      ))
+        logIfFailed: false,
+      )))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
         yield null;
@@ -244,19 +250,21 @@ class Backend {
       try {
         final img = await OP.readImage(hash);
         if (img == null) throw Exception("no img cached");
-        return ImageData(img, id: hash);
         cacheHit = true;
+        return ImageData(img, id: hash);
       } catch (e) {
         //yield null;
       }
-    } else {
-      http.Response? res = (await post_JSON(
+    }
+    if (!cacheHit || Options().preferRemoteImages) {
+      http.Response? res = (await post_JSON(RequestData(
         _getImageFromHash_r,
         json: {
           'imghash': hash,
         },
         returnsBinary: true,
-      ))
+        logIfFailed: false,
+      )))
           ?.forceRes();
       if (res == null || res.statusCode != 200)
         return null;
@@ -321,6 +329,8 @@ class Backend {
     };
   }
 
+  Future<String> get rootID async => (await user)!.name;
+
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   Stream<List<ChildData>>
       _getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
@@ -329,11 +339,13 @@ class Backend {
     Map<String, dynamic>? json,
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
+    forceOffline = false,
   }) async* {
+    bool _forceOffline = forceOffline ?? false;
     // yield [];
     assert(
         (await user) != null, S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
-    String _id = id ?? json?['local_id'] ?? (await user)!.name;
+    String _id = id ?? json?['local_id'] ?? await rootID;
     Map<String, dynamic> _json = {};
     Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
         _generateImageFetcher(fromJson);
@@ -344,34 +356,58 @@ class Backend {
           // _generateImageFetcher(fromJson),
           objName: jsonResponseID,
         );
+
+    List<ChildData>? cached;
     if (Options().canBeOffline)
       try {
-        _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
+        final childD = await OP.getAllChildrenFrom<ChildData>(_id);
+        _json =
+            // {"$jsonResponseID": childD};
             // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
-            (await OP.getAllChildrenFrom<ChildData>(_id)))}}");
-        yield await __parse(_json);
+            jsonDecode("{\"$jsonResponseID\": ${jsonEncode(childD)}}");
+        cached = await __parse(_json);
+        yield cached;
       } catch (e) {
         debugPrint("couldnt read data from disk..: " + e.toString());
       }
 
-    try {
-      final res = (await post_JSON(
-        route,
-        json: json,
-        timeout: Duration(seconds: 10),
-      ));
-      final body = res!.forceRes()!.body;
-      _json = jsonDecode(body);
-      var datapoints = await __parse(_json);
-      yield datapoints;
-      for (var data in datapoints) {
-        String childId = await OP.storeData(data, forId: _id);
-        if (Options().debugLocalMirror)
-          debugPrint("stored new child with id: " + childId);
+    if (!_forceOffline ||
+        Options().mergeLoadedDataIntoOnlineDataEvenInCachedParent)
+      try {
+        final res = (await post_JSON(RequestData(
+          route,
+          json: json,
+          timeout: Duration(seconds: 10),
+          logIfFailed: false,
+        )));
+
+        final body = res!.forceRes()!.body;
+        _json = jsonDecode(body);
+        var datapoints = await __parse(_json);
+        yield datapoints;
+        if ((Options().mergeLoadedDataIntoOnlineData ||
+                Options().mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
+            cached != null) {
+          try {
+            cached.retainWhere(
+                (element) => (element as WithOffline).forceOffline);
+            var cachedIds = cached.map((element) => element.id).toList();
+            datapoints.retainWhere((element) =>
+                element.id != null && !cachedIds.contains(element.id));
+            datapoints.addAll(cached);
+            yield datapoints;
+          } catch (e) {
+            debugPrint("error merging data: " + e.toString());
+          }
+        }
+        for (var data in datapoints) {
+          String childId = await OP.storeData(data, forId: _id);
+          if (Options().debugLocalMirror)
+            debugPrint("stored new child with id: " + childId);
+        }
+      } catch (e) {
+        debugPrint("couldnt reach API: " + e.toString());
       }
-    } catch (e) {
-      debugPrint("couldnt reach API: " + e.toString());
-    }
 
     if (Options().debugAllResponses)
       debugPrint("_getAllForNextLevel received: " + jsonEncode(json));
@@ -382,6 +418,7 @@ class Backend {
       {required DataT? data,
       required String route,
       Map<String, dynamic> other = const {},
+      Helper.SimulatedRequestType? requestType,
       bool networkIsCrucial = false}) async {
     if (networkIsCrucial || !Options().canBeOffline)
       try {
@@ -396,12 +433,18 @@ class Backend {
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
     if (data == null) return null;
     var json_data = data.toJson();
-    http.Response? res = (await post_JSON(route, json: {
+    final reqData = RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': json_data,
       ...other
-    }))
-        ?.forceRes();
+    });
+    try {
+      await connectionGuard(requestType: requestType);
+    } catch (e) {
+      OP.logFailedReq(reqData);
+      return null;
+    }
+    http.Response? res = (await post_JSON(reqData))?.forceRes();
     if (Options().debugAllResponses)
       debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
@@ -431,11 +474,14 @@ class Backend {
 
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.GET;
     // if user is already logged in
     if (await isUserLoggedIn(user)) return await this.user;
-    await connectionGuard();
+    await connectionGuard(requestType: requestType);
     _user = user;
-    var res = (await post_JSON('/login'))?.forceRes();
+    var res = (await post_JSON(RequestData('/login', logIfFailed: false)))
+        ?.forceRes();
     if (res != null && res.statusCode == 200) {
       //success
       var resb = jsonDecode(res.body)['user'];
@@ -457,12 +503,14 @@ class Backend {
   /// gets all the [ChildData]points for the given [ParentData]
   /// if no [ParentData] is given it defaults to root
   Stream<List<ChildData>>
-      getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
+      getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
     ParentData data,
   ) async* {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.GET;
     if (!Options().canBeOffline)
       try {
-        await connectionGuard();
+        await connectionGuard(requestType: requestType);
       } catch (error) {
         showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
         yield [];
@@ -474,92 +522,302 @@ class Backend {
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      id: data?.id,
+      forceOffline: data?.forceOffline,
     )) {
-      debugPrint('new value $l');
+      // debugPrint('new value $l');
       yield l;
     }
   }
 
   /// sets a new [DataT]
-  Future<DataT?> setNew<DataT extends Data>(DataT? data) async {
+  Future<DataT?> setNew<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null && data != null && caller.id != null) {
+      data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
+      OP.storeData<DataT>(data, forId: caller.id!);
+    }
+
     var body = (await _sendDataToRoute(
-            data: data, route: _addNew_r, networkIsCrucial: true))
+      requestType: requestType,
+      data: data,
+      route: _addNew_r,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
         ?.body;
     //XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
     return body == null ? null : data;
   }
 
   /// updates a [DataT] and returns the response
-  Future<String?> update<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(
-              data: data, route: _update_r, networkIsCrucial: true))
-          ?.body;
+  Future<String?> update<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
+    //offline procedure, needs some stuff changed and added..
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+      OP.storeData<DataT>(data, forId: caller?.id ?? await rootID);
+    }
+
+    return (await _sendDataToRoute(
+      requestType: requestType,
+      data: data,
+      route: _update_r,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
+        ?.body;
+  }
 
   /// deletes a [DataT] and returns the response
-  Future<String?> delete<DataT extends Data>(DataT? data) async =>
-      (await _sendDataToRoute(
-              data: data, route: _delete_r, networkIsCrucial: true))
-          ?.body;
+  Future<String?> delete<DataT extends Data>(
+    DataT? data, {
+    Data? caller,
+  }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.DELETE;
+    //TODO
+    //offline procedure, needs some stuff changed and added..
+    if (caller != null &&
+        data != null &&
+        caller.id != null &&
+        data.id != null) {
+      OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+    }
+
+    return (await _sendDataToRoute(
+      requestType: requestType,
+      data: data,
+      route: _delete_r,
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
+        ?.body;
+  }
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
+    //TODO: #211
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.DELETE;
     await OP.deleteImage(hash);
-    return (await post_JSON(_deleteImageByHash_r, json: {'hash': hash}))
+    return (await post_JSON(RequestData(
+      _deleteImageByHash_r,
+      json: {'hash': hash},
+      logIfFailed: requestType != Helper.SimulatedRequestType.GET,
+    )))
         ?.forceRes()
         ?.body;
   }
 
   /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
-          DataT? data, String hash) async =>
-      (await _sendDataToRoute(
-        data: data,
-        route: _setMainImageByHash_r,
-        other: {
-          'hash': hash,
-        },
-      ))
-          ?.body;
+    DataT? data,
+    String hash, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
+
+    //TODO: #211
+    //offline procedure, needs some stuff changed and added..
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      try {
+        data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+        data.imagehashes!.remove(hash);
+        data.imagehashes!.insert(0, hash);
+        OP.storeData<DataT>(data, forId: caller?.id ?? await rootID);
+      } catch (e) {
+        debugPrint('failed to update main image locally');
+      }
+    }
+    return (await _sendDataToRoute(
+      requestType: requestType,
+      data: data,
+      route: _setMainImageByHash_r,
+      other: {
+        'hash': hash,
+      },
+      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
+    ))
+        ?.body;
+  }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
     List<XFile> files,
   ) async {
+    final Helper.SimulatedRequestType requestType =
+        Helper.SimulatedRequestType.PUT;
     ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+
+    //TODO: #211 add offline procedure
     debugPrint('uploading images ${files}');
     var json_data = data.toJson();
-    var res = await post_JSON(
+    final reqData = RequestData(
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
         'data': json.encode(json_data),
       },
       multipart_files: files,
-    ); //wont work
-    if (res?.statusCode != 200) {
-      debugPrint('not ok: ${res?.statusCode.toString()}');
-      // debugPrint(res?.contentLength.toString());
+      logIfFailed: requestType != Helper.SimulatedRequestType.GET,
+    );
+    try {
+      await connectionGuard(requestType: requestType);
+      var res = await post_JSON(reqData);
+      if (res?.statusCode != 200) {
+        debugPrint('not ok: ${res?.statusCode.toString()}');
+        // debugPrint(res?.contentLength.toString());
+      }
+      return (res.runtimeType == http.Response)
+          ? (res as http.Response?)?.body //TODO meh remove crash und stuff
+          : await (res as http.StreamedResponse?)?.stream.bytesToString();
+    } catch (e) {
+      OP.logFailedReq(reqData);
     }
-    return (res.runtimeType == http.Response)
-        ? (res as http.Response?)?.body //TODO meh remove crash und stuff
-        : await (res as http.StreamedResponse?)?.stream.bytesToString();
   }
 
   /// removes all locally stored images via [OP]
   final deleteCache = OP.deleteAll;
 
-  retryFailedrequests() async {
-    for (Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>> reqd
-        in await OP.getAllFailedRequests() ?? []) {
-      final docID = reqd.item1;
-      final _reqTuple = reqd.item2;
-      try {
-        final req = (_reqTuple.item1 ?? _reqTuple.item2)!;
-        final res = http.Response.fromStream(await req.send());
-        OP.failedRequestWasSuccesful(docID);
-      } finally {}
+  Future<bool> retryFailedrequests(BuildContext? context) async {
+    try {
+      await connectionGuard(requestType: Helper.SimulatedRequestType.PUT);
+    } catch (e) {
+      showToast(S.current.noViableInternetConnection);
+      return false;
     }
+    final failedReqs = await OP.getAllFailedRequests() ?? [];
+    bool success = true;
+    for (final reqd in failedReqs) {
+      final docID = reqd.item1;
+      final rd = reqd.item2;
+      if (rd != null)
+        try {
+          rd.logIfFailed = false;
+          final res = await Backend().post_JSON(rd);
+          //nur 200er als ok einstufen
+          if (res!.statusCode == 200) {
+            OP.failedRequestWasSuccesful(docID);
+          } else {
+            success = false;
+            //TODO: what todo here?
+            break;
+          }
+        } catch (e) {
+          debugPrint('failed to retry request: $e');
+          success = false;
+        }
+    }
+    if (success && context != null) {
+      final model = Provider.of<LocationModel>(context, listen: false);
+      final locations = await model.all.last;
+      for (final loc in locations) {
+        final caller = CategoryModel(loc);
+        await setOnlineAll(
+          caller,
+          3,
+          name: caller.title,
+          parentID: await rootID,
+        );
+      }
+    }
+    return success;
+  }
+
+  //TODO: das klappt zwar, aber das abspeichern selbst oder anzeigen nicht, wird aber OP liegen
+  /// recursivle cache all elements that underly the caller
+  Future<bool> loadAndCacheAll<
+      ChildData extends WithLangText,
+      ParentData extends WithOffline,
+      DDModel extends DropDownModel<ChildData, ParentData>>(
+    DDModel caller,
+    int depth, {
+    String? name,
+    String? parentID,
+  }) async {
+    // base-case: CheckPointDefects have no children
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
+    if (depth == 0) return true;
+    depth--;
+    try {
+      //fail early if no connection
+      await connectionGuard(requestType: Helper.SimulatedRequestType.GET);
+      //get all children, this will also cache them internally
+      var children = await caller.all.last;
+      var didSucceed = await Future.wait(children.map((child) async {
+        String _name = '$name -> ${child.title}';
+        debugPrint('__1234 got $depth: $_name');
+        if (depth == 0)
+          return true; //base-case as to not call generateNextModel
+        bool child_succeeded = await loadAndCacheAll(
+            caller.generateNextModel(child), depth,
+            name: _name, parentID: caller.currentData.id);
+        // try {
+
+        // } catch (e) {}
+        return child_succeeded;
+      }));
+
+      //if all children succeeded recursive calling succeeded
+      bool success = didSucceed.every((el) => el);
+      if (success) {
+        caller.currentData.forceOffline = true;
+        if (parentID == null) return false;
+
+        try {
+          var id = await OP.storeData(caller.currentData, forId: parentID);
+          debugPrint(
+              '_32 loading. ${depth + 1} stored : ${id}  ${caller.currentData.title}');
+        } catch (e) {
+          return false;
+        }
+      }
+
+      return success;
+    } catch (error) {
+      debugPrint('failed! ${depth + 1}');
+      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+      return false; //failed
+    }
+  }
+
+  //this is probably more complicated than it needs to be, but it works (copied from loadAndCacheAll)
+  Future setOnlineAll<
+      ChildData extends WithLangText,
+      ParentData extends WithOffline,
+      DDModel extends DropDownModel<ChildData, ParentData>>(
+    DDModel caller,
+    int depth, {
+    String? name,
+    String? parentID,
+  }) async {
+    // base-case: CheckPointDefects have no children
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
+    if (depth == 0) return true;
+    depth--;
+    var children = await caller.all.last;
+    caller.currentData.forceOffline = false;
+    if (parentID != null) OP.storeData(caller.currentData, forId: parentID);
+    final nextid = caller.currentData.id;
+    for (final child in children) {
+      String _name = '$name -> ${child.title}';
+      debugPrint('__12342 got $depth: $_name');
+      if (depth == 0) return; //base-case as to not call generateNextModel
+      setOnlineAll(caller.generateNextModel(child), depth,
+          name: _name, parentID: nextid);
+    }
+    ;
   }
 }
 

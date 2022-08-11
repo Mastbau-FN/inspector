@@ -6,7 +6,8 @@ import 'package:json_annotation/json_annotation.dart';
 part 'checkpoint.g.dart';
 
 @JsonSerializable()
-class CheckPoint extends Data with WithLangText, WithImgHashes, WithAuthor {
+class CheckPoint extends Data
+    with WithLangText, WithImgHashes, WithAuthor, WithOffline {
   @JsonKey(name: 'local_id')
   String? id;
   @JsonKey(name: 'PjNr')
@@ -73,5 +74,5 @@ class CheckPoint extends Data with WithLangText, WithImgHashes, WithAuthor {
 
   @override
   Map<String, dynamic> toSmallJson() =>
-      {'PjNr': pjNr, 'E1': category_index, 'E2': index};
+      {'PjNr': pjNr, 'E1': category_index, 'E2': index, 'local_id': id};
 }

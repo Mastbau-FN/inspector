@@ -70,5 +70,6 @@
   "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar",
   "tryAgainLater_noNetwork": "probiere es später nochmal",
   "positionHeightHint": "Position / Höhe",
-  "developerOptions": "Developer Options"
+  "noViableInternetConnection": "keine valide InternetVerbindung",
+  "developerOptions": "Entwickler-Optionen"
 }

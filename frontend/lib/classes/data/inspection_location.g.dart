@@ -17,9 +17,10 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       stONr: json['StONr'] as int,
       strasse: json['Straße'] as String?,
       fallback_coords: _toplevelhelperLatLng_fromJson(
-          json['latLng'] as Map<String, dynamic>),
+          json['latLng'] as Map<String, dynamic>?),
     )
       ..langText = json['langText'] as String?
+      ..forceOffline_nullable = json['offline'] as bool?
       ..id = json['local_id'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
       ..bauwerkhoehe = (json['Bauwerkhoehe'] as num?)?.toDouble()
@@ -48,6 +49,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
     <String, dynamic>{
       'langText': instance.langText,
+      'offline': instance.forceOffline_nullable,
       'local_id': instance.id,
       'PjNr': instance.pjNr,
       'PjName': instance.pjName,

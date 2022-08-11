@@ -1,4 +1,8 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
+import 'package:MBG_Inspektionen/pages/checkcategories.dart';
+import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:http/http.dart';
@@ -12,7 +16,8 @@ part 'inspection_location.g.dart';
 /// stores all the data needed for a specific location in a type-safe way
 
 @JsonSerializable()
-class InspectionLocation extends Data with WithImgHashes, WithLangText {
+class InspectionLocation extends Data
+    with WithImgHashes, WithLangText, WithOffline {
   @JsonKey(name: 'local_id')
   String? id;
   @JsonKey(name: 'PjNr')
@@ -78,6 +83,8 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
       weather: weather,
       wind_speed: wind_speed,
       wind_direction: wind_direction);
+
+  @JsonKey(ignore: true)
   set weatherData(WeatherData value) {
     temp = value.temperature;
     weather = value.weather;
@@ -137,6 +144,9 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   @override
   String get title => toString();
 
+  @override
+  Widget? get extra => _RecursiveDownloadButton(caller: CategoryModel(this));
+
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
       return _$InspectionLocationFromJson(json);
@@ -148,7 +158,7 @@ class InspectionLocation extends Data with WithImgHashes, WithLangText {
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr};
+  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'local_id': id};
 }
 
 Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
@@ -156,10 +166,74 @@ Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
   return {'lat': latlng.latitude, 'lng': latlng.longitude};
 }
 
-LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
+LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic>? map) {
   try {
-    return LatLng(map['lat'], map['lng']);
+    return LatLng(map!['lat'], map['lng']);
   } catch (e) {
     return null;
+  }
+}
+
+class _RecursiveDownloadButton extends StatefulWidget {
+  _RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
+      : super(key: key);
+
+  final int depth;
+  CategoryModel
+      caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
+
+  @override
+  State<_RecursiveDownloadButton> createState() =>
+      _RecursiveDownloadButtonState();
+}
+
+class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
+  bool wasPressed = false;
+  bool? success;
+  void press() async {
+    setState(() {
+      success = null;
+      wasPressed = true;
+    });
+    //also edit this for finer granularity
+    var rootid = await Backend().rootID;
+    Backend()
+        .loadAndCacheAll(widget.caller, widget.depth,
+            name: widget.caller.title, parentID: rootid)
+        .then((succs) => setState(() {
+              this.success = succs;
+            }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!wasPressed) {
+      return IconButton(
+          onPressed: press,
+          icon: Icon(
+            Icons.download,
+          ));
+    }
+    if (success == null) {
+      return IconButton(
+        onPressed: (() {}),
+        icon: Opacity(
+          child: LoadingView(),
+          opacity: 0.5,
+        ),
+      );
+    }
+    if (success!) {
+      return Icon(
+        Icons.check,
+        color: Colors.green,
+      );
+    }
+    return IconButton(
+        onPressed: press,
+        icon: Icon(
+          Icons.refresh,
+          color: Colors.red,
+        ));
   }
 }

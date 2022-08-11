@@ -19,6 +19,10 @@ class Options {
   var reloadTries = 5;
   var showDoggo = false;
   var no_image_placeholder_name = "no_default_picture_yet";
+  var mergeLoadedDataIntoOnlineData = true; //XXX: make false to solve #212
+  var mergeLoadedDataIntoOnlineDataEvenInCachedParent = false;
+  var useMobileNetworkForUpload = false;
+  var useMobileNetworkForDownload = true;
 
   @JsonKey(ignore: true)
   Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
@@ -39,6 +43,17 @@ class Options {
         'infinitelyreloadPictures': Tuple2(() => infinitelyreloadPictures,
             (bool value) => infinitelyreloadPictures = value),
         'showDoggo': Tuple2(() => showDoggo, (bool value) => showDoggo = value),
+        'mergeLoadedDataIntoOnlineData': Tuple2(
+            () => mergeLoadedDataIntoOnlineData,
+            (bool value) => mergeLoadedDataIntoOnlineData = value),
+        'mergeLoadedDataIntoOnlineDataEvenInCachedParent': Tuple2(
+            () => mergeLoadedDataIntoOnlineDataEvenInCachedParent,
+            (bool value) =>
+                mergeLoadedDataIntoOnlineDataEvenInCachedParent = value),
+        'useMobileNetworkForUpload': Tuple2(() => useMobileNetworkForUpload,
+            (bool value) => useMobileNetworkForUpload = value),
+        'useMobileNetworkForDownload': Tuple2(() => useMobileNetworkForDownload,
+            (bool value) => useMobileNetworkForDownload = value),
       };
 
   static final String _id = '__options__';

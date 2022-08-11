@@ -1,8 +1,11 @@
+import 'dart:convert' as conv;
 import 'dart:core';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/Options.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:http/http.dart' as http;
@@ -64,9 +67,11 @@ deleteAll() async => Directory(await _localPath).delete();
 
 final db = Localstore.instance;
 
-/// non-null wrapper for [Helper.getIdentifierFromData]
-/// a collection is always named via the scheme `${DataT}-${ParentId}`
+/// @depricated, its now only the parentID
+/// ~~non-null wrapper for [Helper.getIdentifierFromData]~~
+/// ~~a collection is always named via the scheme `${DataT}-${ParentId}`~~
 String _getCollectionNameForData<DataT extends Data>(String parentId) {
+  return parentId;
   final dataName = Helper.getIdentifierFromData<DataT>(null);
   if (dataName == null) throw Exception('could not get collection ${dataName}');
   return dataName + '-' + parentId;
@@ -78,8 +83,9 @@ Future<String> storeData<DataT extends Data>(DataT data,
   final collectionName = _getCollectionNameForData<DataT>(forId);
 
   var json = data.toJson();
-  String? oldId = json['local_id'];
+  String? oldId = data.id ?? json['local_id'];
 
+  //create a new document with new id if wanted
   final id = (override && oldId != null)
       ? oldId
       : db.collection(collectionName).doc().id;
@@ -88,7 +94,7 @@ Future<String> storeData<DataT extends Data>(DataT data,
   if (Options().debugLocalMirror) debugPrint("stored json: " + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
-  return forId + '-' + id;
+  return id;
 }
 
 /// retrieves a DataT via its [id] and corresponding [parentId]
@@ -114,61 +120,44 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
   final collectionName = _getCollectionNameForData<ChildData>(id);
   final items = await db.collection(collectionName).get();
   return items?.values
-      .map((data) => Data.fromJson<ChildData>(data ?? {}))
-      .toList();
+          .map((data) => Data.fromJson<ChildData>(data ?? {}))
+          .toList() ??
+      [];
 }
 
 final failedReqLogCollection = (db).collection('failed-requests');
 
-Future<String> logFailedReq<T extends http.BaseRequest>(T req) async {
-  final doc = failedReqLogCollection.doc();
+Future<String> logFailedReq(RequestData rd) async {
+  final doc = failedReqLogCollection
+      .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
-  ///TODO: idk if this uses the baserquest to json, which it shouldnt..
-  await doc.set(req.toJson);
+  //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
+  await doc.set(rd.serialized);
   return doc.id;
 }
 
 ///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]
-Future<List<Tuple2<String, Tuple2<http.Request?, http.MultipartRequest?>>>?>
-    getAllFailedRequests() async {
-  requestFromJson(Map<String, dynamic> json) async {
-    switch (json['type']) {
-      case 'Request':
-        return Tuple2(
-            http.Request(json['method'], Uri.parse(json['url']))
-              ..headers.addAll(json['headers'])
-              ..encoding = json['encoding']
-              ..body = json['body'],
-            null);
-      case 'MultipartRequest':
-        return Tuple2(
-            null,
-            http.MultipartRequest(json['method'], Uri.parse(json['url']))
-              ..headers.addAll(json['headers'])
-              ..fields.addAll(json['body'])
-              ..files.addAll(
-                List<http.MultipartFile>.from((await Future.wait(
-                  json['file-names'].map(
-                    (String name) async => http.MultipartFile.fromPath(
-                        'package',
-                        (await _localFile(name))
-                            .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-                  ),
-                ))
-                    .whereType<http.MultipartFile>()),
-              ));
-      default:
-        throw UnimplementedError();
-    }
-  }
-
+Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
-      .get()); //TODO: das muss in-order sein, sonst könnte es probleme geben..
+      .get()); //TO-DO: das muss in-order sein, sonst könnte es probleme geben..
 
-  return (docs == null)
-      ? null
-      : Future.wait(docs.entries
-          .map((e) async => Tuple2(e.key, await requestFromJson(e.value))));
+//TODO: warum ist docs null?!
+  if (docs == null) return null;
+  final docsWithTimeStr =
+      docs.map((key, value) => MapEntry(key.split('/').last, value));
+  final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
+    try {
+      final parsedReq = await RequestData.deserialize(e.value);
+      return Tuple2(e.key, parsedReq);
+    } catch (err) {
+      debugPrint('failed parse of request hm, $err');
+    }
+    return Tuple2(e.key, null);
+  });
+  var reqs = (await Future.wait(docsWithTimeAsFutureTuples));
+  reqs.sort(((a, b) =>
+      int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
+  return reqs;
 }
 
 failedRequestWasSuccesful(String id) {
@@ -246,3 +235,35 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 //     }
 //   }
 // }
+
+Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
+    Map<String, dynamic> json) async {
+  final headers = Map<String, String>.from(json['headers']);
+  switch (json['type']) {
+    case 'Request':
+      var req = http.Request(json['method'], Uri.parse(json['url']))
+        ..headers.addAll(headers);
+      if (json['encoding'] != null) req.encoding = json['encoding'];
+      if (json['body'] != null) req.body = conv.json.encode(json['body']);
+      return Tuple2(req, null);
+    case 'MultipartRequest':
+      var req = http.MultipartRequest(json['method'], Uri.parse(json['url']))
+        ..headers.addAll(headers)
+        ..files.addAll(
+          List<http.MultipartFile>.from((await Future.wait(
+            json['file-names'].map(
+              (String name) async => http.MultipartFile.fromPath(
+                  'package',
+                  (await _localFile(name))
+                      .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+            ),
+          ))
+              .whereType<http.MultipartFile>()),
+        );
+      if (json['body'] != null) req.fields.addAll(json['body']);
+
+      return Tuple2(null, req);
+    default:
+      throw UnimplementedError();
+  }
+}

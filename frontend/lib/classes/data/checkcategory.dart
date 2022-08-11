@@ -6,7 +6,8 @@ import 'package:json_annotation/json_annotation.dart';
 part 'checkcategory.g.dart';
 
 @JsonSerializable()
-class CheckCategory extends Data with WithLangText, WithImgHashes, WithAuthor {
+class CheckCategory extends Data
+    with WithLangText, WithImgHashes, WithAuthor, WithOffline {
   @JsonKey(name: 'local_id')
   String? id;
 
@@ -70,5 +71,6 @@ class CheckCategory extends Data with WithLangText, WithImgHashes, WithAuthor {
   Map<String, dynamic> toJson() => _$CheckCategoryToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'E1': index};
+  Map<String, dynamic> toSmallJson() =>
+      {'PjNr': pjNr, 'E1': index, 'local_id': id};
 }

@@ -25,7 +25,9 @@ import '../generated/l10n.dart';
 /// ```
 /// this will create the page for choosing the next [CheckCategory]
 /// the given model must implement [DropDownModel]!
-class DropDownPage<ChildData extends WithLangText, ParentData extends Data?,
+class DropDownPage<
+        ChildData extends WithLangText,
+        ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>
     extends StatelessWidget {
   const DropDownPage({Key? key}) : super(key: key);
@@ -52,7 +54,9 @@ class DropDownPage<ChildData extends WithLangText, ParentData extends Data?,
   }
 }
 
-class _DropDownBody<ChildData extends WithLangText, ParentData extends Data?,
+class _DropDownBody<
+        ChildData extends WithLangText,
+        ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>
     extends StatefulWidget {
   final DDModel ddmodel;
@@ -68,7 +72,7 @@ class _DropDownBody<ChildData extends WithLangText, ParentData extends Data?,
 
 class _DropDownBodyState<
         ChildData extends WithLangText,
-        ParentData extends Data?,
+        ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>
     extends State<_DropDownBody<ChildData, ParentData, DDModel>> {
   Future<List<ChildData>>? _future;
@@ -98,7 +102,9 @@ class _DropDownBodyState<
   }
 
   Future<void> _refresh() async {
+    // try {
     await __refresh().last;
+    // } catch (e) {}
   }
 
   Stream<bool> __refresh() async* {
@@ -139,6 +145,18 @@ class _DropDownBodyState<
     return ExpandablesListRadio.fake(3);
   }
 
+  Widget offlineIndicator(ChildData data) {
+    try {
+      if ((data as WithOffline).forceOffline)
+        return Icon(
+          Icons.cloud_off,
+          color: Colors.green,
+          size: 20,
+        );
+    } catch (e) {}
+    return Container();
+  }
+
   ExpandableCard2 dropDown_element(
       ChildData data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
@@ -158,8 +176,9 @@ class _DropDownBodyState<
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend().delete<ChildData>(data).then(
-                          (value) => value != null
+                      delete: () => Backend()
+                          .delete<ChildData>(data, caller: ddmodel.currentData)
+                          .then((value) => value != null
                               ? (kDebugMode ? showToast(value) : (_) {})
                               : showToast(S.of(context).deleteUnseccessful)),
                       confirm_name: data.title,
@@ -168,6 +187,7 @@ class _DropDownBodyState<
                 return Container();
               },
             ),
+            offlineIndicator(data),
           ],
         ),
         children: ddmodel.actions

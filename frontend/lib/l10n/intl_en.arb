@@ -69,6 +69,7 @@
   "validateDeletionPromtHeadline": "wirklich Löschen?",
   "validateDeletionPromtWarning": "diese Aktion ist entgültig und nicht wiederherstellbar",
   "tryAgainLater_noNetwork": "try again later",
-  "positionHeightHint": "Position / Höhe",
-  "developerOptions": "Developer Options"
+  "positionHeightHint": "position / height",
+  "developerOptions": "Developer Options",
+  "noViableInternetConnection": "no viable internet connection"
 }

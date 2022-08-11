@@ -38,6 +38,7 @@ class MainDrawer extends StatelessWidget {
           settingsTile,
           if (Options().showDoggo) unlimiteddoggosTile,
           Spacer(),
+          if (Options.canBeOffline) UploadSyncTile(),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8.0),

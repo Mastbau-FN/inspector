@@ -11,6 +11,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/l10n.dart';
@@ -64,9 +65,25 @@ mixin WithAuthor on Data {
   String? get author;
 }
 
+//TODO: i have no idea what happens on JSONSERIALIZABLE mixins
+// @JsonSerializable()
+mixin WithOffline on Data {
+  @JsonKey(name: 'offline')
+  bool? forceOffline_nullable = false;
+
+  @JsonKey(ignore: true)
+  bool get forceOffline => forceOffline_nullable ?? false;
+
+  @JsonKey(ignore: true)
+  void set forceOffline(bool? next) {
+    forceOffline_nullable = next ?? false;
+  }
+}
+
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
-class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
-    extends ChangeNotifier {
+class DropDownModel<ChildData extends WithLangText,
+        ParentData extends WithOffline?> extends ChangeNotifier
+    implements KnowsNext<ChildData> {
   /// could be used for the scaffold appbar title
   String get title => currentData?.title ?? "root";
 
@@ -148,6 +165,8 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   DropDownModel(this.currentData);
 
+  bool get isOffline => currentData?.forceOffline ?? false;
+
   /// returns a [List] of all the [Data] for this Model
   Stream<List<ChildData>> get all => Backend().getNextDatapoint<ChildData,
           ParentData>(
@@ -161,8 +180,8 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   void update(ChildData data, txt) async {
     data.langText = txt;
-    _maybeShowToast(
-        await Backend().update(data) ?? S.current.didntGetAnyResponseAfterSend);
+    _maybeShowToast(await Backend().update(data, caller: currentData) ??
+        S.current.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
 
@@ -187,9 +206,21 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)
   Widget? floatingActionButton = null;
+
+  @override
+  DropDownModel<WithLangText, WithOffline> generateNextModel(ChildData data) {
+    // XXX: this class itself should be abstract..
+    throw UnimplementedError();
+  }
 }
 
-Widget nextModel<ChildData extends WithLangText, ParentData extends Data?,
+abstract class KnowsNext<ChildData extends Data> {
+  KnowsNext generateNextModel(ChildData data);
+}
+
+Widget nextModel<
+        ChildData extends WithLangText,
+        ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>(DDModel child) =>
     ChangeNotifierProvider<DDModel>.value(
       value: child,
@@ -203,7 +234,7 @@ void _maybeShowToast(String? message) {
 }
 
 Widget standard_statefulImageView<ChildData extends WithLangText,
-            DDModel extends DropDownModel<ChildData, Data?>>(
+            DDModel extends DropDownModel<ChildData, WithOffline?>>(
         DDModel model, ChildData? data) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,
@@ -238,7 +269,9 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                               S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => Backend()
-                                  .setMainImageByHash(data, hash.toString()))
+                                  .setMainImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
                               .then((value) {
                             _maybeShowToast(value);
                             return value;

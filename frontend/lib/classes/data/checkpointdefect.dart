@@ -8,9 +8,8 @@ part 'checkpointdefect.g.dart';
 
 @JsonSerializable()
 class CheckPointDefect extends Data
-    with WithLangText, WithImgHashes, WithAuthor {
-  static const id_key = 'local_id';
-  @JsonKey(name: id_key)
+    with WithLangText, WithImgHashes, WithAuthor, WithOffline {
+  @JsonKey(name: 'local_id')
   String? id;
   static const pjNr_key = 'PjNr';
   @JsonKey(name: pjNr_key)
@@ -124,8 +123,13 @@ class CheckPointDefect extends Data
   Map<String, dynamic> toJson() => _$CheckPointDefectToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() =>
-      {'PjNr': pjNr, 'E1': category_index, 'E2': check_index, 'E3': index};
+  Map<String, dynamic> toSmallJson() => {
+        'PjNr': pjNr,
+        'E1': category_index,
+        'E2': check_index,
+        'E3': index,
+        'local_id': id
+      };
 }
 
 class ChipData {
