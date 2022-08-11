@@ -13,10 +13,8 @@ import '../generated/l10n.dart';
 import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
-import '/extension/future.dart';
 import 'package:MBG_Inspektionen/options.dart';
 
-import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
 import 'api.dart';
 
@@ -336,9 +334,8 @@ class Remote {
 
   /// sets a new [DataT]
   RequestAndParser<http.Response, DataT?> setNew<DataT extends Data>(
-    DataT? data, {
-    Data? caller,
-  }) {
+    DataT? data,
+  ) {
     final rap = _sendDataToRoute(
       data: data,
       route: _addNew_r,
@@ -354,10 +351,8 @@ class Remote {
 
   /// updates a [DataT] and returns the response
   RequestAndParser<http.Response, String?> update<DataT extends Data>(
-    DataT? data, {
-    Data? caller,
-    bool forceUpdate = false,
-  }) {
+    DataT? data,
+  ) {
     final rap = _sendDataToRoute(
       data: data,
       route: _update_r,
@@ -372,10 +367,8 @@ class Remote {
 
   /// deletes a [DataT] and returns the response
   RequestAndParser<http.Response, String?> delete<DataT extends Data>(
-    DataT? data, {
-    Data? caller,
-    bool forceUpdate = false,
-  }) {
+    DataT? data,
+  ) {
     final rap = _sendDataToRoute(
       data: data,
       route: _delete_r,
@@ -404,9 +397,8 @@ class Remote {
   RequestAndParser<http.Response, String?>
       setMainImageByHash<DataT extends Data>(
     DataT? data,
-    String hash, {
-    Data? caller,
-  }) {
+    String hash,
+  ) {
     final rap = _sendDataToRoute(
       data: data,
       route: _setMainImageByHash_r,

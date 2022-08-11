@@ -177,7 +177,7 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       offline: () => local.setNew(data, caller: caller),
-      online: () => remote.setNew(data, caller: caller),
+      online: () => remote.setNew(data),
       requestType: requestType,
     ).last;
   }
@@ -191,7 +191,7 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       offline: () => local.update(data, caller: caller),
-      online: () => remote.update(data, caller: caller),
+      online: () => remote.update(data),
       requestType: requestType,
     ).last;
   }
@@ -204,7 +204,7 @@ class API {
     final requestType = Helper.SimulatedRequestType.DELETE;
     return _run(
       offline: () => local.delete(data, caller: caller),
-      online: () => remote.delete(data, caller: caller),
+      online: () => remote.delete(data),
       requestType: requestType,
     ).last;
   }
@@ -241,7 +241,7 @@ class API {
     return _run(
       offline: () => local.setMainImageByHash(data, hash,
           caller: caller, forceUpdate: forceUpdate),
-      online: () => remote.setMainImageByHash(data, hash, caller: caller),
+      online: () => remote.setMainImageByHash(data, hash),
       requestType: requestType,
     ).last;
   }

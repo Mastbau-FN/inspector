@@ -2,28 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
-import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
-import 'package:MBG_Inspektionen/pages/checkcategories.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 import '../generated/l10n.dart';
 import '../helpers/toast.dart';
-import '../pages/location.dart';
 import '/classes/exceptions.dart';
-import '/classes/user.dart';
-import '/extension/future.dart';
-import 'package:MBG_Inspektionen/options.dart';
 
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
