@@ -32,8 +32,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   static _defaultDelete(Object id) async {
     try {
       if (kDebugMode)
-        showToast(
-            (await Backend().deleteImageByHash(id.toString())).toString());
+        showToast((await API().deleteImageByHash(id.toString())).toString());
     } catch (e) {
       showToast(e.toString());
     }

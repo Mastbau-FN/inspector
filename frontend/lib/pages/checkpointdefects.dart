@@ -94,7 +94,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
                               ?.label ??
                           ""))); //ahhh so thats why we learn functional programming
 
-          await Backend()
+          await API()
               .setNew(CheckPointDefect.fromJson(defect), caller: currentData);
           notifyListeners();
         },

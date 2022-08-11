@@ -73,7 +73,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
             Map<String, dynamic> category = json['checkpoint'];
             category['PjNr'] = currentData.pjNr;
             category['E1'] = -1;
-            await Backend()
+            await API()
                 .setNew(CheckCategory.fromJson(category), caller: currentData);
             notifyListeners();
           },

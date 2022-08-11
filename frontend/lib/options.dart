@@ -10,7 +10,7 @@ String other = 'other';
 
 @JsonSerializable()
 class Options {
-  var canBeOffline = false;
+  var canBeOffline = true;
   var canUseMobileNetworkIfPossible = true;
   var preferRemoteImages = false;
   var debugAllResponses = false;

@@ -168,7 +168,7 @@ class _DropDownBodyState<
           children: [
             data.extra ?? Container(),
             FutureBuilder(
-              future: Backend().user,
+              future: API().user,
               builder:
                   (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
                 //assert(data.runtimeType==DataT);
@@ -176,7 +176,7 @@ class _DropDownBodyState<
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend()
+                      delete: () => API()
                           .delete<ChildData>(data, caller: ddmodel.currentData)
                           .then((value) => value != null
                               ? (kDebugMode ? showToast(value) : (_) {})

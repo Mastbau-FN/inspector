@@ -67,10 +67,11 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
     setState(() {
       loading = true;
     });
-    bool s = await Backend().retryFailedrequests(c);
-    setState(() {
-      success = s;
-    });
+    bool s = await API().retryFailedrequests();
+    if (s)
+      setState(() {
+        success = s;
+      });
     setState(() {
       loading = false;
     });

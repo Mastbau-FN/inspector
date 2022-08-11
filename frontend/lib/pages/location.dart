@@ -201,7 +201,7 @@ class LocationDetailPage extends StatelessWidget {
       );
 
   Future<String?> updateData(InspectionLocation loc) async {
-    var val = await Backend().update(loc, forceUpdate: true);
+    var val = await API().update(loc, forceUpdate: true);
     _maybeShowToast(S.current.updateSuccessful + ": $val");
     return val;
   }

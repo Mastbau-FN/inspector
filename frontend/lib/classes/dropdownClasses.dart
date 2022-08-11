@@ -168,7 +168,7 @@ class DropDownModel<ChildData extends WithLangText,
   bool get isOffline => currentData?.forceOffline ?? false;
 
   /// returns a [List] of all the [Data] for this Model
-  Stream<List<ChildData>> get all => Backend().getNextDatapoint<ChildData,
+  Stream<List<ChildData>> get all => API().getNextDatapoint<ChildData,
           ParentData>(
       currentData); //TO/DO: not use last, but buffer latest element somehow if even possible?
 
@@ -180,7 +180,7 @@ class DropDownModel<ChildData extends WithLangText,
 
   void update(ChildData data, txt) async {
     data.langText = txt;
-    _maybeShowToast(await Backend().update(data, caller: currentData) ??
+    _maybeShowToast(await API().update(data, caller: currentData) ??
         S.current.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
@@ -258,7 +258,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
-                            (data) => Backend().uploadFiles(data, files),
+                            (data) => API().uploadFiles(data, files),
                           );
 
                           _maybeShowToast(value);
@@ -268,7 +268,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(
                               S.of(context).settingMainImageThisMayTakeASec);
                           model
-                              .updateCurrentChild((data) => Backend()
+                              .updateCurrentChild((data) => API()
                                   .setMainImageByHash(data, hash.toString(),
                                       caller: model.currentData,
                                       forceUpdate: true))
@@ -281,7 +281,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(S.of(context).deletingImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) =>
-                                  Backend().deleteImageByHash(hash.toString()))
+                                  API().deleteImageByHash(hash.toString()))
                               .then((value) {
                             _maybeShowToast(value);
                             return value;

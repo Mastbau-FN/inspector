@@ -42,7 +42,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
-///tries to open an [Image] given by its [name] and returns it if succesfull
+///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
   if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
@@ -53,7 +53,7 @@ Future<Image?> readImage(String name) async {
   return Image.file(await _localFile(name));
 }
 
-///tries to remove an [Image] given by its [name] , throws if unsuccesfull
+///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
   final file = (await _localFile(name));
   if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
@@ -160,7 +160,7 @@ Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
   return reqs;
 }
 
-failedRequestWasSuccesful(String id) {
+failedRequestWasSuccessful(String id) {
   failedReqLogCollection.doc(id).delete();
   debugPrint(
       'request $id was apperently successful, so we deleted it from the failed-Log');
