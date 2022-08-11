@@ -40,7 +40,7 @@ String? getIdentifierFromData<DataT extends Data>(DataT? data) {
 extension StreamRepeatLatestExtension<T /*extends Object*/ > on Stream<T> {
   Stream<T> repeatLatest() {
     var done = false;
-    T? latest = null;
+    T? latest;
     var currentListeners = <MultiStreamController<T>>{};
     this.listen((event) {
       latest = event;

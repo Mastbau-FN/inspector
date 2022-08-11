@@ -34,6 +34,7 @@ class API {
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
+  // ignore: non_constant_identifier_names
   Future<User?> get _c_user async {
     if (_user != null) return _user;
     final user = await User.fromStore();
@@ -49,7 +50,6 @@ class API {
     required Helper.SimulatedRequestType requestType,
     bool itPrefersCache = false,
   }) async* {
-    //TODO
     late T offlineRes;
     T onlineRes;
     if (Options().canBeOffline) {
@@ -62,7 +62,7 @@ class API {
       if (itPrefersCache && !Options().mergeOnlineEvenInCached)
         throw BackendCommunicationException('we prefer the local variant');
       await tryNetwork(requestType: requestType);
-      final res = await remote.post_JSON(rap.rd);
+      final res = await remote.postJSON(rap.rd);
       onlineRes = await rap.parser(res as R);
       if (Options().preferRemote) yield onlineRes;
       if (merge != null &&
@@ -268,11 +268,11 @@ D injectImages<D extends WithImgHashes>(D data) {
   data.mainImage = (_firstHash == Options().no_image_placeholder_name)
       ? null
       : API().getImageByHash(_firstHash);
-  data.image_futures = data.imagehashes
+  data.imageFutures = data.imagehashes
       ?.map((hash) => API().getImageByHash(hash))
       .toList()
       .sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
   data.previewImage =
-      IterateFuture.ordered_firstNonNull(data.image_futures ?? []);
+      IterateFuture.ordered_firstNonNull(data.imageFutures ?? []);
   return data;
 }

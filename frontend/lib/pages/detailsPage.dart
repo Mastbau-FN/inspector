@@ -1,11 +1,6 @@
-import 'dart:convert';
-
-import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 // import 'package:flutter_quill/flutter_quill.dart' as q;
-
-import '../classes/dropdownClasses.dart';
 
 //das ganze widget ist iwie dumm mit dem switch zwischen String und List<Dynamic> und resultiert in ner menge "!"
 class DetailsPage extends StatefulWidget {
@@ -123,7 +118,7 @@ class PlainEditor extends StatelessWidget {
         controller: controller,
       );
 
-  TextEditingController controller;
+  final TextEditingController controller;
 }
 
 class RichEditor extends StatelessWidget {

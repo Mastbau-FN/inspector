@@ -24,6 +24,7 @@ class Options {
   //
   var infinitelyreloadPictures = true;
   var reloadTries = 5;
+  // ignore: non_constant_identifier_names
   var no_image_placeholder_name = "no_default_picture_yet";
   //
 
@@ -32,7 +33,7 @@ class Options {
   var debugLocalMirror = true;
   var debugImages = false;
 
-  @JsonKey(ignore: true)
+  // @JsonKey(ignore: true)//is a getter anyway
   Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
       {
         S.current.option_canbeoffline:

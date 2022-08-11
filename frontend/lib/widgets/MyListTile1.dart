@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class MyCardListTile1 extends StatelessWidget {
-  IconData icon;
-  String text;
-  String? subtext;
-  Widget? child;
-  void Function()? onTap;
+  final IconData icon;
+  final String text;
+  final String? subtext;
+  final Widget? child;
+  final void Function()? onTap;
 
-  MyCardListTile1({
+  const MyCardListTile1({
     IconData? icon,
     this.text = "Click mich doch",
     this.subtext,

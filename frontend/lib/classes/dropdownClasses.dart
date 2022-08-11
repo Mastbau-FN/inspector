@@ -1,4 +1,3 @@
-import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -21,7 +20,7 @@ abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
   Future<ImageData?>? mainImage = Future.value(null);
   Future<ImageData?> previewImage = Future.value(null);
-  List<Future<ImageData?>>? image_futures = [];
+  List<Future<ImageData?>>? imageFutures = [];
   //Null Function() onNextImageLoaded = () {};
 }
 
@@ -65,17 +64,16 @@ mixin WithAuthor on Data {
   String? get author;
 }
 
-//TODO: i have no idea what happens on JSONSERIALIZABLE mixins
-// @JsonSerializable()
 mixin WithOffline on Data {
   @JsonKey(name: 'offline')
+  // ignore: non_constant_identifier_names
   bool? forceOffline_nullable = false;
 
   @JsonKey(ignore: true)
   bool get forceOffline => forceOffline_nullable ?? false;
 
-  @JsonKey(ignore: true)
-  void set forceOffline(bool? next) {
+  // @JsonKey(ignore: true)
+  set forceOffline(bool? next) {
     forceOffline_nullable = next ?? false;
   }
 }
@@ -96,9 +94,10 @@ class DropDownModel<ChildData extends WithLangText,
   }
 
   Stream<ChildData?> _getCurrentlyChosenChildData(
+      // ignore: unused_element
       {int? remainingTries}) async* {
-    int reloadTries = (remainingTries ?? Options().reloadTries) - 1;
-    debugPrint('getting ${currentlyChosenChildId}');
+    // int reloadTries = (remainingTries ?? Options().reloadTries) - 1;
+    debugPrint('getting $currentlyChosenChildId');
     await for (var a in all) {
       if (currentlyChosenChildId == null) yield null;
 
@@ -132,7 +131,7 @@ class DropDownModel<ChildData extends WithLangText,
   //         ? (await all)[currentlyChosenChildDataIndex!]
   //         : null;
 
-  void set currentlyChosenChildData(Future<ChildData?> data) {
+  set currentlyChosenChildData(Future<ChildData?> data) {
     data.then(chooseChild);
   }
 
@@ -161,6 +160,7 @@ class DropDownModel<ChildData extends WithLangText,
       notifyListeners();
       return ret;
     }
+    return null;
   }
 
   DropDownModel(this.currentData);
@@ -205,7 +205,7 @@ class DropDownModel<ChildData extends WithLangText,
 
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)
-  Widget? floatingActionButton = null;
+  Widget? floatingActionButton;
 
   @override
   DropDownModel<WithLangText, WithOffline> generateNextModel(ChildData data) {
@@ -233,6 +233,7 @@ void _maybeShowToast(String? message) {
   }
 }
 
+// ignore: non_constant_identifier_names
 Widget standard_statefulImageView<ChildData extends WithLangText,
             DDModel extends DropDownModel<ChildData, WithOffline?>>(
         DDModel model, ChildData? data) =>
@@ -251,7 +252,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                       ImagesPage.futured(
                         hasMainImage:
                             (snapshot.data ?? data)?.mainImage != null,
-                        future_images: (snapshot.data ?? data)?.image_futures,
+                        futureImages: (snapshot.data ?? data)?.imageFutures,
                         //s ?.map((e) => e.asBroadcastStream())
                         // .toList(),
                         onNewImages: (files) async {

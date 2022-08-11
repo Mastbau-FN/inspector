@@ -26,7 +26,7 @@ class FailedRequestmanager {
       if (rd != null)
         try {
           rd.logIfFailed = false;
-          final res = await API().remote.post_JSON(rd);
+          final res = await API().remote.postJSON(rd);
           //nur 200er als ok einstufen
           if (res!.statusCode == 200) {
             API().local.failedRequestWasSuccessful(docID);
@@ -71,10 +71,10 @@ class FailedRequestmanager {
 
           if (depth == 0)
             return true; //base-case as to not call generateNextModel
-          bool child_succeeded = await loadAndCacheAll(
+          bool childSucceeded = await loadAndCacheAll(
               caller.generateNextModel(child), depth,
               name: name, parentID: caller.currentData.id);
-          return child_succeeded;
+          return childSucceeded;
         },
       ));
 
@@ -89,7 +89,7 @@ class FailedRequestmanager {
               await API().local.storeData(caller.currentData, forId: parentID);
           if (Options().debugLocalMirror)
             debugPrint(
-                '_32 loading. ${depth + 1} stored : ${id}  ${caller.currentData.title}');
+                '_32 loading. ${depth + 1} stored : $id  ${caller.currentData.title}');
         } catch (e) {
           return false;
         }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '../generated/l10n.dart';
-import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
@@ -44,14 +42,15 @@ class LocalMirror {
           .toList();
     } catch (e) {
       debugPrint("couldnt read data from disk..: " + e.toString());
+      return null;
     }
   }
 
-  void _maybeShowToast(String? message) {
-    if (message != null && message != "") {
-      showToast(message);
-    }
-  }
+  // void _maybeShowToast(String? message) {
+  //   if (message != null && message != "") {
+  //     showToast(message);
+  //   }
+  // }
 
   // MARK: API
 
@@ -79,7 +78,9 @@ class LocalMirror {
     if (caller != null && data != null && caller.id != null) {
       data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
       OP.storeData<DataT>(data, forId: caller.id!);
+      return data;
     }
+    return null;
   }
 
   /// updates a [DataT] and returns the response
@@ -92,7 +93,9 @@ class LocalMirror {
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
       OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+      return 'success';
     }
+    return null;
   }
 
   /// deletes a [DataT] and returns the response
@@ -107,7 +110,9 @@ class LocalMirror {
         caller.id != null &&
         data.id != null) {
       OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+      return 'success';
     }
+    return null;
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
@@ -120,6 +125,8 @@ class LocalMirror {
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
+    return null;
+
     //TODO: #211
   }
 
@@ -142,6 +149,7 @@ class LocalMirror {
         debugPrint('failed to update main image locally');
       }
     }
+    return null;
   }
 
   /// upload a bunch of images
@@ -149,6 +157,8 @@ class LocalMirror {
     DataT data,
     List<XFile> files,
   ) async {
+    return null;
+
     //TODO: #211
   }
 

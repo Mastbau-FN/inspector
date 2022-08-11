@@ -63,6 +63,7 @@ class Remote {
   injectUser(User? user) => _user = user;
 
   final _baseurl = dotenv.env['API_URL'];
+  // ignore: non_constant_identifier_names
   final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
 
   // MARK: available Helpers
@@ -75,7 +76,7 @@ class Remote {
           S.current.exceptionNoUrlToConnectToProvided);
     try {
       // check if we can reach our api
-      await post_JSON(RequestData(
+      await postJSON(RequestData(
         '/login',
         timeout: timeout,
       )); ////logIfFailed: false));
@@ -129,20 +130,20 @@ class Remote {
   }
 
   /// post_JSON to our backend as the user
-  Future<http.BaseResponse?> post_JSON(RequestData rd) async {
+  Future<http.BaseResponse?> postJSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json = rd.json ?? {};
     rd.json!['user'] = _user?.toJson();
     if (Options().debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
-      if (rd.multipart_files.isNotEmpty) {
+      if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
           var fullURL = Uri.parse(_baseurl! + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
             ..files.addAll(
               List<http.MultipartFile>.from((await Future.wait(
-                rd.multipart_files.map(
+                rd.multipartFiles.map(
                   (xfile) => http.MultipartFile.fromPath('package', xfile.path,
                       filename: xfile.name),
                 ),
@@ -178,7 +179,7 @@ class Remote {
         }
       }
     } catch (e) {
-      debugPrint("request failed, cause : ${e}");
+      debugPrint("request failed, cause : $e");
       return null;
     }
   }
@@ -266,7 +267,7 @@ class Remote {
     Map<String, dynamic> other = const {},
   }) {
     if (Options().debugAllResponses)
-      debugPrint("we will send this data to ${route}:" +
+      debugPrint("we will send this data to $route:" +
           (data?.toJson().toString() ?? ""));
     assert(data != null, 'we cant send no data, data needs to be supplied');
     var jsonData = data!.toJson();
@@ -304,7 +305,7 @@ class Remote {
     // if user is already logged in
     await connectionGuard();
     _user = user;
-    var res = (await post_JSON(RequestData(
+    var res = (await postJSON(RequestData(
       '/login',
     ))) ////logIfFailed: false)))
         ?.forceRes();
@@ -418,7 +419,7 @@ class Remote {
     DataT data,
     List<XFile> files,
   ) {
-    debugPrint('uploading images ${files}');
+    debugPrint('uploading images $files');
     var jsonData = data.toJson();
     final rd = RequestData(
       _uploadImage_r,
@@ -426,7 +427,7 @@ class Remote {
         'type': Helper.getIdentifierFromData(data),
         'data': json.encode(jsonData),
       },
-      multipart_files: files,
+      multipartFiles: files,
     );
 
     parser(http.BaseResponse res) async {

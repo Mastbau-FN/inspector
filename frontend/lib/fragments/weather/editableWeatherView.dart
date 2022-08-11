@@ -1,8 +1,6 @@
 import 'package:MBG_Inspektionen/classes/data/weather.dart';
-import 'package:MBG_Inspektionen/pages/location.dart' as L;
 import 'package:MBG_Inspektionen/widgets/dropDownBuilder.dart';
 import 'package:flutter/material.dart';
-import 'package:weather_icons/weather_icons.dart';
 
 import 'helpers.dart';
 
@@ -129,7 +127,6 @@ class WindSpeedIcon extends StatelessWidget {
         builder: builder,
         selected: windSpeed,
         onChanged: onChanged);
-    ;
   }
 
   Widget builder(WindPower? wp) => Text(

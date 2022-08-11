@@ -77,7 +77,6 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
   }
 }
 
-//TODO: ansichrt den neuen daten anpassen
 class LocationDetailPage extends StatelessWidget {
   final InspectionLocation locationdata;
   const LocationDetailPage({required this.locationdata, Key? key})
@@ -370,6 +369,7 @@ class _MapState extends State<_Map> {
             );
 }
 
+// ignore: must_be_immutable
 class EditableText extends StatefulWidget {
   EditableText({
     Key? key,
@@ -459,9 +459,9 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 }
 
 class _ASP extends StatefulWidget {
-  InspectionLocation loc;
-  Function(InspectionLocation) updateData;
-  _ASP(this.loc, {required this.updateData, Key? key}) : super(key: key);
+  final InspectionLocation loc;
+  final Function(InspectionLocation) updateData;
+  const _ASP(this.loc, {required this.updateData, Key? key}) : super(key: key);
 
   @override
   State<_ASP> createState() => __ASPState();
@@ -506,9 +506,10 @@ class __ASPState extends State<_ASP> {
 }
 
 class _Schluessel extends StatefulWidget {
-  InspectionLocation loc;
-  Function(InspectionLocation) updateData;
-  _Schluessel(this.loc, {required this.updateData, Key? key}) : super(key: key);
+  final InspectionLocation loc;
+  final Function(InspectionLocation) updateData;
+  const _Schluessel(this.loc, {required this.updateData, Key? key})
+      : super(key: key);
 
   @override
   State<_Schluessel> createState() => __SchluesselState();
@@ -553,9 +554,10 @@ class __SchluesselState extends State<_Schluessel> {
 }
 
 class _SteckDosen extends StatefulWidget {
-  InspectionLocation loc;
-  Function(InspectionLocation) updateData;
-  _SteckDosen(this.loc, {required this.updateData, Key? key}) : super(key: key);
+  final InspectionLocation loc;
+  final Function(InspectionLocation) updateData;
+  const _SteckDosen(this.loc, {required this.updateData, Key? key})
+      : super(key: key);
 
   @override
   State<_SteckDosen> createState() => __SteckDosenState();

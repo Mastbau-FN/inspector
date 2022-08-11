@@ -12,7 +12,7 @@ class RequestData {
   RequestData(
     this.route, {
     this.json,
-    this.multipart_files = const [],
+    this.multipartFiles = const [],
     this.timeout,
     this.returnsBinary = false,
     this.logIfFailed,
@@ -26,7 +26,7 @@ class RequestData {
 
   /// the files to send
   @JsonKey(toJson: _multipartFilesToJson, fromJson: _multipartFilesFromJson)
-  List<XFile> multipart_files;
+  List<XFile> multipartFiles;
 
   /// the timeout for the request
   Duration? timeout;
