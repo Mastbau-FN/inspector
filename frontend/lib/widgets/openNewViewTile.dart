@@ -16,7 +16,10 @@ class OpenNewViewTile extends StatelessWidget {
     required this.newView,
     this.supplyLoginModel = false,
     Key? key,
+    this.onPop,
   }) : super(key: key);
+
+  final Function? onPop;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +38,7 @@ class OpenNewViewTile extends StatelessWidget {
                   )
                 : newView,
           ),
-        );
+        ).then((value) => onPop);
       },
     );
   }

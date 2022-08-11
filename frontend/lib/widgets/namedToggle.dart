@@ -26,8 +26,20 @@ class _NamedToggleState extends State<NamedToggle> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(widget.name),
-        Switch(value: _isSelected, onChanged: widget.onChanged),
+        Expanded(
+          child: Text(
+            widget.name,
+            overflow: TextOverflow.fade,
+            maxLines: 3,
+          ),
+        ),
+        Switch(
+          value: _isSelected,
+          onChanged: (newValue) => setState(() {
+            _isSelected = newValue;
+            widget.onChanged?.call(newValue);
+          }),
+        ),
       ],
     );
   }

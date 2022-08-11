@@ -71,5 +71,17 @@
   "tryAgainLater_noNetwork": "probiere es später nochmal",
   "positionHeightHint": "Position / Höhe",
   "noViableInternetConnection": "keine valide InternetVerbindung",
-  "developerOptions": "Entwickler-Optionen"
+  "developerOptions": "Entwickler-Optionen",
+  "option_canbeoffline": "kann Offline",
+  "option_canusemobilenetworkifpossible": "Mobilfunknetz nutzen",
+  "option_preferremoteimages": "Bilder vom Server bevorzugen",
+  "option_debugallresponses": "debugAllResponses",
+  "option_debuglocalmirror": "debugLocalMirror",
+  "option_debugimages": "debugImages",
+  "option_infinitelyreloadpictures": "infinitelyreloadPictures",
+  "option_mergeloadeddataintoonlinedata": "offline Daten mit Online vervollständigen",
+  "option_showdoggo": "showDoggo",
+  "option_mergeloadeddataintoonlinedataevenincachedparent": "offline Daten mit Online vervollständigen, selbst wenn wir im offline-modus sind",
+  "option_usemobilenetworkforupload": "mobiles Netz zum hochladen nutzen",
+  "option_usemobilenetworkfordownload": "mobiles Netz zum runterladen nutzen"
 }

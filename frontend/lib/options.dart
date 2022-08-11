@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:tuple/tuple.dart';
 import 'backend/offlineProvider.dart' as OP;
+import 'generated/l10n.dart';
 
 part 'options.g.dart';
 
@@ -27,33 +28,38 @@ class Options {
   @JsonKey(ignore: true)
   Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
       {
-        'canBeOffline':
+        S.current.option_canbeoffline:
             Tuple2(() => canBeOffline, (bool value) => canBeOffline = value),
-        'canUseMobileNetworkIfPossible': Tuple2(
+        S.current.option_canusemobilenetworkifpossible: Tuple2(
             () => canUseMobileNetworkIfPossible,
             (bool value) => canUseMobileNetworkIfPossible = value),
-        'preferRemoteImages': Tuple2(() => preferRemoteImages,
-            (bool value) => preferRemoteImages = value),
-        'debugAllResponses': Tuple2(
-            () => debugAllResponses, (bool value) => debugAllResponses = value),
-        'debugLocalMirror': Tuple2(
-            () => debugLocalMirror, (bool value) => debugLocalMirror = value),
-        'debugImages':
-            Tuple2(() => debugImages, (bool value) => debugImages = value),
-        'infinitelyreloadPictures': Tuple2(() => infinitelyreloadPictures,
-            (bool value) => infinitelyreloadPictures = value),
-        'showDoggo': Tuple2(() => showDoggo, (bool value) => showDoggo = value),
-        'mergeLoadedDataIntoOnlineData': Tuple2(
+        S.current.option_usemobilenetworkforupload: Tuple2(
+            () => useMobileNetworkForUpload,
+            (bool value) => useMobileNetworkForUpload = value),
+        S.current.option_usemobilenetworkfordownload: Tuple2(
+            () => useMobileNetworkForDownload,
+            (bool value) => useMobileNetworkForDownload = value),
+        S.current.option_mergeloadeddataintoonlinedata: Tuple2(
             () => mergeLoadedDataIntoOnlineData,
             (bool value) => mergeLoadedDataIntoOnlineData = value),
-        'mergeLoadedDataIntoOnlineDataEvenInCachedParent': Tuple2(
-            () => mergeLoadedDataIntoOnlineDataEvenInCachedParent,
-            (bool value) =>
-                mergeLoadedDataIntoOnlineDataEvenInCachedParent = value),
-        'useMobileNetworkForUpload': Tuple2(() => useMobileNetworkForUpload,
-            (bool value) => useMobileNetworkForUpload = value),
-        'useMobileNetworkForDownload': Tuple2(() => useMobileNetworkForDownload,
-            (bool value) => useMobileNetworkForDownload = value),
+        S.current.option_mergeloadeddataintoonlinedataevenincachedparent:
+            Tuple2(
+                () => mergeLoadedDataIntoOnlineDataEvenInCachedParent,
+                (bool value) =>
+                    mergeLoadedDataIntoOnlineDataEvenInCachedParent = value),
+        S.current.option_preferremoteimages: Tuple2(() => preferRemoteImages,
+            (bool value) => preferRemoteImages = value),
+        S.current.option_infinitelyreloadpictures: Tuple2(
+            () => infinitelyreloadPictures,
+            (bool value) => infinitelyreloadPictures = value),
+        S.current.option_showdoggo:
+            Tuple2(() => showDoggo, (bool value) => showDoggo = value),
+        S.current.option_debugallresponses: Tuple2(
+            () => debugAllResponses, (bool value) => debugAllResponses = value),
+        S.current.option_debuglocalmirror: Tuple2(
+            () => debugLocalMirror, (bool value) => debugLocalMirror = value),
+        S.current.option_debugimages:
+            Tuple2(() => debugImages, (bool value) => debugImages = value),
       };
 
   static final String _id = '__options__';
@@ -62,12 +68,14 @@ class Options {
 
   Options._internal() {
     // init
-    OP.db.collection(other).doc(_id).get().then((value) {
-      try {
-        _instance = _$OptionsFromJson(value!);
-      } catch (e) {}
-    });
+    load();
   }
+
+  Future load() => OP.db.collection(other).doc(_id).get().then((value) {
+        try {
+          _instance = _$OptionsFromJson(value!);
+        } catch (e) {}
+      });
 
   Future store() => OP.db.collection(other).doc(_id).set(_$OptionsToJson(this));
 }

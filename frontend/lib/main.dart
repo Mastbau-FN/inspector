@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ Future main() async {
   // could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
 
   await dotenv.load(fileName: ".env");
+  await Options().load();
 
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`

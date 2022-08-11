@@ -19,6 +19,9 @@ class SettingsView extends StatelessWidget {
         icon: Icons.developer_mode,
         title: S.current.developerOptions,
         newView: DeveloperSettings(),
+        // onPop: (_) {
+        //   Options().store();
+        // },
       );
 
   @override
