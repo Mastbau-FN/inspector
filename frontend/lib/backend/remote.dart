@@ -18,6 +18,7 @@ import 'package:MBG_Inspektionen/options.dart';
 
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
+import 'api.dart';
 
 String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
@@ -185,73 +186,24 @@ class Remote {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  Stream<ImageData?> _fetchImage(String hash) async* {
-    bool cacheHit = false;
-    if (Options().canBeOffline)
-      try {
-        final img = await OP.readImage(hash);
-        if (img == null) throw Exception("no img cached");
-        yield ImageData(img, id: hash);
-        cacheHit = true;
-      } catch (e) {
-        //yield null;
-      }
-    if (!cacheHit || Options().preferRemote) {
-      http.Response? res = (await post_JSON(RequestData(
-        _getImageFromHash_r,
-        json: {
-          'imghash': hash,
-        },
-        returnsBinary: true,
-        ////logIfFailed: false,
-      )))
-          ?.forceRes();
-      if (res == null || res.statusCode != 200)
-        yield null;
-      else {
-        try {
-          await OP.storeImage(res.bodyBytes, hash);
-          yield ImageData(
-            (await OP.readImage(hash))!,
-            id: hash,
-          );
-        } catch (e) {
-          debugPrint("failed to load webimg: " + e.toString());
-        }
-      }
-    }
-  }
+  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash) {
+    final rd = RequestData(
+      _getImageFromHash_r,
+      json: {
+        'imghash': hash,
+      },
+      returnsBinary: true,
+    );
 
-  //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> _fetchImage_fut(String hash) async {
-    bool cacheHit = false;
-    if (Options().canBeOffline && !Options().preferRemote) {
-      try {
-        final img = await OP.readImage(hash);
-        if (img == null) throw Exception("no img cached");
-        cacheHit = true;
-        return ImageData(img, id: hash);
-      } catch (e) {
-        //yield null;
-      }
-    }
-    if (!cacheHit || Options().preferRemote) {
-      http.Response? res = (await post_JSON(RequestData(
-        _getImageFromHash_r,
-        json: {
-          'imghash': hash,
-        },
-        returnsBinary: true,
-        ////logIfFailed: false,
-      )))
-          ?.forceRes();
+    parser(http.BaseResponse _res) async {
+      final res = _res.forceRes();
       if (res == null || res.statusCode != 200)
         return null;
       else {
         try {
-          await OP.storeImage(res.bodyBytes, hash);
+          await API().local.storeImage(res.bodyBytes, hash);
           return ImageData(
-            (await OP.readImage(hash))!,
+            (await API().local.readImage(hash))!,
             id: hash,
           );
         } catch (e) {
@@ -259,6 +211,8 @@ class Remote {
         }
       }
     }
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 
   Future<DataT?> Function(Map<String, dynamic>)
@@ -269,46 +223,11 @@ class Remote {
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      if (data.imagehashes == null ||
-          data.imagehashes!.length == 0) //the second check *could* be omitted
-        return data;
-
-      int first_working_image_index = 0;
-      String __hash = data.imagehashes![first_working_image_index];
-      data.mainImage = (__hash == Options().no_image_placeholder_name)
-          ? null
-          : _fetchImage_fut(__hash);
-      first_working_image_index++;
-
-      //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage = IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
-              (hash) => _fetchImage_fut(hash)
-              //.asBroadcastStream()
-              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-              ) ??
-          []);
-      //Future.doWhile(() => fetchdata)
-      //Future.any(data.imagehashes?.map(
-      //      (hash) => _fetchImage(hash),
-      //    ) ??
-      //    []);
-
-      if (Options().debugImages)
-        debugPrint("image-hashes: " + data.imagehashes.toString());
-
-      data.image_futures = data.imagehashes
-          ?.map((hash) => _fetchImage_fut(hash)
-              // .asBroadcastStream()
-              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-              )
-          .toList()
-          .sublist((__hash == Options().no_image_placeholder_name) ? 1 : 0);
-
-      return data;
+      return injectImages(data);
     };
   }
 
-  Future<String> get rootID async => _user!.name;
+  // Future<String> get rootID async => _user!.name;
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   RequestAndParser<http.Response, List<ChildData>>
@@ -342,44 +261,36 @@ class Remote {
   }
 
   /// sends a [DataT] with the corresponding identifier to the given route
-  Future<http.Response?> _sendDataToRoute<DataT extends Data>(
-      {required DataT? data,
-      required String route,
-      Map<String, dynamic> other = const {},
-      bool networkIsCrucial = false}) async {
-    if (networkIsCrucial || !Options().canBeOffline)
-      try {
-        await connectionGuard();
-      } catch (error) {
-        showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
-        return null;
-      }
-
+  RequestAndParser<http.Response, http.Response?>
+      _sendDataToRoute<DataT extends Data>({
+    required DataT? data,
+    required String route,
+    Map<String, dynamic> other = const {},
+  }) {
     if (Options().debugAllResponses)
-      debugPrint(
-          "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
-    if (data == null) return null;
-    var json_data = data.toJson();
-    final reqData = RequestData(route, json: {
+      debugPrint("we will send this data to ${route}:" +
+          (data?.toJson().toString() ?? ""));
+    assert(data != null, 'we cant send no data, data needs to be supplied');
+    var jsonData = data!.toJson();
+    final rd = RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
-      'data': json_data,
+      'data': jsonData,
       ...other
     });
-    try {
-      await connectionGuard();
-    } catch (e) {
-      OP.logFailedReq(reqData);
-      return null;
-    }
-    http.Response? res = (await post_JSON(reqData))?.forceRes();
-    if (Options().debugAllResponses)
-      debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
-    if (res?.statusCode != 200) {
-      _maybeShowToast(
-          "${S.current.anUnknownErrorOccured}, ${res?.statusCode}: ${res?.reasonPhrase}");
+    parser(http.Response? res) {
+      res = res?.forceRes();
+      if (Options().debugAllResponses)
+        debugPrint("and we received :" + (res?.body.toString() ?? ""));
+
+      if (res?.statusCode != 200) {
+        _maybeShowToast(
+            "${S.current.anUnknownErrorOccured}, ${res?.statusCode}: ${res?.reasonPhrase}");
+      }
+      return res;
     }
-    return res;
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 
   void _maybeShowToast(String? message) {
@@ -424,108 +335,120 @@ class Remote {
   }
 
   /// sets a new [DataT]
-  Future<DataT?> setNew<DataT extends Data>(
+  RequestAndParser<http.Response, DataT?> setNew<DataT extends Data>(
     DataT? data, {
     Data? caller,
-  }) async {
-    var body = (await _sendDataToRoute(
+  }) {
+    final rap = _sendDataToRoute(
       data: data,
       route: _addNew_r,
       // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
-    ))
-        ?.body;
-    //XXX if the resulting Data is needed we would need to pass it correctly from this response body, the following just returns the input on success
-    return body == null ? null : data;
+    );
+
+    return RequestAndParser(
+        rd: rap.rd,
+        parser: (x) async {
+          return (await rap.parser(x))?.body != null ? data : null;
+        });
   }
 
   /// updates a [DataT] and returns the response
-  Future<String?> update<DataT extends Data>(
+  RequestAndParser<http.Response, String?> update<DataT extends Data>(
     DataT? data, {
     Data? caller,
     bool forceUpdate = false,
-  }) async {
-    return (await _sendDataToRoute(
+  }) {
+    final rap = _sendDataToRoute(
       data: data,
       route: _update_r,
-    ))
-        ?.body;
+    );
+
+    return RequestAndParser(
+        rd: rap.rd,
+        parser: (x) async {
+          return (await rap.parser(x))?.body;
+        });
   }
 
   /// deletes a [DataT] and returns the response
-  Future<String?> delete<DataT extends Data>(
+  RequestAndParser<http.Response, String?> delete<DataT extends Data>(
     DataT? data, {
     Data? caller,
-  }) async {
-    return (await _sendDataToRoute(
+    bool forceUpdate = false,
+  }) {
+    final rap = _sendDataToRoute(
       data: data,
       route: _delete_r,
-    ))
-        ?.body;
+    );
+
+    return RequestAndParser(
+        rd: rap.rd,
+        parser: (x) async {
+          return (await rap.parser(x))?.body;
+        });
   }
 
   /// deletes an image specified by its hash and returns the response
-  Future<String?> deleteImageByHash(String hash) async {
-    return (await post_JSON(RequestData(
+  RequestAndParser<http.BaseResponse, String?> deleteImageByHash(String hash) {
+    final rd = RequestData(
       _deleteImageByHash_r,
       json: {'hash': hash},
-      ////logIfFailed: true,
-    )))
-        ?.forceRes()
-        ?.body;
+    );
+
+    parser(http.BaseResponse? res) => res?.forceRes()?.body;
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 
   /// sets an image specified by its hash as the new main image
-  Future<String?> setMainImageByHash<DataT extends Data>(
+  RequestAndParser<http.Response, String?>
+      setMainImageByHash<DataT extends Data>(
     DataT? data,
     String hash, {
     Data? caller,
-    bool forceUpdate = false,
-  }) async {
-    return (await _sendDataToRoute(
+  }) {
+    final rap = _sendDataToRoute(
       data: data,
       route: _setMainImageByHash_r,
       other: {
         'hash': hash,
       },
-      // networkIsCrucial: requestType != Helper.SimulatedRequestType.GET,
-    ))
-        ?.body;
+    );
+    return RequestAndParser(
+        rd: rap.rd,
+        parser: (x) async {
+          return (await rap.parser(x))?.body;
+        });
   }
 
   /// upload a bunch of images
-  Future<String?> uploadFiles<DataT extends Data>(
+  RequestAndParser<http.BaseResponse, String?> uploadFiles<DataT extends Data>(
     DataT data,
     List<XFile> files,
-  ) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
-    ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
-
-    //TODO: #211 add offline procedure
+  ) {
     debugPrint('uploading images ${files}');
-    var json_data = data.toJson();
-    final reqData = RequestData(
+    var jsonData = data.toJson();
+    final rd = RequestData(
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
-        'data': json.encode(json_data),
+        'data': json.encode(jsonData),
       },
       multipart_files: files,
-      ////logIfFailed: requestType != Helper.SimulatedRequestType.GET,
     );
-    try {
-      await connectionGuard();
-      var res = await post_JSON(reqData);
-      if (res?.statusCode != 200) {
-        debugPrint('not ok: ${res?.statusCode.toString()}');
-        // debugPrint(res?.contentLength.toString());
+
+    parser(http.BaseResponse res) async {
+      if (res.statusCode != 200) {
+        debugPrint('image uploading not ok: ${res.statusCode.toString()}');
+        throw BackendCommunicationException(
+            'we need a 200, but got ${res.statusCode}');
       }
       return (res.runtimeType == http.Response)
           ? (res as http.Response?)?.body //TODO meh remove crash und stuff
           : await (res as http.StreamedResponse?)?.stream.bytesToString();
-    } catch (e) {
-      OP.logFailedReq(reqData);
     }
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 }
 
