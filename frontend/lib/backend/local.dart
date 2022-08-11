@@ -40,67 +40,6 @@ class LocalMirror {
     // init
   }
 
-  //final _imageStreamController = BehaviorSubject<String>();
-  Stream<ImageData?> _fetchImage(String hash) async* {
-    final img = await OP.readImage(hash);
-    if (img == null) throw Exception("no img cached");
-    yield ImageData(img, id: hash);
-  }
-
-  //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> _fetchImage_fut(String hash) async {
-    final img = await OP.readImage(hash);
-    if (img == null) throw Exception("no img cached");
-    return ImageData(img, id: hash);
-  }
-
-  Future<DataT?> Function(Map<String, dynamic>)
-      _generateImageFetcher<DataT extends Data>(
-    DataT? Function(Map<String, dynamic>) jsoner,
-  ) {
-    // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
-    return (Map<String, dynamic> json) async {
-      DataT? data = jsoner(json);
-      if (data == null) return null;
-      if (data.imagehashes == null ||
-          data.imagehashes!.length == 0) //the second check *could* be omitted
-        return data;
-
-      int first_working_image_index = 0;
-      String __hash = data.imagehashes![first_working_image_index];
-      data.mainImage = (__hash == Options().no_image_placeholder_name)
-          ? null
-          : _fetchImage_fut(__hash);
-      first_working_image_index++;
-
-      //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage = IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
-              (hash) => _fetchImage_fut(hash)
-              //.asBroadcastStream()
-              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-              ) ??
-          []);
-      //Future.doWhile(() => fetchdata)
-      //Future.any(data.imagehashes?.map(
-      //      (hash) => _fetchImage(hash),
-      //    ) ??
-      //    []);
-
-      if (Options().debugImages)
-        debugPrint("image-hashes: " + data.imagehashes.toString());
-
-      data.image_futures = data.imagehashes
-          ?.map((hash) => _fetchImage_fut(hash)
-              // .asBroadcastStream()
-              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-              )
-          .toList()
-          .sublist((__hash == Options().no_image_placeholder_name) ? 1 : 0);
-
-      return data;
-    };
-  }
-
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   Future<List<ChildData>?>
       _getAllForNextLevel<ChildData extends Data, ParentData extends Data?>({
@@ -112,6 +51,9 @@ class LocalMirror {
     try {
       return (await OP.getAllChildrenFrom<ChildData>(_id))
           ?.whereType<ChildData>()
+          .map(
+            (e) => injectImages(e),
+          )
           .toList();
     } catch (e) {
       debugPrint("couldnt read data from disk..: " + e.toString());
@@ -146,8 +88,6 @@ class LocalMirror {
     DataT? data, {
     Data? caller,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
     //offline procedure, needs some stuff changed and added..
     if (caller != null && data != null && caller.id != null) {
       data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
@@ -161,8 +101,6 @@ class LocalMirror {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
@@ -175,8 +113,6 @@ class LocalMirror {
     DataT? data, {
     Data? caller,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.DELETE;
     //TODO
     //offline procedure, needs some stuff changed and added..
     if (caller != null &&
@@ -185,6 +121,14 @@ class LocalMirror {
         data.id != null) {
       OP.deleteData<DataT>(data.id!, parentId: caller.id!);
     }
+  }
+
+  //final _imageStreamController = BehaviorSubject<String>();
+  Future<ImageData?> getImageByHash(String hash) async {
+    final img = await OP.readImage(hash);
+    if (img == null) throw Exception("no img cached");
+
+    return ImageData(img, id: hash);
   }
 
   /// deletes an image specified by its hash and returns the response
@@ -199,9 +143,6 @@ class LocalMirror {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
-
     //TODO: #211
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
@@ -228,6 +169,8 @@ class LocalMirror {
   final getAllFailedRequests = OP.getAllFailedRequests;
   final failedRequestWasSuccessful = OP.failedRequestWasSuccessful;
   final logFailedReq = OP.logFailedReq;
+  final storeImage = OP.storeImage;
+  final readImage = OP.readImage;
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

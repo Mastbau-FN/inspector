@@ -3,17 +3,14 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
-import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
-import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import 'package:provider/provider.dart';
+import '../classes/imageData.dart';
+import '../extension/future.dart';
 import '../generated/l10n.dart';
-import '../helpers/toast.dart';
-import '../pages/location.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import 'package:MBG_Inspektionen/options.dart';
@@ -120,8 +117,8 @@ class API {
 
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.GET;
+    // final requestType =
+    //     Helper.SimulatedRequestType.GET;
     // if user is already logged in
     if (await isUserLoggedIn(user)) return this.user;
     try {
@@ -147,8 +144,7 @@ class API {
       getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
     ParentData data,
   ) async* {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.GET;
+    final requestType = Helper.SimulatedRequestType.GET;
     assert((await API().user) != null,
         S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
 
@@ -178,9 +174,12 @@ class API {
     DataT? data, {
     Data? caller,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
-    //TODO
+    final requestType = Helper.SimulatedRequestType.PUT;
+    return _run(
+      offline: () => local.setNew(data, caller: caller),
+      online: () => remote.setNew(data, caller: caller),
+      requestType: requestType,
+    ).last;
   }
 
   /// updates a [DataT] and returns the response
@@ -189,9 +188,12 @@ class API {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
-    //TODO
+    final requestType = Helper.SimulatedRequestType.PUT;
+    return _run(
+      offline: () => local.update(data, caller: caller),
+      online: () => remote.update(data, caller: caller),
+      requestType: requestType,
+    ).last;
   }
 
   /// deletes a [DataT] and returns the response
@@ -199,17 +201,33 @@ class API {
     DataT? data, {
     Data? caller,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.DELETE;
-    //TODO
+    final requestType = Helper.SimulatedRequestType.DELETE;
+    return _run(
+      offline: () => local.delete(data, caller: caller),
+      online: () => remote.delete(data, caller: caller),
+      requestType: requestType,
+    ).last;
+  }
+
+  /// deletes an image specified by its hash and returns the response
+  Future<ImageData?> getImageByHash(String hash) async {
+    final requestType = Helper.SimulatedRequestType.GET;
+
+    return _run(
+      offline: () => local.getImageByHash(hash),
+      online: () => remote.getImageByHash(hash),
+      requestType: requestType,
+    ).last;
   }
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash(String hash) async {
-    //TODO: #211
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.DELETE;
-    //TODO
+    final requestType = Helper.SimulatedRequestType.DELETE;
+    return _run(
+      offline: () => local.deleteImageByHash(hash),
+      online: () => remote.deleteImageByHash(hash),
+      requestType: requestType,
+    ).last;
   }
 
   /// sets an image specified by its hash as the new main image
@@ -219,9 +237,13 @@ class API {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
-    //TODO
+    final requestType = Helper.SimulatedRequestType.PUT;
+    return _run(
+      offline: () => local.setMainImageByHash(data, hash,
+          caller: caller, forceUpdate: forceUpdate),
+      online: () => remote.setMainImageByHash(data, hash, caller: caller),
+      requestType: requestType,
+    ).last;
   }
 
   /// upload a bunch of images
@@ -229,8 +251,28 @@ class API {
     DataT data,
     List<XFile> files,
   ) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.PUT;
-    //TODO
+    final requestType = Helper.SimulatedRequestType.PUT;
+    return _run(
+      offline: () => local.uploadFiles(data, files),
+      online: () => remote.uploadFiles(data, files),
+      requestType: requestType,
+    ).last;
   }
+}
+
+D injectImages<D extends WithImgHashes>(D data) {
+  if (data.imagehashes == null ||
+      data.imagehashes!.length == 0) //the second check *could* be omitted
+    return data;
+  String _firstHash = data.imagehashes![0];
+  data.mainImage = (_firstHash == Options().no_image_placeholder_name)
+      ? null
+      : API().getImageByHash(_firstHash);
+  data.image_futures = data.imagehashes
+      ?.map((hash) => API().getImageByHash(hash))
+      .toList()
+      .sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
+  data.previewImage =
+      IterateFuture.ordered_firstNonNull(data.image_futures ?? []);
+  return data;
 }
