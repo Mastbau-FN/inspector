@@ -1,5 +1,4 @@
 import 'package:MBG_Inspektionen/options.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -27,9 +26,7 @@ Future main() async {
 /// how the App is called (shown in AppBar or Tab etc.)
 const String appTitle = 'MBG Inspektionen';
 
-/**
- * Main App entry point
- */
+/// Main App entry point
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

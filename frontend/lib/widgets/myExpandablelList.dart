@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:flutter/material.dart';

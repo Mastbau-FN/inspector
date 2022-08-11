@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
-import '../../backend/api.dart';
 import '../../generated/l10n.dart';
 import '../../widgets/openNewViewTile.dart';
 

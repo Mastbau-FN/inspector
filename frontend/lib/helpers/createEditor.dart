@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/pages/detailsPage.dart';

@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../classes/data/weather.dart';
-import '../fragments/weather/helpers.dart';
-
 class DropDownBuilder<T> extends StatefulWidget {
   final List<T?> possibilities;
   final Widget Function(T?) builder;

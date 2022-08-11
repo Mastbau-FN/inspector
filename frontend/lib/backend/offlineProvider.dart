@@ -1,11 +1,9 @@
-import 'dart:convert' as conv;
 import 'dart:core';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:http/http.dart' as http;
@@ -34,7 +32,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   try {
     //file = (await file.exists()) ? file : await file.create();
     file = await file.writeAsBytes(imgBytes); //u good?
-    if (Options().debugLocalMirror) debugPrint('saved ${file}');
+    if (Options().debugLocalMirror) debugPrint('saved $file');
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
@@ -45,9 +43,8 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
-  if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
-  if (file.lengthSync() < 5)
-    throw Exception("file ${file} definitely to small");
+  if (!file.existsSync()) throw Exception("file $file doesnt exist");
+  if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await _localFile(name));
@@ -56,7 +53,7 @@ Future<Image?> readImage(String name) async {
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
   final file = (await _localFile(name));
-  if (!file.existsSync()) throw Exception("file ${file} doesnt exist");
+  if (!file.existsSync()) throw Exception("file $file doesnt exist");
 
   return await file.delete() as File;
 }
@@ -72,9 +69,9 @@ final db = Localstore.instance;
 /// ~~a collection is always named via the scheme `${DataT}-${ParentId}`~~
 String _getCollectionNameForData<DataT extends Data>(String parentId) {
   return parentId;
-  final dataName = Helper.getIdentifierFromData<DataT>(null);
-  if (dataName == null) throw Exception('could not get collection ${dataName}');
-  return dataName + '-' + parentId;
+  // final dataName = Helper.getIdentifierFromData<DataT>(null);
+  // if (dataName == null) throw Exception('could not get collection $dataName');
+  // return dataName + '-' + parentId;
 }
 
 /// permanently stores a DataT in its corresponding collection
@@ -141,13 +138,12 @@ Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
       .get()); //TO-DO: das muss in-order sein, sonst könnte es probleme geben..
 
-//TODO: warum ist docs null?!
   if (docs == null) return null;
   final docsWithTimeStr =
       docs.map((key, value) => MapEntry(key.split('/').last, value));
   final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
     try {
-      final parsedReq = await RequestData.deserialize(e.value);
+      final parsedReq = RequestData.deserialize(e.value);
       return Tuple2(e.key, parsedReq);
     } catch (err) {
       debugPrint('failed parse of request hm, $err');
@@ -236,34 +232,34 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 //   }
 // }
 
-Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
-    Map<String, dynamic> json) async {
-  final headers = Map<String, String>.from(json['headers']);
-  switch (json['type']) {
-    case 'Request':
-      var req = http.Request(json['method'], Uri.parse(json['url']))
-        ..headers.addAll(headers);
-      if (json['encoding'] != null) req.encoding = json['encoding'];
-      if (json['body'] != null) req.body = conv.json.encode(json['body']);
-      return Tuple2(req, null);
-    case 'MultipartRequest':
-      var req = http.MultipartRequest(json['method'], Uri.parse(json['url']))
-        ..headers.addAll(headers)
-        ..files.addAll(
-          List<http.MultipartFile>.from((await Future.wait(
-            json['file-names'].map(
-              (String name) async => http.MultipartFile.fromPath(
-                  'package',
-                  (await _localFile(name))
-                      .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-            ),
-          ))
-              .whereType<http.MultipartFile>()),
-        );
-      if (json['body'] != null) req.fields.addAll(json['body']);
+// Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
+//     Map<String, dynamic> json) async {
+//   final headers = Map<String, String>.from(json['headers']);
+//   switch (json['type']) {
+//     case 'Request':
+//       var req = http.Request(json['method'], Uri.parse(json['url']))
+//         ..headers.addAll(headers);
+//       if (json['encoding'] != null) req.encoding = json['encoding'];
+//       if (json['body'] != null) req.body = conv.json.encode(json['body']);
+//       return Tuple2(req, null);
+//     case 'MultipartRequest':
+//       var req = http.MultipartRequest(json['method'], Uri.parse(json['url']))
+//         ..headers.addAll(headers)
+//         ..files.addAll(
+//           List<http.MultipartFile>.from((await Future.wait(
+//             json['file-names'].map(
+//               (String name) async => http.MultipartFile.fromPath(
+//                   'package',
+//                   (await _localFile(name))
+//                       .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
+//             ),
+//           ))
+//               .whereType<http.MultipartFile>()),
+//         );
+//       if (json['body'] != null) req.fields.addAll(json['body']);
 
-      return Tuple2(null, req);
-    default:
-      throw UnimplementedError();
-  }
-}
+//       return Tuple2(null, req);
+//     default:
+//       throw UnimplementedError();
+//   }
+// }

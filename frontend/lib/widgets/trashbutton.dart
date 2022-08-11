@@ -1,4 +1,3 @@
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/rotating.dart';
 import 'package:flutter/material.dart';
 
@@ -9,13 +8,13 @@ class TrashButton extends StatefulWidget {
   const TrashButton({
     Key? key,
     required this.delete,
-    this.confirmation_needed = true,
-    this.confirm_name,
+    this.confirmationNeeded = true,
+    this.confirmName,
   }) : super(key: key);
 
   final Future Function() delete;
-  final bool confirmation_needed;
-  final String? confirm_name;
+  final bool confirmationNeeded;
+  final String? confirmName;
 
   @override
   State<TrashButton> createState() => _TrashButtonState();
@@ -24,7 +23,7 @@ class TrashButton extends StatefulWidget {
 class _TrashButtonState extends State<TrashButton> {
   bool undeleted = true;
 
-  Future<void> _confirmed_delete(BuildContext context) async {
+  Future<void> _confirmedDelete(BuildContext context) async {
     return showDialog<void>(
       context: context,
       //barrierDismissible: false, // user must tap button!
@@ -41,7 +40,7 @@ class _TrashButtonState extends State<TrashButton> {
           ],
           title: 'Sicher?',
           bodyLines: [
-            '${widget.confirm_name != null ? '"' + widget.confirm_name! + '"' : ''}' +
+            '${widget.confirmName != null ? '"' + widget.confirmName! + '"' : ''}' +
                 S.of(context).validateDeletionPromtHeadline,
             S.of(context).validateDeletionPromtWarning
           ],
@@ -61,8 +60,8 @@ class _TrashButtonState extends State<TrashButton> {
     if (undeleted)
       return IconButton(
         onPressed: () {
-          if (widget.confirmation_needed)
-            _confirmed_delete(context);
+          if (widget.confirmationNeeded)
+            _confirmedDelete(context);
           else
             _delete();
         },

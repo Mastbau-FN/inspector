@@ -1,12 +1,8 @@
 import 'package:MBG_Inspektionen/options.dart';
-import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
-import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:provider/provider.dart';
 
 import '../generated/l10n.dart';
 import '../widgets/openNewViewTile.dart';

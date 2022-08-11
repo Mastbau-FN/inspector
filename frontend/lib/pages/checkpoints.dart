@@ -1,7 +1,6 @@
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
@@ -10,9 +9,6 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-
-import 'detailsPage.dart';
-import 'imagesPage.dart';
 
 class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
     implements KnowsNext<CheckPoint> {
@@ -79,7 +75,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
             notifyListeners();
           },
           onCancel: onCancel,
-          textfield_list: [
+          textfieldList: [
             InputData("KurzText", hint: S.current.kurzTextHint),
             InputData("LangText",
                 hint: S.current.langTextHint, verify: InputData.alwaysCorrect),
