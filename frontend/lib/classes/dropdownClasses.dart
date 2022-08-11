@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/Options.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -80,7 +80,7 @@ class DropDownModel<ChildData extends WithLangText, ParentData extends Data?>
 
   Stream<ChildData?> _getCurrentlyChosenChildData(
       {int? remainingTries}) async* {
-    int reloadTries = (remainingTries ?? Options.reloadTries) - 1;
+    int reloadTries = (remainingTries ?? Options().reloadTries) - 1;
     debugPrint('getting ${currentlyChosenChildId}');
     await for (var a in all) {
       if (currentlyChosenChildId == null) yield null;

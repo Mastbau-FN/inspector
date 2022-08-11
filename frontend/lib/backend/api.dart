@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/Options.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -84,7 +84,7 @@ class Backend {
     var connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException(S.current.noNetworkAvailable);
-    if (!Options.canUseMobileNetworkIfPossible &&
+    if (!Options().canUseMobileNetworkIfPossible &&
         connection == ConnectivityResult.mobile)
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
 
@@ -119,7 +119,7 @@ class Backend {
     final res = (timeout == null) ? await req : await req.timeout(timeout);
 
     final ret = await http.Response.fromStream(res); // res.forceRes();
-    if (Options.debugAllResponses && !returnsBinary)
+    if (Options().debugAllResponses && !returnsBinary)
       debugPrint("res: " + ret.body);
     return ret;
   }
@@ -151,7 +151,7 @@ class Backend {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     json = json ?? {};
     json['user'] = (await _c_user)?.toJson();
-    if (Options.debugAllResponses) debugPrint('req: ' + jsonEncode(json));
+    if (Options().debugAllResponses) debugPrint('req: ' + jsonEncode(json));
     try {
       if (multipart_files.isNotEmpty) {
         http.MultipartRequest? mreq;
@@ -203,7 +203,7 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Stream<ImageData?> _fetchImage(String hash) async* {
     bool cacheHit = false;
-    if (Options.canBeOffline)
+    if (Options().canBeOffline)
       try {
         final img = await OP.readImage(hash);
         if (img == null) throw Exception("no img cached");
@@ -212,7 +212,7 @@ class Backend {
       } catch (e) {
         //yield null;
       }
-    if (!cacheHit || Options.preferRemoteImages) {
+    if (!cacheHit || Options().preferRemoteImages) {
       http.Response? res = (await post_JSON(
         _getImageFromHash_r,
         json: {
@@ -240,7 +240,7 @@ class Backend {
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> _fetchImage_fut(String hash) async {
     bool cacheHit = false;
-    if (Options.canBeOffline && !Options.preferRemoteImages) {
+    if (Options().canBeOffline && !Options().preferRemoteImages) {
       try {
         final img = await OP.readImage(hash);
         if (img == null) throw Exception("no img cached");
@@ -288,7 +288,7 @@ class Backend {
 
       int first_working_image_index = 0;
       String __hash = data.imagehashes![first_working_image_index];
-      data.mainImage = (__hash == Options.no_image_placeholder_name)
+      data.mainImage = (__hash == Options().no_image_placeholder_name)
           ? null
           : _fetchImage_fut(__hash);
       first_working_image_index++;
@@ -306,7 +306,7 @@ class Backend {
       //    ) ??
       //    []);
 
-      if (Options.debugImages)
+      if (Options().debugImages)
         debugPrint("image-hashes: " + data.imagehashes.toString());
 
       data.image_futures = data.imagehashes
@@ -315,7 +315,7 @@ class Backend {
               // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
               )
           .toList()
-          .sublist((__hash == Options.no_image_placeholder_name) ? 1 : 0);
+          .sublist((__hash == Options().no_image_placeholder_name) ? 1 : 0);
 
       return data;
     };
@@ -344,7 +344,7 @@ class Backend {
           // _generateImageFetcher(fromJson),
           objName: jsonResponseID,
         );
-    if (Options.canBeOffline)
+    if (Options().canBeOffline)
       try {
         _json = jsonDecode("{\"$jsonResponseID\": ${jsonEncode(
             // Ähhh ja die liste muss wie die response aussehen damit die function weiter unten die images fetchet
@@ -366,14 +366,14 @@ class Backend {
       yield datapoints;
       for (var data in datapoints) {
         String childId = await OP.storeData(data, forId: _id);
-        if (Options.debugLocalMirror)
+        if (Options().debugLocalMirror)
           debugPrint("stored new child with id: " + childId);
       }
     } catch (e) {
       debugPrint("couldnt reach API: " + e.toString());
     }
 
-    if (Options.debugAllResponses)
+    if (Options().debugAllResponses)
       debugPrint("_getAllForNextLevel received: " + jsonEncode(json));
   }
 
@@ -383,7 +383,7 @@ class Backend {
       required String route,
       Map<String, dynamic> other = const {},
       bool networkIsCrucial = false}) async {
-    if (networkIsCrucial || !Options.canBeOffline)
+    if (networkIsCrucial || !Options().canBeOffline)
       try {
         await connectionGuard();
       } catch (error) {
@@ -391,7 +391,7 @@ class Backend {
         return null;
       }
 
-    if (Options.debugAllResponses)
+    if (Options().debugAllResponses)
       debugPrint(
           "we send this data to ${route}:" + (data?.toJson().toString() ?? ""));
     if (data == null) return null;
@@ -402,7 +402,7 @@ class Backend {
       ...other
     }))
         ?.forceRes();
-    if (Options.debugAllResponses)
+    if (Options().debugAllResponses)
       debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
     if (res?.statusCode != 200) {
@@ -460,7 +460,7 @@ class Backend {
       getNextDatapoint<ChildData extends Data, ParentData extends Data?>(
     ParentData data,
   ) async* {
-    if (!Options.canBeOffline)
+    if (!Options().canBeOffline)
       try {
         await connectionGuard();
       } catch (error) {

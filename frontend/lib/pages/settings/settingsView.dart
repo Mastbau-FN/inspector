@@ -1,4 +1,5 @@
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/Options.dart';
+import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
@@ -6,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../backend/api.dart';
 import '../../generated/l10n.dart';
+import '../../widgets/openNewViewTile.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
@@ -16,6 +18,12 @@ class SettingsView extends StatelessWidget {
         icon: Icons.sync,
         text: S.current.uploadAndSyncData,
         onTap: Backend().retryFailedrequests,
+      );
+
+  Widget get developerOptions => OpenNewViewTile(
+        icon: Icons.developer_mode,
+        title: S.current.developerOptions,
+        newView: DeveloperSettings(),
       );
 
   @override
@@ -35,7 +43,8 @@ class SettingsView extends StatelessWidget {
             Spacer(),
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
-            if (Options.canBeOffline) uploadSyncTile,
+            if (Options().canBeOffline) uploadSyncTile,
+            developerOptions,
             // DeleteCachedImages(),
           ],
         ),

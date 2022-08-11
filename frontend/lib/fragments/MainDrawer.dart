@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/Options.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
@@ -9,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/l10n.dart';
+import '../widgets/openNewViewTile.dart';
 
 class MainDrawer extends StatelessWidget {
   @override
@@ -35,7 +36,7 @@ class MainDrawer extends StatelessWidget {
         children: <Widget>[
           MainDrawerHeader(),
           settingsTile,
-          if (Options.showDoggo) unlimiteddoggosTile,
+          if (Options().showDoggo) unlimiteddoggosTile,
           Spacer(),
           SafeArea(
             child: Padding(
@@ -65,43 +66,6 @@ class VersionInfo extends StatelessWidget {
                 (snapshot.data?.buildNumber ?? '...'),
           );
         });
-  }
-}
-
-class OpenNewViewTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Widget newView;
-  final bool supplyLoginModel;
-
-  const OpenNewViewTile({
-    this.icon = Icons.open_in_full,
-    required this.title,
-    required this.newView,
-    this.supplyLoginModel = false,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MyCardListTile1(
-      icon: icon,
-      text: title,
-      onTap: () {
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (newcontext) => supplyLoginModel
-                ? ChangeNotifierProvider<LoginModel>.value(
-                    value: Provider.of<LoginModel>(context),
-                    child: newView,
-                  )
-                : newView,
-          ),
-        );
-      },
-    );
   }
 }
 
