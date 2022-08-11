@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/Options.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
@@ -38,7 +38,7 @@ class MainDrawer extends StatelessWidget {
           settingsTile,
           if (Options().showDoggo) unlimiteddoggosTile,
           Spacer(),
-          if (Options.canBeOffline) UploadSyncTile(),
+          if (Options().canBeOffline) UploadSyncTile(),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8.0),

@@ -3,7 +3,7 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:MBG_Inspektionen/Options.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tuple/tuple.dart';

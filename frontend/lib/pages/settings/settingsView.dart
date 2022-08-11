@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/Options.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';

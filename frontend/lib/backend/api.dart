@@ -12,7 +12,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:MBG_Inspektionen/Options.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -24,6 +23,7 @@ import '../pages/location.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import '/extension/future.dart';
+import 'package:MBG_Inspektionen/options.dart';
 
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
