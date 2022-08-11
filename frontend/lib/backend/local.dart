@@ -27,29 +27,7 @@ import 'package:MBG_Inspektionen/options.dart';
 
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
-
-String routesFromData<DataT extends Data>(DataT? data) =>
-    '/${Helper.getIdentifierFromData(data)}/get';
-
-const _getImageFromHash_r = '/image/get';
-const _uploadImage_r = "/image/set";
-
-const _addNew_r = "/set";
-const _update_r = "/update";
-const _delete_r = "/delete"; // issue #36
-
-const _deleteImageByHash_r = "/deleteImgH"; // issue #39
-const _setMainImageByHash_r = "/setMainImgH"; // issue #20
-
-extension _Parser on http.BaseResponse {
-  http.Response? forceRes() {
-    try {
-      return this as http.Response;
-    } catch (e) {
-      return null;
-    }
-  }
-}
+import 'api.dart';
 
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
@@ -62,224 +40,18 @@ class LocalMirror {
     // init
   }
 
-  final _baseurl = dotenv.env['API_URL'];
-  final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
-
-  User? _user;
-
-  /// returns the currently logged in [User], whether its already initialized or not.
-  /// should be prefered over [_user], since it makes sure to have it initialized
-  Future<User?> get _c_user async {
-    if (_user != null) return _user;
-    return await User.fromStore();
-  }
-
-  // MARK: available Helpers
-
-  /// checks whether a connection to the backend is possible
-  /// throws [NoConnectionToBackendException] or [SocketException] if its not.
-  Future connectionGuard({
-    Duration? timeout,
-    Helper.SimulatedRequestType? requestType,
-  }) async {
-    if (_baseurl == null)
-      throw NoConnectionToBackendException(
-          S.current.exceptionNoUrlToConnectToProvided);
-
-    //check network
-    var connection = await (Connectivity().checkConnectivity());
-    if (connection == ConnectivityResult.none)
-      throw NoConnectionToBackendException(S.current.noNetworkAvailable);
-    if (connection == ConnectivityResult.mobile &&
-        (!Options().canUseMobileNetworkIfPossible ||
-            (requestType != Helper.SimulatedRequestType.GET &&
-                !Options().useMobileNetworkForUpload) ||
-            !Options().useMobileNetworkForDownload))
-      throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
-
-    try {
-      // check if we can reach our api
-      await post_JSON(
-          RequestData('/login', timeout: timeout, logIfFailed: false));
-    } catch (e) {
-      throw NoConnectionToBackendException(
-          S.current.couldntReach + " $_baseurl");
-    }
-  }
-
-  /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  Future<http.Response?> post(
-    String route, {
-    Map<String, String>? headers,
-    String? body,
-    Encoding? encoding,
-    Duration? timeout,
-  }) =>
-      send(
-        makepost(route, headers: headers, body: body, encoding: encoding),
-        timeout: timeout,
-      );
-
-  Future<http.Response?> send(
-    http.Request request, {
-    Duration? timeout,
-    bool returnsBinary = false,
-  }) async {
-    final req = request.send();
-    final res = (timeout == null) ? await req : await req.timeout(timeout);
-
-    final ret = await http.Response.fromStream(res); // res.forceRes();
-    if (Options().debugAllResponses && !returnsBinary)
-      debugPrint("res: " + ret.body);
-    return ret;
-  }
-
-  /// make an actual API request to a route, and always append the API_KEY as authorization-header
-  http.Request makepost(
-    String route, {
-    Map<String, String>? headers,
-    String? body,
-    Encoding? encoding,
-  }) {
-    headers = headers ?? {};
-    headers.addAll({HttpHeaders.authorizationHeader: _api_key});
-    var fullURL = Uri.parse(_baseurl! + route);
-    final req = http.Request('post', fullURL)..headers.addAll(headers);
-    if (encoding != null) req.encoding = encoding;
-    if (body != null) req.body = body;
-    return req;
-  }
-
-  /// post_JSON to our backend as the user
-  Future<http.BaseResponse?> post_JSON(RequestData rd) async {
-    var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    rd.json = rd.json ?? {};
-    rd.json!['user'] = (await _c_user)?.toJson();
-    if (Options().debugAllResponses) debugPrint('req: ' + jsonEncode(json));
-    try {
-      if (rd.multipart_files.isNotEmpty) {
-        http.MultipartRequest? mreq;
-        try {
-          var fullURL = Uri.parse(_baseurl! + rd.route);
-          mreq = http.MultipartRequest('POST', fullURL)
-            ..files.addAll(
-              List<http.MultipartFile>.from((await Future.wait(
-                rd.multipart_files.map(
-                  (xfile) => http.MultipartFile.fromPath('package', xfile.path,
-                      filename: xfile.name),
-                ),
-              ))
-                  .whereType<http.MultipartFile>()),
-            )
-            ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-            ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
-                (key, value) => MapEntry(key, value.toString())));
-          debugPrint("gonna send multipart-req with booty ${mreq.fields}");
-          var res = (rd.timeout == null)
-              ? await mreq.send()
-              : await mreq.send().timeout(rd.timeout!);
-          return res;
-        } on Exception catch (e) {
-          if (rd.logIfFailed) OP.logFailedReq(rd);
-          debugPrint('multipartRequest, failed');
-          throw e;
-        }
-      } else {
-        final req =
-            makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
-        try {
-          return await send(
-            req,
-            timeout: rd.timeout,
-            returnsBinary: rd.returnsBinary,
-          );
-        } catch (e) {
-          if (rd.logIfFailed) OP.logFailedReq(rd);
-          debugPrint('request failed');
-          throw e;
-        }
-      }
-    } catch (e) {
-      debugPrint("request failed, cause : ${e}");
-      return null;
-    }
-  }
-
   //final _imageStreamController = BehaviorSubject<String>();
   Stream<ImageData?> _fetchImage(String hash) async* {
-    bool cacheHit = false;
-    if (Options().canBeOffline)
-      try {
-        final img = await OP.readImage(hash);
-        if (img == null) throw Exception("no img cached");
-        yield ImageData(img, id: hash);
-        cacheHit = true;
-      } catch (e) {
-        //yield null;
-      }
-    if (!cacheHit || Options().preferRemoteImages) {
-      http.Response? res = (await post_JSON(RequestData(
-        _getImageFromHash_r,
-        json: {
-          'imghash': hash,
-        },
-        returnsBinary: true,
-        logIfFailed: false,
-      )))
-          ?.forceRes();
-      if (res == null || res.statusCode != 200)
-        yield null;
-      else {
-        try {
-          await OP.storeImage(res.bodyBytes, hash);
-          yield ImageData(
-            (await OP.readImage(hash))!,
-            id: hash,
-          );
-        } catch (e) {
-          debugPrint("failed to load webimg: " + e.toString());
-        }
-      }
-    }
+    final img = await OP.readImage(hash);
+    if (img == null) throw Exception("no img cached");
+    yield ImageData(img, id: hash);
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> _fetchImage_fut(String hash) async {
-    bool cacheHit = false;
-    if (Options().canBeOffline && !Options().preferRemoteImages) {
-      try {
-        final img = await OP.readImage(hash);
-        if (img == null) throw Exception("no img cached");
-        cacheHit = true;
-        return ImageData(img, id: hash);
-      } catch (e) {
-        //yield null;
-      }
-    }
-    if (!cacheHit || Options().preferRemoteImages) {
-      http.Response? res = (await post_JSON(RequestData(
-        _getImageFromHash_r,
-        json: {
-          'imghash': hash,
-        },
-        returnsBinary: true,
-        logIfFailed: false,
-      )))
-          ?.forceRes();
-      if (res == null || res.statusCode != 200)
-        return null;
-      else {
-        try {
-          await OP.storeImage(res.bodyBytes, hash);
-          return ImageData(
-            (await OP.readImage(hash))!,
-            id: hash,
-          );
-        } catch (e) {
-          debugPrint("failed to load webimg: " + e.toString());
-        }
-      }
-    }
+    final img = await OP.readImage(hash);
+    if (img == null) throw Exception("no img cached");
+    return ImageData(img, id: hash);
   }
 
   Future<DataT?> Function(Map<String, dynamic>)
@@ -329,23 +101,17 @@ class LocalMirror {
     };
   }
 
-  Future<String> get rootID async => (await user)!.name;
-
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
-  Stream<List<ChildData>>
+  Future<List<ChildData>>
       _getAllForNextLevel<ChildData extends Data, ParentData extends Data>({
     required String route,
     required String jsonResponseID,
     Map<String, dynamic>? json,
     required ChildData? Function(Map<String, dynamic>) fromJson,
     String? id,
-    forceOffline = false,
   }) async* {
-    bool _forceOffline = forceOffline ?? false;
-    // yield [];
-    assert(
-        (await user) != null, S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
-    String _id = id ?? json?['local_id'] ?? await rootID;
+
+    String _id = id ?? json?['local_id'] ?? await API().rootID;
     Map<String, dynamic> _json = {};
     Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
         _generateImageFetcher(fromJson);
@@ -372,21 +138,21 @@ class LocalMirror {
       }
 
     if (!_forceOffline ||
-        Options().mergeLoadedDataIntoOnlineDataEvenInCachedParent)
+        Options().mergeOnlineEvenInCached)
       try {
         final res = (await post_JSON(RequestData(
           route,
           json: json,
           timeout: Duration(seconds: 10),
-          logIfFailed: false,
+          ////logIfFailed: false,
         )));
 
         final body = res!.forceRes()!.body;
         _json = jsonDecode(body);
         var datapoints = await __parse(_json);
         yield datapoints;
-        if ((Options().mergeLoadedDataIntoOnlineData ||
-                Options().mergeLoadedDataIntoOnlineDataEvenInCachedParent) &&
+        if ((Options().mergeOnline ||
+                Options().mergeOnlineEvenInCached) &&
             cached != null) {
           try {
             cached.retainWhere(
@@ -463,46 +229,9 @@ class LocalMirror {
 
   // MARK: API
 
-  /// checks whether the given user is currently logged in
-  Future<bool> isUserLoggedIn(User user) async => user == await _c_user;
-
-  /// checks whether anyone is currently logged in
-  Future<bool> get isAnyoneLoggedIn async => await _c_user != null;
-
-  /// gets the currently logged in [DisplayUser], which is the current [User] but with removed [User.pass] to avoid abuse
-  Future<DisplayUser?> get user async => await _c_user;
-
-  /// login a [User] by checking if he exists in the remote database
-  Future<DisplayUser?> login(User user) async {
-    final Helper.SimulatedRequestType requestType =
-        Helper.SimulatedRequestType.GET;
-    // if user is already logged in
-    if (await isUserLoggedIn(user)) return await this.user;
-    await connectionGuard(requestType: requestType);
-    _user = user;
-    var res = (await post_JSON(RequestData('/login', logIfFailed: false)))
-        ?.forceRes();
-    if (res != null && res.statusCode == 200) {
-      //success
-      var resb = jsonDecode(res.body)['user'];
-      _user?.fromMap(resb);
-      await _user?.store();
-      return this.user;
-    }
-    await logout(); //we could omit the await for a slight speed improvement (but if anything crashes for some reason it could lead to unexpected behaviour)
-    throw ResponseException(res);
-  }
-
-  /// removes the credentials from local storage and therefors logs out
-  Future logout() async {
-    (await _c_user)?.unstore();
-    _user = null;
-    debugPrint('user logged out');
-  }
-
   /// gets all the [ChildData]points for the given [ParentData]
   /// if no [ParentData] is given it defaults to root
-  Stream<List<ChildData>>
+  Future<List<ChildData>>
       getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
     ParentData data,
   ) async* {
@@ -517,17 +246,14 @@ class LocalMirror {
       }
     final childTypeStr = Helper.getIdentifierFromData<ChildData>(null);
     if (childTypeStr == null) throw Exception('type not supported');
-    await for (var l in _getAllForNextLevel(
+    yield _getAllForNextLevel(
       route: routesFromData<ChildData>(null),
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
       fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
       id: data?.id,
       forceOffline: data?.forceOffline,
-    )) {
-      // debugPrint('new value $l');
-      yield l;
-    }
+    )
   }
 
   /// sets a new [DataT]
@@ -611,7 +337,7 @@ class LocalMirror {
     return (await post_JSON(RequestData(
       _deleteImageByHash_r,
       json: {'hash': hash},
-      logIfFailed: requestType != Helper.SimulatedRequestType.GET,
+      ////logIfFailed: requestType != Helper.SimulatedRequestType.GET,
     )))
         ?.forceRes()
         ?.body;
@@ -670,7 +396,7 @@ class LocalMirror {
         'data': json.encode(json_data),
       },
       multipart_files: files,
-      logIfFailed: requestType != Helper.SimulatedRequestType.GET,
+      ////logIfFailed: requestType != Helper.SimulatedRequestType.GET,
     );
     try {
       await connectionGuard(requestType: requestType);
@@ -704,7 +430,7 @@ class LocalMirror {
       final rd = reqd.item2;
       if (rd != null)
         try {
-          rd.logIfFailed = false;
+          rd.////logIfFailed = false;
           final res = await LocalMirror().post_JSON(rd);
           //nur 200er als ok einstufen
           if (res!.statusCode == 200) {
@@ -823,6 +549,7 @@ class LocalMirror {
   final storeData = OP.storeData;
   final getAllFailedRequests = OP.getAllFailedRequests;
   final failedRequestWasSuccessful = OP.failedRequestWasSuccessful;
+  final logFailedReq = OP.logFailedReq;
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

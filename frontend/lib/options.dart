@@ -10,45 +10,49 @@ String other = 'other';
 
 @JsonSerializable()
 class Options {
+  //
   var canBeOffline = true;
-  var canUseMobileNetworkIfPossible = true;
-  var preferRemoteImages = false;
+  var forceOffline = true;
+  //
+  var useMobileNetworkForUpload = false;
+  var useMobileNetworkForDownload = true;
+  //
+  var preferRemote = false;
+  //
+  var mergeOnline = true; //XXX: make false to solve #212
+  var mergeOnlineEvenInCached = false;
+  //
+  var infinitelyreloadPictures = true;
+  var reloadTries = 5;
+  var no_image_placeholder_name = "no_default_picture_yet";
+  //
+
+  var showDoggo = false;
   var debugAllResponses = false;
   var debugLocalMirror = true;
   var debugImages = false;
-  var infinitelyreloadPictures = true;
-  var reloadTries = 5;
-  var showDoggo = false;
-  var no_image_placeholder_name = "no_default_picture_yet";
-  var mergeLoadedDataIntoOnlineData = true; //XXX: make false to solve #212
-  var mergeLoadedDataIntoOnlineDataEvenInCachedParent = false;
-  var useMobileNetworkForUpload = false;
-  var useMobileNetworkForDownload = true;
 
   @JsonKey(ignore: true)
   Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
       {
         S.current.option_canbeoffline:
             Tuple2(() => canBeOffline, (bool value) => canBeOffline = value),
-        S.current.option_canusemobilenetworkifpossible: Tuple2(
-            () => canUseMobileNetworkIfPossible,
-            (bool value) => canUseMobileNetworkIfPossible = value),
+        if (canBeOffline)
+          S.current.option_forceOffline:
+              Tuple2(() => forceOffline, (bool value) => forceOffline = value),
         S.current.option_usemobilenetworkforupload: Tuple2(
             () => useMobileNetworkForUpload,
             (bool value) => useMobileNetworkForUpload = value),
         S.current.option_usemobilenetworkfordownload: Tuple2(
             () => useMobileNetworkForDownload,
             (bool value) => useMobileNetworkForDownload = value),
-        S.current.option_mergeloadeddataintoonlinedata: Tuple2(
-            () => mergeLoadedDataIntoOnlineData,
-            (bool value) => mergeLoadedDataIntoOnlineData = value),
+        S.current.option_mergeloadeddataintoonlinedata:
+            Tuple2(() => mergeOnline, (bool value) => mergeOnline = value),
         S.current.option_mergeloadeddataintoonlinedataevenincachedparent:
-            Tuple2(
-                () => mergeLoadedDataIntoOnlineDataEvenInCachedParent,
-                (bool value) =>
-                    mergeLoadedDataIntoOnlineDataEvenInCachedParent = value),
-        S.current.option_preferremoteimages: Tuple2(() => preferRemoteImages,
-            (bool value) => preferRemoteImages = value),
+            Tuple2(() => mergeOnlineEvenInCached,
+                (bool value) => mergeOnlineEvenInCached = value),
+        S.current.option_preferremoteimages:
+            Tuple2(() => preferRemote, (bool value) => preferRemote = value),
         S.current.option_infinitelyreloadpictures: Tuple2(
             () => infinitelyreloadPictures,
             (bool value) => infinitelyreloadPictures = value),

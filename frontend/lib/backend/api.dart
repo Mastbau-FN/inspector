@@ -7,6 +7,7 @@ import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:provider/provider.dart';
@@ -40,7 +41,46 @@ class API {
     if (_user != null) return _user;
     final user = await User.fromStore();
     _user = user;
+    remote.injectUser(user);
     return _user;
+  }
+
+  Stream<T> _run<R extends http.BaseResponse, T>({
+    required FutureOr<T> Function() offline,
+    required FutureOr<RequestAndParser<R, T>> Function() online,
+    FutureOr<T> Function(T, T)? merge,
+    required Helper.SimulatedRequestType requestType,
+    bool itPrefersCache = false,
+  }) async* {
+    //TODO
+    late T offlineRes;
+    T onlineRes;
+    if (Options().canBeOffline) {
+      offlineRes = await offline();
+      yield offlineRes;
+    }
+
+    final rap = await online();
+    try {
+      if (itPrefersCache && !Options().mergeOnlineEvenInCached)
+        throw BackendCommunicationException('we prefer the local variant');
+      await tryNetwork(requestType: requestType);
+      final res = await remote.post_JSON(rap.rd);
+      onlineRes = await rap.parser(res as R);
+      if (Options().preferRemote) yield onlineRes;
+      if (merge != null &&
+          Options().canBeOffline &&
+          (Options().mergeOnlineEvenInCached ||
+              Options().mergeOnline && !itPrefersCache))
+        yield await merge(offlineRes, onlineRes);
+    } catch (e) {
+      if (rap.rd.logIfFailed ??
+          (requestType != Helper.SimulatedRequestType.GET))
+        await local.logFailedReq(rap.rd);
+      if (Options().debugLocalMirror)
+        debugPrint(
+            'failed request and logged it: ${rap.rd.json} \n\t error was $e');
+    }
   }
 
   // MARK: available Helpers
@@ -49,15 +89,17 @@ class API {
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
   Future tryNetwork({
     Duration? timeout,
-    Helper.SimulatedRequestType? requestType,
+    required Helper.SimulatedRequestType requestType,
   }) async {
     //check network
-    var connection = await (Connectivity().checkConnectivity());
+    if (Options().forceOffline)
+      throw NoConnectionToBackendException(
+          S.current.nonetwork_forcedOfflineMode);
+    final connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException(S.current.noNetworkAvailable);
     if (connection == ConnectivityResult.mobile &&
-        (!Options().canUseMobileNetworkIfPossible ||
-            (requestType != Helper.SimulatedRequestType.GET &&
+        ((requestType != Helper.SimulatedRequestType.GET &&
                 !Options().useMobileNetworkForUpload) ||
             !Options().useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
@@ -84,7 +126,7 @@ class API {
     if (await isUserLoggedIn(user)) return this.user;
     try {
       final _user = await remote.login(user);
-      await _user?.store();
+      await _user!.store();
       return this.user;
     } catch (e) {
       logout();
@@ -107,6 +149,28 @@ class API {
   ) async* {
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.GET;
+    assert((await API().user) != null,
+        S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
+
+    yield* _run(
+      offline: () => local.getNextDatapoint(data),
+      online: () => remote.getNextDatapoint(data),
+      requestType: requestType,
+      merge: (cached, upstream) async {
+        try {
+          cached
+              .retainWhere((element) => (element as WithOffline).forceOffline);
+          var cachedIds = cached.map((element) => element.id).toList();
+          upstream.retainWhere((element) =>
+              element.id != null && !cachedIds.contains(element.id));
+          upstream.addAll(cached);
+          return upstream;
+        } catch (e) {
+          debugPrint("error merging data: " + e.toString());
+          return cached;
+        }
+      },
+    );
   }
 
   /// sets a new [DataT]
@@ -116,6 +180,7 @@ class API {
   }) async {
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.PUT;
+    //TODO
   }
 
   /// updates a [DataT] and returns the response
@@ -126,6 +191,7 @@ class API {
   }) async {
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.PUT;
+    //TODO
   }
 
   /// deletes a [DataT] and returns the response
@@ -135,6 +201,7 @@ class API {
   }) async {
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.DELETE;
+    //TODO
   }
 
   /// deletes an image specified by its hash and returns the response
@@ -142,6 +209,7 @@ class API {
     //TODO: #211
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.DELETE;
+    //TODO
   }
 
   /// sets an image specified by its hash as the new main image
@@ -153,6 +221,7 @@ class API {
   }) async {
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.PUT;
+    //TODO
   }
 
   /// upload a bunch of images
@@ -162,123 +231,6 @@ class API {
   ) async {
     final Helper.SimulatedRequestType requestType =
         Helper.SimulatedRequestType.PUT;
-    ////ODO: we currently store everything n the root dir, but we want to add into specific subdir that needs to be extracted from rew.body.E1 etc
+    //TODO
   }
-
-  Future<bool> retryFailedrequests() async {
-    try {
-      await tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
-    } catch (e) {
-      showToast(S.current.noViableInternetConnection);
-      return false;
-    }
-    final failedReqs = await local.getAllFailedRequests() ?? [];
-    bool success = true;
-    for (final reqd in failedReqs) {
-      final docID = reqd.item1;
-      final rd = reqd.item2;
-      if (rd != null)
-        try {
-          rd.logIfFailed = false;
-          final res = await remote.post_JSON(rd);
-          //nur 200er als ok einstufen
-          if (res!.statusCode == 200) {
-            local.failedRequestWasSuccessful(docID);
-          } else {
-            success = false;
-            //TODO: what todo here?
-            break;
-          }
-        } catch (e) {
-          debugPrint('failed to retry request: $e');
-          success = false;
-        }
-    }
-    return success;
-  }
-
-  //TODO: das klappt zwar, aber das abspeichern selbst oder anzeigen nicht, wird aber OP liegen
-  /// recursivle cache all elements that underly the caller
-  Future<bool> loadAndCacheAll<
-      ChildData extends WithLangText,
-      ParentData extends WithOffline,
-      DDModel extends DropDownModel<ChildData, ParentData>>(
-    DDModel caller,
-    int depth, {
-    String? name,
-    String? parentID,
-  }) async {
-    // base-case: CheckPointDefects have no children
-    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
-    if (depth == 0) return true;
-    depth--;
-    try {
-      //fail early if no connection
-      await tryNetwork(requestType: Helper.SimulatedRequestType.GET);
-      //get all children, this will also cache them internally
-      var children = await caller.all.last;
-      var didSucceed = await Future.wait(children.map(
-        (child) async {
-          if (Options().debugLocalMirror) {
-            name = '$name-> ${child.title}';
-            debugPrint('__1234 got $depth: $name');
-          }
-
-          if (depth == 0)
-            return true; //base-case as to not call generateNextModel
-          bool child_succeeded = await loadAndCacheAll(
-              caller.generateNextModel(child), depth,
-              name: name, parentID: caller.currentData.id);
-          return child_succeeded;
-        },
-      ));
-
-      //if all children succeeded recursive calling succeeded
-      bool success = didSucceed.every((el) => el);
-      if (success) {
-        caller.currentData.forceOffline = true;
-        if (parentID == null) return false;
-
-        try {
-          var id = await local.storeData(caller.currentData, forId: parentID);
-          if (Options().debugLocalMirror)
-            debugPrint(
-                '_32 loading. ${depth + 1} stored : ${id}  ${caller.currentData.title}');
-        } catch (e) {
-          return false;
-        }
-      }
-
-      return success;
-    } catch (error) {
-      debugPrint('failed! ${depth + 1}');
-      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
-      return false; //failed
-    }
-  }
-
-  ///this is used to remove all no-cloud icons from every datapoint aka set every [forceOffline] of [WithOffline] [Data]s
-  setOnlineTotal(BuildContext context) async {
-    final model = Provider.of<LocationModel>(context, listen: false);
-    final locations = await model.all.last;
-    for (final loc in locations) {
-      final caller = CategoryModel(loc);
-      await setOnlineAll(
-        caller,
-        3,
-        name: caller.title,
-        parentID: await rootID,
-      );
-    }
-  }
-
-  Future setOnlineAll<
-      ChildData extends WithLangText,
-      ParentData extends WithOffline,
-      DDModel extends DropDownModel<ChildData, ParentData>>(
-    DDModel caller,
-    int depth, {
-    String? name,
-    String? parentID,
-  }) async {}
 }

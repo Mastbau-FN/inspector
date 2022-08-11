@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -67,7 +68,7 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
     setState(() {
       loading = true;
     });
-    bool s = await API().retryFailedrequests();
+    bool s = await FailedRequestmanager().retryFailedrequests();
     if (s)
       setState(() {
         success = s;

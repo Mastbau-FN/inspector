@@ -74,7 +74,7 @@
   "developerOptions": "Entwickler-Optionen",
   "option_canbeoffline": "kann Offline",
   "option_canusemobilenetworkifpossible": "Mobilfunknetz nutzen",
-  "option_preferremoteimages": "Bilder vom Server bevorzugen",
+  "option_preferremoteimages": "Daten und Bilder vom Server bevorzugen",
   "option_debugallresponses": "debugAllResponses",
   "option_debuglocalmirror": "debugLocalMirror",
   "option_debugimages": "debugImages",
@@ -83,5 +83,7 @@
   "option_showdoggo": "showDoggo",
   "option_mergeloadeddataintoonlinedataevenincachedparent": "offline Daten mit Online vervollständigen, selbst wenn wir im offline-modus sind",
   "option_usemobilenetworkforupload": "mobiles Netz zum hochladen nutzen",
-  "option_usemobilenetworkfordownload": "mobiles Netz zum runterladen nutzen"
+  "option_usemobilenetworkfordownload": "mobiles Netz zum runterladen nutzen",
+  "option_forceOffline": "force Offline mode",
+  "nonetwork_forcedOfflineMode": "forced offline mode"
 }

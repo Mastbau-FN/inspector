@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
@@ -197,7 +198,7 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
     });
     //also edit this for finer granularity
     var rootid = await API().rootID;
-    API()
+    FailedRequestmanager()
         .loadAndCacheAll(widget.caller, widget.depth,
             name: widget.caller.title, parentID: rootid)
         .then((succs) => setState(() {

@@ -15,7 +15,7 @@ class RequestData {
     this.multipart_files = const [],
     this.timeout,
     this.returnsBinary = false,
-    this.logIfFailed = true,
+    this.logIfFailed,
   });
 
   /// the route to the api
@@ -34,9 +34,9 @@ class RequestData {
   /// if the request should return binary data
   bool returnsBinary;
 
-  /// if the request should log if it failed
+  /// if the request should log if it failed, null to fallback to default behaviour (log everything that doesnt simulate a Get-Request)
   @JsonKey(ignore: true)
-  bool logIfFailed;
+  bool? logIfFailed;
 
   Map<String, dynamic> get serialized => _$RequestDataToJson(this);
   static RequestData deserialize(Map<String, dynamic> json) =>
