@@ -1,6 +1,5 @@
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
@@ -8,11 +7,9 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpoints.dart';
-import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import '../generated/l10n.dart';
-import 'imagesPage.dart';
 
 class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     implements KnowsNext<CheckCategory> {
@@ -73,12 +70,12 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
             Map<String, dynamic> category = json['checkpoint'];
             category['PjNr'] = currentData.pjNr;
             category['E1'] = -1;
-            await Backend()
+            await API()
                 .setNew(CheckCategory.fromJson(category), caller: currentData);
             notifyListeners();
           },
           onCancel: onCancel,
-          textfield_list: [
+          textfieldList: [
             InputData("KurzText", hint: S.current.kurzTextHint),
             InputData("LangText",
                 hint: S.current.langTextHint, verify: InputData.alwaysCorrect),

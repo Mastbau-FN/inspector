@@ -8,8 +8,8 @@ class LoginModel extends ChangeNotifier {
   LoginModel();
 
   /// whether anyone is logged in, used to switch whether to show the login screen or the main view
-  Future<bool> get isLoggedIn async => await Backend().isAnyoneLoggedIn;
-  Future<DisplayUser?> get user async => await Backend().user;
+  Future<bool> get isLoggedIn async => await API().isAnyoneLoggedIn;
+  Future<DisplayUser?> get user async => await API().user;
 
   /// logs the user in and updates the UI
   Future login(String? username, String? password) async {
@@ -18,14 +18,14 @@ class LoginModel extends ChangeNotifier {
       throw Exception(S.current.usernameOrPasswordWasNotGiven);
     }
 
-    var res = await Backend().login(User(username, password));
+    var res = await API().login(User(username, password));
     debugPrint('logged in, ${res.toString()}');
     notifyListeners();
   }
 
   /// logs the user out and therefor resets the UI to show the login-screen again
   Future logout() async {
-    await Backend().logout();
+    await API().logout();
     notifyListeners();
   }
 }

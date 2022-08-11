@@ -1,6 +1,7 @@
 import 'package:stream_transform/stream_transform.dart';
 
 extension IterateFuture on Future {
+  // ignore: non_constant_identifier_names
   static Future<T?> ordered_firstNonNull<T extends Object>(
           Iterable<Future<T?>> iterable) =>
       Future.microtask(() async {
@@ -8,6 +9,7 @@ extension IterateFuture on Future {
           var val = await fut;
           if (val != null) return val;
         }
+        return null;
       });
 }
 

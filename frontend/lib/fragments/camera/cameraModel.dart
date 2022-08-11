@@ -1,9 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class CameraModel extends ChangeNotifier {
-  Future<CameraController> get new_controller async => CameraController(
+  Future<CameraController> get newController async => CameraController(
         // Get a specific camera from the list of available cameras.
         await currentCamera,
         // Define the resolution to use.
@@ -13,7 +12,7 @@ class CameraModel extends ChangeNotifier {
   CameraController? controller;
 
   Future<CameraController> start({bool reuse = true}) async {
-    controller = await new_controller;
+    controller = await newController;
     await controller!.initialize();
     return controller!;
   }
@@ -37,26 +36,26 @@ class CameraModel extends ChangeNotifier {
     return latestPic!;
   }
 
-  Future<List<CameraDescription>> all_cameras = availableCameras();
+  Future<List<CameraDescription>> allCameras = availableCameras();
 
-  Future<CameraDescription> get mainCamera async => (await all_cameras).first;
+  Future<CameraDescription> get mainCamera async => (await allCameras).first;
 
   int _currentCameraIndex = 0;
   Future nextCamera() async {
-    int len = (await all_cameras).length;
+    int len = (await allCameras).length;
     _currentCameraIndex++;
     _currentCameraIndex %= len;
   }
 
   Future prevCamera() async {
-    int len = (await all_cameras).length;
+    int len = (await allCameras).length;
     _currentCameraIndex--;
     _currentCameraIndex %= len;
   }
 
   Future<CameraDescription> get currentCamera async {
     try {
-      return (await all_cameras)[_currentCameraIndex];
+      return (await allCameras)[_currentCameraIndex];
     } catch (e) {}
 
     return await mainCamera; //XXX (related to #202) use other lenses

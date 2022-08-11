@@ -1,3 +1,3 @@
 # changes
 
-- worked on #206,#207,#211
+- worked on #214 , big rewiring of mirroring logic

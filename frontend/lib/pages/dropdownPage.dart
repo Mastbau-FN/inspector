@@ -1,6 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
-import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
@@ -75,6 +74,7 @@ class _DropDownBodyState<
         ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>
     extends State<_DropDownBody<ChildData, ParentData, DDModel>> {
+  // ignore: unused_field
   Future<List<ChildData>>? _future;
 
   @override
@@ -157,6 +157,7 @@ class _DropDownBodyState<
     return Container();
   }
 
+  // ignore: non_constant_identifier_names
   ExpandableCard2 dropDown_element(
       ChildData data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
@@ -168,7 +169,7 @@ class _DropDownBodyState<
           children: [
             data.extra ?? Container(),
             FutureBuilder(
-              future: Backend().user,
+              future: API().user,
               builder:
                   (BuildContext context, AsyncSnapshot<DisplayUser?> snapshot) {
                 //assert(data.runtimeType==DataT);
@@ -176,12 +177,12 @@ class _DropDownBodyState<
                   if (snapshot.hasData &&
                       data.toJson()['Autor'] == snapshot.data?.name)
                     return TrashButton(
-                      delete: () => Backend()
+                      delete: () => API()
                           .delete<ChildData>(data, caller: ddmodel.currentData)
                           .then((value) => value != null
                               ? (kDebugMode ? showToast(value) : (_) {})
                               : showToast(S.of(context).deleteUnseccessful)),
-                      confirm_name: data.title,
+                      confirmName: data.title,
                     );
                 } catch (e) {}
                 return Container();

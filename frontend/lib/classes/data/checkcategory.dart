@@ -38,7 +38,7 @@ class CheckCategory extends Data
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<ImageData?>>? image_futures;
+  List<Future<ImageData?>>? imageFutures;
   @JsonKey(ignore: true)
   Future<ImageData?>? mainImage;
   @JsonKey(ignore: true)
@@ -65,6 +65,7 @@ class CheckCategory extends Data
     } catch (e) {
       debugPrint(e.toString());
     }
+    return null;
   }
 
   @override
