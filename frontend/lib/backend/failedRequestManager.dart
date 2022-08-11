@@ -127,6 +127,21 @@ class FailedRequestmanager {
     String? name,
     String? parentID,
   }) async {
-    //TODO
+    // base-case: CheckPointDefects have no children
+    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
+    if (depth == 0) return true;
+    depth--;
+    var children = await caller.all.last;
+    caller.currentData.forceOffline = false;
+    if (parentID != null)
+      API().local.storeData(caller.currentData, forId: parentID);
+    final nextid = caller.currentData.id;
+    for (final child in children) {
+      String _name = '$name -> ${child.title}';
+      debugPrint('__12342 got $depth: $_name');
+      if (depth == 0) return; //base-case as to not call generateNextModel
+      setOnlineAll(caller.generateNextModel(child), depth,
+          name: _name, parentID: nextid);
+    }
   }
 }
