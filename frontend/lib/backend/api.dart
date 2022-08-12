@@ -53,8 +53,12 @@ class API {
     late T offlineRes;
     T onlineRes;
     if (Options().canBeOffline) {
-      offlineRes = await offline();
-      yield offlineRes;
+      try {
+        offlineRes = await offline();
+        yield offlineRes;
+      } catch (e) {
+        debugPrint('offline failed: ' + e.toString());
+      }
     }
 
     final rap = await online();
