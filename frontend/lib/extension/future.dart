@@ -3,16 +3,32 @@ import 'package:stream_transform/stream_transform.dart';
 extension IterateFuture on Future {
   // ignore: non_constant_identifier_names
   static Future<T?> ordered_firstNonNull<T extends Object>(
-          Iterable<Future<T?>> iterable) =>
-      Future.microtask(() async {
-        //TODO: warum bad state no element?
-        for (var fut in iterable) {
-          var val = await fut;
-          if (val != null) return val;
-        }
-        return null;
-      });
+      Iterable<Future<T?>> iterable) async {
+    //TODO: warum bad state no element?
+    for (final fut in iterable) {
+      final T? val = await fut;
+      if (val != null) return val;
+    }
+    return null;
+  }
 }
+
+extension FutureIterate<T> on Iterable<Future<T>> {
+  // ignore: non_constant_identifier_names
+  Future<T?> get ordered_firstNonNull async {
+    //TODO: warum bad state no element?
+    for (final fut in this) {
+      final T val = await fut;
+      if (val != null) return val;
+    }
+    return null;
+  }
+}
+
+// extension FutureList<T extends Object> on List<Future<T>> {
+//   // ignore: non_constant_identifier_names
+//   Future<T?> get ordered_firstNonNull => (this as Iterable<Future<T?>>).ordered_firstNonNull;
+// }
 
 //das macht wenig sinn..
 extension IterateStream on Stream {
