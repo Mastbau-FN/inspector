@@ -29,8 +29,9 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
   try {
     var file = await _localFile(name);
-
+    // var __x__;
     // file = (await file.exists()) ? file : await file.create();
+    // file.writeAsString(imgBytes.toString());%
     file =
         await file.writeAsBytes(imgBytes); //u good? //TODO: doesnt complete?!
     if (Options().debugLocalMirror) debugPrint('saved $file');
