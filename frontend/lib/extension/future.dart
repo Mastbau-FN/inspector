@@ -2,15 +2,10 @@ import 'package:stream_transform/stream_transform.dart';
 
 extension IterateFuture on Future {
   // ignore: non_constant_identifier_names
+  @deprecated
   static Future<T?> ordered_firstNonNull<T extends Object>(
-      Iterable<Future<T?>> iterable) async {
-    //TODO: warum bad state no element?
-    for (final fut in iterable) {
-      final T? val = await fut;
-      if (val != null) return val;
-    }
-    return null;
-  }
+          Iterable<Future<T?>> iterable) =>
+      iterable.ordered_firstNonNull;
 }
 
 extension FutureIterate<T> on Iterable<Future<T>> {
@@ -18,8 +13,10 @@ extension FutureIterate<T> on Iterable<Future<T>> {
   Future<T?> get ordered_firstNonNull async {
     //TODO: warum bad state no element?
     for (final fut in this) {
-      final T val = await fut;
-      if (val != null) return val;
+      try {
+        final T val = await fut;
+        if (val != null) return val;
+      } catch (e) {}
     }
     return null;
   }

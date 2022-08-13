@@ -12,7 +12,7 @@ String other = 'other';
 class Options {
   //
   var canBeOffline = true;
-  var forceOffline = true;
+  var forceOffline = false;
   //
   var useMobileNetworkForUpload = false;
   var useMobileNetworkForDownload = true;

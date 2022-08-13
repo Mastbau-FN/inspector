@@ -26,12 +26,13 @@ Future<File> _localFile(String name) async =>
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
 Future<File?> storeImage(Uint8List imgBytes, String name) async {
-  var file = await _localFile(name);
-
   // Write the file
   try {
-    //file = (await file.exists()) ? file : await file.create();
-    file = await file.writeAsBytes(imgBytes); //u good?
+    var file = await _localFile(name);
+
+    // file = (await file.exists()) ? file : await file.create();
+    file =
+        await file.writeAsBytes(imgBytes); //u good? //TODO: doesnt complete?!
     if (Options().debugLocalMirror) debugPrint('saved $file');
     return file;
   } catch (e) {
