@@ -46,7 +46,19 @@ class API {
   Stream<T> _run<R extends http.BaseResponse, T>({
     required FutureOr<T> Function() offline,
     required FutureOr<RequestAndParser<R, T>> Function() online,
+
+    /// if given and [Options] is set accordingly this is called to merge offline with online data
     FutureOr<T> Function(T, T)? merge,
+
+    /// a callback that is called if the online request fails, it gets passed the offline result as well as the request and the parser for online result
+    ///
+    /// e.g.:
+    /// ```dart
+    /// onlineFailedCB(T onlineResult, RequestAndParser<R, T> requestAndParser) async {
+    ///   modifyReq(requestAndParser.rd);
+    /// };
+    /// ```
+    FutureOr<T> Function(T, RequestAndParser<R, T>)? onlineFailedCB,
     required Helper.SimulatedRequestType requestType,
     bool itPrefersCache = false,
   }) async* {
@@ -75,7 +87,9 @@ class API {
               Options().mergeOnline && !itPrefersCache))
         yield await merge(offlineRes, onlineRes);
     } catch (e) {
-      if (rap.rd.logIfFailed ??
+      if (onlineFailedCB != null)
+        await onlineFailedCB(offlineRes, rap);
+      else if (rap.rd.logIfFailed ??
           (requestType != Helper.SimulatedRequestType.GET))
         await local.logFailedReq(rap.rd);
       if (Options().debugLocalMirror)
@@ -259,6 +273,7 @@ class API {
     return _run(
       offline: () => local.uploadFiles(data, files),
       online: () => remote.uploadFiles(data, files),
+      onlineFailedCB: (onlineRes, rap) {},
       requestType: requestType,
     ).last;
   }
