@@ -1,6 +1,9 @@
 # inspector
 fullstack Projekt zur Vereinfachung von Inspektionen
 
+## todos
+[here](https://github.com/orgs/Mastbau-FN/projects/1/views/7)
+
 # read doku [here](https://mastbau-fn.github.io/inspector/doc)
 backend stuff is not included there, but can be seen [here](https://github.com/Mastbau-FN/inspector/tree/main/backend)
 
