@@ -17,7 +17,10 @@ class Options {
   var useMobileNetworkForUpload = false;
   var useMobileNetworkForDownload = true;
   //
-  var preferRemote = false;
+  var preferRemoteData = false;
+  var preferRemoteImgs = false;
+  //
+  var tryOnlineUploadRequestsInCachedMode = true;
   //
   var mergeOnline = true; //XXX: make false to solve #212
   var mergeOnlineEvenInCached = false;
@@ -52,8 +55,13 @@ class Options {
         S.current.option_mergeloadeddataintoonlinedataevenincachedparent:
             Tuple2(() => mergeOnlineEvenInCached,
                 (bool value) => mergeOnlineEvenInCached = value),
-        S.current.option_preferremoteimages:
-            Tuple2(() => preferRemote, (bool value) => preferRemote = value),
+        S.current.option_preferremotedata: Tuple2(
+            () => preferRemoteData, (bool value) => preferRemoteData = value),
+        S.current.option_preferremoteimages: Tuple2(
+            () => preferRemoteImgs, (bool value) => preferRemoteImgs = value),
+        S.current.option_tryonlinerequestincachedmode: Tuple2(
+            () => tryOnlineUploadRequestsInCachedMode,
+            (bool value) => tryOnlineUploadRequestsInCachedMode = value),
         S.current.option_infinitelyreloadpictures: Tuple2(
             () => infinitelyreloadPictures,
             (bool value) => infinitelyreloadPictures = value),

@@ -85,5 +85,7 @@
   "option_usemobilenetworkforupload": "useMobileNetworkForUpload",
   "option_usemobilenetworkfordownload": "useMobileNetworkForDownload",
   "option_forceOffline": "force Offline mode",
-  "nonetwork_forcedOfflineMode": "forced offline mode"
+  "nonetwork_forcedOfflineMode": "forced offline mode",
+  "option_preferremotedata": "preferRemoteData",
+  "option_tryonlinerequestincachedmode": "tryOnlineRequestInCachedMode"
 }
