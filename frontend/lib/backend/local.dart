@@ -14,6 +14,8 @@ import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
 import 'api.dart';
 
+const LOCALLY_ADDED_IMAGE = '__locally_added__';
+
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
   // MARK: internals
@@ -155,11 +157,22 @@ class LocalMirror {
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
-    List<XFile> files,
-  ) async {
-    return null;
-
-    //TODO: #211
+    List<XFile> files, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    List<String> newLocalImageNames = [];
+    Future.wait(files.map((file) async {
+      final bytes = await file.readAsBytes();
+      final imageName = '$LOCALLY_ADDED_IMAGE${file.name}';
+      await OP.storeImage(bytes, imageName);
+      newLocalImageNames.add(imageName);
+    }));
+    data.imagehashes?.addAll(newLocalImageNames);
+    injectImages(data);
+    OP.storeData(data, forId: caller?.id ?? await API().rootID);
+    return 'added files offline';
+    //TODO: test #211
   }
 
   final storeData = OP.storeData;

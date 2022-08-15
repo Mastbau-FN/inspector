@@ -94,7 +94,8 @@ class API {
 
     Future<RequestAndParser<R, T>>(online).then(
       (rap) async {
-        doOnline({bool orDontIf = false}) async {
+        late Object _latestErr;
+        Future<bool> doOnline({bool orDontIf = false}) async {
           try {
             if (orDontIf)
               throw BackendCommunicationException(
@@ -115,24 +116,31 @@ class API {
                 controller.add(await merge(offlineRes, onlineRes));
             }
           } catch (e) {
-            bool log = rap.rd.logIfFailed ??
-                (requestType != Helper.SimulatedRequestType.GET);
-            if (onlineFailedCB != null)
-              await onlineFailedCB(offlineRes, rap);
-            else if (log) await local.logFailedReq(rap.rd);
-            if (Options().debugLocalMirror)
-              debugPrint(
-                  'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $e');
+            _latestErr = e;
+            return false;
           }
+          return true;
         }
 
-        await doOnline(
+        onlineFailedProcedure() async {
+          bool log = rap.rd.logIfFailed ??
+              (requestType != Helper.SimulatedRequestType.GET);
+          if (onlineFailedCB != null)
+            await onlineFailedCB(offlineRes, rap);
+          else if (log) await local.logFailedReq(rap.rd);
+          if (Options().debugLocalMirror)
+            debugPrint(
+                'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $_latestErr');
+        }
+
+        bool onlineSucc = await doOnline(
           orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
         );
         bool offlineFailed = !await canBeClosed;
-        if (offlineFailed && Options().tryOnlineIfOfflineFailed)
-          await doOnline();
+        if (!onlineSucc && offlineFailed && Options().tryOnlineIfOfflineFailed)
+          onlineSucc = await doOnline();
         controller.close();
+        if (!onlineSucc) onlineFailedProcedure();
       },
     );
     return controller.stream;
@@ -308,9 +316,16 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.setMainImageByHash(data, hash,
-          caller: caller, forceUpdate: forceUpdate),
-      online: () => remote.setMainImageByHash(data, hash),
+      offline: () => local.setMainImageByHash(
+        data,
+        hash,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.setMainImageByHash(
+        data,
+        hash,
+      ),
       requestType: requestType,
     ).last;
   }
@@ -318,13 +333,23 @@ class API {
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
-    List<XFile> files,
-  ) async {
+    List<XFile> files, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.uploadFiles(data, files),
-      online: () => remote.uploadFiles(data, files),
+      offline: () => local.uploadFiles(
+        data,
+        files,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.uploadFiles(
+        data,
+        files,
+      ),
       onlineFailedCB: (onlineRes, rap) {},
       requestType: requestType,
     ).last;
