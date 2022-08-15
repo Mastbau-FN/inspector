@@ -72,47 +72,55 @@ class API {
     FutureOr<T> Function(T, RequestAndParser<R, T>)? onlineFailedCB,
     required Helper.SimulatedRequestType requestType,
     bool? itPrefersCache = false,
-  }) async* {
+  }) {
+    var controller = StreamController<T>();
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     T onlineRes;
     if (Options().canBeOffline) {
       try {
-        offlineRes = await offline();
-        yield offlineRes;
+        Future<T>(offline).then((value) {
+          offlineRes = value;
+          controller.add(offlineRes);
+        });
       } catch (e) {
         debugPrint('offline failed: ' + e.toString());
       }
     }
 
-    final rap = await online();
-    try {
-      if (_itPrefersCache && !Options().mergeOnlineEvenInCached)
-        throw BackendCommunicationException('we prefer the local variant');
-      await tryNetwork(requestType: requestType);
-      final bool wantsmerged = merge != null &&
-          Options().canBeOffline &&
-          (Options().mergeOnlineEvenInCached ||
-              Options().mergeOnline && !_itPrefersCache);
-      final bool wantsonline =
-          //TODO: okay but this might be the wrong type
-          Options().preferRemoteData || Options().preferRemoteImgs;
-      if (wantsonline || wantsmerged) {
-        final res = await remote.postJSON(rap.rd);
-        onlineRes = await rap.parser(res as R);
-        if (wantsonline) yield onlineRes;
-        if (wantsmerged) yield await merge(offlineRes, onlineRes);
-      }
-    } catch (e) {
-      if (onlineFailedCB != null)
-        await onlineFailedCB(offlineRes, rap);
-      else if (rap.rd.logIfFailed ??
-          (requestType != Helper.SimulatedRequestType.GET))
-        await local.logFailedReq(rap.rd);
-      if (Options().debugLocalMirror)
-        debugPrint(
-            'failed request and logged it: ${rap.rd.json} \n\t error was $e');
-    }
+    Future<RequestAndParser<R, T>>(online).then(
+      (rap) async {
+        try {
+          if (_itPrefersCache && !Options().mergeOnlineEvenInCached)
+            throw BackendCommunicationException('we prefer the local variant');
+          await tryNetwork(requestType: requestType);
+          final bool wantsmerged = merge != null &&
+              Options().canBeOffline &&
+              (Options().mergeOnlineEvenInCached ||
+                  Options().mergeOnline && !_itPrefersCache);
+          final bool wantsonline =
+              //TODO: okay but this might be the wrong type
+              Options().preferRemoteData || Options().preferRemoteImgs;
+          if (wantsonline || wantsmerged) {
+            final res = await remote.postJSON(rap.rd);
+            onlineRes = await rap.parser(res as R);
+            if (wantsonline) controller.add(onlineRes);
+            if (wantsmerged) controller.add(await merge(offlineRes, onlineRes));
+          }
+        } catch (e) {
+          if (onlineFailedCB != null)
+            await onlineFailedCB(offlineRes, rap);
+          else if (rap.rd.logIfFailed ??
+              (requestType != Helper.SimulatedRequestType.GET))
+            await local.logFailedReq(rap.rd);
+          if (Options().debugLocalMirror)
+            debugPrint(
+                'failed request and logged it: ${rap.rd.json} \n\t error was $e');
+        }
+        controller.close();
+      },
+    );
+    return controller.stream;
   }
 
   // MARK: available Helpers
