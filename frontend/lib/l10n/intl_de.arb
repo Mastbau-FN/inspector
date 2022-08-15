@@ -87,5 +87,6 @@
   "option_usemobilenetworkfordownload": "mobiles Netz zum runterladen nutzen",
   "option_forceOffline": "force Offline mode",
   "nonetwork_forcedOfflineMode": "forced offline mode",
-  "option_tryonlinerequestincachedmode": "tryOnlineRequestInCachedMode"
+  "option_tryonlinerequestincachedmode": "tryOnlineRequestInCachedMode",
+  "option_tryOnlineIfOfflineFailed": "probier online-Verfahren wenn es offline gescheitert ist"
 }
