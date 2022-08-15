@@ -9,9 +9,9 @@ part of 'requestData.dart';
 RequestData _$RequestDataFromJson(Map<String, dynamic> json) => RequestData(
       json['route'] as String,
       json: json['json'] as Map<String, dynamic>?,
-      multipartFiles: json['multipart_files'] == null
+      multipartFiles: json['multipartFiles'] == null
           ? const []
-          : _multipartFilesFromJson(json['multipart_files'] as List),
+          : _multipartFilesFromJson(json['multipartFiles'] as List),
       timeout: json['timeout'] == null
           ? null
           : Duration(microseconds: json['timeout'] as int),
@@ -22,7 +22,7 @@ Map<String, dynamic> _$RequestDataToJson(RequestData instance) =>
     <String, dynamic>{
       'route': instance.route,
       'json': instance.json,
-      'multipart_files': _multipartFilesToJson(instance.multipartFiles),
+      'multipartFiles': _multipartFilesToJson(instance.multipartFiles),
       'timeout': instance.timeout?.inMicroseconds,
       'returnsBinary': instance.returnsBinary,
     };

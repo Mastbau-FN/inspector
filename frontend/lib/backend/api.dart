@@ -43,41 +43,99 @@ class API {
     return _user;
   }
 
+  bool? _dataPrefersCache(Data? data,
+      {required Helper.SimulatedRequestType type}) {
+    bool? itPrefersCache;
+    if (type == Helper.SimulatedRequestType.GET ||
+        Options().tryOnlineUploadRequestsInCachedMode)
+      try {
+        itPrefersCache = (data as WithOffline).forceOffline;
+      } catch (e) {}
+    return itPrefersCache;
+  }
+
   Stream<T> _run<R extends http.BaseResponse, T>({
     required FutureOr<T> Function() offline,
     required FutureOr<RequestAndParser<R, T>> Function() online,
+
+    /// if given and [Options] is set accordingly this is called to merge offline with online data
     FutureOr<T> Function(T, T)? merge,
+
+    /// a callback that is called if the online request fails, it gets passed the offline result as well as the request and the parser for online result
+    ///
+    /// e.g.:
+    /// ```dart
+    /// onlineFailedCB(T onlineResult, RequestAndParser<R, T> requestAndParser) async {
+    ///   modifyReq(requestAndParser.rd);
+    /// };
+    /// ```
+    FutureOr<T> Function(T, RequestAndParser<R, T>)? onlineFailedCB,
     required Helper.SimulatedRequestType requestType,
-    bool itPrefersCache = false,
-  }) async* {
+    bool? itPrefersCache = false,
+  }) {
+    var controller = StreamController<T>();
+    var canBeClosed = Future.value(true);
+    final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     T onlineRes;
     if (Options().canBeOffline) {
-      offlineRes = await offline();
-      yield offlineRes;
+      try {
+        canBeClosed = Future<T>(offline).then((value) {
+          offlineRes = value;
+          controller.add(offlineRes);
+          return true;
+        }).catchError((err) {
+          return false;
+        });
+      } catch (e) {
+        debugPrint('offline failed: ' + e.toString());
+      }
     }
 
-    final rap = await online();
-    try {
-      if (itPrefersCache && !Options().mergeOnlineEvenInCached)
-        throw BackendCommunicationException('we prefer the local variant');
-      await tryNetwork(requestType: requestType);
-      final res = await remote.postJSON(rap.rd);
-      onlineRes = await rap.parser(res as R);
-      if (Options().preferRemote) yield onlineRes;
-      if (merge != null &&
-          Options().canBeOffline &&
-          (Options().mergeOnlineEvenInCached ||
-              Options().mergeOnline && !itPrefersCache))
-        yield await merge(offlineRes, onlineRes);
-    } catch (e) {
-      if (rap.rd.logIfFailed ??
-          (requestType != Helper.SimulatedRequestType.GET))
-        await local.logFailedReq(rap.rd);
-      if (Options().debugLocalMirror)
-        debugPrint(
-            'failed request and logged it: ${rap.rd.json} \n\t error was $e');
-    }
+    Future<RequestAndParser<R, T>>(online).then(
+      (rap) async {
+        doOnline({bool orDontIf = false}) async {
+          try {
+            if (orDontIf)
+              throw BackendCommunicationException(
+                  'we prefer the local variant');
+            await tryNetwork(requestType: requestType);
+            final bool wantsmerged = merge != null &&
+                Options().canBeOffline &&
+                (Options().mergeOnlineEvenInCached ||
+                    Options().mergeOnline && !_itPrefersCache);
+            final bool wantsonline =
+                //TODO: okay but this might be the wrong type
+                Options().preferRemoteData || Options().preferRemoteImgs;
+            if (wantsonline || wantsmerged) {
+              final res = await remote.postJSON(rap.rd);
+              onlineRes = await rap.parser(res as R);
+              if (wantsonline) controller.add(onlineRes);
+              if (wantsmerged)
+                controller.add(await merge(offlineRes, onlineRes));
+            }
+          } catch (e) {
+            bool log = rap.rd.logIfFailed ??
+                (requestType != Helper.SimulatedRequestType.GET);
+            if (onlineFailedCB != null)
+              await onlineFailedCB(offlineRes, rap);
+            else if (log) await local.logFailedReq(rap.rd);
+            if (Options().debugLocalMirror)
+              debugPrint(
+                  'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $e');
+          }
+        }
+
+        await doOnline(
+          orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
+        );
+        bool offlineFailed = !await canBeClosed;
+        if (offlineFailed && Options().tryOnlineIfOfflineFailed)
+          await doOnline();
+        controller.close();
+      },
+    );
+    return controller.stream;
   }
 
   // MARK: available Helpers
@@ -149,6 +207,7 @@ class API {
         S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
 
     yield* _run(
+      itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.getNextDatapoint(data),
       online: () => remote.getNextDatapoint(data),
       requestType: requestType,
@@ -175,7 +234,9 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+
     return _run(
+      itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
       requestType: requestType,
@@ -190,6 +251,7 @@ class API {
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
+      itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.update(data, caller: caller),
       online: () => remote.update(data),
       requestType: requestType,
@@ -203,6 +265,7 @@ class API {
   }) async {
     final requestType = Helper.SimulatedRequestType.DELETE;
     return _run(
+      itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.delete(data, caller: caller),
       online: () => remote.delete(data),
       requestType: requestType,
@@ -214,6 +277,7 @@ class API {
     final requestType = Helper.SimulatedRequestType.GET;
 
     return _run(
+      itPrefersCache: !Options().preferRemoteImgs,
       offline: () => local.getImageByHash(hash),
       online: () => remote.getImageByHash(hash),
       requestType: requestType,
@@ -221,9 +285,13 @@ class API {
   }
 
   /// deletes an image specified by its hash and returns the response
-  Future<String?> deleteImageByHash(String hash) async {
+  Future<String?> deleteImageByHash<DataT extends Data>(
+    DataT? data,
+    String hash,
+  ) async {
     final requestType = Helper.SimulatedRequestType.DELETE;
     return _run(
+      itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.deleteImageByHash(hash),
       online: () => remote.deleteImageByHash(hash),
       requestType: requestType,
@@ -239,6 +307,7 @@ class API {
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
+      itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.setMainImageByHash(data, hash,
           caller: caller, forceUpdate: forceUpdate),
       online: () => remote.setMainImageByHash(data, hash),
@@ -253,8 +322,10 @@ class API {
   ) async {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
+      itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.uploadFiles(data, files),
       online: () => remote.uploadFiles(data, files),
+      onlineFailedCB: (onlineRes, rap) {},
       requestType: requestType,
     ).last;
   }
@@ -272,7 +343,8 @@ D injectImages<D extends WithImgHashes>(D data) {
       ?.map((hash) => API().getImageByHash(hash))
       .toList()
       .sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
-  data.previewImage =
-      IterateFuture.ordered_firstNonNull(data.imageFutures ?? []);
+  data.previewImage = data.imageFutures != null
+      ? data.imageFutures!.ordered_firstNonNull
+      : Future.value(null);
   return data;
 }

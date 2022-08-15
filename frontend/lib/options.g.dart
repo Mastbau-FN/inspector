@@ -11,7 +11,10 @@ Options _$OptionsFromJson(Map<String, dynamic> json) => Options()
   ..forceOffline = json['forceOffline'] as bool
   ..useMobileNetworkForUpload = json['useMobileNetworkForUpload'] as bool
   ..useMobileNetworkForDownload = json['useMobileNetworkForDownload'] as bool
-  ..preferRemote = json['preferRemote'] as bool
+  ..preferRemoteData = json['preferRemoteData'] as bool
+  ..preferRemoteImgs = json['preferRemoteImgs'] as bool
+  ..tryOnlineUploadRequestsInCachedMode =
+      json['tryOnlineRequestsInCachedMode'] as bool
   ..mergeOnline = json['mergeOnline'] as bool
   ..mergeOnlineEvenInCached = json['mergeOnlineEvenInCached'] as bool
   ..infinitelyreloadPictures = json['infinitelyreloadPictures'] as bool
@@ -27,7 +30,10 @@ Map<String, dynamic> _$OptionsToJson(Options instance) => <String, dynamic>{
       'forceOffline': instance.forceOffline,
       'useMobileNetworkForUpload': instance.useMobileNetworkForUpload,
       'useMobileNetworkForDownload': instance.useMobileNetworkForDownload,
-      'preferRemote': instance.preferRemote,
+      'preferRemoteData': instance.preferRemoteData,
+      'preferRemoteImgs': instance.preferRemoteImgs,
+      'tryOnlineRequestsInCachedMode':
+          instance.tryOnlineUploadRequestsInCachedMode,
       'mergeOnline': instance.mergeOnline,
       'mergeOnlineEvenInCached': instance.mergeOnlineEvenInCached,
       'infinitelyreloadPictures': instance.infinitelyreloadPictures,

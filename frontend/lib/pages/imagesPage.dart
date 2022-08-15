@@ -29,14 +29,14 @@ class ImagesPage<T extends Object> extends StatelessWidget {
 
   static _default(Object _) => showToast(S.current.notAvailable);
 
-  static _defaultDelete(Object id) async {
-    try {
-      if (kDebugMode)
-        showToast((await API().deleteImageByHash(id.toString())).toString());
-    } catch (e) {
-      showToast(e.toString());
-    }
-  }
+  // static _defaultDelete(Object id) async {
+  //   try {
+  //     if (kDebugMode)
+  //       showToast((await API().deleteImageByHash(id.toString())).toString());
+  //   } catch (e) {
+  //     showToast(e.toString());
+  //   }
+  // }
 
   final Function(T) onDelete;
   final Function(T) onStar;
@@ -47,7 +47,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.columnCount = 4,
     Key? key,
     this.onNewImages = _defaultAdd,
-    this.onDelete = _defaultDelete,
+    this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
@@ -61,7 +61,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.columnCount = 4,
     Key? key,
     this.onNewImages = _defaultAdd,
-    this.onDelete = _defaultDelete,
+    this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
@@ -75,7 +75,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.columnCount = 4,
     Key? key,
     this.onNewImages = _defaultAdd,
-    this.onDelete = _defaultDelete,
+    this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,

@@ -200,7 +200,9 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeImage(res.bodyBytes, hash);
+          final file = await API().local.storeImage(res.bodyBytes, hash);
+          if (Options().debugImages || Options().debugLocalMirror)
+            debugPrint('stored image in $file');
           return ImageData(
             (await API().local.readImage(hash))!,
             id: hash,
