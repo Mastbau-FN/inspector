@@ -74,22 +74,19 @@ class API {
     bool? itPrefersCache = false,
   }) {
     var controller = StreamController<T>();
-    var canBeClosed = Future.value(true);
+    late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     T onlineRes;
     if (Options().canBeOffline) {
-      try {
-        canBeClosed = Future<T>(offline).then((value) {
-          offlineRes = value;
-          controller.add(offlineRes);
-          return true;
-        }).catchError((err) {
-          return false;
-        });
-      } catch (e) {
-        debugPrint('offline failed: ' + e.toString());
-      }
+      canBeClosed = Future<T>(offline).then((value) {
+        offlineRes = value;
+        controller.add(offlineRes);
+        return true;
+      }, onError: (err) {
+        debugPrint('offline failed: ' + err.toString());
+        return false;
+      });
     }
 
     Future<RequestAndParser<R, T>>(online).then(
@@ -136,9 +133,11 @@ class API {
         bool onlineSucc = await doOnline(
           orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
         );
-        bool offlineFailed = !await canBeClosed;
+        bool offlineFailed = !(await canBeClosed);
+        var x = 0;
         if (!onlineSucc && offlineFailed && Options().tryOnlineIfOfflineFailed)
-          onlineSucc = await doOnline();
+          onlineSucc =
+              await doOnline(); //TODO: why arent the images loaded here?
         controller.close();
         if (!onlineSucc) onlineFailedProcedure();
       },

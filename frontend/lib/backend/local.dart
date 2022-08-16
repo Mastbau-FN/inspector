@@ -119,7 +119,7 @@ class LocalMirror {
 
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> getImageByHash(String hash) async {
-    final img = await OP.readImage(hash);
+    final img = await readImage(hash);
     if (img == null) throw Exception("no img cached");
 
     return ImageData(img, id: hash);
