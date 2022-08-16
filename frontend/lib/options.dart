@@ -38,6 +38,10 @@ class Options {
   var debugLocalMirror = true;
   var debugImages = false;
 
+  //
+
+  var useSystemTheme = false;
+
   // @JsonKey(ignore: true)//is a getter anyway
   Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
       {
@@ -78,6 +82,8 @@ class Options {
             () => debugLocalMirror, (bool value) => debugLocalMirror = value),
         S.current.option_debugimages:
             Tuple2(() => debugImages, (bool value) => debugImages = value),
+        S.current.option_usesystemtheme: Tuple2(
+            () => useSystemTheme, (bool value) => useSystemTheme = value),
       };
 
   static final String _id = '__options__';

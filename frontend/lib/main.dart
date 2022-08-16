@@ -33,14 +33,21 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: appTitle,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
+        useMaterial3: true,
+        colorScheme: Options().useSystemTheme
+            ? null
+            : ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch:
-              mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
-          brightness: Brightness.dark,
-        ),
+        useMaterial3: true,
+        colorScheme: Options().useSystemTheme
+            ? null
+            : ColorScheme.fromSwatch(
+                primarySwatch:
+                    mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
+                brightness: Brightness.dark,
+              ),
+        brightness: Brightness.dark,
       ),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,

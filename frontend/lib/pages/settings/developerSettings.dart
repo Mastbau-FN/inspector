@@ -27,6 +27,9 @@ class DeveloperSettings extends StatelessWidget {
               ),
             );
           }).toList(),
+          Container(
+            height: 100,
+          )
         ],
       ),
       floatingActionButton: FloatingActionButton(
