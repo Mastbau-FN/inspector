@@ -74,12 +74,13 @@ class API {
     bool? itPrefersCache = false,
   }) {
     var controller = StreamController<T>();
-    late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
+    // late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     T onlineRes;
-    if (Options().canBeOffline) {
-      canBeClosed = Future<T>(offline).then((value) {
+    Future<bool> doOffline({bool orDontIf = false}) async {
+      if (orDontIf) return false;
+      Future<T>(offline).then((value) {
         offlineRes = value;
         controller.add(offlineRes);
         return true;
@@ -87,6 +88,7 @@ class API {
         debugPrint('offline failed: ' + err.toString());
         return false;
       });
+      return false;
     }
 
     Future<RequestAndParser<R, T>>(online).then(
@@ -130,12 +132,19 @@ class API {
                 'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $_latestErr');
         }
 
-        bool onlineSucc = await doOnline(
-          orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
-        );
-        bool offlineFailed = !(await canBeClosed);
+        List<bool> _success = await Future.wait([
+          doOnline(
+            orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
+          ),
+          doOffline(
+            orDontIf: !Options().canBeOffline,
+          )
+        ], eagerError: true);
+
+        bool onlineSucc = _success[0];
+        bool offlineSucc = _success[1];
         var x = 0;
-        if (!onlineSucc && offlineFailed && Options().tryOnlineIfOfflineFailed)
+        if (!onlineSucc && !offlineSucc && Options().tryOnlineIfOfflineFailed)
           onlineSucc =
               await doOnline(); //TODO: why arent the images loaded here?
         controller.close();
