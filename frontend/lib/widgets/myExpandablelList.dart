@@ -49,8 +49,10 @@ class ExpandableCard2 extends ExpandablesRadio {
   }
 
   Color _color(isExpanded, context) => !isExpanded
-      ? (Theme.of(context).iconTheme.color ?? Theme.of(context).disabledColor)
-      : Theme.of(context).colorScheme.secondary;
+      // ? (Theme.of(context).iconTheme.color ?? Theme.of(context).disabledColor)
+      // : Theme.of(context).colorScheme.secondary;
+      ? Theme.of(context).disabledColor
+      : Theme.of(context).iconTheme.color!;
 
   @override
   ExpansionPanelRadio make(BuildContext context) {
@@ -86,9 +88,10 @@ class ExpandableCard2 extends ExpandablesRadio {
               title: Text(
                 title + (isExpanded ? ':' : ''),
                 style: isExpanded
-                    ? Theme.of(context).textTheme.headline5?.apply(
-                          color: Theme.of(context).colorScheme.primary,
-                        )
+                    ? Theme.of(context).textTheme.headline5
+                    // ?.apply(
+                    //       color: Theme.of(context).colorScheme.primary,
+                    //     )
                     : Theme.of(context).textTheme.bodyText1,
               ),
               subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,

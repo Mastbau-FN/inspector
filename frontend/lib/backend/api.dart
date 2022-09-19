@@ -74,65 +74,99 @@ class API {
     bool? itPrefersCache = false,
   }) {
     var controller = StreamController<T>();
-    var canBeClosed = Future.value(true);
+    // late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     T onlineRes;
-    if (Options().canBeOffline) {
-      try {
-        canBeClosed = Future<T>(offline).then((value) {
-          offlineRes = value;
-          controller.add(offlineRes);
-          return true;
-        }).catchError((err) {
-          return false;
-        });
-      } catch (e) {
-        debugPrint('offline failed: ' + e.toString());
-      }
+    Future<bool> doOffline({bool orDontIf = false}) async {
+      if (orDontIf) return false;
+      Future<T>(offline).then((value) {
+        offlineRes = value;
+        controller.add(offlineRes);
+        return true;
+      }, onError: (err) {
+        debugPrint('offline failed: ' + err.toString());
+        return false;
+      });
+      return false;
     }
 
     Future<RequestAndParser<R, T>>(online).then(
       (rap) async {
-        doOnline({bool orDontIf = false}) async {
+        // final _ukey = UniqueKey();
+        late Object _latestErr;
+        Future<bool> doOnline(
+            {bool orDontIf = false, bool? forceOnline}) async {
+          // debugPrint(_ukey.toString() + 'running online');
           try {
-            if (orDontIf)
+            // debugPrint(orDontIf ? 'we gonna skip' : 'online');
+            if (orDontIf) {
               throw BackendCommunicationException(
                   'we prefer the local variant');
-            await tryNetwork(requestType: requestType);
+            }
+            // debugPrint(_ukey.toString() + 'network?');
+            final __x = await tryNetwork(requestType: requestType);
+            // debugPrint(_ukey.toString() + 'network worked');
             final bool wantsmerged = merge != null &&
                 Options().canBeOffline &&
                 (Options().mergeOnlineEvenInCached ||
                     Options().mergeOnline && !_itPrefersCache);
-            final bool wantsonline =
+            final bool wantsonline = forceOnline ??
                 //TODO: okay but this might be the wrong type
-                Options().preferRemoteData || Options().preferRemoteImgs;
+                (Options().preferRemoteData || Options().preferRemoteImgs);
             if (wantsonline || wantsmerged) {
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
               if (wantsonline) controller.add(onlineRes);
               if (wantsmerged)
                 controller.add(await merge(offlineRes, onlineRes));
+              // debugPrint(_ukey.toString() +
+              //     'online succeeded: ' +
+              //     onlineRes.toString());
             }
+            // debugPrint(_ukey.toString() +
+            //     'ran online ' +
+            //     wantsonline.toString() +
+            //     wantsmerged.toString());
           } catch (e) {
-            bool log = rap.rd.logIfFailed ??
-                (requestType != Helper.SimulatedRequestType.GET);
-            if (onlineFailedCB != null)
-              await onlineFailedCB(offlineRes, rap);
-            else if (log) await local.logFailedReq(rap.rd);
-            if (Options().debugLocalMirror)
-              debugPrint(
-                  'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $e');
+            // debugPrint(_ukey.toString() + 'online failed: ' + e.toString());
+            _latestErr = e;
+            return false;
           }
+          return true;
         }
 
-        await doOnline(
-          orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
-        );
-        bool offlineFailed = !await canBeClosed;
-        if (offlineFailed && Options().tryOnlineIfOfflineFailed)
-          await doOnline();
+        onlineFailedProcedure() async {
+          bool log = rap.rd.logIfFailed ??
+              (requestType != Helper.SimulatedRequestType.GET);
+          if (onlineFailedCB != null)
+            await onlineFailedCB(offlineRes, rap);
+          else if (log) await local.logFailedReq(rap.rd);
+          if (Options().debugLocalMirror)
+            debugPrint(
+                'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $_latestErr');
+        }
+
+        List<bool> _success = await Future.wait([
+          doOnline(
+            orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
+          ),
+          doOffline(
+            orDontIf: !Options().canBeOffline,
+          )
+        ], eagerError: false);
+
+        bool onlineSucc = _success[0];
+        bool offlineSucc = _success[1];
+        var x = 0;
+        if (!onlineSucc && !offlineSucc && Options().tryOnlineIfOfflineFailed) {
+          // debugPrint(_ukey.toString() + 'trying online again');
+          onlineSucc = await doOnline(
+              forceOnline:
+                  true); //TODO: offline has to succeed normally so we dont fetch online if we dont *really* need to
+        }
         controller.close();
+        if (!onlineSucc) onlineFailedProcedure();
       },
     );
     return controller.stream;
@@ -146,6 +180,7 @@ class API {
     Duration? timeout,
     required Helper.SimulatedRequestType requestType,
   }) async {
+    // debugPrint('network testing..');
     //check network
     if (Options().forceOffline)
       throw NoConnectionToBackendException(
@@ -158,6 +193,7 @@ class API {
                 !Options().useMobileNetworkForUpload) ||
             !Options().useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
+    // debugPrint('network good');
   }
 
   Future<String> get rootID async => (await user)!.name;
@@ -308,9 +344,16 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.setMainImageByHash(data, hash,
-          caller: caller, forceUpdate: forceUpdate),
-      online: () => remote.setMainImageByHash(data, hash),
+      offline: () => local.setMainImageByHash(
+        data,
+        hash,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.setMainImageByHash(
+        data,
+        hash,
+      ),
       requestType: requestType,
     ).last;
   }
@@ -318,13 +361,23 @@ class API {
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
     DataT data,
-    List<XFile> files,
-  ) async {
+    List<XFile> files, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.uploadFiles(data, files),
-      online: () => remote.uploadFiles(data, files),
+      offline: () => local.uploadFiles(
+        data,
+        files,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.uploadFiles(
+        data,
+        files,
+      ),
       onlineFailedCB: (onlineRes, rap) {},
       requestType: requestType,
     ).last;

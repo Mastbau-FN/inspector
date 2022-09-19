@@ -79,9 +79,9 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
             boxShadow: isClicked
                 ? [
                     BoxShadow(
-                        color: theme.colorScheme.secondary.withAlpha(30),
-                        blurRadius: radius * .4,
-                        spreadRadius: 0)
+                        // color: theme.colorScheme.primary.withAlpha(30),
+                        blurRadius: radius,
+                        spreadRadius: -radius * .5)
                   ]
                 : [],
             color: isClicked
@@ -296,7 +296,7 @@ class _PaddedButton extends StatelessWidget {
           },
           icon: Icon(
             icon,
-            color: Theme.of(context).primaryColor,
+            // color: Theme.of(context).primaryColor,
           ),
         ),
       );
