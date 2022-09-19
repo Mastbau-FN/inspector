@@ -93,28 +93,43 @@ class API {
 
     Future<RequestAndParser<R, T>>(online).then(
       (rap) async {
+        // final _ukey = UniqueKey();
         late Object _latestErr;
-        Future<bool> doOnline({bool orDontIf = false}) async {
+        Future<bool> doOnline(
+            {bool orDontIf = false, bool? forceOnline}) async {
+          // debugPrint(_ukey.toString() + 'running online');
           try {
-            if (orDontIf)
+            // debugPrint(orDontIf ? 'we gonna skip' : 'online');
+            if (orDontIf) {
               throw BackendCommunicationException(
                   'we prefer the local variant');
-            await tryNetwork(requestType: requestType);
+            }
+            // debugPrint(_ukey.toString() + 'network?');
+            final __x = await tryNetwork(requestType: requestType);
+            // debugPrint(_ukey.toString() + 'network worked');
             final bool wantsmerged = merge != null &&
                 Options().canBeOffline &&
                 (Options().mergeOnlineEvenInCached ||
                     Options().mergeOnline && !_itPrefersCache);
-            final bool wantsonline =
+            final bool wantsonline = forceOnline ??
                 //TODO: okay but this might be the wrong type
-                Options().preferRemoteData || Options().preferRemoteImgs;
+                (Options().preferRemoteData || Options().preferRemoteImgs);
             if (wantsonline || wantsmerged) {
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
               if (wantsonline) controller.add(onlineRes);
               if (wantsmerged)
                 controller.add(await merge(offlineRes, onlineRes));
+              // debugPrint(_ukey.toString() +
+              //     'online succeeded: ' +
+              //     onlineRes.toString());
             }
+            // debugPrint(_ukey.toString() +
+            //     'ran online ' +
+            //     wantsonline.toString() +
+            //     wantsmerged.toString());
           } catch (e) {
+            // debugPrint(_ukey.toString() + 'online failed: ' + e.toString());
             _latestErr = e;
             return false;
           }
@@ -139,14 +154,17 @@ class API {
           doOffline(
             orDontIf: !Options().canBeOffline,
           )
-        ], eagerError: true);
+        ], eagerError: false);
 
         bool onlineSucc = _success[0];
         bool offlineSucc = _success[1];
         var x = 0;
-        if (!onlineSucc && !offlineSucc && Options().tryOnlineIfOfflineFailed)
-          onlineSucc =
-              await doOnline(); //TODO: why arent the images loaded here?
+        if (!onlineSucc && !offlineSucc && Options().tryOnlineIfOfflineFailed) {
+          // debugPrint(_ukey.toString() + 'trying online again');
+          onlineSucc = await doOnline(
+              forceOnline:
+                  true); //TODO: offline has to succeed normally so we dont fetch online if we dont *really* need to
+        }
         controller.close();
         if (!onlineSucc) onlineFailedProcedure();
       },
@@ -162,6 +180,7 @@ class API {
     Duration? timeout,
     required Helper.SimulatedRequestType requestType,
   }) async {
+    // debugPrint('network testing..');
     //check network
     if (Options().forceOffline)
       throw NoConnectionToBackendException(
@@ -174,6 +193,7 @@ class API {
                 !Options().useMobileNetworkForUpload) ||
             !Options().useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
+    // debugPrint('network good');
   }
 
   Future<String> get rootID async => (await user)!.name;
