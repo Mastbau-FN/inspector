@@ -116,6 +116,8 @@ class API {
                     Options().preferRemoteData ||
                     Options().preferRemoteImgs);
             if (wantsonline || wantsmerged) {
+              await Future.delayed(Duration(milliseconds: 100));
+              // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
               if (wantsonline) controller.add(onlineRes);
