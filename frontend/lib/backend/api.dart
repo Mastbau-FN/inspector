@@ -174,37 +174,6 @@ class API {
 
   // MARK: available Helpers
 
-      int first_working_image_index = 0;
-      String __hash = data.imagehashes![first_working_image_index];
-      data.mainImage = (__hash == Options.no_image_placeholder_name)
-          ? null
-          : _fetchImage_fut(__hash);
-      first_working_image_index++;
-
-      //but we get another image anyway, since we want one that we can show as preview
-      data.previewImage = IterateFuture.ordered_firstNonNull(data.imagehashes?.map(
-              (hash) => _fetchImage_fut(hash)
-              //.asBroadcastStream()
-              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-              ) ??
-          []);
-      //Future.doWhile(() => fetchdata)
-      //Future.any(data.imagehashes?.map(
-      //      (hash) => _fetchImage(hash),
-      //    ) ??
-      //    []);
-
-      if (Options.debugImages)
-        debugPrint("image-hashes: " + data.imagehashes.toString());
-
-      data.image_futures = data.imagehashes
-          ?.map((hash) => _fetchImage_fut(hash)
-              // .asBroadcastStream()
-              // .repeatLatest(), //XXX: we dont want them to be broadcasts but it seems to crash on statechange otherwise
-              )
-          .toList()
-          .sublist((__hash == Options.no_image_placeholder_name) ? 1 : 0);
-
   /// checks whether a connection to the network is allowed
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
   Future tryNetwork({
