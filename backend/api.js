@@ -3,6 +3,7 @@ const location = require("./extern/location");
 
 const imghasher = require("./images/hash");
 const path = require("path");
+const options = require("./options");
 
 const identifiers = require("./misc/identifiers").identifiers;
 
@@ -44,9 +45,9 @@ const login = (req, res) => {
 const getProjects = (req, res, next) =>
   errsafejson(
     async () =>
-      await location.addCoords(
-        await (await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds()
-      ),
+      await (async (_x) => { let x = await _x; return options.useReverseLocationAPI ? await location.addCoords(x): x})
+        ((await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds())
+    ,
     (x) => {
       var ret = {};
       ret[`${identifiers.location}s`] = x;
