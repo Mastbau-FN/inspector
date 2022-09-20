@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/extension/map.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +15,7 @@ import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
 import 'api.dart';
 
-const LOCALLY_ADDED_IMAGE = '__locally_added__';
+const LOCALLY_ADDED_PREFIX = '__locally_added__';
 
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
@@ -78,7 +79,10 @@ class LocalMirror {
   }) async {
     //offline procedure, needs some stuff changed and added..
     if (caller != null && data != null && caller.id != null) {
-      data.id = /*'_on_' + */ (data.id ?? '__new__' + data.title);
+      final author = (await API().user)!.name;
+      data = Data.fromJson<DataT>(
+          data.toJson().copyWith({'Autor': author}))!; //kinda hacky
+      data.id = /*'_on_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
       OP.storeData<DataT>(data, forId: caller.id!);
       return data;
     }
@@ -93,7 +97,7 @@ class LocalMirror {
   }) async {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
-      data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+      data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
       OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
@@ -143,7 +147,7 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
-        data.id = /*'_oe_' + */ (data.id ?? '__new__' + data.title);
+        data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
         data.imagehashes!.remove(hash);
         data.imagehashes!.insert(0, hash);
         OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
@@ -164,7 +168,7 @@ class LocalMirror {
     List<String> newLocalImageNames = [];
     Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
-      final imageName = '$LOCALLY_ADDED_IMAGE${file.name}';
+      final imageName = '$LOCALLY_ADDED_PREFIX${file.name}';
       await OP.storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));
