@@ -80,7 +80,7 @@ class API {
     T onlineRes;
     Future<bool> doOffline({bool orDontIf = false}) async {
       if (orDontIf) return false;
-      Future<T>(offline).then((value) {
+      return Future<T>(offline).then((value) {
         offlineRes = value;
         controller.add(offlineRes);
         return true;
@@ -88,7 +88,6 @@ class API {
         debugPrint('offline failed: ' + err.toString());
         return false;
       });
-      return false;
     }
 
     Future<RequestAndParser<R, T>>(online).then(
@@ -113,7 +112,9 @@ class API {
                     Options().mergeOnline && !_itPrefersCache);
             final bool wantsonline = forceOnline ??
                 //TODO: okay but this might be the wrong type
-                (Options().preferRemoteData || Options().preferRemoteImgs);
+                ((requestType != Helper.SimulatedRequestType.GET) ||
+                    Options().preferRemoteData ||
+                    Options().preferRemoteImgs);
             if (wantsonline || wantsmerged) {
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
@@ -378,7 +379,12 @@ class API {
         data,
         files,
       ),
-      onlineFailedCB: (onlineRes, rap) {},
+      onlineFailedCB: (onlineRes, rap) {
+        debugPrint('failed to upload images, ' +
+            rap.rd.json.toString() +
+            ': ' +
+            onlineRes.toString());
+      },
       requestType: requestType,
     ).last;
   }

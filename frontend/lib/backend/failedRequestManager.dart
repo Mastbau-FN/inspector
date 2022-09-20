@@ -28,7 +28,7 @@ class FailedRequestmanager {
           rd.logIfFailed = false;
           final res = await API().remote.postJSON(rd);
           //nur 200er als ok einstufen
-          if (res!.statusCode == 200) {
+          if (res!.statusCode ~/ 100 == 2) {
             API().local.failedRequestWasSuccessful(docID);
           } else {
             success = false;
