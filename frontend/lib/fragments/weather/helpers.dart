@@ -1,8 +1,6 @@
 import 'package:MBG_Inspektionen/classes/data/weather.dart';
-import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:flutter/material.dart';
 import 'package:weather_icons/weather_icons.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 IconData weather2icon(Weather? w) => w == Weather.rain
     ? WeatherIcons.rain
@@ -45,6 +43,8 @@ Widget windDir2icon(WindDirection? wd) => wd != null
 
 //no idea why i'd need this but hey
 WindDirection? string2windDir(String? s) =>
+    // aint unneccessarryy
+    // ignore: unnecessary_cast
     ($WindDirectionEnumMap as Map<WindDirection?, String>)
         .entries
         .firstWhere((e) => e.value == s, orElse: () => MapEntry(null, 'null'))

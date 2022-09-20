@@ -1,4 +1,4 @@
-import 'package:camera/camera.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,6 +14,7 @@ Future main() async {
   // could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
 
   await dotenv.load(fileName: ".env");
+  await Options().load();
 
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`
@@ -25,23 +26,28 @@ Future main() async {
 /// how the App is called (shown in AppBar or Tab etc.)
 const String appTitle = 'MBG Inspektionen';
 
-/**
- * Main App entry point
- */
+/// Main App entry point
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: appTitle,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
+        useMaterial3: true,
+        colorScheme: Options().useSystemTheme
+            ? null
+            : ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch:
-              mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
-          brightness: Brightness.dark,
-        ),
+        useMaterial3: true,
+        colorScheme: Options().useSystemTheme
+            ? null
+            : ColorScheme.fromSwatch(
+                primarySwatch:
+                    mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
+                brightness: Brightness.dark,
+              ),
+        brightness: Brightness.dark,
       ),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,

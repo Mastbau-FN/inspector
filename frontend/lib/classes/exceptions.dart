@@ -24,7 +24,7 @@ class ResponseException implements Exception {
       } catch (e) {
         S.current.theBodyHadNoErrorField;
       }
-      return '${res?.statusCode}: ${error}';
+      return '${res?.statusCode}: $error';
     }
     return S.current.noResponse;
   }

@@ -1,6 +1,7 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/image.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -54,7 +55,7 @@ class CheckPointDefect extends Data
   @JsonKey(name: imagehashes_key)
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<ImageData?>>? image_futures;
+  List<Future<ImageData?>>? imageFutures;
   @JsonKey(ignore: true)
   Future<ImageData?>? mainImage;
   @JsonKey(ignore: true)
@@ -117,6 +118,7 @@ class CheckPointDefect extends Data
     try {
       return _$CheckPointDefectFromJson(json);
     } catch (e) {}
+    return null;
   }
 
   @override

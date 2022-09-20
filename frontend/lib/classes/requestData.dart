@@ -12,20 +12,31 @@ class RequestData {
   RequestData(
     this.route, {
     this.json,
-    this.multipart_files = const [],
+    this.multipartFiles = const [],
     this.timeout,
     this.returnsBinary = false,
-    this.logIfFailed = true,
+    this.logIfFailed,
   });
 
+  /// the route to the api
   String route;
+
+  /// the json data to send
   Map<String, dynamic>? json;
+
+  /// the files to send
   @JsonKey(toJson: _multipartFilesToJson, fromJson: _multipartFilesFromJson)
-  List<XFile> multipart_files;
+  List<XFile> multipartFiles;
+
+  /// the timeout for the request
   Duration? timeout;
+
+  /// if the request should return binary data
   bool returnsBinary;
+
+  /// if the request should log if it failed, null to fallback to default behaviour (log everything that doesnt simulate a Get-Request)
   @JsonKey(ignore: true)
-  bool logIfFailed;
+  bool? logIfFailed;
 
   Map<String, dynamic> get serialized => _$RequestDataToJson(this);
   static RequestData deserialize(Map<String, dynamic> json) =>

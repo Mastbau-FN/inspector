@@ -17,7 +17,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class ImagesPage<T extends Object> extends StatelessWidget {
-  List<Stream<ImageData<T>?>> _images = [];
+  late final List<Stream<ImageData<T>?>> _images;
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
   final bool hasMainImage;
@@ -29,15 +29,14 @@ class ImagesPage<T extends Object> extends StatelessWidget {
 
   static _default(Object _) => showToast(S.current.notAvailable);
 
-  static _defaultDelete(Object id) async {
-    try {
-      if (kDebugMode)
-        showToast(
-            (await Backend().deleteImageByHash(id.toString())).toString());
-    } catch (e) {
-      showToast(e.toString());
-    }
-  }
+  // static _defaultDelete(Object id) async {
+  //   try {
+  //     if (kDebugMode)
+  //       showToast((await API().deleteImageByHash(id.toString())).toString());
+  //   } catch (e) {
+  //     showToast(e.toString());
+  //   }
+  // }
 
   final Function(T) onDelete;
   final Function(T) onStar;
@@ -48,7 +47,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.columnCount = 4,
     Key? key,
     this.onNewImages = _defaultAdd,
-    this.onDelete = _defaultDelete,
+    this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
@@ -58,17 +57,17 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   }
 
   ImagesPage.futured({
-    List<Future<ImageData<T>?>>? future_images = const [],
+    List<Future<ImageData<T>?>>? futureImages = const [],
     this.columnCount = 4,
     Key? key,
     this.onNewImages = _defaultAdd,
-    this.onDelete = _defaultDelete,
+    this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
   }) : super(key: key) {
     this._images =
-        future_images?.map((e) => Stream.fromFuture(e)).toList() ?? [];
+        futureImages?.map((e) => Stream.fromFuture(e)).toList() ?? [];
   }
 
   ImagesPage.streamed({
@@ -76,7 +75,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.columnCount = 4,
     Key? key,
     this.onNewImages = _defaultAdd,
-    this.onDelete = _defaultDelete,
+    this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
@@ -328,8 +327,8 @@ class _ImageAddButtonState extends State<ImageAddButton>
         child: Icon(Icons.folder),
         onPressed: () async {
           // multipicker is a great solution for now, but could be much better (maybe use adder fragment)
-          final List<XFile>? new_images = await widget._picker.pickMultiImage();
-          var resstring = await widget.onNewImages(new_images ?? []);
+          final List<XFile>? newImages = await widget._picker.pickMultiImage();
+          var resstring = await widget.onNewImages(newImages ?? []);
           if (kDebugMode)
             showToast(resstring ??
                 S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);

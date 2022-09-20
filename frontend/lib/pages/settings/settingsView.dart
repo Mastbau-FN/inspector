@@ -1,17 +1,28 @@
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/options.dart';
+import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
-import '../../backend/api.dart';
 import '../../generated/l10n.dart';
+import '../../widgets/openNewViewTile.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;
   const SettingsView({Key? key, required this.logoutcontext}) : super(key: key);
+
+  Widget get developerOptions => OpenNewViewTile(
+        icon: Icons.developer_mode,
+        title: S.current.developerOptions,
+        newView: DeveloperSettings(),
+        // onPop: (_) {
+        //   Options().store();
+        // },
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +41,8 @@ class SettingsView extends StatelessWidget {
             Spacer(),
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
-            if (Options.canBeOffline) UploadSyncTile(),
+            if (Options().canBeOffline) UploadSyncTile(),
+            developerOptions,
             // DeleteCachedImages(),
           ],
         ),
@@ -51,11 +63,15 @@ class UploadSyncTile extends StatefulWidget {
 class _UploadSyncTileState extends State<UploadSyncTile> {
   bool loading = false;
   bool? success;
-  onPress() async {
+  onPress(c) async {
     setState(() {
       loading = true;
     });
-    bool s = await Backend().retryFailedrequests();
+    bool s = await FailedRequestmanager().retryFailedrequests().then((s) {
+      if (s) FailedRequestmanager().setOnlineTotal(c);
+      return s;
+    });
+
     setState(() {
       success = s;
     });
@@ -68,7 +84,7 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   Widget build(BuildContext context) => MyCardListTile1(
         icon: Icons.sync,
         text: S.current.uploadAndSyncData,
-        onTap: onPress,
+        onTap: () => onPress(context),
         child: loading
             ? LoadingView()
             : (success != null

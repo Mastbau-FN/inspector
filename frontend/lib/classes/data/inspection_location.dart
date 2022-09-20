@@ -1,11 +1,12 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
-import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import 'package:http/http.dart';
 import 'package:json_annotation/json_annotation.dart';
 import "package:latlong2/latlong.dart";
 
@@ -84,7 +85,7 @@ class InspectionLocation extends Data
       wind_speed: wind_speed,
       wind_direction: wind_direction);
 
-  @JsonKey(ignore: true)
+  // @JsonKey(ignore: true) //only needed on getter
   set weatherData(WeatherData value) {
     temp = value.temperature;
     weather = value.weather;
@@ -113,7 +114,7 @@ class InspectionLocation extends Data
   @JsonKey(name: 'images')
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
-  List<Future<ImageData?>>? image_futures;
+  List<Future<ImageData?>>? imageFutures;
   @JsonKey(ignore: true)
   Future<ImageData?>? mainImage;
   @JsonKey(ignore: true)
@@ -153,6 +154,7 @@ class InspectionLocation extends Data
     } catch (e) {
       debugPrint(e.toString());
     }
+    return null;
   }
 
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
@@ -166,20 +168,21 @@ Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
   return {'lat': latlng.latitude, 'lng': latlng.longitude};
 }
 
-LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic> map) {
+LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic>? map) {
   try {
-    return LatLng(map['lat'], map['lng']);
+    return LatLng(map!['lat'], map['lng']);
   } catch (e) {
     return null;
   }
 }
 
 class _RecursiveDownloadButton extends StatefulWidget {
+  // ignore: unused_element
   _RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
       : super(key: key);
 
   final int depth;
-  CategoryModel
+  final CategoryModel
       caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
 
   @override
@@ -196,8 +199,8 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       wasPressed = true;
     });
     //also edit this for finer granularity
-    var rootid = await Backend().rootID;
-    Backend()
+    var rootid = await API().rootID;
+    FailedRequestmanager()
         .loadAndCacheAll(widget.caller, widget.depth,
             name: widget.caller.title, parentID: rootid)
         .then((succs) => setState(() {

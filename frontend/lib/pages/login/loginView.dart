@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/pages/homeView.dart';
@@ -78,8 +77,8 @@ class LoginWrapper extends StatelessWidget {
 /// {@category Login}
 /// The Login View with username and password field
 class LoginView extends StatelessWidget {
-  String title;
-  LoginView({required this.title, Key? key}) : super(key: key);
+  final String title;
+  const LoginView({required this.title, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -132,13 +131,13 @@ class _LoginFieldState extends State<LoginField> {
 
   String? password;
 
-  String? error_message;
+  String? errorMessage;
 
   bool loading = false;
 
   Future logmein(BuildContext context) async {
     setState(() {
-      error_message = null;
+      errorMessage = null;
     });
     if (_formKey.currentState!.validate()) {
       final controller = ScaffoldMessenger.of(context).showSnackBar(
@@ -155,17 +154,17 @@ class _LoginFieldState extends State<LoginField> {
 
         controller.close();
         setState(() {
-          error_message = null;
+          errorMessage = null;
           loading = false;
         });
       } catch (e) {
         try {
           controller.close();
         } catch (e) {
-          'the controller was already closed';
+          //'the controller was already closed';
         }
         setState(() {
-          error_message = e.toString();
+          errorMessage = e.toString();
           loading = false;
         });
       }
@@ -188,13 +187,13 @@ class _LoginFieldState extends State<LoginField> {
             )),
         AnimatedContainer(
           duration: Duration(milliseconds: 400),
-          height: error_message != null ? 70 + padding : 0,
+          height: errorMessage != null ? 70 + padding : 0,
           child: Padding(
             padding: const EdgeInsets.only(bottom: padding),
             child: AnimatedOpacity(
-                opacity: error_message != null ? 1 : 0,
+                opacity: errorMessage != null ? 1 : 0,
                 duration: Duration(milliseconds: 400),
-                child: ErrorText(error_message)),
+                child: ErrorText(errorMessage)),
           ),
         ),
         Container(

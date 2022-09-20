@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 
 class MySimpleAlertBox extends StatelessWidget {

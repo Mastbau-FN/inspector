@@ -94,7 +94,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
                               ?.label ??
                           ""))); //ahhh so thats why we learn functional programming
 
-          await Backend()
+          await API()
               .setNew(CheckPointDefect.fromJson(defect), caller: currentData);
           notifyListeners();
         },
@@ -103,7 +103,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           oufnessChooser,
           //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
         ],
-        textfield_list: [
+        textfieldList: [
           // InputData("KurzText", hint: "Name"), //removed according to #48
           InputData(CheckPointDefect.langText_key,
               hint: S.current.langTextHint),
@@ -147,10 +147,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 //   String get name => "KurzText";
 // }
 
+// ignore: must_be_immutable
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
   dynamic get json => _selected;
   String get name => CheckPointDefect.ereArt_key;
 
+  // ignore: non_constant_identifier_names
   static final int default_none = 5204;
 
   final List<int> choices = [default_none, 5201, 5202, 5203];

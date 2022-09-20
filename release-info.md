@@ -1,4 +1,3 @@
 # changes
 
-- height is a double
-- change in german locale
+- worked on #214 , big rewiring of mirroring logic

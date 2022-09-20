@@ -1,7 +1,6 @@
-import 'package:MBG_Inspektionen/assets/consts.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
-import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import '../generated/l10n.dart';
 
@@ -37,6 +36,7 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool isClicked = false;
   bool wasClicked = false;
 
+  // ignore: non_constant_identifier_names
   final transition_ms = 400;
 
   void popupGroup() {
@@ -79,9 +79,9 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
             boxShadow: isClicked
                 ? [
                     BoxShadow(
-                        color: theme.colorScheme.secondary.withAlpha(30),
-                        blurRadius: radius * .4,
-                        spreadRadius: 0)
+                        // color: theme.colorScheme.primary.withAlpha(30),
+                        blurRadius: radius,
+                        spreadRadius: -radius * .5)
                   ]
                 : [],
             color: isClicked
@@ -165,8 +165,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
 
   /// the data for each [TextField],
   /// ensure that all [InputData.varName]s are unique
-  final List<InputData> textfield_list;
-  final List<TextEditingController> _textfield_controller_list;
+  final List<InputData> textfieldList;
+  final List<TextEditingController> _textfieldControllerList;
   // final List<FocusNode> _textfield_focusnode_list;
 
   final Map<String, Map<String, dynamic>> json;
@@ -175,13 +175,13 @@ class Adder extends StatelessWidget implements JsonExtractable {
     this.name, {
     this.onSet,
     this.onCancel,
-    this.textfield_list = const [],
+    this.textfieldList = const [],
     this.children = const [],
-  })  : assert(textfield_list ==
-            textfield_list
+  })  : assert(textfieldList ==
+            textfieldList
                 .unique((x) => x.varName)), //all varnames need to be unique
-        this._textfield_controller_list =
-            textfield_list.map((tf) => TextEditingController()).toList(),
+        this._textfieldControllerList =
+            textfieldList.map((tf) => TextEditingController()).toList(),
         // this._textfield_focusnode_list =
         //     textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
@@ -209,9 +209,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
       return false;
     }
 
-    for (var i = 0; i < textfield_list.length; i++) {
-      json[name]![textfield_list[i].varName] =
-          _textfield_controller_list[i].text;
+    for (var i = 0; i < textfieldList.length; i++) {
+      json[name]![textfieldList[i].varName] = _textfieldControllerList[i].text;
     }
     children.forEach((child) {
       json[name]![child.name] = child.json;
@@ -235,11 +234,11 @@ class Adder extends StatelessWidget implements JsonExtractable {
           Spacer(),
           ...children,
           ...List.generate(
-            textfield_list.length,
+            textfieldList.length,
             (i) => _Input(
-              hint: textfield_list[i].hint,
+              hint: textfieldList[i].hint,
               isFirst: i == 0,
-              isLast: i == textfield_list.length - 1,
+              isLast: i == textfieldList.length - 1,
               // onDone: (name) {
               //   try {
               //     //TextInputAction.next;
@@ -251,8 +250,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
               //   }
               // },
               // fn: _textfield_focusnode_list[i],
-              c: _textfield_controller_list[i],
-              validator: textfield_list[i].verify,
+              c: _textfieldControllerList[i],
+              validator: textfieldList[i].verify,
             ),
           ),
           Row(
@@ -297,7 +296,7 @@ class _PaddedButton extends StatelessWidget {
           },
           icon: Icon(
             icon,
-            color: Theme.of(context).primaryColor,
+            // color: Theme.of(context).primaryColor,
           ),
         ),
       );
