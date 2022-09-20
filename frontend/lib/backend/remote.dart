@@ -78,6 +78,7 @@ class Remote {
       // check if we can reach our api
       await postJSON(RequestData(
         '/login',
+        // json: {'user': User('test  ', 'test').toJson()},
         timeout: timeout,
       )); ////logIfFailed: false));
     } catch (e) {
@@ -196,7 +197,7 @@ class Remote {
 
     parser(http.BaseResponse _res) async {
       final res = _res.forceRes();
-      if (res == null || res.statusCode % 100 != 2)
+      if (res == null || res.statusCode ~/ 100 != 2)
         return null;
       else {
         try {
@@ -284,7 +285,7 @@ class Remote {
       if (Options().debugAllResponses)
         debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
-      if (res != null && res.statusCode % 100 != 2) {
+      if (res != null && res.statusCode ~/ 100 != 2) {
         _maybeShowToast(
             "${S.current.anUnknownErrorOccured}, ${res.statusCode}: ${res.reasonPhrase}");
       }
@@ -311,7 +312,7 @@ class Remote {
       '/login',
     ))) ////logIfFailed: false)))
         ?.forceRes();
-    if (res != null && res.statusCode % 100 == 2) {
+    if (res != null && (res.statusCode ~/ 100 == 2)) {
       //success
       var resb = jsonDecode(res.body)['user'];
       _user?.fromMap(resb);
@@ -433,7 +434,7 @@ class Remote {
     );
 
     parser(http.BaseResponse res) async {
-      if (res.statusCode % 100 != 2) {
+      if (res.statusCode ~/ 100 != 2) {
         debugPrint('image uploading not ok: ${res.statusCode.toString()}');
         throw BackendCommunicationException(
             'we need a 2xx, but got ${res.statusCode}');
