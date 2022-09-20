@@ -80,7 +80,7 @@ class API {
     T onlineRes;
     Future<bool> doOffline({bool orDontIf = false}) async {
       if (orDontIf) return false;
-      Future<T>(offline).then((value) {
+      return Future<T>(offline).then((value) {
         offlineRes = value;
         controller.add(offlineRes);
         return true;
@@ -88,7 +88,6 @@ class API {
         debugPrint('offline failed: ' + err.toString());
         return false;
       });
-      return false;
     }
 
     Future<RequestAndParser<R, T>>(online).then(
