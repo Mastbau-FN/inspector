@@ -196,7 +196,7 @@ class Remote {
 
     parser(http.BaseResponse _res) async {
       final res = _res.forceRes();
-      if (res == null || res.statusCode != 200)
+      if (res == null || res.statusCode % 100 != 2)
         return null;
       else {
         try {
@@ -284,9 +284,9 @@ class Remote {
       if (Options().debugAllResponses)
         debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
-      if (res?.statusCode != 200) {
+      if (res != null && res.statusCode % 100 != 2) {
         _maybeShowToast(
-            "${S.current.anUnknownErrorOccured}, ${res?.statusCode}: ${res?.reasonPhrase}");
+            "${S.current.anUnknownErrorOccured}, ${res.statusCode}: ${res.reasonPhrase}");
       }
       return res;
     }
@@ -311,7 +311,7 @@ class Remote {
       '/login',
     ))) ////logIfFailed: false)))
         ?.forceRes();
-    if (res != null && res.statusCode == 200) {
+    if (res != null && res.statusCode % 100 == 2) {
       //success
       var resb = jsonDecode(res.body)['user'];
       _user?.fromMap(resb);
@@ -421,7 +421,7 @@ class Remote {
     DataT data,
     List<XFile> files,
   ) {
-    debugPrint('uploading images $files');
+    debugPrint('uploading images ${files.map((e) => e.name)}');
     var jsonData = data.toJson();
     final rd = RequestData(
       _uploadImage_r,
@@ -433,10 +433,10 @@ class Remote {
     );
 
     parser(http.BaseResponse res) async {
-      if (res.statusCode != 200) {
+      if (res.statusCode % 100 != 2) {
         debugPrint('image uploading not ok: ${res.statusCode.toString()}');
         throw BackendCommunicationException(
-            'we need a 200, but got ${res.statusCode}');
+            'we need a 2xx, but got ${res.statusCode}');
       }
       return (res.runtimeType == http.Response)
           ? (res as http.Response?)?.body //TODO meh remove crash und stuff
