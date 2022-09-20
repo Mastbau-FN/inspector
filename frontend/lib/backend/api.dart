@@ -112,7 +112,9 @@ class API {
                     Options().mergeOnline && !_itPrefersCache);
             final bool wantsonline = forceOnline ??
                 //TODO: okay but this might be the wrong type
-                (Options().preferRemoteData || Options().preferRemoteImgs);
+                ((requestType != Helper.SimulatedRequestType.GET) ||
+                    Options().preferRemoteData ||
+                    Options().preferRemoteImgs);
             if (wantsonline || wantsmerged) {
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
@@ -377,7 +379,12 @@ class API {
         data,
         files,
       ),
-      onlineFailedCB: (onlineRes, rap) {},
+      onlineFailedCB: (onlineRes, rap) {
+        debugPrint('failed to upload images, ' +
+            rap.rd.json.toString() +
+            ': ' +
+            onlineRes.toString());
+      },
       requestType: requestType,
     ).last;
   }
