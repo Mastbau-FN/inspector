@@ -9,12 +9,13 @@ part of 'options.dart';
 Options _$OptionsFromJson(Map<String, dynamic> json) => Options()
   ..canBeOffline = json['canBeOffline'] as bool
   ..forceOffline = json['forceOffline'] as bool
+  ..tryOnlineIfOfflineFailed = json['tryOnlineIfOfflineFailed'] as bool
   ..useMobileNetworkForUpload = json['useMobileNetworkForUpload'] as bool
   ..useMobileNetworkForDownload = json['useMobileNetworkForDownload'] as bool
   ..preferRemoteData = json['preferRemoteData'] as bool
   ..preferRemoteImgs = json['preferRemoteImgs'] as bool
   ..tryOnlineUploadRequestsInCachedMode =
-      json['tryOnlineRequestsInCachedMode'] as bool
+      json['tryOnlineUploadRequestsInCachedMode'] as bool
   ..mergeOnline = json['mergeOnline'] as bool
   ..mergeOnlineEvenInCached = json['mergeOnlineEvenInCached'] as bool
   ..infinitelyreloadPictures = json['infinitelyreloadPictures'] as bool
@@ -23,16 +24,18 @@ Options _$OptionsFromJson(Map<String, dynamic> json) => Options()
   ..showDoggo = json['showDoggo'] as bool
   ..debugAllResponses = json['debugAllResponses'] as bool
   ..debugLocalMirror = json['debugLocalMirror'] as bool
-  ..debugImages = json['debugImages'] as bool;
+  ..debugImages = json['debugImages'] as bool
+  ..useSystemTheme = json['useSystemTheme'] as bool;
 
 Map<String, dynamic> _$OptionsToJson(Options instance) => <String, dynamic>{
       'canBeOffline': instance.canBeOffline,
       'forceOffline': instance.forceOffline,
+      'tryOnlineIfOfflineFailed': instance.tryOnlineIfOfflineFailed,
       'useMobileNetworkForUpload': instance.useMobileNetworkForUpload,
       'useMobileNetworkForDownload': instance.useMobileNetworkForDownload,
       'preferRemoteData': instance.preferRemoteData,
       'preferRemoteImgs': instance.preferRemoteImgs,
-      'tryOnlineRequestsInCachedMode':
+      'tryOnlineUploadRequestsInCachedMode':
           instance.tryOnlineUploadRequestsInCachedMode,
       'mergeOnline': instance.mergeOnline,
       'mergeOnlineEvenInCached': instance.mergeOnlineEvenInCached,
@@ -43,4 +46,5 @@ Map<String, dynamic> _$OptionsToJson(Options instance) => <String, dynamic>{
       'debugAllResponses': instance.debugAllResponses,
       'debugLocalMirror': instance.debugLocalMirror,
       'debugImages': instance.debugImages,
+      'useSystemTheme': instance.useSystemTheme,
     };

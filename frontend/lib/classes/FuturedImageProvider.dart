@@ -53,6 +53,12 @@ class FuturedImageProvider implements ImageProvider {
           Object key, ImageErrorListener handleError) async =>
       (await futureImage)
           .resolveStreamForKey(configuration, stream, key, handleError);
+
+  @override
+  ImageStreamCompleter loadBuffer(Object key, DecoderBufferCallback decode) {
+    // TODO: implement loadBuffer
+    return _imageStream!.completer!;
+  }
 }
 
 // class _FutureImageStreamCompleter implements ImageStreamCompleter {

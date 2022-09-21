@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -30,37 +31,37 @@ const String appTitle = 'MBG Inspektionen';
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: appTitle,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: Options().useSystemTheme
-            ? null
-            : ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: Options().useSystemTheme
-            ? null
-            : ColorScheme.fromSwatch(
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) => MaterialApp(
+        title: appTitle,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: (Options().useSystemTheme ? lightDynamic : null) ??
+              ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
+        ),
+        darkTheme: ThemeData(
+          useMaterial3: true,
+          colorScheme: (Options().useSystemTheme ? darkDynamic : null) ??
+              ColorScheme.fromSwatch(
                 primarySwatch:
                     mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
                 brightness: Brightness.dark,
               ),
-        brightness: Brightness.dark,
+          brightness: Brightness.dark,
+        ),
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          S.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
+        home: kIsWeb
+            ? WebWrap(
+                title: appTitle,
+              )
+            : LoginWrapper(title: appTitle),
       ),
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        S.delegate,
-      ],
-      supportedLocales: S.delegate.supportedLocales,
-      home: kIsWeb
-          ? WebWrap(
-              title: appTitle,
-            )
-          : LoginWrapper(title: appTitle),
     );
   }
 }
