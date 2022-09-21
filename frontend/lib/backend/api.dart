@@ -259,25 +259,30 @@ class API {
     assert((await API().user) != null,
         S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
 
+    Future<List<ChildData>> merge(
+        List<ChildData> cached, List<ChildData> upstream) async {
+      try {
+        cached.retainWhere((element) => (element as WithOffline).forceOffline);
+        var cachedIds = cached.map((element) => element.id).toList();
+        upstream.retainWhere(
+            (element) => element.id != null && !cachedIds.contains(element.id));
+        upstream.addAll(cached);
+        return upstream;
+      } catch (e) {
+        debugPrint("error merging data: " + e.toString());
+        return cached;
+      }
+    }
+
     yield* _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.getNextDatapoint(data),
       online: () => remote.getNextDatapoint(data),
+      onlineSuccessCB: (childDatas) => childDatas.forEach((childData) async {
+        await local.storeData(childData, forId: data!.id!, override: false);
+      }),
       requestType: requestType,
-      merge: (cached, upstream) async {
-        try {
-          cached
-              .retainWhere((element) => (element as WithOffline).forceOffline);
-          var cachedIds = cached.map((element) => element.id).toList();
-          upstream.retainWhere((element) =>
-              element.id != null && !cachedIds.contains(element.id));
-          upstream.addAll(cached);
-          return upstream;
-        } catch (e) {
-          debugPrint("error merging data: " + e.toString());
-          return cached;
-        }
-      },
+      merge: merge,
     );
   }
 
