@@ -115,7 +115,7 @@ class LocalMirror {
         data != null &&
         caller.id != null &&
         data.id != null) {
-      OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+      await OP.deleteData<DataT>(data.id!, parentId: caller.id!);
       return 'success';
     }
     return null;
