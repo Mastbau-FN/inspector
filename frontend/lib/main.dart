@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -16,6 +17,7 @@ Future main() async {
 
   await dotenv.load(fileName: ".env");
   await Options().load();
+  await NewImages.load();
 
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`

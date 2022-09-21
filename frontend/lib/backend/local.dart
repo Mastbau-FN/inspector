@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
 import 'package:flutter/cupertino.dart';
@@ -191,6 +192,7 @@ class LocalMirror {
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
     OP.storeData(data, forId: caller?.id ?? await API().rootID);
+    NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
     //TODO: test #211
   }

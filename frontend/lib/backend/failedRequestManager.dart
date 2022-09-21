@@ -149,29 +149,47 @@ class FailedRequestmanager {
   }
 }
 
-class NewImages {
-  Map<String, String?> localImageToRemoteImage_ = {};
-  Future<Map<String, String?>> get() async {
-    await load();
+class NewImages /*extends Map<String, String?>*/ {
+  factory NewImages() => _instance;
+  static final NewImages _instance = NewImages._internal();
+  NewImages._internal() {
+    load();
+  }
+
+  static Map<String, String?> localImageToRemoteImage_ = {};
+  static Future<Map<String, String?>> get() async {
+    // await load();
     return localImageToRemoteImage_;
   }
 
-  set(Map<String, String?> map) async {
+  static set(Map<String, String?> map) async {
     localImageToRemoteImage_ = map;
     await store();
   }
 
-  add(String local, String remote) async {
-    return await addAll({local: remote});
+  static add(String local, String remote) => addAll({local: remote});
+
+  static remove(String local) async {
+    // await load();
+    localImageToRemoteImage_.remove(local);
+    await store();
   }
 
-  addAll(Map<String, String?> map) async {
-    await load();
+  static clear() async {
+    localImageToRemoteImage_.clear();
+    await store();
+  }
+
+  static addAll(Map<String, String?> map) async {
+    // await load();
     localImageToRemoteImage_.addAll(map);
     await store();
   }
 
+  static addAllNulled(List<String> l) => addAll({for (var e in l) e: null});
+
   static const _IMGDOC_ = 'localImageToRemoteImageMap';
-  store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
-  load() async => localImageToRemoteImage_ = await getJson(_IMGDOC_) ?? {};
+  static store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
+  static load() async =>
+      localImageToRemoteImage_ = await getJson(_IMGDOC_) ?? {};
 }
