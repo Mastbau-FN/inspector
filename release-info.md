@@ -1,3 +1,3 @@
 # changes
 
-- system theming possible
+- better icon
