@@ -1,7 +1,9 @@
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/namedToggle.dart';
 import 'package:flutter/material.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
 
 class DeveloperSettings extends StatelessWidget {
   const DeveloperSettings({Key? key}) : super(key: key);
@@ -12,6 +14,10 @@ class DeveloperSettings extends StatelessWidget {
       appBar: AppBar(title: Text(S.of(context).developerOptions)),
       body: ListView(
         children: [
+          MyCardListTile1(
+            text: 'total reset',
+            onTap: () => OP.deleteAll(),
+          ),
           // NamedToggle(name: 'x', initiallyOn: false),
           ...Options().setteableBools().entries.map((x) {
             final name = x.key;

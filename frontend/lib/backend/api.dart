@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -280,7 +281,8 @@ class API {
       online: () => remote.getNextDatapoint(data),
       onlineSuccessCB: (childDatas) => childDatas.forEach((childData) async {
         await local.storeData(childData,
-            forId: data?.id ?? await API().rootID, override: false);
+            forId: data?.id ?? await API().rootID,
+            overrideMode: OverrideMode.abortIfExistent);
       }),
       requestType: requestType,
       merge: merge,
@@ -408,6 +410,7 @@ class API {
         data,
         files,
       ),
+      onlineSuccessCB: (response) async {},
       onlineFailedCB: (onlineRes, rap) {
         debugPrint('failed to upload images, ' +
             rap.rd.json.toString() +

@@ -15,6 +15,7 @@ import 'offlineProvider.dart' /*as OP*/ show storeJson, getJson;
 
 class FailedRequestmanager {
   Future<bool> retryFailedrequests() async {
+    //TODO: replace image hashes according to NewImages
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -188,7 +189,7 @@ class NewImages /*extends Map<String, String?>*/ {
 
   static addAllNulled(List<String> l) => addAll({for (var e in l) e: null});
 
-  static const _IMGDOC_ = 'localImageToRemoteImageMap';
+  static const _IMGDOC_ = '__localImageToRemoteImageMap__';
   static store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
   static load() async =>
       localImageToRemoteImage_ = await getJson(_IMGDOC_) ?? {};

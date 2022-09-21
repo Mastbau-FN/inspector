@@ -60,7 +60,8 @@ Future<File> deleteImage(String name) async {
   return await file.delete() as File;
 }
 
-deleteAll() async => Directory(await _localPath).delete();
+deleteAll() async =>
+    (await getApplicationDocumentsDirectory()).delete(recursive: true);
 
 //MARK: data-stuff
 
@@ -76,18 +77,33 @@ String _getCollectionNameForData<DataT extends Data>(String parentId) {
   // return dataName + '-' + parentId;
 }
 
+enum OverrideMode { abortIfExistent, update, createNew }
+
 /// permanently stores a DataT in its corresponding collection
-Future<String> storeData<DataT extends Data>(DataT data,
-    {required String forId, bool addId = true, bool override = true}) async {
+Future<String> storeData<DataT extends Data>(
+  DataT data, {
+  required String forId,
+  bool addId = true,
+  OverrideMode overrideMode = OverrideMode.update,
+}) async {
   final collectionName = _getCollectionNameForData<DataT>(forId);
 
   var json = data.toJson();
   String? oldId = data.id ?? json['local_id'];
 
+  final isExistent = (await db.collection(collectionName).get())!
+      .keys
+      .contains('/$collectionName/$oldId');
+  if (overrideMode == OverrideMode.abortIfExistent && isExistent) {
+    debugPrint('wont override $oldId');
+    return '';
+  }
+
   //create a new document with new id if wanted
-  final id = (override && oldId != null)
-      ? oldId
-      : db.collection(collectionName).doc().id;
+  final id =
+      ((!isExistent || overrideMode == OverrideMode.update) && oldId != null)
+          ? oldId
+          : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
   if (Options().debugLocalMirror) debugPrint("stored json: " + json.toString());
