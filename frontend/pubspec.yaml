@@ -102,6 +102,9 @@ dependencies:
   # for material you custom color theming
   dynamic_color: ^1.5.4
 
+  # to displays svg duh
+  flutter_svg: ^1.1.5
+
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9
 

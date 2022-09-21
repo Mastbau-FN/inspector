@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/pages/homeView.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../generated/l10n.dart';
@@ -92,8 +93,10 @@ class LoginView extends StatelessWidget {
             child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image(
-              image: AssetImage('lib/assets/MBG.webp'),
+            SvgPicture.asset(
+              'lib/assets/icon_smooth.svg',
+              semanticsLabel: 'MBG Logo',
+              color: Theme.of(context).colorScheme.primary,
             ),
             SizedBox(height: 20),
             LoginField(

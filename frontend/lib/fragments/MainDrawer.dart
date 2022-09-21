@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
 import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../generated/l10n.dart';
@@ -75,16 +76,20 @@ class MainDrawerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return DrawerHeader(
       child: Center(
-        child: Image(image: AssetImage('lib/assets/MBG.webp')),
+        child: SvgPicture.asset(
+          'lib/assets/icon_smooth.svg',
+          semanticsLabel: 'MBG Logo',
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, colors: [
-          Theme.of(context).primaryColorDark.withAlpha(200),
-          Theme.of(context).canvasColor,
-          //Theme.of(context).primaryColor.withAlpha(250),
-        ]),
-        //color: Theme.of(context).primaryColor,
-      ),
+      // decoration: BoxDecoration(
+      //   gradient: LinearGradient(begin: Alignment.topLeft, colors: [
+      //     Theme.of(context).primaryColorDark.withAlpha(200),
+      //     Theme.of(context).canvasColor,
+      //     //Theme.of(context).primaryColor.withAlpha(250),
+      //   ]),
+      //   //color: Theme.of(context).primaryColor,
+      // ),
     );
   }
 }
