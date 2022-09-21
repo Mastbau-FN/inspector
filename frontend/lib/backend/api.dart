@@ -65,11 +65,21 @@ class API {
     ///
     /// e.g.:
     /// ```dart
-    /// onlineFailedCB(T onlineResult, RequestAndParser<R, T> requestAndParser) async {
+    /// onlineFailedCB(T offlineResult, RequestAndParser<R, T> requestAndParser) async {
     ///   modifyReq(requestAndParser.rd);
     /// };
     /// ```
-    FutureOr<T> Function(T, RequestAndParser<R, T>)? onlineFailedCB,
+    FutureOr Function(T, RequestAndParser<R, T>)? onlineFailedCB,
+
+    /// a callback that is called if the online request succeeds, it gets passed the online result
+    ///
+    /// e.g.:
+    /// ```dart
+    /// onlineFailedCB(T onlineResult) async {
+    ///   cache(onlineResult);
+    /// };
+    /// ```
+    FutureOr Function(T)? onlineSuccessCB,
     required Helper.SimulatedRequestType requestType,
     bool? itPrefersCache = false,
   }) {
@@ -77,7 +87,7 @@ class API {
     // late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
-    T onlineRes;
+    late T onlineRes;
     Future<bool> doOffline({bool orDontIf = false}) async {
       if (orDontIf) return false;
       return Future<T>(offline).then((value) {
@@ -150,6 +160,10 @@ class API {
                 'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $_latestErr');
         }
 
+        onlineSuccessProcedure() async {
+          if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
+        }
+
         List<bool> _success = await Future.wait([
           doOnline(
             orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
@@ -169,7 +183,7 @@ class API {
                   true); //TODO: offline has to succeed normally so we dont fetch online if we dont *really* need to
         }
         controller.close();
-        if (!onlineSucc) onlineFailedProcedure();
+        onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
       },
     );
     return controller.stream;
