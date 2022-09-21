@@ -96,6 +96,7 @@ class API {
         controller.add(offlineRes);
         return true;
       }, onError: (err) {
+        if (err is NoImagePlaceholderException) return true;
         debugPrint('offline failed: ' + err.toString());
         return false;
       });
@@ -280,9 +281,12 @@ class API {
       offline: () => local.getNextDatapoint(data),
       online: () => remote.getNextDatapoint(data),
       onlineSuccessCB: (childDatas) => childDatas.forEach((childData) async {
-        await local.storeData(childData,
-            forId: data?.id ?? await API().rootID,
-            overrideMode: OverrideMode.abortIfExistent);
+        await local.storeData(
+          childData,
+          forId: data?.id ?? await API().rootID,
+          //TODO: uncomment this as soon as offline can mirror everything well #211
+          // overrideMode: OverrideMode.abortIfExistent,
+        );
       }),
       requestType: requestType,
       merge: merge,
@@ -410,7 +414,9 @@ class API {
         data,
         files,
       ),
-      onlineSuccessCB: (response) async {},
+      onlineSuccessCB: (response) async {
+        //TODO: get actual hash and replace (in NewImages and in Data)
+      },
       onlineFailedCB: (onlineRes, rap) {
         debugPrint('failed to upload images, ' +
             rap.rd.json.toString() +

@@ -183,7 +183,7 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     List<String> newLocalImageNames = [];
-    Future.wait(files.map((file) async {
+    await Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
       final imageName = '$LOCALLY_ADDED_PREFIX${file.name}';
       await storeImage(bytes, imageName);

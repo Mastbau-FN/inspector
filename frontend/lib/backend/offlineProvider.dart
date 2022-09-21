@@ -42,10 +42,19 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
+class NoImagePlaceholderException implements Exception {
+  @override
+  String toString() =>
+      'tried to read the placeholder image, which of course is not there';
+}
+
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
-  if (!file.existsSync()) throw Exception("file $file doesnt exist");
+  final err = (name == Options().no_image_placeholder_name)
+      ? NoImagePlaceholderException()
+      : Exception("file $file doesnt exist");
+  if (!file.existsSync()) throw err;
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
@@ -91,9 +100,10 @@ Future<String> storeData<DataT extends Data>(
   var json = data.toJson();
   String? oldId = data.id ?? json['local_id'];
 
-  final isExistent = (await db.collection(collectionName).get())!
-      .keys
-      .contains('/$collectionName/$oldId');
+  final isExistent = ((await db.collection(collectionName).get())
+          ?.keys
+          .contains('/$collectionName/$oldId')) ??
+      false;
   if (overrideMode == OverrideMode.abortIfExistent && isExistent) {
     debugPrint('wont override $oldId');
     return '';
