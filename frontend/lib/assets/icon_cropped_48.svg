@@ -5,10 +5,9 @@
 <defs/>
 <g id="Untitled" vectornator:layerName="Untitled">
 <g opacity="1">
-<path d="M30.1313 38.1774L54.0656 30L78 38.1774L54.0656 46.3549L30.1313 38.1774Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="#921634" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
-<path d="M30.1313 69.8226L54.0199 61.6451L77.9085 69.8226L54.0199 78L30.1313 69.8226Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="#921634" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
-<path d="M30 41.99L65.4181 54.0868L30 66.1836L30 41.99Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="#921634" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
-<path d="M77.9601 41.9901L42.6277 54.0869L77.9601 66.1836L77.9601 41.9901Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="#921634" stroke-linecap="butt" stroke-linejoin="miter" stroke-width="1"/>
+<path d="M37 69.95L51 65.05C52.6569 64.4701 55.3431 64.4701 57 65.05L71 69.95C72.6569 70.5299 72.6569 71.4701 71 72.05L57 76.95C55.3431 77.5299 52.6569 77.5299 51 76.95L37 72.05C35.3431 71.4701 35.3431 70.5299 37 69.95Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="none"/>
+<path d="M57 33.05L71 37.95C72.6569 38.5299 72.6569 39.4701 71 40.05L57 44.95C55.3431 45.5299 52.6569 45.5299 51 44.95L37 40.05C35.3431 39.4701 35.3431 38.5299 37 37.95L51 33.05C52.6569 32.4701 55.3431 32.4701 57 33.05Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="none"/>
 </g>
+<path d="M74.4 43.2984L57.6 49.3578C55.6118 50.0749 52.3882 50.0749 50.4 49.3578L33.6 43.2984C31.6118 42.5813 30 43.7134 30 45.827L30 64.173C30 66.2866 31.6118 67.4187 33.6 66.7016L50.4 60.6422C52.3882 59.9251 55.6118 59.9251 57.6 60.6422L74.4 66.7016C76.3882 67.4187 78 66.2866 78 64.173L78 45.827C78 43.7134 76.3882 42.5813 74.4 43.2984Z" fill="#921634" fill-rule="nonzero" opacity="1" stroke="none"/>
 </g>
 </svg>
