@@ -283,7 +283,9 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(S.of(context).deletingImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => API()
-                                  .deleteImageByHash(data, hash.toString()))
+                                  .deleteImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
                               .then((value) {
                             _maybeShowToast(value);
                             return value;

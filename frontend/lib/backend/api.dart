@@ -345,12 +345,19 @@ class API {
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash<DataT extends Data>(
     DataT? data,
-    String hash,
-  ) async {
-    final requestType = Helper.SimulatedRequestType.DELETE;
+    String hash, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.deleteImageByHash(hash),
+      offline: () => local.setMainImageByHash(
+        data,
+        hash,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
       online: () => remote.deleteImageByHash(hash),
       requestType: requestType,
     ).last;

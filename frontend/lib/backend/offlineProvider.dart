@@ -124,6 +124,12 @@ Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
       [];
 }
 
+const OTHERCOLLECTION = 'other';
+final otherCollection = (db).collection(OTHERCOLLECTION);
+storeJson(String documentName, Map<String, dynamic> json) =>
+    otherCollection.doc(documentName).set(json);
+getJson(String documentName) => otherCollection.doc(documentName).get();
+
 final failedReqLogCollection = (db).collection('failed-requests');
 
 Future<String> logFailedReq(RequestData rd) async {

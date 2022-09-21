@@ -109,7 +109,6 @@ class LocalMirror {
     DataT? data, {
     Data? caller,
   }) async {
-    //TODO
     //offline procedure, needs some stuff changed and added..
     if (caller != null &&
         data != null &&
@@ -130,10 +129,26 @@ class LocalMirror {
   }
 
   /// deletes an image specified by its hash and returns the response
-  Future<String?> deleteImageByHash(String hash) async {
-    return null;
-
+  Future<String?> deleteImageByHash<DataT extends Data>(
+    DataT? data,
+    String hash, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
     //TODO: #211
+    //offline procedure, needs some stuff changed and added..
+    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+      try {
+        // data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+        OP.deleteImage(hash);
+        data.imagehashes!.remove(hash);
+        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        // return 'successfully deleted image offline';
+      } catch (e) {
+        debugPrint('failed to remove image locally');
+      }
+    }
+    return null;
   }
 
   /// sets an image specified by its hash as the new main image
@@ -147,10 +162,11 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
-        data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+        // data.id = (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
         data.imagehashes!.remove(hash);
         data.imagehashes!.insert(0, hash);
-        OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        // return 'successfully set main image offline';
       } catch (e) {
         debugPrint('failed to update main image locally');
       }
@@ -169,7 +185,7 @@ class LocalMirror {
     Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
       final imageName = '$LOCALLY_ADDED_PREFIX${file.name}';
-      await OP.storeImage(bytes, imageName);
+      await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));
     data.imagehashes?.addAll(newLocalImageNames);

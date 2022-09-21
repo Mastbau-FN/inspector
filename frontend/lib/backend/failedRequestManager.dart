@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +11,7 @@ import '../pages/checkcategories.dart';
 import '../pages/location.dart';
 import 'api.dart';
 import 'helpers.dart' as Helper;
+import 'offlineProvider.dart' /*as OP*/ show storeJson, getJson;
 
 class FailedRequestmanager {
   Future<bool> retryFailedrequests() async {
@@ -144,4 +147,31 @@ class FailedRequestmanager {
           name: _name, parentID: nextid);
     }
   }
+}
+
+class NewImages {
+  Map<String, String?> localImageToRemoteImage_ = {};
+  Future<Map<String, String?>> get() async {
+    await load();
+    return localImageToRemoteImage_;
+  }
+
+  set(Map<String, String?> map) async {
+    localImageToRemoteImage_ = map;
+    await store();
+  }
+
+  add(String local, String remote) async {
+    return await addAll({local: remote});
+  }
+
+  addAll(Map<String, String?> map) async {
+    await load();
+    localImageToRemoteImage_.addAll(map);
+    await store();
+  }
+
+  static const _IMGDOC_ = 'localImageToRemoteImageMap';
+  store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
+  load() async => localImageToRemoteImage_ = await getJson(_IMGDOC_) ?? {};
 }
