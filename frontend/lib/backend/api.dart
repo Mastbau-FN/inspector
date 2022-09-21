@@ -279,7 +279,8 @@ class API {
       offline: () => local.getNextDatapoint(data),
       online: () => remote.getNextDatapoint(data),
       onlineSuccessCB: (childDatas) => childDatas.forEach((childData) async {
-        await local.storeData(childData, forId: data!.id!, override: false);
+        await local.storeData(childData,
+            forId: data?.id ?? await API().rootID, override: false);
       }),
       requestType: requestType,
       merge: merge,
