@@ -163,7 +163,9 @@ class API {
         }
 
         onlineSuccessProcedure() async {
-          if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
+          if (onlineSuccessCB != null)
+            await onlineSuccessCB(
+                onlineRes); //XXX: vllt das onsuccess lieber dem rd übergeben?
         }
 
         List<bool> _success = await Future.wait([
