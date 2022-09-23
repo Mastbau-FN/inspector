@@ -176,7 +176,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   release-playstore:
-    if: github.ref_name == 'release'
+    if: false #github.ref_name == 'release'
     needs: build-app
     name: Release to the google playstore
     runs-on: ubuntu-latest
