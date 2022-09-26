@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
