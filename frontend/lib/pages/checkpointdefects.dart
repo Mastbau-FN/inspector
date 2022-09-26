@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
@@ -64,7 +65,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   Widget? get floatingActionButton {
     var oufnessChooser = OufnessChooser();
     return TransformableActionbutton(
-      expandedHeight: 330,
+      expandedHeight:
+          300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
       expandedChild: (onCancel) => Adder(
         'checkpointdefect',
         onSet: (json) async {
