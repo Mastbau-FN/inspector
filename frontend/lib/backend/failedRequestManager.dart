@@ -27,7 +27,7 @@ class FailedRequestmanager {
     for (final reqd in failedReqs) {
       final docID = reqd.item1;
       final rd = reqd.item2;
-      if (rd != null)
+      if (rd != null) {
         try {
           rd.logIfFailed = false;
           final res = await API().remote.postJSON(rd);
@@ -43,6 +43,7 @@ class FailedRequestmanager {
           debugPrint('failed to retry request: $e');
           success = false;
         }
+      }
     }
     return success;
   }
