@@ -16,7 +16,7 @@ const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
 class TransformableActionbutton extends StatefulWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
-  // final double expandedHeight;
+  final double? expandedHeight;
 
   //XXX: could blur background
 
@@ -27,7 +27,7 @@ class TransformableActionbutton extends StatefulWidget {
     this.collapsedChild = const Icon(Icons.add),
     required this.expandedChild,
     this.padding = const EdgeInsets.all(15),
-    // this.expandedHeight = 400,
+    this.expandedHeight = 400,
   }) : super(key: key);
 
   @override
@@ -111,8 +111,9 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
                   duration: Duration(milliseconds: transition_ms),
                   constraints: isClicked
                       ? BoxConstraints(
-                          maxHeight:
-                              ANIMATE ? constraints.maxHeight : double.infinity,
+                          maxHeight: ANIMATE
+                              ? (widget.expandedHeight ?? constraints.maxHeight)
+                              : double.infinity,
                           maxWidth:
                               constraints.maxWidth - widget.padding.horizontal)
                       : Theme.of(context)

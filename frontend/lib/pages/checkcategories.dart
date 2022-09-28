@@ -63,7 +63,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
 
   @override
   Widget? get floatingActionButton => TransformableActionbutton(
-        // expandedHeight: 200,
+        expandedHeight: 250,
         expandedChild: (onCancel) => Adder(
           'checkpoint',
           onSet: (json) async {
