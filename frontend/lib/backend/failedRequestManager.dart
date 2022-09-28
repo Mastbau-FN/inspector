@@ -157,8 +157,8 @@ class NewImages /*extends Map<String, String?>*/ {
     load();
   }
 
-  static Map<String, String?> localImageToRemoteImage_ = {};
-  static Future<Map<String, String?>> get() async {
+  static Map<String, dynamic> localImageToRemoteImage_ = {};
+  static Future<Map<String, dynamic>> get() async {
     // await load();
     return localImageToRemoteImage_;
   }
@@ -191,6 +191,9 @@ class NewImages /*extends Map<String, String?>*/ {
 
   static const _IMGDOC_ = '__localImageToRemoteImageMap__';
   static store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
-  static load() async =>
-      localImageToRemoteImage_ = await getJson(_IMGDOC_) ?? {};
+  static load() async {
+    final json = await getJson(_IMGDOC_);
+    debugPrint('loaded: $json');
+    localImageToRemoteImage_ = json ?? {};
+  }
 }
