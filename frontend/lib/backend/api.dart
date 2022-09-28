@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
@@ -73,6 +74,7 @@ class API {
     FutureOr Function(T, RequestAndParser<R, T>)? onlineFailedCB,
 
     /// a callback that is called if the online request succeeds, it gets passed the online result
+    /// keep in mind that this is called INSTEAD OF the normal logging
     ///
     /// e.g.:
     /// ```dart
@@ -306,6 +308,9 @@ class API {
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
+      onlineSuccessCB: (response) async {
+        // TODO
+      },
       requestType: requestType,
     ).last;
   }
@@ -417,14 +422,17 @@ class API {
         files,
       ),
       onlineSuccessCB: (response) async {
-        //TODO: get actual hash and replace (in NewImages and in Data)
+        // TODO: get actual hash and replace (in NewImages and in Data)
+        // NewImages.addAll(response)
+        // data.imagehashes.
       },
-      onlineFailedCB: (onlineRes, rap) {
-        debugPrint('failed to upload images, ' +
-            rap.rd.json.toString() +
-            ': ' +
-            onlineRes.toString());
-      },
+      // onlineFailedCB:
+      // (onlineRes, rap) {
+      //   debugPrint('failed to upload images, ' +
+      //       rap.rd.json.toString() +
+      //       ': ' +
+      //       onlineRes.toString());
+      // },
       requestType: requestType,
     ).last;
   }
