@@ -1,8 +1,11 @@
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:MBG_Inspektionen/widgets/measureSize.dart';
 import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 
 import '../generated/l10n.dart';
+
+const ANIMATE = true;
 
 //should be held up to date with FloatingActionButton
 const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
@@ -13,7 +16,7 @@ const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
 class TransformableActionbutton extends StatefulWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
-  final double expandedHeight;
+  // final double expandedHeight;
 
   //XXX: could blur background
 
@@ -24,7 +27,7 @@ class TransformableActionbutton extends StatefulWidget {
     this.collapsedChild = const Icon(Icons.add),
     required this.expandedChild,
     this.padding = const EdgeInsets.all(15),
-    this.expandedHeight = 400,
+    // this.expandedHeight = 400,
   }) : super(key: key);
 
   @override
@@ -37,7 +40,7 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool wasClicked = false;
 
   // ignore: non_constant_identifier_names
-  final transition_ms = 400;
+  final transition_ms = ANIMATE ? 400 : 0;
 
   void popupGroup() {
     setState(() {
@@ -72,53 +75,78 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
         cancel();
         return false;
       },
-      child: GestureDetector(
-        onTap: popupGroup,
-        child: AnimatedContainer(
-          key: jey,
-          //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
-          decoration: BoxDecoration(
-            boxShadow: isClicked
-                ? [
-                    BoxShadow(
-                        // color: theme.colorScheme.primary.withAlpha(30),
-                        blurRadius: radius,
-                        spreadRadius: -radius * .5)
-                  ]
-                : [],
-            color: isClicked
-                ? theme.cardColor
-                : ftheme.backgroundColor ?? theme.colorScheme.primary,
-            borderRadius: BorderRadius.circular(radius),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        // mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (ANIMATE)
+            Flexible(
+              fit: FlexFit.tight,
+              child: Container(),
+            ),
+          Flexible(
+            fit: FlexFit.loose,
+            child: GestureDetector(
+              onTap: popupGroup,
+              child: LayoutBuilder(builder: (context, constraints) {
+                return AnimatedContainer(
+                  key: jey,
+                  //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
+                  decoration: BoxDecoration(
+                    boxShadow: isClicked
+                        ? [
+                            BoxShadow(
+                                // color: theme.colorScheme.primary.withAlpha(30),
+                                blurRadius: radius,
+                                spreadRadius: -radius * .5)
+                          ]
+                        : [],
+                    color: isClicked
+                        ? theme.cardColor
+                        : ftheme.backgroundColor ?? theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                  curve: Curves.easeInOutCubic,
+                  duration: Duration(milliseconds: transition_ms),
+                  constraints: isClicked
+                      ? BoxConstraints(
+                          maxHeight:
+                              ANIMATE ? constraints.maxHeight : double.infinity,
+                          maxWidth:
+                              constraints.maxWidth - widget.padding.horizontal)
+                      : Theme.of(context)
+                              .floatingActionButtonTheme
+                              .sizeConstraints ??
+                          _kSizeConstraints,
+                  // height: isClicked
+                  //     ? widget.expandedHeight
+                  //     : ftheme.sizeConstraints?.maxHeight ??
+                  //         _kSizeConstraints.maxHeight,
+                  // width: isClicked
+                  //     ? MediaQuery.of(context).size.width -
+                  //         widget.padding.left -
+                  //         widget.padding.right
+                  //     : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
+                  child:
+                      isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
+                          ? Flexible(
+                              fit: FlexFit.loose,
+                              child: widget.expandedChild(cancel))
+                          : /*isClicked
+                            ? Container()
+                            : */
+                          Container(
+                              child: FloatingActionButton(
+                                child: widget.collapsedChild,
+                                onPressed: popupGroup,
+                              ),
+                            ),
+                );
+              }),
+            ),
           ),
-          curve: Curves.easeInOutCubic,
-          duration: Duration(milliseconds: transition_ms),
-          height: isClicked
-              ? widget.expandedHeight
-              : ftheme.sizeConstraints?.maxHeight ??
-                  _kSizeConstraints.maxHeight,
-          width: isClicked
-              ? MediaQuery.of(context).size.width -
-                  widget.padding.left -
-                  widget.padding.right
-              : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
-          child: isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
-              ? Container(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: widget.expandedChild(cancel),
-                  ),
-                )
-              : /*isClicked
-                  ? Container()
-                  : */
-              Container(
-                  child: FloatingActionButton(
-                    child: widget.collapsedChild,
-                    onPressed: popupGroup,
-                  ),
-                ),
-        ),
+        ],
       ),
     );
   }
@@ -232,6 +260,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
       key: _formKey,
       // autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Spacer(),
           ...children,
