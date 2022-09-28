@@ -65,7 +65,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   Widget? get floatingActionButton {
     var oufnessChooser = OufnessChooser();
     return TransformableActionbutton(
+
       expandedHeight: 350,
+/*
+      expandedHeight:
+          300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
+*/
       expandedChild: (onCancel) => Adder(
         'checkpointdefect',
         onSet: (json) async {
