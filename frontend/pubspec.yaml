@@ -63,7 +63,7 @@ dependencies:
   image_picker: ^0.8.4
 
   # Provides tools to work with the cameras on the device
-  camera: null
+  camera: ^0.10.0  
 
   # Finds the correct paths to store images
   path_provider: null

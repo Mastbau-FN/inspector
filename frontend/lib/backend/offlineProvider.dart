@@ -154,7 +154,9 @@ const OTHERCOLLECTION = 'other';
 final otherCollection = (db).collection(OTHERCOLLECTION);
 storeJson(String documentName, Map<String, dynamic> json) =>
     otherCollection.doc(documentName).set(json);
-getJson(String documentName) => otherCollection.doc(documentName).get();
+
+Future<Map<String, dynamic>?> getJson(String documentName) =>
+    otherCollection.doc(documentName).get();
 
 final failedReqLogCollection = (db).collection('failed-requests');
 

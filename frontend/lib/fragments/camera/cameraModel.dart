@@ -2,6 +2,23 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 class CameraModel extends ChangeNotifier {
+
+
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   // App state changed before we got the chance to initialize.
+  //   if (controller == null || !controller.value.isInitialized) {
+  //     return;
+  //   }
+  //   if (state == AppLifecycleState.inactive) {
+  //     controller?.dispose();
+  //   } else if (state == AppLifecycleState.resumed) {
+  //     if (controller != null) {
+  //       onNewCameraSelected(controller.description);
+  //     }
+  //   }
+  // }
+
   Future<CameraController> get newController async => CameraController(
         // Get a specific camera from the list of available cameras.
         await currentCamera,
