@@ -57,6 +57,8 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
     });
   }
 
+  final jey = UniqueKey();
+
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
@@ -73,7 +75,7 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
       child: GestureDetector(
         onTap: popupGroup,
         child: AnimatedContainer(
-          key: UniqueKey(),
+          key: jey,
           //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
           decoration: BoxDecoration(
             boxShadow: isClicked
