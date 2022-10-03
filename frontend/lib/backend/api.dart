@@ -366,40 +366,42 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.setMainImageByHash(
-        data,
-        hash,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      ),
+      // offline: () => local.setMainImageByHash(
+      //   data,
+      //   hash,
+      //   caller: caller,
+      //   forceUpdate: forceUpdate,
+      // ),
+      offline: () => local.deleteImageByHash(data, hash,
+          caller: caller, forceUpdate: forceUpdate),
       online: () => remote.deleteImageByHash(hash),
       requestType: requestType,
     ).last;
   }
 
   /// sets an image specified by its hash as the new main image
-  Future<String?> setMainImageByHash<DataT extends Data>(
-    DataT? data,
-    String hash, {
-    Data? caller,
-    bool forceUpdate = false,
-  }) async {
-    final requestType = Helper.SimulatedRequestType.PUT;
-    return _run(
-      itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.setMainImageByHash(
-        data,
-        hash,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      ),
-      online: () => remote.setMainImageByHash(
-        data,
-        hash,
-      ),
-      requestType: requestType,
-    ).last;
-  }
+  // Future<String?> setMainImageByHash<DataT extends Data>(
+  //   DataT? data,
+  //   String hash, {
+  //   Data? caller,
+  //   bool forceUpdate = false,
+  // }) async {
+  //   final requestType = Helper.SimulatedRequestType.PUT;
+  //   return _run(
+  //     itPrefersCache: _dataPrefersCache(data, type: requestType),
+  //     offline: () => local.setMainImageByHash(
+  //       data,
+  //       hash,
+  //       caller: caller,
+  //       forceUpdate: forceUpdate,
+  //     ),
+  //     online: () => remote.setMainImageByHash(
+  //       data,
+  //       hash,
+  //     ),
+  //     requestType: requestType,
+  //   ).last;
+  // }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(
@@ -442,14 +444,13 @@ D injectImages<D extends WithImgHashes>(D data) {
   if (data.imagehashes == null ||
       data.imagehashes!.length == 0) //the second check *could* be omitted
     return data;
-  String _firstHash = data.imagehashes![0];
-  data.mainImage = (_firstHash == Options().no_image_placeholder_name)
-      ? null
-      : API().getImageByHash(_firstHash);
-  data.imageFutures = data.imagehashes
-      ?.map((hash) => API().getImageByHash(hash))
-      .toList()
-      .sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
+  // String _firstHash = data.imagehashes![0];
+  // data.mainImage = (_firstHash == Options().no_image_placeholder_name)
+  //     ? null
+  //     : API().getImageByHash(_firstHash);
+  data.imageFutures =
+      data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+  //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
   data.previewImage = data.imageFutures != null
       ? data.imageFutures!.ordered_firstNonNull
       : Future.value(null);

@@ -391,7 +391,7 @@ const hashImagesAndCreateIds = async (tthis) => {
 
       // set main image at first index
       let mainHash = imghasher.memorize(rootfolder, link, filename);
-      images.unshift(mainHash);
+      //images.unshift(mainHash);
 
       thingy['images'] = images??["error_ couldnt set image hashes"];
       if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {filename,mainHash});

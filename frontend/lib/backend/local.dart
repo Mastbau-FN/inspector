@@ -153,27 +153,27 @@ class LocalMirror {
   }
 
   /// sets an image specified by its hash as the new main image
-  Future<String?> setMainImageByHash<DataT extends Data>(
-    DataT? data,
-    String hash, {
-    Data? caller,
-    bool forceUpdate = false,
-  }) async {
-    //TODO: #211
-    //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
-      try {
-        // data.id = (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
-        data.imagehashes!.remove(hash);
-        data.imagehashes!.insert(0, hash);
-        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
-        // return 'successfully set main image offline';
-      } catch (e) {
-        debugPrint('failed to update main image locally');
-      }
-    }
-    return null;
-  }
+  // Future<String?> setMainImageByHash<DataT extends Data>(
+  //   DataT? data,
+  //   String hash, {
+  //   Data? caller,
+  //   bool forceUpdate = false,
+  // }) async {
+  //   //TODO: #211
+  //   //offline procedure, needs some stuff changed and added..
+  //   if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+  //     try {
+  //       // data.id = (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+  //       data.imagehashes!.remove(hash);
+  //       data.imagehashes!.insert(0, hash);
+  //       storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+  //       // return 'successfully set main image offline';
+  //     } catch (e) {
+  //       debugPrint('failed to update main image locally');
+  //     }
+  //   }
+  //   return null;
+  // }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(

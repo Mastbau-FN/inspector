@@ -29,7 +29,7 @@ const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
 
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
-const _setMainImageByHash_r = "/setMainImgH"; // issue #20
+//const _setMainImageByHash_r = "/setMainImgH"; // issue #20
 
 class RequestAndParser<Response extends http.BaseResponse, T> {
   final RequestData rd;
@@ -398,24 +398,24 @@ class Remote {
   }
 
   /// sets an image specified by its hash as the new main image
-  RequestAndParser<http.Response, String?>
-      setMainImageByHash<DataT extends Data>(
-    DataT? data,
-    String hash,
-  ) {
-    final rap = _sendDataToRoute(
-      data: data,
-      route: _setMainImageByHash_r,
-      other: {
-        'hash': hash,
-      },
-    );
-    return RequestAndParser(
-        rd: rap.rd,
-        parser: (x) async {
-          return (await rap.parser(x))?.body;
-        });
-  }
+  // RequestAndParser<http.Response, String?>
+  //     setMainImageByHash<DataT extends Data>(
+  //   DataT? data,
+  //   String hash,
+  // ) {
+  //   final rap = _sendDataToRoute(
+  //     data: data,
+  //     route: _setMainImageByHash_r,
+  //     other: {
+  //       'hash': hash,
+  //     },
+  //   );
+  //   return RequestAndParser(
+  //       rd: rap.rd,
+  //       parser: (x) async {
+  //         return (await rap.parser(x))?.body;
+  //       });
+  // }
 
   /// upload a bunch of images
   RequestAndParser<http.BaseResponse, String?> uploadFiles<DataT extends Data>(
