@@ -18,9 +18,12 @@ import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Future<ImageData?>? mainImage = Future.value(null);
+  Future<ImageData?>? get mainImage =>
+      (mainhash != null) ? API().getImageByHash(mainhash!) : null;
   Future<ImageData?> previewImage = Future.value(null);
   List<Future<ImageData?>>? imageFutures = [];
+  @JsonKey(name: 'Mainhash')
+  String? mainhash;
   //Null Function() onNextImageLoaded = () {};
 }
 
@@ -252,8 +255,12 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                       ImagesPage.futured(
                         hasMainImage:
                             (snapshot.data ?? data)?.mainImage != null,
-                        futureImages: (snapshot.data ?? data)?.imageFutures,
-                        //s ?.map((e) => e.asBroadcastStream())
+                        futureImages: [
+                          if (snapshot.data?.mainImage != null)
+                            snapshot.data!.mainImage!,
+                          ...?((snapshot.data ?? data)?.imageFutures)
+                        ],
+                        //s ?.map((e) => e.asBroadcastSteream())
                         // .toList(),
                         onNewImages: (files) async {
                           showToast(
@@ -266,20 +273,19 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           _maybeShowToast(value);
                           return value;
                         },
-                        // onStar: (hash) {
-                        //   showToast(
-                        //       S.of(context).settingMainImageThisMayTakeASec);
-                        //   model.updateCurrentChild((data) => 
-                        //   API()
-                        //        .setMainImageByHash(data, hash.toString(),
-                        //            caller: model.currentData,
-                        //            forceUpdate: true))
-                        //            .then((value) {
-                        //         _maybeShowToast(value);
-                        //          return value;
-                        //        }
-                        //       );
-                        // },
+                        onStar: (hash) {
+                          showToast(
+                              S.of(context).settingMainImageThisMayTakeASec);
+                          model
+                              .updateCurrentChild((data) => API()
+                                  .setMainImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
+                              .then((value) {
+                            _maybeShowToast(value);
+                            return value;
+                          });
+                        },
                         onDelete: (hash) {
                           showToast(S.of(context).deletingImageThisMayTakeASec);
                           model

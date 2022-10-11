@@ -145,7 +145,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               if (chosenIndex == currentIndex)
                 Positioned(
                   child: Icon(
-                    //todo: maybe ad shadow or border to better see it
+                    //todo: maybe add shadow or border to better see it
                     Icons.star,
                     color: Colors.amber,
                   ),

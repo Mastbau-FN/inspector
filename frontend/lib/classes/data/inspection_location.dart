@@ -116,8 +116,6 @@ class InspectionLocation extends Data
   @JsonKey(ignore: true)
   List<Future<ImageData?>>? imageFutures;
   @JsonKey(ignore: true)
-  Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
   Future<ImageData?> previewImage = Future.value(null);
 
   InspectionLocation({

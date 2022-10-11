@@ -379,29 +379,29 @@ class API {
     ).last;
   }
 
-  /// sets an image specified by its hash as the new main image
-  // Future<String?> setMainImageByHash<DataT extends Data>(
-  //   DataT? data,
-  //   String hash, {
-  //   Data? caller,
-  //   bool forceUpdate = false,
-  // }) async {
-  //   final requestType = Helper.SimulatedRequestType.PUT;
-  //   return _run(
-  //     itPrefersCache: _dataPrefersCache(data, type: requestType),
-  //     offline: () => local.setMainImageByHash(
-  //       data,
-  //       hash,
-  //       caller: caller,
-  //       forceUpdate: forceUpdate,
-  //     ),
-  //     online: () => remote.setMainImageByHash(
-  //       data,
-  //       hash,
-  //     ),
-  //     requestType: requestType,
-  //   ).last;
-  // }
+  // sets an image specified by its hash as the new main image
+  Future<String?> setMainImageByHash<DataT extends Data>(
+    DataT? data,
+    String mainhash, {
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    final requestType = Helper.SimulatedRequestType.PUT;
+    return _run(
+      itPrefersCache: _dataPrefersCache(data, type: requestType),
+      offline: () => local.setMainImageByHash(
+        data,
+        mainhash,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.setMainImageByHash(
+        data,
+        mainhash,
+      ),
+      requestType: requestType,
+    ).last;
+  }
 
   /// upload a bunch of images
   Future<String?> uploadFiles<DataT extends Data>(

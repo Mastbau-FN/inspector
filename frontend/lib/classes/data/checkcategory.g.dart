@@ -24,6 +24,7 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
       ..forceOffline_nullable = json['offline'] as bool?
       ..id = json['local_id'] as String?
       ..author = json['Autor'] as String?
+      ..mainhash = json['Mainhash'] as String?
       ..imagehashes =
           (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
