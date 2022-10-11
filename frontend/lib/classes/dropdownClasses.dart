@@ -266,19 +266,20 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           _maybeShowToast(value);
                           return value;
                         },
-                        onStar: (hash) {
-                          showToast(
-                              S.of(context).settingMainImageThisMayTakeASec);
-                          model
-                              .updateCurrentChild((data) => API()
-                                  .setMainImageByHash(data, hash.toString(),
-                                      caller: model.currentData,
-                                      forceUpdate: true))
-                              .then((value) {
-                            _maybeShowToast(value);
-                            return value;
-                          });
-                        },
+                        // onStar: (hash) {
+                        //   showToast(
+                        //       S.of(context).settingMainImageThisMayTakeASec);
+                        //   model.updateCurrentChild((data) => 
+                        //   API()
+                        //        .setMainImageByHash(data, hash.toString(),
+                        //            caller: model.currentData,
+                        //            forceUpdate: true))
+                        //            .then((value) {
+                        //         _maybeShowToast(value);
+                        //          return value;
+                        //        }
+                        //       );
+                        // },
                         onDelete: (hash) {
                           showToast(S.of(context).deletingImageThisMayTakeASec);
                           model
