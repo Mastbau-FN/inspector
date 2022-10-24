@@ -378,8 +378,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       // get all *other* image names
       let imageNames = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      );
-      //.filter((v) => v != filename);
+      ).filter((v) => v != filename);
 
       // append their hashes to the returned object  
       const images =
