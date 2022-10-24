@@ -56,8 +56,8 @@ class CheckPointDefect extends Data
   List<String>? imagehashes; //should not be used
   @JsonKey(ignore: true)
   List<Future<ImageData?>>? imageFutures;
-  @JsonKey(ignore: true)
-  Future<ImageData?>? mainImage;
+  // @JsonKey(ignore: true)
+  // Future<ImageData?>? mainImage;
   @JsonKey(ignore: true)
   Future<ImageData?> previewImage = Future.value(null);
 
