@@ -397,17 +397,17 @@ class Remote {
     return RequestAndParser(rd: rd, parser: parser);
   }
 
-  /// sets an image specified by its hash as the new main image
+  // sets an image specified by its hash as the new main image
   RequestAndParser<http.Response, String?>
       setMainImageByHash<DataT extends Data>(
     DataT? data,
-    String hash,
+    String mainhash,
   ) {
     final rap = _sendDataToRoute(
       data: data,
       route: _setMainImageByHash_r,
       other: {
-        'hash': hash,
+        'hash': mainhash,
       },
     );
     return RequestAndParser(

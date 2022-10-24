@@ -27,17 +27,17 @@ if (!Array.prototype.last) {
   };
 }
 
-const _nextID = async() => (await pool.asyncQuery(`SELECT coalesce(max("Index") + 1, 1) AS "Index" FROM "Events";`, null)).rows[0].Index;
+const _nextID = async () => (await pool.asyncQuery(`SELECT coalesce(max("Index") + 1, 1) AS "Index" FROM "Events";`, null)).rows[0].Index;
 
-const _removeHighestLevel = (data)=>{
-  let data_copy = {...data};
+const _removeHighestLevel = (data) => {
+  let data_copy = { ...data };
 
   //remove highest event
-  if (!data_copy.E1 > 0){
+  if (!data_copy.E1 > 0) {
     throw Error("could not get parent, we already are the parent");
   } else if (!(data_copy.E2 > 0)) {
     data_copy.E1 = null;
-  } else if(!(data_copy.E3 > 0)) {
+  } else if (!(data_copy.E3 > 0)) {
     data_copy.E2 = null;
   } else {
     data_copy.E3 = null;
@@ -45,16 +45,16 @@ const _removeHighestLevel = (data)=>{
   return data_copy;
 }
 
-const _addfoldername = async (data)=>{
-  
+const _addfoldername = async (data) => {
+
   //let data_copy = _removeHighestLevel(data);
   data.Link = null;
   //to then get parent folder
-  const {rootfolder, link, filename} = await getLink(data);
+  const { rootfolder, link, filename } = await getLink(data);
 
-   //ODO: check if this worked
-  data.Link = path.join(rootfolder,link,filename)
-  data.LinkOrdner = path.join(rootfolder,link)
+  //ODO: check if this worked
+  data.Link = path.join(rootfolder, link, filename)
+  data.LinkOrdner = path.join(rootfolder, link)
 
   return data;
 }
@@ -86,11 +86,11 @@ const getQueryString = async (name) => {
  * @param {List} params
  * @returns a Promise resolving the data given by sql query name (uses {getQueryString}) with given parameters
  */
-const queryFileWithParams = async (file, params, addHashFunction = true, debug=false) => {
+const queryFileWithParams = async (file, params, addHashFunction = true, debug = false) => {
   let query = await getQueryString(file);
   let data = await pool.asyncQuery(query, params);
 
-  if(debug)console.log(data)
+  if (debug) console.log(data)
 
   if (addHashFunction) {
     data.rows.hashImagesAndCreateIds = async function () {
@@ -162,31 +162,31 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @param KZL das kürzel des monteurs der diesen datenpunkt erstellt 
  * @returns a Promise resolving to the new ID (E1..E3)
  */
- const addNew = async (data, KZL) => {
-   const folder = "set";
+const addNew = async (data, KZL) => {
+  const folder = "set";
   let ld = data.data;
   let params;
   let queryfile;
   switch (data.type) {
     case identifiers.category:
-      queryfile = folder+"/check_categories";
+      queryfile = folder + "/check_categories";
       params = [ld.PjNr, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
     case identifiers.checkpoint:
-      queryfile = folder+"/check_points";
+      queryfile = folder + "/check_points";
       params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
     case identifiers.defect:
-      queryfile = folder+"/check_point_defects";
-      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.Zusatz_Info , ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL, new Date()];
+      queryfile = folder + "/check_point_defects";
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText ?? "", ld.Zusatz_Info, ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, KZL, new Date()];
       break;
-  
+
     default:
       console.log(`someone tried to add ${data.type}`);
       return;
   }
   let res = await queryFileWithParams(queryfile, params);
-  const newdata = {...(data.data),...(res[0])}
+  const newdata = { ...(data.data), ...(res[0]) }
   _addfoldername(newdata);
   return res;
 }
@@ -197,44 +197,44 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @param body consisting of type and data
  * @returns  an empty  Promise
  */
- const update = async (body) => {
+const update = async (body) => {
   const folder = "update";
- let ld = body.data;
- let params;
- let queryfile;
- switch (body.type) {
-   case identifiers.category:
-     //console.log("updating category")
-     //console.log(ld.Link);
-     queryfile = folder+"/check_categories";
-     params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
-     break;
-   case identifiers.checkpoint:
-     queryfile = folder+"/check_points";
-     params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
-     break;
-   case identifiers.defect:
-     queryfile = folder+"/check_point_defects";
-     params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
-     break;
-  case identifiers.location:
-    queryfile = folder+"/inspection_location";
-    params = [ld.PjNr, ld.Eigentuemer,	ld.Bauwerkhoehe,	ld.Baujahr,	ld.Ansprechpartner,	ld.Steigwegtyp,	ld.Schluessel,	ld.Abschaltungen,	ld.Steckdosen,	ld.WC,	ld.Lagerraeume,	ld.Steigschutzschluessel, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description, 
-    ld.Temperatur,
-    ld.Wetter,
-    ld.Wind,
-    ld.Windrichtung]
-    params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
-    await queryFileWithParams(queryfile+"_part2", params2);
-    break;
- 
-   default:
-     console.log(`someone tried to update ${body.type}`);
-     return;
- }
- let res = await queryFileWithParams(queryfile, params);
- res.success = true;
- return res;
+  let ld = body.data;
+  let params;
+  let queryfile;
+  switch (body.type) {
+    case identifiers.category:
+      //console.log("updating category")
+      //console.log(ld.Link);
+      queryfile = folder + "/check_categories";
+      params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
+      break;
+    case identifiers.checkpoint:
+      queryfile = folder + "/check_points";
+      params = [ld.PjNr, ld.E1, ld.E2, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
+      break;
+    case identifiers.defect:
+      queryfile = folder + "/check_point_defects";
+      params = [ld.PjNr, ld.E1, ld.E2, ld.E3, ld.KurzText, ld.LangText ?? "", ld.EREArt ?? 5204, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
+      break;
+    case identifiers.location:
+      queryfile = folder + "/inspection_location";
+      params = [ld.PjNr, ld.Eigentuemer, ld.Bauwerkhoehe, ld.Baujahr, ld.Ansprechpartner, ld.Steigwegtyp, ld.Schluessel, ld.Abschaltungen, ld.Steckdosen, ld.WC, ld.Lagerraeume, ld.Steigschutzschluessel, ld.ASP_required, ld.Steckdosen_description, ld.Schlüssel_description,
+      ld.Temperatur,
+      ld.Wetter,
+      ld.Wind,
+      ld.Windrichtung]
+      params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
+      await queryFileWithParams(queryfile + "_part2", params2);
+      break;
+
+    default:
+      console.log(`someone tried to update ${body.type}`);
+      return;
+  }
+  let res = await queryFileWithParams(queryfile, params);
+  res.success = true;
+  return res;
 }
 
 /**
@@ -270,22 +270,21 @@ const delete_ = async (data, KZL) => {
   //console.log([ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL])
   let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);//, false,true);
   // console.log(res)
-  try {res.success = true}catch(e){false&&console.warn('couldnt set success')};
+  try { res.success = true } catch (e) { false && console.warn('couldnt set success') };
   return res;
 }
 
 const convertpath = (winpath) =>
   winpath.split(path.win32.sep).join(path.posix.sep);
 
-const getRootFolder = async (pjNr) =>
-{
-  const queryRes = (await queryFileWithParams("get/root_folder", [pjNr,_ID_], false));//funzt
-  const _rootdir = queryRes[0].firstNonNull({Link:0, LinkOrdner:0}) ?? ""
+const getRootFolder = async (pjNr) => {
+  const queryRes = (await queryFileWithParams("get/root_folder", [pjNr, _ID_], false));//funzt
+  const _rootdir = queryRes[0].firstNonNull({ Link: 0, LinkOrdner: 0 }) ?? ""
   return path.dirname(
     convertpath(_rootdir)
   );
 }
-  
+
 
 
 
@@ -296,12 +295,12 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
 
   let _link =
     data.Link;
-    
-  if(_link == null){
+
+  if (_link == null) {
     let qres = (await _magic_query(data)).rows[0];
 
-    const _newFolderName = async (data)=>{
-      const _backup = (await _magic_query(data,false)).rows[0];
+    const _newFolderName = async (data) => {
+      const _backup = (await _magic_query(data, false)).rows[0];
       const new_name = (_backup.Index ?? "TODO_INDEX") + "_" + (_backup.KurzText ?? "TODO_KURZTEXT");
       return new_name;
     }
@@ -314,29 +313,29 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
       ((qres?.Link ?? qres?.LinkOrdner) == null)                                  //if we dont get a result
         ? path.join(
           //okay, hier fängt der sich bestimmt in unendlicher recursion..   
-          await((async()=>{
-            try{return (await getLink(_removeHighestLevel(data),true,recursion_num+1)).link;}catch(e){console.warn(e);return "NO_LINK";}
+          await ((async () => {
+            try { return (await getLink(_removeHighestLevel(data), true, recursion_num + 1)).link; } catch (e) { console.warn(e); return "NO_LINK"; }
           })())
-            , //try the level above
-            await _newFolderName(data)                                            //and add the new name
-          )               
-        : "" ,                                                                    //else were fine
+          , //try the level above
+          await _newFolderName(data)                                            //and add the new name
+        )
+        : "",                                                                    //else were fine
       qres?.Link ?? path.join(qres?.LinkOrdner ?? "", options.no_image_placeholder_name)   //otherwise 
     );
   }
 
-    
-  let link = path.dirname(convertpath(_link));link = rootfolder == link ? "" : link;
+
+  let link = path.dirname(convertpath(_link)); link = rootfolder == link ? "" : link;
   let filename = path.basename(convertpath(_link));
 
   const res = { rootfolder, link, filename };
 
-  if(andSet)_magic_setLink(data,res);
+  if (andSet) _magic_setLink(data, res);
 
   return res;
 };
 
-const deleteImgByHash = async (hash)=>{
+const deleteImgByHash = async (hash) => {
   let p = imghasher.getPathFromHash(hash);
   //console.log(p)
   //TODO: errorhandling
@@ -345,12 +344,12 @@ const deleteImgByHash = async (hash)=>{
   try {
     await fsp.mkdir(newDir)
   } catch (error) {
-    
+
   }
-  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/' , p.filename));
-  console.log(oldpath,newpath)
-  let ret = await fsp.rename( oldpath , newpath );
-  return {response: ret}
+  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/', p.filename));
+  console.log(oldpath, newpath)
+  let ret = await fsp.rename(oldpath, newpath);
+  return { response: ret }
 }
 
 
@@ -381,21 +380,27 @@ const hashImagesAndCreateIds = async (tthis) => {
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       ).filter((v) => v != filename);
 
-      // append their hashes to the returned obj
-      const images = 
+      // append their hashes to the returned object  
+      const images =
         imageNames.map(
-          (name) => {try{let x = imghasher.memorize(rootfolder, link, name); if(options.debugImageHashes)console.log(`${name} -> ${x}`); return x;}catch(e){console.log('failed to memorize something'+e);return "error_ could not fetch this image";}}
+          (name) => { try { let x = imghasher.memorize(rootfolder, link, name); if (options.debugImageHashes) console.log(`${name} -> ${x}`); return x; } catch (e) { console.log('failed to memorize something' + e); return "error_ could not fetch this image"; } }
         )
-      || ["error_ image hashing failed to-te-totally"];
+        || ["error_ image hashing failed to-te-totally"];
       // console.log(images)
 
       // set main image at first index
-      let mainHash = imghasher.memorize(rootfolder, link, filename);
-      images.unshift(mainHash);
+      if (filename != options.no_image_placeholder_name && filename != "") {
+        thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
+        // thingy.mainimage = mainImage;
+        // images.unshift(thingy.mainimage);
+      }
 
-      thingy['images'] = images??["error_ couldnt set image hashes"];
-      if(options.debugImageHashes)console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, {filename,mainHash});
-  }
+      //images and thingy.mainimage or hash
+      
+
+      thingy['images'] = images ?? ["error_ couldnt set image hashes"];
+      if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash});
+    }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
     delete thingy.Link;
@@ -411,29 +416,29 @@ const hashImagesAndCreateIds = async (tthis) => {
 
 
 
-const __magic_part = (data)=>
-  (data.E1 > 0 
-    ? `AND ("Events"."E1" = $2::int)` 
-      + (data.E2 > 0 
-        ? `AND ("Events"."E2" = $3::int)` 
-          + (data.E3 > 0 
-            ? `AND ("Events"."E3" = $4::int)` 
-              + `AND ("Events"."EREArt" >= 5201 AND "Events"."EREArt" <= 5204)` //all set -> search a Mangel (5201-5204)
+const __magic_part = (data) =>
+  (data.E1 > 0
+    ? `AND ("Events"."E1" = $2::int)`
+    + (data.E2 > 0
+      ? `AND ("Events"."E2" = $3::int)`
+      + (data.E3 > 0
+        ? `AND ("Events"."E3" = $4::int)`
+        + `AND ("Events"."EREArt" >= 5201 AND "Events"."EREArt" <= 5204)` //all set -> search a Mangel (5201-5204)
 
-            : `AND ("Events"."EREArt" = 5200)` //E3 not set -> search a PruefPunkt (5200)
-            )
-        : `AND ("Events"."EREArt" = 5100)` //E2 not set -> search a Category (5100)
-        )
+        : `AND ("Events"."EREArt" = 5200)` //E3 not set -> search a PruefPunkt (5200)
+      )
+      : `AND ("Events"."EREArt" = 5100)` //E2 not set -> search a Category (5100)
+    )
     : `AND ("Events"."EventID" = 1910)`//E1 not set -> search for a Location //also see issue #90
   )
-  +  `AND ($2=$2 AND $3=$3 AND $4=$4)`;
+  + `AND ($2=$2 AND $3=$3 AND $4=$4)`;
 
 /**
  * 
  * this query is used to update the Link and LinkOrdner, by identifying it via its event levels instead of an index
  * @returns nothing really
  */
-const _magic_setLink = (data, {link, filename})=>pool.asyncQuery(
+const _magic_setLink = (data, { link, filename }) => pool.asyncQuery(
   `
     UPDATE
      "Events"
@@ -446,12 +451,12 @@ const _magic_setLink = (data, {link, filename})=>pool.asyncQuery(
       -- AND "Link" IS NULL AND "LinkOrdner" IS NULL 
   `
   + __magic_part(data)
-  +`);`,
+  + `);`,
 
-  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0,link,path.join(link,filename)]
+  [data.PjNr, data.E1 ?? 0, data.E2 ?? 0, data.E3 ?? 0, link, path.join(link, filename)]
 );
 
-const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
+const _magic_query = (data, hasLink = true) => pool.asyncQuery(
   `
     SELECT 
       "Events".*
@@ -462,14 +467,14 @@ const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
       ("MGAUFTR"."PjNr" = $1) -- projektnummer
       AND ($4=$4) -- so the amount of params match
   `
-  + (hasLink 
+  + (hasLink
     ?
-      `
+    `
         AND ("Events"."Link" IS NOT NULL OR "Events"."LinkOrdner" IS NOT NULL) 
       `
     : ``
   )
-  + __magic_part(data)+
+  + __magic_part(data) +
   `
     )
 
@@ -478,5 +483,5 @@ const _magic_query = (data,hasLink = true)=>pool.asyncQuery(
     ;
 
   `,
-  [data.PjNr,data.E1 ?? 0,data.E2??0,data.E3??0]
+  [data.PjNr, data.E1 ?? 0, data.E2 ?? 0, data.E3 ?? 0]
 );

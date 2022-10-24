@@ -18,9 +18,12 @@ import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Future<ImageData?>? mainImage = Future.value(null);
+  Future<ImageData?>? get mainImage =>
+      (mainhash != null) ? API().getImageByHash(mainhash!) : null;
   Future<ImageData?> previewImage = Future.value(null);
   List<Future<ImageData?>>? imageFutures = [];
+  @JsonKey(name: 'mainhash')
+  String? mainhash;
   //Null Function() onNextImageLoaded = () {};
 }
 
@@ -252,8 +255,12 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                       ImagesPage.futured(
                         hasMainImage:
                             (snapshot.data ?? data)?.mainImage != null,
-                        futureImages: (snapshot.data ?? data)?.imageFutures,
-                        //s ?.map((e) => e.asBroadcastStream())
+                        futureImages: [
+                          if (snapshot.data?.mainImage != null)
+                            snapshot.data!.mainImage!,
+                          ...?((snapshot.data ?? data)?.imageFutures)
+                        ],
+                        //s ?.map((e) => e.asBroadcastSteream())
                         // .toList(),
                         onNewImages: (files) async {
                           showToast(
