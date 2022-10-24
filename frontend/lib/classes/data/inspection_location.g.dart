@@ -19,7 +19,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       fallback_coords: _toplevelhelperLatLng_fromJson(
           json['latLng'] as Map<String, dynamic>?),
     )
-      ..mainhash = json['Mainhash'] as String?
+      ..mainhash = json['mainhash'] as String?
       ..langText = json['langText'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
       ..id = json['local_id'] as String?
@@ -49,7 +49,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
     <String, dynamic>{
-      'Mainhash': instance.mainhash,
+      'mainhash': instance.mainhash,
       'langText': instance.langText,
       'offline': instance.forceOffline_nullable,
       'local_id': instance.id,

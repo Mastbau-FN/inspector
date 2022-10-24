@@ -22,7 +22,7 @@ abstract class WithImgHashes {
       (mainhash != null) ? API().getImageByHash(mainhash!) : null;
   Future<ImageData?> previewImage = Future.value(null);
   List<Future<ImageData?>>? imageFutures = [];
-  @JsonKey(name: 'Mainhash')
+  @JsonKey(name: 'mainhash')
   String? mainhash;
   //Null Function() onNextImageLoaded = () {};
 }

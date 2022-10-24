@@ -165,14 +165,15 @@ class API {
         }
 
         onlineSuccessProcedure() async {
-          if (onlineSuccessCB != null)
-            await onlineSuccessCB(
-                onlineRes); //XXX: vllt das onsuccess lieber dem rd übergeben?
+          if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
+
+          //XXX: vllt das onsuccess lieber dem rd übergeben?
         }
 
         List<bool> _success = await Future.wait([
           doOnline(
             orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
+            forceOnline: !Options().canBeOffline,
           ),
           doOffline(
             orDontIf: !Options().canBeOffline,

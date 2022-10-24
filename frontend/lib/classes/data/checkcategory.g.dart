@@ -21,15 +21,16 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
       e2: json['E2'] as int?,
       e3: json['E3'] as int?,
     )
+      ..mainhash = json['mainhash'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
       ..id = json['local_id'] as String?
       ..author = json['Autor'] as String?
-      ..mainhash = json['Mainhash'] as String?
       ..imagehashes =
           (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
 Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>
     <String, dynamic>{
+      'mainhash': instance.mainhash,
       'offline': instance.forceOffline_nullable,
       'local_id': instance.id,
       'PjNr': instance.pjNr,

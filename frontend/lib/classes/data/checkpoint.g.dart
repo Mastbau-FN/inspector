@@ -20,15 +20,16 @@ CheckPoint _$CheckPointFromJson(Map<String, dynamic> json) => CheckPoint(
       index: json['E2'] as int,
       e3: json['E3'] as int?,
     )
+      ..mainhash = json['mainhash'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
       ..id = json['local_id'] as String?
       ..author = json['Autor'] as String?
-      ..mainhash = json['Mainhash'] as String?
       ..imagehashes =
           (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
 
 Map<String, dynamic> _$CheckPointToJson(CheckPoint instance) =>
     <String, dynamic>{
+      'mainhash': instance.mainhash,
       'offline': instance.forceOffline_nullable,
       'local_id': instance.id,
       'PjNr': instance.pjNr,
@@ -42,6 +43,5 @@ Map<String, dynamic> _$CheckPointToJson(CheckPoint instance) =>
       'E2': instance.index,
       'E3': instance.e3,
       'Autor': instance.author,
-      'Mainhash': instance.mainhash,
       'images': instance.imagehashes,
     };

@@ -21,9 +21,9 @@ CheckPointDefect _$CheckPointDefectFromJson(Map<String, dynamic> json) =>
       check_index: json['E2'] as int,
       index: json['E3'] as int,
     )
+      ..mainhash = json['mainhash'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
       ..id = json['local_id'] as String?
-      ..mainhash = json['Mainhash'] as String?
       ..height = json['Zusatz_Info'] as String?
       ..author = json['Autor'] as String?
       ..imagehashes =
@@ -31,6 +31,7 @@ CheckPointDefect _$CheckPointDefectFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$CheckPointDefectToJson(CheckPointDefect instance) =>
     <String, dynamic>{
+      'mainhash': instance.mainhash,
       'offline': instance.forceOffline_nullable,
       'local_id': instance.id,
       'PjNr': instance.pjNr,
@@ -43,7 +44,6 @@ Map<String, dynamic> _$CheckPointDefectToJson(CheckPointDefect instance) =>
       'E1': instance.category_index,
       'E2': instance.check_index,
       'E3': instance.index,
-      'Mainhash': instance.mainhash,
       'Zusatz_Info': instance.height,
       'Autor': instance.author,
       'images': instance.imagehashes,
