@@ -1,3 +1,3 @@
 # changes
 
-- better icon
+- new main image data structure
