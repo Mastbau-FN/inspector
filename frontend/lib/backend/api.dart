@@ -452,8 +452,6 @@ D injectImages<D extends WithImgHashes>(D data) {
   data.imageFutures =
       data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
   //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
-  data.previewImage = data.imageFutures != null
-      ? data.imageFutures!.ordered_firstNonNull
-      : Future.value(null);
+  data.previewImage = data.mainImage!;
   return data;
 }
