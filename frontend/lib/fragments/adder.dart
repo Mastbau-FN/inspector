@@ -229,8 +229,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
     return Form(
       key: _formKey,
       // autovalidateMode: AutovalidateMode.onUserInteraction,
-      child: ListView(
-        //ListView wahrscheinlich besser als Column, da Scrollable 
+      child: Column(
         children: <Widget>[
           Spacer(),
           ...children,
