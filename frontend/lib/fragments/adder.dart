@@ -232,6 +232,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
       // autovalidateMode: AutovalidateMode.onUserInteraction,
       child: ListView(
         children: <Widget>[
+          ...children,
           ...List.generate(
             textfieldList.length,
             (i) => _Input(
