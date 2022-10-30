@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,9 @@ import 'data/checkcategory.dart';
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
   Future<ImageData?>? get mainImage =>
-      (mainhash != null) ? API().getImageByHash(mainhash!) : null;
+      (mainhash != null && mainhash != Options().no_image_placeholder_name)
+          ? API().getImageByHash(mainhash!)
+          : null;
   Future<ImageData?> previewImage = Future.value(null);
   List<Future<ImageData?>>? imageFutures = [];
   @JsonKey(name: 'mainhash')
@@ -254,10 +257,14 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                     children: [
                       ImagesPage.futured(
                         hasMainImage:
-                            (snapshot.data ?? data)?.mainImage != null,
+                            (snapshot.data ?? data)?.mainhash != null &&
+                                (snapshot.data ?? data)?.mainhash !=
+                                    Options().no_image_placeholder_name,
                         futureImages: [
-                          if (snapshot.data?.mainImage != null)
-                            snapshot.data!.mainImage!,
+                          // if (snapshot.data?.mainhash != null &&
+                          //   (snapshot.data ?? data)?.mainhash !=
+                          //       Options().no_image_placeholder_name)
+                          // snapshot.data!.mainImage!,
                           ...?((snapshot.data ?? data)?.imageFutures)
                         ],
                         //s ?.map((e) => e.asBroadcastSteream())
