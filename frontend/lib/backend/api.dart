@@ -348,7 +348,6 @@ class API {
   /// deletes an image specified by its hash and returns the response
   Future<ImageData?> getImageByHash(String hash) async {
     final requestType = Helper.SimulatedRequestType.GET;
-
     return _run(
       itPrefersCache: !Options().preferRemoteImgs,
       offline: () => local.getImageByHash(hash),
@@ -365,6 +364,11 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    if (hash == data?.mainhash) {
+      data?.mainhash = null;
+      debugPrint('deleted mainhash');
+      await update(data, caller: caller, forceUpdate: forceUpdate);
+    }
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       // offline: () => local.setMainImageByHash(
@@ -445,15 +449,29 @@ D injectImages<D extends WithImgHashes>(D data) {
   if (data.imagehashes == null ||
       data.imagehashes!.length == 0) //the second check *could* be omitted
     return data;
-  // String _firstHash = data.imagehashes![0];
-  // data.mainImage = (_firstHash == Options().no_image_placeholder_name)
+
   //     ? null
   //     : API().getImageByHash(_firstHash);
-  data.imageFutures =
-      data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+
   //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
-  data.previewImage = (data.imageFutures != null
-      ? data.imagehashes?.map((hash) => API().getImageByHash(data.mainhash ?? '')).toList().ordered_firstNonNull
-      : Future.value(null))!;
+  if (data.mainhash != null &&
+      data.mainhash != Options().no_image_placeholder_name) {
+    var mainImage = API().getImageByHash(data.mainhash ?? '');
+
+    data.imageFutures =
+        data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+    data.imageFutures?.insert(0, mainImage);
+    debugPrint("MAINHASH" + data.mainhash.toString());
+    data.previewImage = mainImage;
+  } else {
+    data.previewImage = Future.value(null);
+    if (data.imagehashes != null && data.imagehashes!.length > 0) {
+      data.imageFutures =
+          data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+      data.previewImage = data.imageFutures!.first;
+      data.mainhash = data.imagehashes!.first;
+    }
+  }
+
   return data;
 }
