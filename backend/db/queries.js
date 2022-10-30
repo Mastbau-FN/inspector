@@ -379,7 +379,12 @@ const hashImagesAndCreateIds = async (tthis) => {
       let imageNames = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       ).filter((v) => v != filename);
+      
 
+      let maincheck = (
+        await imgfiler.getAllImagenamesFrom(rootfolder, link)
+      )
+      
       // append their hashes to the returned object  
       const images =
         imageNames.map(
@@ -388,10 +393,12 @@ const hashImagesAndCreateIds = async (tthis) => {
         || ["error_ image hashing failed to-te-totally"];
       // console.log(images)
       // set main image at first index
-      if (filename != options.no_image_placeholder_name && filename != "") {
-        console.log("queries vor"+thingy.mainhash);
+      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
+        console.log(images)
+        console.log("schon davor aber filename "+ filename)
+        console.log("ja halt nach hashen"+imghasher.memorize(rootfolder, link, filename))
         thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
-        console.log("queries "+thingy.mainhash+images);
+        
         // thingy.mainimage = mainImage;
         //images.unshift(thingy.mainhash);
       }
