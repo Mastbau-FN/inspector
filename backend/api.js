@@ -150,7 +150,7 @@ const delete_ = (req, res, next) =>
 
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
-    async () => (await queries.deleteImgByHash(req.body.hash))[0],
+    async () => (await queries.deleteImgByHash(req.body.hash)),
     (json) => {return{message: "deleted image", query_result: json}},
     res,
     next

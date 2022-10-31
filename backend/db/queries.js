@@ -340,16 +340,22 @@ const deleteImgByHash = async (hash) => {
   //console.log(p)
   //TODO: errorhandling
   const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
-  const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
-  try {
-    await fsp.mkdir(newDir)
-  } catch (error) {
+  fsp.rm(oldpath)
+  // const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
+  // try {
+  //   await fsp.mkdir(newDir)
+  // } catch (error) {
 
-  }
-  const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/', p.filename));
-  console.log(oldpath, newpath)
-  let ret = await fsp.rename(oldpath, newpath);
-  return { response: ret }
+  // }
+  // const newpath = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/', p.filename));
+  // console.log(oldpath, newpath)
+  // let ret = await fsp.rename(oldpath, newpath);
+  // try {
+  //   await fsp.mkdir(newDir)
+  // } catch (error) {
+
+  // }
+  // return { response: ret }
 }
 
 
@@ -394,9 +400,6 @@ const hashImagesAndCreateIds = async (tthis) => {
       // console.log(images)
       // set main image at first index
       if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
-        console.log(images)
-        console.log("schon davor aber filename "+ filename)
-        console.log("ja halt nach hashen"+imghasher.memorize(rootfolder, link, filename))
         thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
         
         // thingy.mainimage = mainImage;
