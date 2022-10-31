@@ -1,4 +1,3 @@
 # changes
 
-- new main image data structure
-- hotfixed [#250](https://github.com/Mastbau-FN/inspector/issues/250), but reintroduced [#235](https://github.com/Mastbau-FN/inspector/issues/235)
+- fix for [#236](https://github.com/Mastbau-FN/inspector/issues/236) StO Info Update
