@@ -1,3 +1,3 @@
 # changes
 
-- fix for [#236](https://github.com/Mastbau-FN/inspector/issues/236) StO Info Update
+- fix for [#246](https://github.com/Mastbau-FN/inspector/issues/246) (hopefully, not tested)
