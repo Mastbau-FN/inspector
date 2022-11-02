@@ -36,6 +36,14 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool isClicked = false;
   bool wasClicked = false;
 
+  late Widget expandedChild;
+
+  @override
+  void initState() {
+    expandedChild = widget.expandedChild(cancel);
+    super.initState();
+  }
+
   // ignore: non_constant_identifier_names
   final transition_ms = 400;
 
@@ -104,7 +112,7 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
               ? Container(
                   child: Align(
                     alignment: Alignment.bottomCenter,
-                    child: widget.expandedChild(cancel),
+                    child: expandedChild,
                   ),
                 )
               : /*isClicked
