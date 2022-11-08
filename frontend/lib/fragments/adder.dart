@@ -240,6 +240,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
       // autovalidateMode: AutovalidateMode.onUserInteraction,
       child: ListView(
         children: <Widget>[
+          Spacer(),
           ...children,
           ...List.generate(
             textfieldList.length,
@@ -262,24 +263,21 @@ class Adder extends StatelessWidget implements JsonExtractable {
               validator: textfieldList[i].verify,
             ),
           ),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                _PaddedButton(
-                  icon: Icons.cancel,
-                  onPressed: onCancel,
-                ),
-                //if (textfield_list.isNotEmpty) _mainField(set),
-                _PaddedButton(
-                  icon: Icons.check_circle,
-                  onPressed: () {
-                    if (set(context)) onCancel?.call(); //as requested by #118
-                  },
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _PaddedButton(
+                icon: Icons.cancel,
+                onPressed: onCancel,
+              ),
+              //if (textfield_list.isNotEmpty) _mainField(set),
+              _PaddedButton(
+                icon: Icons.check_circle,
+                onPressed: () {
+                  if (set(context)) onCancel?.call(); //as requested by #118
+                },
+              ),
+            ],
           ),
         ],
       ),
