@@ -173,7 +173,7 @@ class API {
         List<bool> _success = await Future.wait([
           doOnline(
             orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
-            forceOnline: !Options().canBeOffline,
+            forceOnline: Options().canBeOffline ? null : true,
           ),
           doOffline(
             orDontIf: !Options().canBeOffline,
