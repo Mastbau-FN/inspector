@@ -36,6 +36,14 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool isClicked = false;
   bool wasClicked = false;
 
+  late Widget expandedChild;
+
+  @override
+  void initState() {
+    expandedChild = widget.expandedChild(cancel);
+    super.initState();
+  }
+
   // ignore: non_constant_identifier_names
   final transition_ms = 400;
 
@@ -104,7 +112,7 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
               ? Container(
                   child: Align(
                     alignment: Alignment.bottomCenter,
-                    child: widget.expandedChild(cancel),
+                    child: expandedChild,
                   ),
                 )
               : /*isClicked
@@ -230,8 +238,9 @@ class Adder extends StatelessWidget implements JsonExtractable {
       key: _formKey,
 
       // autovalidateMode: AutovalidateMode.onUserInteraction,
-      child: ListView(
+      child: Column(
         children: <Widget>[
+          Spacer(),
           ...children,
           ...List.generate(
             textfieldList.length,
@@ -254,24 +263,21 @@ class Adder extends StatelessWidget implements JsonExtractable {
               validator: textfieldList[i].verify,
             ),
           ),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                _PaddedButton(
-                  icon: Icons.cancel,
-                  onPressed: onCancel,
-                ),
-                //if (textfield_list.isNotEmpty) _mainField(set),
-                _PaddedButton(
-                  icon: Icons.check_circle,
-                  onPressed: () {
-                    if (set(context)) onCancel?.call(); //as requested by #118
-                  },
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _PaddedButton(
+                icon: Icons.cancel,
+                onPressed: onCancel,
+              ),
+              //if (textfield_list.isNotEmpty) _mainField(set),
+              _PaddedButton(
+                icon: Icons.check_circle,
+                onPressed: () {
+                  if (set(context)) onCancel?.call(); //as requested by #118
+                },
+              ),
+            ],
           ),
         ],
       ),
