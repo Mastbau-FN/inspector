@@ -37,7 +37,7 @@ dependencies:
   photo_view: ^0.14.0
 
   # for launching the platform correct map (location)
-  maps_launcher: ^2.0.1
+  map_launcher: ^2.4.0
 
   # maps -> show inspection location
   flutter_map: ^2.2.0
