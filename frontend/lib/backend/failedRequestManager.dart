@@ -69,11 +69,6 @@ class FailedRequestmanager {
       var children = await caller.all.last;
       var didSucceed = await Future.wait(children.map(
         (child) async {
-          if (Options().debugLocalMirror) {
-            name = '$name-> ${child.title}';
-            debugPrint('__1234 got $depth: $name');
-          }
-
           if (depth == 0)
             return true; //base-case as to not call generateNextModel
           bool childSucceeded = await loadAndCacheAll(
@@ -92,9 +87,6 @@ class FailedRequestmanager {
         try {
           var id =
               await API().local.storeData(caller.currentData, forId: parentID);
-          if (Options().debugLocalMirror)
-            debugPrint(
-                '_32 loading. ${depth + 1} stored : $id  ${caller.currentData.title}');
         } catch (e) {
           return false;
         }

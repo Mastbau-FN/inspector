@@ -34,7 +34,6 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
     // file.writeAsString(imgBytes.toString());%
     file =
         await file.writeAsBytes(imgBytes); //u good? //TODO: doesnt complete?!
-    if (Options().debugLocalMirror) debugPrint('saved $file');
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
@@ -116,7 +115,6 @@ Future<String> storeData<DataT extends Data>(
           : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
-  if (Options().debugLocalMirror) debugPrint("stored json: " + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
   return id;

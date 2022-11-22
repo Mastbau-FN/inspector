@@ -48,8 +48,8 @@ class API {
   bool? _dataPrefersCache(Data? data,
       {required Helper.SimulatedRequestType type}) {
     bool? itPrefersCache;
-    if (type == Helper.SimulatedRequestType.GET ||
-        Options().tryOnlineUploadRequestsInCachedMode)
+    //die simulated GET request senden keine daten (die für sync relevant sinc), bei den anderes muss woanders entschieden werden ob an den server gesendet wird oder nicht
+    if (type == Helper.SimulatedRequestType.GET)
       try {
         itPrefersCache = (data as WithOffline).forceOffline;
       } catch (e) {}
@@ -108,7 +108,7 @@ class API {
       (rap) async {
         // final _ukey = UniqueKey();
         late Object _latestErr;
-        Future<bool> doOnline(
+        Future<bool?> doOnline(
             {bool orDontIf = false, bool? forceOnline}) async {
           // debugPrint(_ukey.toString() + 'running online');
           try {
@@ -120,15 +120,10 @@ class API {
             // debugPrint(_ukey.toString() + 'network?');
             final __x = await tryNetwork(requestType: requestType);
             // debugPrint(_ukey.toString() + 'network worked');
-            final bool wantsmerged = merge != null &&
-                Options().canBeOffline &&
-                (Options().mergeOnlineEvenInCached ||
-                    Options().mergeOnline && !_itPrefersCache);
-            final bool wantsonline = forceOnline ??
-                //TODO: okay but this might be the wrong type
-                ((requestType != Helper.SimulatedRequestType.GET) ||
-                    Options().preferRemoteData ||
-                    Options().preferRemoteImgs);
+            final bool wantsmerged =
+                merge != null && Options().canBeOffline && !_itPrefersCache;
+            final bool wantsonline =
+                forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
             if (wantsonline || wantsmerged) {
               await Future.delayed(Duration(milliseconds: 100));
               // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
@@ -140,7 +135,8 @@ class API {
               // debugPrint(_ukey.toString() +
               //     'online succeeded: ' +
               //     onlineRes.toString());
-            }
+            } else
+              return null;
             // debugPrint(_ukey.toString() +
             //     'ran online ' +
             //     wantsonline.toString() +
@@ -159,9 +155,6 @@ class API {
           if (onlineFailedCB != null)
             await onlineFailedCB(offlineRes, rap);
           else if (log) await local.logFailedReq(rap.rd);
-          if (Options().debugLocalMirror)
-            debugPrint(
-                'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $_latestErr');
         }
 
         onlineSuccessProcedure() async {
@@ -170,9 +163,9 @@ class API {
           //XXX: vllt das onsuccess lieber dem rd übergeben?
         }
 
-        List<bool> _success = await Future.wait([
+        List<bool?> _success = await Future.wait([
           doOnline(
-            orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
+            orDontIf: _itPrefersCache,
             forceOnline: Options().canBeOffline ? null : true,
           ),
           doOffline(
@@ -180,17 +173,21 @@ class API {
           )
         ], eagerError: false);
 
-        bool onlineSucc = _success[0];
-        bool offlineSucc = _success[1];
+        bool? onlineSucc = _success[0];
+        bool? offlineSucc = _success[1];
         var x = 0;
-        if (!onlineSucc && !offlineSucc && Options().tryOnlineIfOfflineFailed) {
+        if (!(onlineSucc ?? false) && !offlineSucc!) {
+          //? das ist vllt für bilder laden wichtig, wenn offline fehlgeschlagen ist und online garnicht ausgeführt wurde, probier doch mal online
+          //TODO: was passiert im offline modus?
           // debugPrint(_ukey.toString() + 'trying online again');
           onlineSucc = await doOnline(
               forceOnline:
                   true); //TODO: offline has to succeed normally so we dont fetch online if we dont *really* need to
         }
         controller.close();
-        onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+        if (onlineSucc != null)
+          onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+        // if (!onlineSucc) onlineFailedProcedure();
       },
     );
     return controller.stream;
@@ -349,7 +346,8 @@ class API {
   Future<ImageData?> getImageByHash(String hash) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
-      itPrefersCache: !Options().preferRemoteImgs,
+      itPrefersCache:
+          false, //! wir nehmen immer liber lokale bilder, bandbreite und so
       offline: () => local.getImageByHash(hash),
       online: () => remote.getImageByHash(hash),
       requestType: requestType,

@@ -33,7 +33,7 @@ class MainDrawer extends StatelessWidget {
         children: <Widget>[
           MainDrawerHeader(),
           settingsTile,
-          if (Options().showDoggo) unlimiteddoggosTile,
+          // if (Options().showDoggo) unlimiteddoggosTile,
           Spacer(),
           if (Options().canBeOffline) UploadSyncTile(),
           SafeArea(
