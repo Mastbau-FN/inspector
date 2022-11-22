@@ -109,8 +109,6 @@ class Remote {
     final res = (timeout == null) ? await req : await req.timeout(timeout);
 
     final ret = await http.Response.fromStream(res); // res.forceRes();
-    if (Options().debugAllResponses && !returnsBinary)
-      debugPrint("res: " + ret.body);
     return ret;
   }
 
@@ -135,7 +133,6 @@ class Remote {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json = rd.json ?? {};
     rd.json!['user'] = _user?.toJson();
-    if (Options().debugAllResponses) debugPrint('req: ' + jsonEncode(rd.json));
     try {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
@@ -202,14 +199,11 @@ class Remote {
       else {
         try {
           final file = await API().local.storeImage(res.bodyBytes, hash);
-          if (Options().debugImages || Options().debugLocalMirror)
-            debugPrint('stored image in $file');
           return ImageData(
             (await API().local.readImage(hash))!,
             id: hash,
           );
         } catch (e) {
-          
           debugPrint("failed to load webimg: " + e.toString());
         }
       }
@@ -270,9 +264,6 @@ class Remote {
     required String route,
     Map<String, dynamic> other = const {},
   }) {
-    if (Options().debugAllResponses)
-      debugPrint("we will send this data to $route:" +
-          (data?.toJson().toString() ?? ""));
     assert(data != null, 'we cant send no data, data needs to be supplied');
     var jsonData = data!.toJson();
     final rd = RequestData(route, json: {
@@ -283,8 +274,6 @@ class Remote {
 
     parser(http.Response? res) {
       res = res?.forceRes();
-      if (Options().debugAllResponses)
-        debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
       if (res != null && res.statusCode ~/ 100 != 2) {
         _maybeShowToast(
