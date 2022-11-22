@@ -7,9 +7,9 @@ import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:maps_launcher/maps_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
 
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/flutter_map.dart' as FM;
 
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
@@ -295,19 +295,19 @@ class _MapState extends State<_Map> {
                             400, //XXX expanded to take available space would be much better than giving a fixed height
                         child: Stack(
                           children: [
-                            FlutterMap(
-                              options: MapOptions(
+                            FM.FlutterMap(
+                              options: FM.MapOptions(
                                 center: widget.locationdata.coords!,
                                 zoom: 8.0,
                               ),
                               layers: [
-                                TileLayerOptions(
+                                FM.TileLayerOptions(
                                     urlTemplate:
                                         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                                     subdomains: ['a', 'b', 'c']),
-                                MarkerLayerOptions(
+                                FM.MarkerLayerOptions(
                                   markers: [
-                                    Marker(
+                                    FM.Marker(
                                       width: 80.0,
                                       height: 80.0,
                                       point: widget.locationdata.coords!,
@@ -359,11 +359,17 @@ class _MapState extends State<_Map> {
                     padding: const EdgeInsets.all(8.0),
                     child: FloatingActionButton(
                       child: Icon(Icons.navigation_rounded),
-                      onPressed: () {
-                        MapsLauncher.launchCoordinates(
-                            widget.locationdata.coords!.latitude,
-                            widget.locationdata.coords!.longitude,
-                            widget.locationdata.pjName);
+                      onPressed: () async {
+                        return await (await MapLauncher.installedMaps)
+                            .first
+                            .showMarker(
+                              coords: Coords(
+                                  widget.locationdata.coords!.latitude,
+                                  widget.locationdata.coords!.longitude),
+                              title: widget.locationdata.title,
+                              description: widget.locationdata.subtitle ??
+                                  widget.locationdata.langText,
+                            );
                       },
                     ),
                   ),
