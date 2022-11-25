@@ -28,10 +28,10 @@ const update_id_map = (data)=>{
 const hash_store = storage.create({dir: '__hash_store', ttl: 604800000*100});//store entries for 100 weeks
 hash_store.init();
 
-const frontend_to_backend_hash_decorator = (req, res, next) => {
+const frontend_to_backend_hash_decorator = async (req, res, next) => {
     try {
         let frontend_hash = req.body.hash;
-        let backend_hash = hash_store.getItem(frontend_hash);
+        let backend_hash = await hash_store.getItem(frontend_hash);
         if (backend_hash) {
             req.body.hash = backend_hash;
             next();
