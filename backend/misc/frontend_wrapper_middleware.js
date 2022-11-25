@@ -1,6 +1,6 @@
 const storage = require('node-persist');
 const myStorage = storage.create({dir: 'myDir', ttl: 604800000*100});//store entries for 100 weeks
-await myStorage.init();
+myStorage.init();
 
 
 const frontend_to_backend_id_decorator = (req, res, next) => {
