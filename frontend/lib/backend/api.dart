@@ -301,7 +301,8 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
-
+    if (data == null) return null;
+    data.id = /*'_on_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
     return _run(
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
