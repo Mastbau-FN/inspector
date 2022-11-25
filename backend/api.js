@@ -179,7 +179,7 @@ const getFileFromHash = async (req, res) => {
 };
 
 const fileUpload = async (req, res) => {
-  console.log("uploaded files");
+  console.log("uploading files..");
   if (!(req.files || req.file)) {
     res.status(400).json({ reason: "no file uploaded" });
   } else {
