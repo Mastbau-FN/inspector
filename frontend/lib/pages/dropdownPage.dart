@@ -36,7 +36,7 @@ class DropDownPage<
     return Consumer<DDModel>(
       builder: (context, ddmodel, child) => Scaffold(
         appBar: AppBar(
-          leading: Navigator.canPop(context)
+          leading: (ModalRoute.of(context)?.canPop ?? false)
               ? BackButton(
                   onPressed: Navigator.of(context).pop,
                 )
