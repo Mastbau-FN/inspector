@@ -89,6 +89,8 @@ app.use("/api/secure/", auth.login_wall);
 
 app.use("/api/secure" + _update_r, ftb.ftb_id);
 app.use("/api/secure" + _delete_r, ftb.ftb_id);
+app.use("/api/secure" + _deleteImageByHash_r, ftb.ftb_hash);
+app.use("/api/secure" + _setMainImageByHash_r, ftb.ftb_hash);
 
 //log everything
 const logger = require("./misc/logger");
