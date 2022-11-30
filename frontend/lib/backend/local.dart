@@ -125,6 +125,7 @@ class LocalMirror {
   Future<ImageData?> getImageByHash(String hash) async {
     final img = await readImage(hash);
     if (img == null) throw Exception("no img cached");
+    // return null;
 
     return ImageData(img, id: hash);
   }
@@ -196,9 +197,9 @@ class LocalMirror {
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
     OP.storeData(data, forId: caller?.id ?? await API().rootID);
-    NewImages.addAllNulled(newLocalImageNames);
+    // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
-    //TODO: test #211
+    // //TO-DO: test #211
   }
 
   final storeData = OP.storeData;

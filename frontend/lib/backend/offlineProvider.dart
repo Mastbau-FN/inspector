@@ -53,7 +53,9 @@ Future<Image?> readImage(String name) async {
   final err = (name == Options().no_image_placeholder_name)
       ? NoImagePlaceholderException()
       : Exception("file $file doesnt exist");
-  if (!file.existsSync()) throw err;
+  if (!file.existsSync())
+    // throw err;
+    return null;
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
