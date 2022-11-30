@@ -190,7 +190,7 @@ const addNew = async (data, KZL) => {
   const newdata = { ...(data.data), ...(res[0]) }
   _addfoldername(newdata);
 
-  ftb.update_map(newdata);
+  ftb.update_id_map(newdata);
 
   return res;
 }
