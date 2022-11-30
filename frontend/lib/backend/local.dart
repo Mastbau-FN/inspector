@@ -83,7 +83,7 @@ class LocalMirror {
       final author = (await API().user)!.name;
       data = Data.fromJson<DataT>(
           data.toJson().copyWith({'Autor': author}))!; //kinda hacky
-      data.id = /*'_on_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+      data.id = /*'_on_' + */ createLocalId(data);
       OP.storeData<DataT>(data, forId: caller.id!);
       return data;
     }
@@ -98,7 +98,7 @@ class LocalMirror {
   }) async {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
-      data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+      data.id = /*'_oe_' + */ createLocalId(data);
       OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
@@ -140,7 +140,7 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
-        // data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+        // data.id = /*'_oe_' + */ createLocalId(data);
         OP.deleteImage(hash);
         data.imagehashes!.remove(hash);
         storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
@@ -163,7 +163,7 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
-        // data.id = (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
+        // data.id = createLocalId(data);
         data.imagehashes!.insert(0, mainhash);
         data.imagehashes!.remove(mainhash);
 
@@ -225,4 +225,11 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
         S.current.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
+}
+
+String createLocalId(Data data) {
+  return data.id ??
+      LOCALLY_ADDED_PREFIX +
+          data.title.replaceAll(' ', '') +
+          '${data.runtimeType.toString()}_${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
 }
