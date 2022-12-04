@@ -163,13 +163,15 @@ class API {
           //XXX: vllt das onsuccess lieber dem rd übergeben?
         }
 
+        final connection = await (Connectivity().checkConnectivity());
         List<bool?> _success = await Future.wait([
           doOnline(
             orDontIf: _itPrefersCache,
             forceOnline: Options().canBeOffline ? null : true,
           ),
           doOffline(
-            orDontIf: !Options().canBeOffline,
+            orDontIf: !Options().canBeOffline ||
+                connection == ConnectivityResult.wifi,
           )
         ], eagerError: false);
 
