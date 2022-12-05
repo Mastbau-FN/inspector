@@ -26,6 +26,8 @@ const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
 
+const ftb = require("./misc/frontend_wrapper_middleware");
+
 const identifiers = require('./misc/identifiers').identifiers;
 
 const datapointRoutes = [
@@ -85,6 +87,11 @@ app.use("/api/secure/", auth.api_wall);
 // needs a user to be logged in aka provided via the user param inside the post request
 app.use("/api/secure/", auth.login_wall);
 
+app.use("/api/secure" + _update_r, ftb.ftb_id);
+app.use("/api/secure" + _delete_r, ftb.ftb_id);
+app.use("/api/secure" + _deleteImageByHash_r, ftb.ftb_hash);
+app.use("/api/secure" + _setMainImageByHash_r, ftb.ftb_hash);
+
 //log everything
 const logger = require("./misc/logger");
 app.use("/", logger.logreq);
@@ -96,6 +103,7 @@ datapointRoutes.forEach((datapointRoute) =>
 );
 
 app.post("/api/secure" + _addNew_r, api.addNew);
+
 app.post("/api/secure" + _update_r, api.update);
 app.post("/api/secure" + _delete_r, api.delete_);
 

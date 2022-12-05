@@ -1,4 +1,5 @@
 ////const bcrypt = require("bcrypt");
+const ftb = require('../misc/frontend_wrapper_middleware');
 const options = require("../options");
 
 const useNewID = true //&& false;
@@ -188,6 +189,9 @@ const addNew = async (data, KZL) => {
   let res = await queryFileWithParams(queryfile, params);
   const newdata = { ...(data.data), ...(res[0]) }
   _addfoldername(newdata);
+
+  ftb.update_id_map(newdata);
+
   return res;
 }
 

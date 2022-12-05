@@ -301,7 +301,8 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
-
+    if (data == null) return null;
+    data.id = /*'_on_' + */ createLocalId(data);
     return _run(
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
@@ -459,7 +460,7 @@ D injectImages<D extends WithImgHashes>(D data) {
     data.imageFutures =
         data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
     data.imageFutures?.insert(0, mainImage);
-    debugPrint("MAINHASH" + data.mainhash.toString());
+    // debugPrint("MAINHASH" + data.mainhash.toString());
     data.previewImage = mainImage;
   } else {
     data.previewImage = Future.value(null);

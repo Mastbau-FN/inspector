@@ -17,7 +17,7 @@ Future main() async {
 
   await dotenv.load(fileName: ".env");
   await Options().load();
-  await NewImages.load();
+  // await NewImages.load();
 
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`
