@@ -273,7 +273,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
-                            (data) => API().uploadFiles(data, files,
+                            (data) => API().uploadNewImagesOrFiles(data, files,
                                 caller: model.currentData, forceUpdate: true),
                           );
 

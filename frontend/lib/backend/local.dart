@@ -194,9 +194,10 @@ class LocalMirror {
       await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));
+    if (data.imagehashes == null) data.imagehashes = [];
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
-    OP.storeData(data, forId: caller?.id ?? await API().rootID);
+    storeData(data, forId: caller?.id ?? await API().rootID);
     // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
     // //TO-DO: test #211
