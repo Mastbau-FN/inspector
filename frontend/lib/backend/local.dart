@@ -195,6 +195,10 @@ class LocalMirror {
       newLocalImageNames.add(imageName);
     }));
     if (data.imagehashes == null) data.imagehashes = [];
+    if (data.imagehashes!.isEmpty && data.mainhash == null) {
+      data.mainhash = newLocalImageNames.first;
+      newLocalImageNames.removeAt(0);
+    }
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
     storeData(data, forId: caller?.id ?? await API().rootID);
