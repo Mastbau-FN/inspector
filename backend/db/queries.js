@@ -209,7 +209,7 @@ const update = async (body) => {
   switch (body.type) {
     case identifiers.category:
       //console.log("updating category")
-      //console.log(ld.Link);
+      console.log(ld.Link);
       queryfile = folder + "/check_categories";
       params = [ld.PjNr, ld.E1, ld.KurzText, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()]; //Zusatz_Info ist momentan nur in den defects selbst im frontend setzbar (aber wer weiss vllt solls das ja mal geben)
       break;
@@ -403,13 +403,13 @@ const hashImagesAndCreateIds = async (tthis) => {
         || ["error_ image hashing failed to-te-totally"];
       // console.log(images)
       // set main image at first index
+     
       if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
         thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
         
         // thingy.mainimage = mainImage;
         //images.unshift(thingy.mainhash);
       }
-     
       //images and thingy.mainimage or hash
       
 
