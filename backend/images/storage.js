@@ -45,8 +45,10 @@ const mstorage = multer.diskStorage({
             req.body.hash = hash;
             setMainImgByHash(req, { status: () => { } }, (err, res) => { });
           }
+        
         }
-
+        let hash = memorize_link(rf);
+        update_hash_map(req.body, hash);
         
 
       });
