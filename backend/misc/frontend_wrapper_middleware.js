@@ -43,7 +43,7 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
 };
 
 const update_hash_map = (data, hash)=>{
-    console.log(data, "hhhhrzghfadsfasfasfasfasfasf")
+    
     let frontend_hash = hash
     if(data!=null||data!=undefined){
         frontend_hash = data.hash;
