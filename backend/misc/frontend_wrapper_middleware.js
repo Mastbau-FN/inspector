@@ -45,9 +45,7 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
 const update_hash_map = (data, hash)=>{
     
     let frontend_hash = hash
-    if(data!=undefined||data.hash!=null){
-        frontend_hash = data.hash;
-    }
+    
     
     let backend_hash = hash;
     hash_store.setItem(frontend_hash, backend_hash);
