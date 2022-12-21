@@ -407,7 +407,7 @@ const hashImagesAndCreateIds = async (tthis) => {
         thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
         
         // thingy.mainimage = mainImage;
-        //images.unshift(thingy.mainhash);
+        // images.unshift(thingy.mainhash);
       }
      
       //images and thingy.mainimage or hash

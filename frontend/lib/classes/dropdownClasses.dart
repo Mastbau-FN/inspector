@@ -254,13 +254,16 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
             return FutureBuilder<ChildData?>(
                 future: model.currentlyChosenChildData,
                 builder: (context, snapshot) {
+                  var hasMain = snapshot.data?.mainImage != null &&
+                      (snapshot.data!.mainhash ??
+                              Options().no_image_placeholder_name) !=
+                          Options().no_image_placeholder_name;
                   return Stack(
                     children: [
                       ImagesPage.futured(
-                        hasMainImage: snapshot.data?.mainImage != null,
+                        hasMainImage: hasMain,
                         futureImages: [
-                          if (snapshot.data?.mainImage != null)
-                            snapshot.data!.mainImage,
+                          if (hasMain) snapshot.data!.mainImage,
                           ...?((snapshot.data ?? data)?.imageFutures)
                         ],
                         //s ?.map((e) => e.asBroadcastSteream())

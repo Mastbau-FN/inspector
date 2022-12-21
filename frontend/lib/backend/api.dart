@@ -455,7 +455,7 @@ D injectImages<D extends WithImgHashes>(D data) {
   //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
   if (data.mainhash != null &&
       data.mainhash != Options().no_image_placeholder_name) {
-    var mainImage = API().getImageByHash(data.mainhash ?? '');
+    var mainImage = API().getImageByHash(data.mainhash!);
 
     data.imageFutures =
         data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
