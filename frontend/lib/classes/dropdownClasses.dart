@@ -249,10 +249,10 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
             return FutureBuilder<ChildData?>(
                 future: model.currentlyChosenChildData,
                 builder: (context, snapshot) {
-                  var hasMain = (snapshot.data!.mainhash ??
+                  var hasMain = (snapshot.data?.mainhash ??
                           Options().no_image_placeholder_name) !=
                       Options().no_image_placeholder_name;
-                  debugPrint(snapshot.data!.mainhash);
+
                   return Stack(
                     children: [
                       ImagesPage.futured(
