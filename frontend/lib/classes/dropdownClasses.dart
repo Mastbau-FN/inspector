@@ -19,10 +19,6 @@ import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
-  Future<ImageData?>? get mainImage =>
-      (mainhash != null && mainhash != Options().no_image_placeholder_name)
-          ? API().getImageByHash(mainhash!)
-          : null;
   Future<ImageData?> previewImage = Future.value(null);
   List<Future<ImageData?>>? imageFutures = [];
   @JsonKey(name: 'mainhash')
@@ -253,6 +249,10 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
             return FutureBuilder<ChildData?>(
                 future: model.currentlyChosenChildData,
                 builder: (context, snapshot) {
+                  var hasMain = (snapshot.data!.mainhash ??
+                          Options().no_image_placeholder_name) !=
+                      Options().no_image_placeholder_name;
+                  debugPrint(snapshot.data!.mainhash);
                   return Stack(
                     children: [
                       ImagesPage.futured(
@@ -261,11 +261,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                                 (snapshot.data ?? data)?.mainhash !=
                                     Options().no_image_placeholder_name,
                         futureImages: [
-                          // if (snapshot.data?.mainhash != null &&
-                          //   (snapshot.data ?? data)?.mainhash !=
-                          //       Options().no_image_placeholder_name)
-                          // snapshot.data!.mainImage!,
-                          ...?((snapshot.data ?? data)?.imageFutures)
+                          if (hasMain) // snapshot.data!.mainImage,
+                            ...?((snapshot.data ?? data)?.imageFutures)
                         ],
                         //s ?.map((e) => e.asBroadcastSteream())
                         // .toList(),

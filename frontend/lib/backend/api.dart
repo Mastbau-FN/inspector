@@ -455,13 +455,13 @@ D injectImages<D extends WithImgHashes>(D data) {
   //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
   if (data.mainhash != null &&
       data.mainhash != Options().no_image_placeholder_name) {
-    var mainImage = API().getImageByHash(data.mainhash ?? '');
-
     data.imageFutures =
         data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
-    data.imageFutures?.insert(0, mainImage);
+
+    data.imageFutures?.insert(0, API().getImageByHash(data.mainhash!));
+    // data.imageFutures?.insert(0, mainImage);
     // debugPrint("MAINHASH" + data.mainhash.toString());
-    data.previewImage = mainImage;
+    data.previewImage = API().getImageByHash(data.mainhash!);
   } else {
     data.previewImage = Future.value(null);
     if (data.imagehashes != null && data.imagehashes!.length > 0) {
