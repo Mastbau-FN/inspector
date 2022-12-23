@@ -467,8 +467,10 @@ D injectImages<D extends WithImgHashes>(D data) {
     if (data.imagehashes != null && data.imagehashes!.length > 0) {
       data.imageFutures =
           data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+
       data.previewImage = data.imageFutures!.first;
       data.mainhash = data.imagehashes!.first;
+      //data.imageFutures?.insert(0, API().getImageByHash(data.mainhash!));
     }
   }
 
