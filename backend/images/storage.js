@@ -31,8 +31,9 @@ const mstorage = multer.diskStorage({
         if (files.length < 1 + files.includes(prev_filename)) {
           // console.log(files)
           let hash = memorize_link(rf);
+          console.log("reqbody: ", req.body, "hash: ")
           update_hash_map(req.body, hash);
-          console.log(req.body)
+          
 
           //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
           if (
@@ -43,7 +44,10 @@ const mstorage = multer.diskStorage({
             setMainImgByHash(req, { status: () => { } }, (err, res) => { });
           }
         }
+       
+
       });
+
     });
   },
   filename: (req, file, cb) => {
