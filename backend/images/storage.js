@@ -12,6 +12,8 @@ const {
   set_first_image_as_main,
   no_image_placeholder_name,
 } = require("../options");
+const LOCALLY_ADDED_PREFIX = '__locally_added__';
+
 const { update_hash_map } = require("../misc/frontend_wrapper_middleware");
 
 const mstorage = multer.diskStorage({
@@ -23,30 +25,34 @@ const mstorage = multer.diskStorage({
       console.log("multi-upload", rf);
       const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
       fs.mkdirSync(path, { recursive: true });
-      cb(null, path);
       let prev_filename = rf.filename;
       fs.readdir(path, {}, (err, files) => {
         rf.filename = file.originalname;
         //lil race condition workaround: if file already added length is increased by 1
-        if (files.length < 1 + files.includes(prev_filename)) {
-          // console.log(files)
-          let hash = memorize_link(rf);
-          console.log("reqbody: ", req.body, "hash: ")
-          update_hash_map(req.body, hash);
-          
 
-          //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
-          if (
-            set_first_image_as_main &&
-            prev_filename == no_image_placeholder_name
-          ) {
-            req.body.hash = hash;
-            setMainImgByHash(req, { status: () => { } }, (err, res) => { });
-          }
+        // if (files.length < 1 + files.includes(prev_filename)) {
+
+        let hash = memorize_link(rf);
+
+        if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)) {
+          update_hash_map({hash: rf.filename}, hash);
         }
-       
+
+
+        //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
+        if (
+          set_first_image_as_main &&
+          !prev_filename || prev_filename == no_image_placeholder_name 
+        ) {
+          req.body.hash = hash;
+          req.body.data = __data;
+          setMainImgByHash(req, { status: (_) => {return {json:(_)=>{}}} }, (err, res) => { });
+        }
+        // }
+
 
       });
+      cb(null, path);
 
     });
   },

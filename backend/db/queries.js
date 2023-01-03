@@ -389,12 +389,11 @@ const hashImagesAndCreateIds = async (tthis) => {
       let imageNames = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       ).filter((v) => v != filename);
-      
 
       let maincheck = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       )
-      
+
       // append their hashes to the returned object  
       const images =
         imageNames.map(
@@ -403,18 +402,19 @@ const hashImagesAndCreateIds = async (tthis) => {
         || ["error_ image hashing failed to-te-totally"];
       // console.log(images)
       // set main image at first index
+    
       if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
         thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
-        
+
         // thingy.mainimage = mainImage;
-        //images.unshift(thingy.mainhash);
+        // images.unshift(thingy.mainhash);
       }
-     
+
       //images and thingy.mainimage or hash
-      
+
 
       thingy['images'] = images ?? ["error_ couldnt set image hashes"];
-      if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash});
+      if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
     }
     thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
