@@ -187,7 +187,7 @@ class Remote {
     final rd = RequestData(
       _getImageFromHash_r,
       json: {
-        'imghash': hash,
+        'hash': hash,
       },
       returnsBinary: true,
     );
