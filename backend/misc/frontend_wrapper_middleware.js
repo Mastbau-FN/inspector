@@ -14,7 +14,7 @@ const frontend_to_backend_id_decorator = async (req, res, next) => {
     } catch (error) {
         res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
     }
-    // next();
+    next();
 };
 
 const update_id_map = (data)=>{
