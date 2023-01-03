@@ -1,4 +1,4 @@
 # changes
 
 - online version stable 
-- offline version mit problemen beim Hochladen von ersten bildern da dort online version benutzt wird (in Arbeit) und hashes falsch zugeordnet werden
+- bilder hochladen die als main hash gesetzt werden (automatisch) tut jz was es soll
