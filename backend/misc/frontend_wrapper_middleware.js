@@ -12,7 +12,7 @@ const frontend_to_backend_id_decorator = async (req, res, next) => {
             next();
         }
     } catch (error) {
-        res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
+        // res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
     }
     next();
 };
@@ -41,7 +41,7 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
             next();
         }
     } catch (error) {
-        res.status(400).json({ reason: "couldnt map local hash to backend hash, please contact admin" });
+        // res.status(400).json({ reason: "couldnt map local hash to backend hash, please contact admin" });
     }
     next(); // nötig, da sonst bilder ohne hashmatch nicht als main gesetzt werden können
 };
