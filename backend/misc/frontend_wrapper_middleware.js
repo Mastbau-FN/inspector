@@ -3,7 +3,7 @@ const storage = require('node-persist');
 const id_store = storage.create({dir: '__id_store', ttl: 604800000*100});//store entries for 100 weeks
 id_store.init();
 
-const frontend_to_backend_id_decorator = async (req, res, next) => {
+const frontend_to_backend_id_decorator = async (req, res, next) => {    
     try {
         let frontend_id = req.body.data.local_id;
         let backend_id = await id_store.getItem(frontend_id); // {E1: 1, E2: 2, E3: 3}
@@ -14,7 +14,7 @@ const frontend_to_backend_id_decorator = async (req, res, next) => {
     } catch (error) {
         res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
     }
-    // next();
+    next();
 };
 
 const update_id_map = (data)=>{
@@ -30,8 +30,12 @@ hash_store.init();
 
 const frontend_to_backend_hash_decorator = async (req, res, next) => {
     try {
+        console.log("middlewarehashbefore:    ", req.body.hash)
+
         let frontend_hash = req.body.hash;
+
         let backend_hash = await hash_store.getItem(frontend_hash);
+        console.log("middlewarehashdanach:    ", backend_hash)
         if (backend_hash) {
             req.body.hash = backend_hash;
             next();
@@ -39,11 +43,13 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
     } catch (error) {
         res.status(400).json({ reason: "couldnt map local hash to backend hash, please contact admin" });
     }
-    // next();
+    next(); // nötig, da sonst bilder ohne hashmatch nicht als main gesetzt werden können
 };
 
 const update_hash_map = (data, hash)=>{
+    
     let frontend_hash = data.hash;
+    
     let backend_hash = hash;
     hash_store.setItem(frontend_hash, backend_hash);
 }

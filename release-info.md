@@ -1,3 +1,4 @@
 # changes
 
-- fix for [#250](https://github.com/Mastbau-FN/inspector/issues/250), again
+- online version stable 
+- offline version mit problemen beim Hochladen von ersten bildern da dort online version benutzt wird (in Arbeit) und hashes falsch zugeordnet werden
