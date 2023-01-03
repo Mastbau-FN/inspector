@@ -150,7 +150,8 @@ class Remote {
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
             ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
-                (key, value) => MapEntry(key, value.toString())));
+                (key, value) =>
+                    MapEntry(key, value.toString()))); //TODO: this causes #279
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
               ? await mreq.send()
