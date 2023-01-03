@@ -264,7 +264,20 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         hasMainImage: hasMain,
                         futureImages: [
                           if (hasMain) snapshot.data!.mainImage,
+                          // snapshot.data!.mainImage,
                           ...?((snapshot.data ?? data)?.imageFutures)
+                          //didnt help:
+                          //  ??
+                          //     <Future<ImageData<Object>?>>[
+                          //       Future.value(ImageData(
+                          //           Image.network(
+                          //               'https://communities.apple.com/public/assets/welcome/welcome-toast.png'),
+                          //           id: UniqueKey()))
+                          //     ]),
+                          // Future.value(ImageData(
+                          //     Image.network(
+                          //         'https://communities.apple.com/public/assets/welcome/welcome-toast.png'),
+                          //     id: UniqueKey()))
                         ],
                         //s ?.map((e) => e.asBroadcastSteream())
                         // .toList(),
