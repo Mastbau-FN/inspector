@@ -121,8 +121,8 @@ class DropDownModel<ChildData extends WithLangText,
     }
   }
 
-  Future<ChildData?> get currentlyChosenChildData =>
-      _getCurrentlyChosenChildData().first;
+  Future<ChildData?> get currentlyChosenChildData => _getCurrentlyChosenChildData()
+      .last; //XXX: locally mirrored (.first) should suffice, but as this doenst work perfectly rn we rather use .last to override with online data
   // int? _currentlyChosenChildDataIndex;
   // // ChildData? _currentlyChosenChildData;
   // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
@@ -159,12 +159,12 @@ class DropDownModel<ChildData extends WithLangText,
 
   Future<T?> updateCurrentChild<T>(
       Future<T> Function(ChildData) updater) async {
-    //TODO: das hier caused den zweiten teil von #182
-    debugPrint('you about to change $currentlyChosenChildId');
     ChildData? childD = await currentlyChosenChildData;
     if (childD != null) {
       T ret = await updater(childD);
       notifyListeners();
+      // await Future.delayed(Duration(milliseconds: 3000));
+      // notifyListeners();
       return ret;
     }
     return null;
@@ -285,8 +285,13 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
-                            (data) => API().uploadNewImagesOrFiles(data, files,
-                                caller: model.currentData, forceUpdate: true),
+                            (data) async {
+                              var ret = await API().uploadNewImagesOrFiles(
+                                  data, files,
+                                  caller: model.currentData, forceUpdate: true);
+                              // await Future.delayed(Duration(seconds: 5));
+                              return ret;
+                            },
                           );
 
                           _maybeShowToast(value);
