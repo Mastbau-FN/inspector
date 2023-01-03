@@ -84,7 +84,7 @@ class LocalMirror {
       data = Data.fromJson<DataT>(
           data.toJson().copyWith({'Autor': author}))!; //kinda hacky
       data.id = /*'_on_' + */ createLocalId(data);
-      OP.storeData<DataT>(data, forId: caller.id!);
+      await storeData<DataT>(data, forId: caller.id!);
       return data;
     }
     return null;
@@ -99,7 +99,7 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       data.id = /*'_oe_' + */ createLocalId(data);
-      OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+      await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
     return null;
@@ -142,9 +142,9 @@ class LocalMirror {
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
-        OP.deleteImage(hash);
+        await OP.deleteImage(hash);
         data.imagehashes!.remove(hash);
-        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully deleted image offline';
       } catch (e) {
         debugPrint('failed to remove image locally');
@@ -175,7 +175,7 @@ class LocalMirror {
 
         debugPrint('set main image hash to $mainhash');
 
-        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully set main image offline';
       } catch (e) {
         debugPrint('failed to update main image locally');
@@ -205,7 +205,7 @@ class LocalMirror {
     }
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
-    storeData(data, forId: caller?.id ?? await API().rootID);
+    await storeData(data, forId: caller?.id ?? await API().rootID);
     // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
     // //TO-DO: test #211

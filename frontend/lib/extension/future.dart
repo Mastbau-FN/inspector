@@ -28,17 +28,17 @@ extension FutureIterate<T> on Iterable<Future<T>> {
 // }
 
 //das macht wenig sinn..
-extension IterateStream on Stream {
-  static Stream<T?> firstNonNull<T extends Object>(
-      Iterable<Stream<T?>> iterable) async* {
-    await for (final event
-        in iterable.first.combineLatestAll([...iterable.skip(1)])) {
-      try {
-        yield event.firstWhere((element) => element != null);
-      } catch (e) {
-        //XXX: das ist eigentlich unsauber, lieber sollte der caller das errorhandling machen aber naja
-        yield null;
-      }
-    }
-  }
-}
+// extension IterateStream on Stream {
+//   static Stream<T?> firstNonNull<T extends Object>(
+//       Iterable<Stream<T?>> iterable) async* {
+//     await for (final event
+//         in iterable.first.combineLatestAll([...iterable.skip(1)])) {
+//       try {
+//         yield event.firstWhere((element) => element != null);
+//       } catch (e) {
+//         //XXX: das ist eigentlich unsauber, lieber sollte der caller das errorhandling machen aber naja
+//         yield null;
+//       }
+//     }
+//   }
+// }
