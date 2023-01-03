@@ -30,14 +30,14 @@ hash_store.init();
 
 const frontend_to_backend_hash_decorator = async (req, res, next) => {
     try {
-        console.log("middlewarehashbefore:    ", req.body.hash)
+        console.log("middlewarehashbefore:    ", req.body.imghash)
 
-        let frontend_hash = req.body.hash;
+        let frontend_hash = req.body.imghash;
 
         let backend_hash = await hash_store.getItem(frontend_hash);
         console.log("middlewarehashdanach:    ", backend_hash)
         if (backend_hash) {
-            req.body.hash = backend_hash;
+            req.body.imghash = backend_hash;
             next();
         }
     } catch (error) {
@@ -48,7 +48,7 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
 
 const update_hash_map = (data, hash)=>{
     
-    let frontend_hash = data.hash;
+    let frontend_hash = data.imghash;
     
     let backend_hash = hash;
     hash_store.setItem(frontend_hash, backend_hash);
