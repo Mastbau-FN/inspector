@@ -32,10 +32,10 @@ const mstorage = multer.diskStorage({
 
         // if (files.length < 1 + files.includes(prev_filename)) {
 
-        let imghash = memorize_link(rf);
+        let hash = memorize_link(rf);
 
         if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)) {
-          update_hash_map({hash: rf.filename}, imghash);
+          update_hash_map({hash: rf.filename}, hash);
         }
 
 
@@ -44,7 +44,7 @@ const mstorage = multer.diskStorage({
           set_first_image_as_main &&
           !prev_filename || prev_filename == no_image_placeholder_name 
         ) {
-          req.body.imghash = imghash;
+          req.body.hash = hash;
           req.body.data = __data;
           setMainImgByHash(req, { status: (_) => {return {json:(_)=>{}}} }, (err, res) => { });
         }
