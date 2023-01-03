@@ -449,27 +449,22 @@ D injectImages<D extends WithImgHashes>(D data) {
       data.imagehashes!.length == 0) //the second check *could* be omitted
     return data;
 
-  //     ? null
-  //     : API().getImageByHash(_firstHash);
-
-  //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
   if (data.mainhash != null &&
       data.mainhash != Options().no_image_placeholder_name) {
     var mainImage = API().getImageByHash(data.mainhash!);
 
+    // data.imagehashes?.removeAt(0); //this is not needed since the backend shouldnt return the mainhash in the list
     data.imageFutures =
         data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
     data.mainImage = mainImage;
-    // data.imageFutures?.insert(0, mainImage);
-    // debugPrint("MAINHASH" + data.mainhash.toString());
     data.previewImage = mainImage;
   } else {
+    //no main image set
     data.previewImage = Future.value(null);
     if (data.imagehashes != null && data.imagehashes!.length > 0) {
       data.imageFutures =
           data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
       data.previewImage = data.imageFutures!.first;
-      data.mainhash = data.imagehashes!.first;
     }
   }
 
