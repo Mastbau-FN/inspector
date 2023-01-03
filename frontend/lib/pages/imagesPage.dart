@@ -93,7 +93,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
           appBar: AppBar(
             title: Text('Bilder'),
           ),
-          body: ImageWrap<T>.futured(
+          body: ImageWrap<T>.streamed(
             images: _images,
             onDelete: onDelete,
             onShare: onShare,

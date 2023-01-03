@@ -33,15 +33,16 @@ class ImageWrap<T extends Object> extends StatelessWidget {
         super(key: key);
 
   ImageWrap.futured({
-    required this.images,
+    required List<Future<ImageData<T>?>> images,
     this.columnCount = 4,
     Key? key,
     this.hasFav,
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
-  })  : _allImages =
-            images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
+  })  : this.images = images.map((e) => Stream.fromFuture(e)).toList(),
+        _allImages =
+            images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
         super(key: key);
 
   ImageWrap.streamed({

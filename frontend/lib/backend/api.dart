@@ -343,12 +343,12 @@ class API {
     ).last;
   }
 
-  /// deletes an image specified by its hash and returns the response
+  /// gets image specified by its hash
   Future<ImageData?> getImageByHash(String hash) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
       itPrefersCache:
-          false, //! wir nehmen immer liber lokale bilder, bandbreite und so
+          false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
       offline: () => local.getImageByHash(hash),
       online: () => remote.getImageByHash(hash),
       requestType: requestType,
@@ -408,7 +408,7 @@ class API {
   }
 
   /// upload a bunch of images
-  Future<String?> uploadFiles<DataT extends Data>(
+  Future<String?> uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
     List<XFile> files, {
     Data? caller,
@@ -445,30 +445,24 @@ class API {
 }
 
 D injectImages<D extends WithImgHashes>(D data) {
-  if (data.imagehashes == null ||
-      data.imagehashes!.length == 0) //the second check *could* be omitted
-    return data;
-
-  //     ? null
-  //     : API().getImageByHash(_firstHash);
-
-  //.sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
   if (data.mainhash != null &&
       data.mainhash != Options().no_image_placeholder_name) {
-    var mainImage = API().getImageByHash(data.mainhash ?? '');
+    var mainImage = API().getImageByHash(data.mainhash!);
 
     data.imageFutures =
         data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
-    data.imageFutures?.insert(0, mainImage);
-    // debugPrint("MAINHASH" + data.mainhash.toString());
+    data.mainImage = mainImage;
     data.previewImage = mainImage;
   } else {
+    //no main image set
+    if (data.imagehashes == null ||
+        data.imagehashes!.length == 0) //the second check *could* be omitted
+      return data;
     data.previewImage = Future.value(null);
     if (data.imagehashes != null && data.imagehashes!.length > 0) {
       data.imageFutures =
           data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
       data.previewImage = data.imageFutures!.first;
-      data.mainhash = data.imagehashes!.first;
     }
   }
 

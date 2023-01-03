@@ -165,10 +165,14 @@ class LocalMirror {
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
       try {
         // data.id = createLocalId(data);
-        data.imagehashes!.insert(0, mainhash);
-        data.imagehashes!.remove(mainhash);
 
+        // remove new main image from list
+        data.imagehashes!.remove(mainhash);
+        //reinstert old main image to list
+        if (data.mainhash != null) data.imagehashes!.insert(0, data.mainhash!);
+        //set new main image
         data.mainhash = mainhash;
+
         debugPrint('set main image hash to $mainhash');
 
         storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
@@ -194,9 +198,14 @@ class LocalMirror {
       await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));
+    if (data.imagehashes == null) data.imagehashes = [];
+    if (data.imagehashes!.isEmpty && data.mainhash == null) {
+      data.mainhash = newLocalImageNames.first;
+      newLocalImageNames.removeAt(0);
+    }
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
-    OP.storeData(data, forId: caller?.id ?? await API().rootID);
+    storeData(data, forId: caller?.id ?? await API().rootID);
     // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
     // //TO-DO: test #211
