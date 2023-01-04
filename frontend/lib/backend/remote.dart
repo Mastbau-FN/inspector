@@ -150,8 +150,10 @@ class Remote {
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
             ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
-                (key, value) =>
-                    MapEntry(key, value.toString()))); //TODO: this causes #279
+                (key, value) => MapEntry(
+                    key,
+                    value
+                        .toString()))); //TODO: this causes #279, but that must be fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
               ? await mreq.send()
