@@ -20,6 +20,11 @@ const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
     console.info("file uploaded");
+    //shouldnt be neccessary, since upload route used fieldparser as middleware
+    try {
+      //might fail if the body was already parsed
+      req.body.data = JSON.parse(req.body.data);
+    } catch (_) {}
     rootfolder(req.body.data).then((rf) => {
       console.log("multi-upload", rf);
       const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));

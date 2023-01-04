@@ -30,6 +30,8 @@ const ftb = require("./misc/frontend_wrapper_middleware");
 
 const identifiers = require('./misc/identifiers').identifiers;
 
+const {generateFieldParser} = require("./misc/json_helper");
+
 const datapointRoutes = [
   { route: `/${identifiers.location}/get`, api: api.getProjects },
   { route: `/${identifiers.category}/get`, api: api.getCategories },
@@ -68,6 +70,7 @@ app.get("/", (request, response) => {
 app.post(
   "/api/secure" + _uploadImage_r,
   auth.api_wall,
+  generateFieldParser(["data"]),//req.body.data = JSON.parse(req.body.data)
   upload.any(),
   //auth.login_wall, //TODO: reenable
   api.fileUpload
