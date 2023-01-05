@@ -4,18 +4,32 @@ const id_store = storage.create({dir: '__id_store', ttl: 604800000*100});//store
 id_store.init();
 
 const frontend_to_backend_id_decorator = async (req, res, next) => {    
-    try {
-        let frontend_id = req.body.data.local_id;
-        let backend_id = await id_store.getItem(frontend_id); // {E1: 1, E2: 2, E3: 3}
-        if (backend_id) {
-            req.body.data = {...req.body.data, ...backend_id} 
-            return next();
-        }
-    } catch (error) {
-        // res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
-    }
+    req = await frontend_to_backend_id_decorator_inner(req)
     return next();
 };
+
+const frontend_to_backend_id_decorator_inner = async (req) => {    
+    try {
+       
+        const frontend_id = req.body.data.local_id;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const backend_id = await get_backend_id_from_frontend_id(frontend_id);
+        if (backend_id) {
+
+            req.body.data = {...req.body.data, ...backend_id} 
+            
+            return req;
+        }
+    } catch (error) {
+        console.warn("decorating id error", error)
+        // res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
+    }
+    return req;
+};
+
+const get_backend_id_from_frontend_id = (frontend_id) => id_store.getItem(frontend_id);// {E1: 1, E2: 2, E3: 3}
+
+
 
 const update_id_map = async (data)=>{
     let frontend_id = data.local_id;
@@ -64,4 +78,5 @@ module.exports = {
     update_hash_map: update_hash_map,
     ftb_hash_map: hash_store,
     ftb_hash: frontend_to_backend_hash_decorator,
+    ftb_ftb_id: frontend_to_backend_id_decorator_inner,
 }

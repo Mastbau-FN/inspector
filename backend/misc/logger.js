@@ -11,7 +11,7 @@ const logreq = (req,res,next)=>{
         req.body.user.pass = passTmp;
     } catch (error) {}
     return next();
-}
+ }
 
 module.exports = {
     logreq,
