@@ -417,7 +417,7 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.uploadFiles(
+      offline: () => local.uploadNewImagesOrFiles(
         data,
         files,
         caller: caller,
@@ -427,18 +427,25 @@ class API {
         data,
         files,
       ),
-      onlineSuccessCB: (response) async {
-        // TODO: get actual hash and replace (in NewImages and in Data)
-        // NewImages.addAll(response)
-        // data.imagehashes.
+      // onlineSuccessCB: (response) async {},
+      onlineFailedCB: (onlineRes, rap) {
+        debugPrint('failed to upload images, ' +
+            rap.rd.json.toString() +
+            ': ' +
+            onlineRes.toString());
+        var rd = rap.rd;
+        //biscchen ugly
+        rd.multipartFiles = rd.multipartFiles.map((e) {
+          // e.name = newName;
+          var newName = LOCALLY_ADDED_PREFIX + e.name;
+          var newPath =
+              e.path.substring(0, e.path.length - e.name.length) + newName;
+          e.saveTo(newPath);
+          e = XFile(newPath);
+          return e;
+        }).toList();
+        local.logFailedReq(rd);
       },
-      // onlineFailedCB:
-      // (onlineRes, rap) {
-      //   debugPrint('failed to upload images, ' +
-      //       rap.rd.json.toString() +
-      //       ': ' +
-      //       onlineRes.toString());
-      // },
       requestType: requestType,
     ).last;
   }

@@ -11,6 +11,12 @@ var cache = new NanoCache({
   bytes: NanoCache.SIZE.GB, // cache memory usage must not exceed 1GB
 });
 
+// const storage = require('node-persist');
+
+// const __hash_cache = storage.create({dir: '__hash_cache', ttl: 604800000*100});//store entries for 100 weeks
+// __hash_cache.init();
+// cache = {get:(e)=>__hash_cache.getItem(e), set:(e, b)=> __hash_cache.setItem(e,b)};
+
 const getFileFromHash = async (hash) => {
    console.log("gettin file from ", await getPathFromHash(hash))
   return await imgfiler.getImageFrom(

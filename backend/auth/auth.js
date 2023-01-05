@@ -9,7 +9,7 @@ const api_wall = (req, res, next) => {
     console.log("tried auth", req.headers.authorization);
     return res.status(403).json({ error: "NOT AUTHORIZED" });
   }
-  next();
+  return next();
 };
 
 const login_wall = async (req, res, next) => {
@@ -19,7 +19,7 @@ const login_wall = async (req, res, next) => {
     let user = await db.getValidUser(req.body.user);
     //important s.t. we can use req.user in all api-calls that require a user to be logged in
     req.user = user;
-    next();
+    return next();
   } catch (e) {
     console.log(`someone tried access with`, req.body, e);
     return res.status(403).json({ error: "wrong credentials" });

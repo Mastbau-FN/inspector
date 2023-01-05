@@ -4,3 +4,4 @@ node_modules
 log
 __id_store
 __hash_store
+__hash_cache

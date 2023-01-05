@@ -17,14 +17,15 @@ const identifiers = require("./misc/identifiers").identifiers;
  * @returns 
  */
 const errsafejson = async (statement, jsonmaker, res, next) => {
-  let val;
   try {
-    val = await statement();
+    const val = await statement();
+    const jsonderulo = await jsonmaker(val);
+    // console.log(res)
+    if (!res.headersSent)return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(error)
-    return next({error: {errsafejson_captured: error.toString()}});
+    console.warn(error,"caler")
+    return next({ error: { errsafejson_captured: error.toString() } });
   }
-  return res.status(200).json(await jsonmaker(val));
 };
 
 /**
@@ -45,7 +46,7 @@ const login = (req, res) => {
 const getProjects = (req, res, next) =>
   errsafejson(
     async () =>
-      await (async (_x) => { let x = await _x; return options.useReverseLocationAPI ? await location.addCoords(x): x})
+      await (async (_x) => { let x = await _x; return options.useReverseLocationAPI ? await location.addCoords(x) : x })
         ((await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds())
     ,
     (x) => {
@@ -75,9 +76,9 @@ const getCategories = (req, res, next) =>
     next
   );
 
-  /**
-   * similar to getCategories, but one level deeper
-   */
+/**
+ * similar to getCategories, but one level deeper
+ */
 const getCheckPoints = (req, res, next) =>
   errsafejson(
     async () =>
@@ -121,7 +122,7 @@ const getCheckPointDefects = (req, res, next) =>
 const addNew = (req, res, next) =>
   errsafejson(
     async () => (await queries.addNew(req.body, req.user.KZL))[0],
-    (json) => {return{message: "added the entry", query_result: json}},
+    (json) => { return { message: "added the entry", query_result: json } },
     res,
     next
   );
@@ -132,13 +133,13 @@ const addNew = (req, res, next) =>
 const update = (req, res, next) =>
   errsafejson(
     async () => (await queries.update(req.body))[0],
-    (json) => {return {message: "updated the entry", query_result: json}},
+    (json) => ({ message: "updated the entry", query_result: json }),
     res,
     next
   );
 
 /**
- * updates a data entry
+ * deletes a data entry
  */
 const delete_ = (req, res, next) =>
   errsafejson(
@@ -151,19 +152,20 @@ const delete_ = (req, res, next) =>
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
     async () => (await queries.deleteImgByHash(req.body.hash)),
-    (json) => {return{message: "deleted image", query_result: json}},
+    (json) => { return { message: "deleted image", query_result: json } },
     res,
     next
   );
 
-const setMainImgByHash = (req, res, next) => {
-
+const setMainImgByHash = async (req, res, next) => {
+  // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
   const pathparts = imghasher.getPathFromHash(req.body.hash);
   const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
   // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
-  console.log("setmainimagehash api backend", req.body.hash,newLink);
   req.body.data.Link = newLink;
-  return update(req, res, next);
+  // console.log("setmainimagehash api backend", req.body.hash, newLink);
+  // res.status(200).json({ reason: 'kein 404 bitte'}) //FIXME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
+  await update(req, res, next);
 };
 
 /**

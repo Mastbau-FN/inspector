@@ -30,6 +30,8 @@ const ftb = require("./misc/frontend_wrapper_middleware");
 
 const identifiers = require('./misc/identifiers').identifiers;
 
+const {generateFieldParser} = require("./misc/json_helper");
+
 const datapointRoutes = [
   { route: `/${identifiers.location}/get`, api: api.getProjects },
   { route: `/${identifiers.category}/get`, api: api.getCategories },
@@ -50,6 +52,13 @@ app.use(
   })
 );
 
+app.use(function(req, res, next) {
+  res.on('header', function() {
+    console.trace('HEADERS GOING TO BE WRITTEN');
+  });
+  return next();
+});
+
 app.use(express.json());
 app.use(
   express.urlencoded({
@@ -68,6 +77,8 @@ app.get("/", (request, response) => {
 app.post(
   "/api/secure" + _uploadImage_r,
   auth.api_wall,
+  generateFieldParser(["data"]),//req.body.data = JSON.parse(req.body.data)
+  ftb.ftb_id,
   upload.any(),
   //auth.login_wall, //TODO: reenable
   api.fileUpload
@@ -95,22 +106,18 @@ app.use("/", logger.logreq);
 
 app.post("/api/secure/login", api.login);
 
+app.use("/api/secure/", ftb.ftb_id,ftb.ftb_hash);
+
 datapointRoutes.forEach((datapointRoute) =>
   app.post("/api/secure" + datapointRoute.route, datapointRoute.api)
 );
 
 app.post("/api/secure" + _addNew_r, api.addNew);
 
-app.use("/api/secure" + _update_r, ftb.ftb_id);
-app.use("/api/secure" + _delete_r, ftb.ftb_id);
-
 
 app.post("/api/secure" + _update_r, api.update);
 app.post("/api/secure" + _delete_r, api.delete_);
 
-
-app.use("/api/secure" + _deleteImageByHash_r, ftb.ftb_hash);
-app.use("/api/secure" + _setMainImageByHash_r, ftb.ftb_hash);
 
 app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
 app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
@@ -148,11 +155,11 @@ app.use("/api/", function (err, req, res, next) {
   res.status(500).send({ error: _hideProblems ? "Something broke!" : err});
 });
 
-// when an error accurs that should be human readable
-app.use(function (err, req, res, next) {
-  res.status(err.status || 500);
-  res.render("500", { error: err });
-});
+// // when an error accurs that should be human readable
+// app.use(function (err, req, res, next) {
+//   res.status(err.status || 500);
+//   res.render("500", { error: err });
+// });
 
 if (isInsecure) {
   var httpServer = http.createServer(app);

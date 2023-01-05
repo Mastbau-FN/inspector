@@ -185,7 +185,7 @@ class LocalMirror {
   }
 
   /// upload a bunch of images
-  Future<String?> uploadFiles<DataT extends Data>(
+  Future<String?> uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
     List<XFile> files, {
     Data? caller,
