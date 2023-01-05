@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -90,6 +91,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     return Stack(
       children: [
         Scaffold(
+          endDrawer: MainDrawer(),
           appBar: AppBar(
             title: Text('Bilder'),
           ),
