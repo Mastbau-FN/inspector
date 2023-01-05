@@ -421,7 +421,7 @@ class Remote {
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
-        'data': jsonData,
+        'data': json.encode(jsonData),
       },
       multipartFiles: files,
     );
