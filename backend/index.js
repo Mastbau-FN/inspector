@@ -116,7 +116,7 @@ app.use("/api/secure" + _deleteImageByHash_r, ftb.ftb_hash);
 app.use("/api/secure" + _setMainImageByHash_r, ftb.ftb_hash);
 
 app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
-app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
+app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash, api.update);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 
