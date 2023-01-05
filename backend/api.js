@@ -19,13 +19,11 @@ const identifiers = require("./misc/identifiers").identifiers;
 const errsafejson = async (statement, jsonmaker, res, next) => {
   try {
     const val = await statement();
-    // console.log("🚀 ~ file: api.js:22 ~ errsafejson ~ val", val)
     const jsonderulo = await jsonmaker(val);
-    // console.log("🚀 ~ file: api.js:24 ~ errsafejson ~ jsonderulo", jsonderulo)
-    
-    return res.status(200).json(jsonderulo);
+    // console.log(res)
+    if (!res.headersSent)return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(error+"caler")
+    console.warn(error,"caler")
     return next({ error: { errsafejson_captured: error.toString() } });
   }
 };
@@ -135,13 +133,13 @@ const addNew = (req, res, next) =>
 const update = (req, res, next) =>
   errsafejson(
     async () => (await queries.update(req.body))[0],
-    (json) => { return { message: "updated the entry", query_result: json } },
+    (json) => ({ message: "updated the entry", query_result: json }),
     res,
     next
   );
 
 /**
- * updates a data entry
+ * deletes a data entry
  */
 const delete_ = (req, res, next) =>
   errsafejson(
@@ -165,8 +163,8 @@ const setMainImgByHash = async (req, res, next) => {
   const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
   // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
   req.body.data.Link = newLink;
-  console.log("setmainimagehash api backend", req.body.hash, newLink);
-  res.status(200).json({ reason: 'kein 404 bitte'}) //FIXME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
+  // console.log("setmainimagehash api backend", req.body.hash, newLink);
+  // res.status(200).json({ reason: 'kein 404 bitte'}) //FIXME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);
 };
 

@@ -17,10 +17,10 @@ const frontend_to_backend_id_decorator = async (req, res, next) => {
     next();
 };
 
-const update_id_map = (data)=>{
+const update_id_map = async (data)=>{
     let frontend_id = data.local_id;
     let backend_id = {E1: data.E1, E2:data.E2, E3:data.E3};
-    id_store.setItem(frontend_id, backend_id);
+    await id_store.setItem(frontend_id, backend_id);
 }
 
 
@@ -47,13 +47,13 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
     next(); // nötig, da sonst bilder ohne hashmatch nicht als main gesetzt werden können
 };
 
-const update_hash_map = (data, hash)=>{
+const update_hash_map = async (data, hash)=>{
     
     let frontend_hash = data.hash;
     
     let backend_hash = hash;
     console.log("🚀 ~ file: frontend_wrapper_middleware.js:54 ~ hash", hash)
-    hash_store.setItem(frontend_hash, backend_hash);
+    await hash_store.setItem(frontend_hash, backend_hash);
 }
 
 

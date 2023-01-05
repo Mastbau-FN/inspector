@@ -116,7 +116,7 @@ app.use("/api/secure" + _deleteImageByHash_r, ftb.ftb_hash);
 app.use("/api/secure" + _setMainImageByHash_r, ftb.ftb_hash);
 
 app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
-app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash, api.update);
+app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 
@@ -124,25 +124,25 @@ app.get("/error", (req, res) => {
   throw Error("failed");
 });
 
-// MARK : 404
-app.use(function (req, res, next) {
-  res.status(404);
+// // MARK : 404
+// app.use(function (req, res, next) {
+//   res.status(404);
 
-  // respond with html page
-  if (req.accepts("html")) {
-    res.render("404", { url: req.url });
-    return;
-  }
+//   // respond with html page
+//   if (req.accepts("html")) {
+//     res.render("404", { url: req.url });
+//     return;
+//   }
 
-  // respond with json
-  if (req.accepts("json")) {
-    res.json({ error: "Not found" });
-    return;
-  }
+//   // respond with json
+//   if (req.accepts("json")) {
+//     res.json({ error: "Not found" });
+//     return;
+//   }
 
-  // default to plain-text. send()
-  res.type("txt").send("Not found");
-});
+//   // default to plain-text. send()
+//   res.type("txt").send("Not found");
+// });
 
 // MARK : 500
 
@@ -151,11 +151,11 @@ app.use("/api/", function (err, req, res, next) {
   res.status(500).send({ error: _hideProblems ? "Something broke!" : err});
 });
 
-// when an error accurs that should be human readable
-app.use(function (err, req, res, next) {
-  res.status(err.status || 500);
-  res.render("500", { error: err });
-});
+// // when an error accurs that should be human readable
+// app.use(function (err, req, res, next) {
+//   res.status(err.status || 500);
+//   res.render("500", { error: err });
+// });
 
 if (isInsecure) {
   var httpServer = http.createServer(app);
