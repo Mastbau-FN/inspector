@@ -10,7 +10,7 @@ const parseFields = (fields, data) => {
 const generateFieldParser = (fields) => {
   return (req, res, next) => {
     req.body = parseFields(fields, req.body);
-    next();
+    return next();
   };
 };
 

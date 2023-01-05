@@ -9,12 +9,12 @@ const frontend_to_backend_id_decorator = async (req, res, next) => {
         let backend_id = await id_store.getItem(frontend_id); // {E1: 1, E2: 2, E3: 3}
         if (backend_id) {
             req.body.data = {...req.body.data, ...backend_id} 
-            next();
+            return next();
         }
     } catch (error) {
         // res.status(400).json({ reason: "couldnt map local id to backend id, please contact admin" });
     }
-    next();
+    return next();
 };
 
 const update_id_map = async (data)=>{
@@ -39,12 +39,12 @@ const frontend_to_backend_hash_decorator = async (req, res, next) => {
         if (backend_hash) {
             req.body.hash = backend_hash;
             // console.log(req.body, "fred feuerstein");
-            next();
+            return next();
         }
     } catch (error) {
         // res.status(400).json({ reason: "couldnt map local hash to backend hash, please contact admin" });
     }
-    next(); // nötig, da sonst bilder ohne hashmatch nicht als main gesetzt werden können
+    return next(); // nötig, da sonst bilder ohne hashmatch nicht als main gesetzt werden können
 };
 
 const update_hash_map = async (data, hash)=>{

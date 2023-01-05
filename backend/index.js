@@ -56,7 +56,7 @@ app.use(function(req, res, next) {
   res.on('header', function() {
     console.trace('HEADERS GOING TO BE WRITTEN');
   });
-  next();
+  return next();
 });
 
 app.use(express.json());
