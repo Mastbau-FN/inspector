@@ -52,6 +52,13 @@ app.use(
   })
 );
 
+app.use(function(req, res, next) {
+  res.on('header', function() {
+    console.trace('HEADERS GOING TO BE WRITTEN');
+  });
+  next();
+});
+
 app.use(express.json());
 app.use(
   express.urlencoded({
