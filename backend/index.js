@@ -105,22 +105,18 @@ app.use("/", logger.logreq);
 
 app.post("/api/secure/login", api.login);
 
+app.use("/api/secure/", ftb.ftb_id,ftb.ftb_hash);
+
 datapointRoutes.forEach((datapointRoute) =>
   app.post("/api/secure" + datapointRoute.route, datapointRoute.api)
 );
 
 app.post("/api/secure" + _addNew_r, api.addNew);
 
-app.use("/api/secure" + _update_r, ftb.ftb_id);
-app.use("/api/secure" + _delete_r, ftb.ftb_id);
-
 
 app.post("/api/secure" + _update_r, api.update);
 app.post("/api/secure" + _delete_r, api.delete_);
 
-
-app.use("/api/secure" + _deleteImageByHash_r, ftb.ftb_hash);
-app.use("/api/secure" + _setMainImageByHash_r, ftb.ftb_hash);
 
 app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
 app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
