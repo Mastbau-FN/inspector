@@ -156,14 +156,14 @@ const deleteImgByHash = (req, res, next) =>
     next
   );
 
-const setMainImgByHash = (req, res, next) => {
+const setMainImgByHash = async (req, res, next) => {
 
   const pathparts = imghasher.getPathFromHash(req.body.hash);
   const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
   // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
   console.log("setmainimagehash api backend", req.body.hash,newLink);
   req.body.data.Link = newLink;
-  return update(req, res, next);
+  return await update(req, res, next);
 };
 
 /**
