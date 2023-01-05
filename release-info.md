@@ -1,4 +1,4 @@
 # changes
 
-- online version stable 
-- bilder hochladen die als main hash gesetzt werden (automatisch) tut jz was es soll
+- many bug fixes
+- offline variant und hochsynchronisieren funktionieren größtenteils
