@@ -15,7 +15,6 @@ import 'offlineProvider.dart' /*as OP*/ show storeJson, getJson;
 
 class FailedRequestmanager {
   Future<bool> retryFailedrequests() async {
-    //TODO: replace image hashes according to NewImages
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
