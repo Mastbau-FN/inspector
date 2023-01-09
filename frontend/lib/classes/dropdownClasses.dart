@@ -229,8 +229,8 @@ Widget nextModel<
         ChildData extends WithLangText,
         ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>(DDModel child) =>
-    ChangeNotifierProvider<DDModel>.value(
-      value: child,
+    ChangeNotifierProvider<DDModel>(
+      create: (context) => child,
       child: DropDownPage<ChildData, ParentData, DDModel>(),
     );
 
