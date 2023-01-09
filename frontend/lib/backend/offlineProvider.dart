@@ -70,7 +70,7 @@ Future<File> deleteImage(String name) async {
   return await file.delete() as File;
 }
 
-deleteAll() async =>
+Future<void> deleteAll() async =>
     (await getApplicationDocumentsDirectory()).delete(recursive: true);
 
 //MARK: data-stuff
