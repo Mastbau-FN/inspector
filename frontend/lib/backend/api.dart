@@ -48,7 +48,7 @@ class API {
   bool? _dataPrefersCache(Data? data,
       {required Helper.SimulatedRequestType type}) {
     bool? itPrefersCache;
-    //die simulated GET request senden keine daten (die für sync relevant sinc), bei den anderes muss woanders entschieden werden ob an den server gesendet wird oder nicht
+    //die simulated GET request senden keine daten (die für sync relevant sinc), bei den anderen muss woanders entschieden werden ob an den server gesendet wird oder nicht
     if (type == Helper.SimulatedRequestType.GET)
       try {
         itPrefersCache = (data as WithOffline).forceOffline;
@@ -306,7 +306,8 @@ class API {
     if (data == null) return null;
     // data.id = null;
     return _run(
-      itPrefersCache: _dataPrefersCache(caller, type: requestType),
+      itPrefersCache: (caller as WithOffline)
+          .forceOffline, // _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
       onlineSuccessCB: (response) async {

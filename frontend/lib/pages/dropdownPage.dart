@@ -91,8 +91,8 @@ class _DropDownBodyState<
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      return StreamBuilder<List<ChildData>>(
-        stream: ddmodel.all,
+      return FutureBuilder<List<ChildData>>(
+        future: ddmodel.all.last,
         builder: (context, snapshot) => RefreshIndicator(
           onRefresh: _refresh,
           child: _list(snapshot, context),
@@ -111,7 +111,7 @@ class _DropDownBodyState<
     await for (var freshall
         in Provider.of<DDModel>(context, listen: false).all) {
       setState(() {
-        _future = Future.value(freshall);
+        // _future = Future.value(freshall);
       });
       yield true;
     }

@@ -73,6 +73,9 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
             await API()
                 .setNew(CheckCategory.fromJson(category), caller: currentData);
             notifyListeners();
+            // all = API().getNextDatapoint(currentData);
+            // await Future.delayed(Duration(milliseconds: 5000));
+            // notifyListeners();
           },
           onCancel: onCancel,
           textfieldList: [
