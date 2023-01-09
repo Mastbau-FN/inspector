@@ -30,12 +30,16 @@ class Options {
         if (canBeOffline)
           S.current.option_forceOffline:
               Tuple2(() => forceOffline, (bool value) => forceOffline = value),
-        S.current.option_usemobilenetworkforupload: Tuple2(
-            () => useMobileNetworkForUpload,
-            (bool value) => useMobileNetworkForUpload = value),
-        S.current.option_usemobilenetworkfordownload: Tuple2(
-            () => useMobileNetworkForDownload,
-            (bool value) => useMobileNetworkForDownload = value),
+        S.current.option_usemobilenetworkforupload:
+            Tuple2(() => useMobileNetworkForUpload, (bool value) {
+          useMobileNetworkForUpload = value;
+          if (value) useMobileNetworkForDownload = true;
+        }),
+        S.current.option_usemobilenetworkfordownload:
+            Tuple2(() => useMobileNetworkForDownload, (bool value) {
+          useMobileNetworkForDownload = value;
+          if (!value) useMobileNetworkForUpload = false;
+        }),
         S.current.option_usesystemtheme: Tuple2(
             () => useSystemTheme, (bool value) => useSystemTheme = value),
       };
