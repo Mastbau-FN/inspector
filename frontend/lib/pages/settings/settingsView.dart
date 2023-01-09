@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -67,10 +68,14 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
     setState(() {
       loading = true;
     });
-    bool s = await FailedRequestmanager().retryFailedrequests().then((s) {
-      if (s) FailedRequestmanager().setOnlineTotal(c);
-      return s;
-    });
+    bool s = await FailedRequestmanager().retryFailedrequests();
+    try {
+      await deleteAll(); //remove all offline data (to save storage space)
+    } catch (e) {
+      // wenn er nicht löschen kann war er auch nicht erfolgreich
+      // eigtl schon, deshalb auskommentiert
+      // s = false;
+    }
 
     setState(() {
       success = s;
