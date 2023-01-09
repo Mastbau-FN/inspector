@@ -310,7 +310,7 @@ class API {
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
       onlineSuccessCB: (response) async {
-        //TODO: etwas besser wäre das mit zu serialisieren und wenn der request bei retryFailedRequests später erfolgreich ist das auszuführen
+        //toDo: etwas besser wäre das mit zu serialisieren und wenn der request bei retryFailedRequests später erfolgreich ist das auszuführen
         //aber unser hotfix wird sein beim erflogreichen retryFailedRequests alle lokalen daten zu entfernen (auch im die app-dateien-größe auf dauer kompakt zu halten)
         await deleteData(createLocalId(data),
             parentId: caller?.id ?? await rootID);

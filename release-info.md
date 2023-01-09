@@ -1,4 +1,3 @@
 # changes
 
-- many bug fixes
-- offline variant und hochsynchronisieren funktionieren größtenteils
+- many bug fixes (#207 und verwandte, doppelte datenpunkte im offline modus,..)

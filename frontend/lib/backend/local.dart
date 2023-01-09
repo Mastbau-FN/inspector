@@ -81,6 +81,10 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if (caller != null && data != null && caller.id != null) {
       final author = (await API().user)!.name;
+      try {
+        if ((caller as WithOffline).forceOffline)
+          (data as WithOffline).forceOffline = true;
+      } catch (e) {}
       data = Data.fromJson<DataT>(
           data.toJson().copyWith({'Autor': author}))!; //kinda hacky
       data.id = /*'_on_' + */ createLocalId(data);
