@@ -241,5 +241,5 @@ String createLocalId(Data data) {
   return data.id ??
       LOCALLY_ADDED_PREFIX +
           data.title.replaceAll(' ', '') +
-          '${data.runtimeType.toString()}_${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
+          '${data.runtimeType.toString()}_'; //${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
 }

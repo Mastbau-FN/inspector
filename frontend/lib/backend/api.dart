@@ -125,8 +125,8 @@ class API {
             final bool wantsonline =
                 forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
             if (wantsonline || wantsmerged) {
-              await Future.delayed(Duration(milliseconds: 100));
               // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
+              await Future.delayed(Duration(milliseconds: 100));
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
               if (wantsonline) controller.add(onlineRes);
@@ -154,7 +154,9 @@ class API {
               (requestType != Helper.SimulatedRequestType.GET);
           if (onlineFailedCB != null)
             await onlineFailedCB(offlineRes, rap);
-          else if (log) await local.logFailedReq(rap.rd);
+          else if (log) {
+            await local.logFailedReq(rap.rd);
+          }
         }
 
         onlineSuccessProcedure() async {
@@ -302,13 +304,21 @@ class API {
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
     if (data == null) return null;
-    data.id = /*'_on_' + */ createLocalId(data);
+    // data.id = null;
     return _run(
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
       onlineSuccessCB: (response) async {
-        // TODO
+        //TODO: etwas besser wäre das mit zu serialisieren und wenn der request bei retryFailedRequests später erfolgreich ist das auszuführen
+        //aber unser hotfix wird sein beim erflogreichen retryFailedRequests alle lokalen daten zu entfernen (auch im die app-dateien-größe auf dauer kompakt zu halten)
+        await deleteData(createLocalId(data),
+            parentId: caller?.id ?? await rootID);
+      },
+      onlineFailedCB: (DataT? data, rap) async {
+        data!.id = createLocalId(data);
+        rap = remote.setNew<DataT>(data);
+        await local.logFailedReq(rap.rd);
       },
       requestType: requestType,
     ).last;

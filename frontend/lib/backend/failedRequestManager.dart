@@ -58,7 +58,6 @@ class FailedRequestmanager {
     String? parentID,
   }) async {
     // base-case: CheckPointDefects have no children
-    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
     depth--;
     try {
@@ -124,7 +123,6 @@ class FailedRequestmanager {
     String? parentID,
   }) async {
     // base-case: CheckPointDefects have no children
-    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
     depth--;
     var children = await caller.all.last;
