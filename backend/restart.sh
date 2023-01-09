@@ -1,4 +1,4 @@
-git pull
+git checkout staging && git pull
 
 sysctl -w net.ipv4.ip_unprivileged_port_start=442
 
