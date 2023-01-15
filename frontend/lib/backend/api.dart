@@ -303,6 +303,9 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    try {
+      (data as WithOffline).parentId = caller?.id ?? await rootID;
+    } catch (e) {}
     if (data == null) return null;
     // data.id = null;
     return _run(
@@ -313,11 +316,11 @@ class API {
       onlineSuccessCB: (response) async {
         //toDo: etwas besser wäre das mit zu serialisieren und wenn der request bei retryFailedRequests später erfolgreich ist das auszuführen
         //aber unser hotfix wird sein beim erflogreichen retryFailedRequests alle lokalen daten zu entfernen (auch im die app-dateien-größe auf dauer kompakt zu halten)
-        await deleteData(createLocalId(data),
+        await deleteData(createLocalId(data, caller?.id ?? await API().rootID),
             parentId: caller?.id ?? await rootID);
       },
       onlineFailedCB: (DataT? data, rap) async {
-        data!.id = createLocalId(data);
+        data!.id = createLocalId(data, caller?.id ?? await API().rootID);
         rap = remote.setNew<DataT>(data);
         await local.logFailedReq(rap.rd);
       },

@@ -19,8 +19,6 @@ part 'inspection_location.g.dart';
 @JsonSerializable()
 class InspectionLocation extends Data
     with WithImgHashes, WithLangText, WithOffline {
-  @JsonKey(name: 'local_id')
-  String? id;
   @JsonKey(name: 'PjNr')
   final int pjNr;
   @JsonKey(name: 'PjName')

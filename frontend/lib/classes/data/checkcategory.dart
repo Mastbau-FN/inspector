@@ -8,9 +8,6 @@ part 'checkcategory.g.dart';
 @JsonSerializable()
 class CheckCategory extends Data
     with WithLangText, WithImgHashes, WithAuthor, WithOffline {
-  @JsonKey(name: 'local_id')
-  String? id;
-
   @JsonKey(name: 'PjNr')
   int pjNr;
   @JsonKey(name: 'Bauleitung')

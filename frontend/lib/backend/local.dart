@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -87,7 +88,8 @@ class LocalMirror {
       } catch (e) {}
       data = Data.fromJson<DataT>(
           data.toJson().copyWith({'Autor': author}))!; //kinda hacky
-      data.id = /*'_on_' + */ createLocalId(data);
+      data.id = /*'_on_' + */ createLocalId(
+          data, caller.id ?? await API().rootID);
       await storeData<DataT>(data, forId: caller.id!);
       return data;
     }
@@ -102,7 +104,8 @@ class LocalMirror {
   }) async {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
-      data.id = /*'_oe_' + */ createLocalId(data);
+      data.id = /*'_oe_' + */ createLocalId(
+          data, caller?.id ?? await API().rootID);
       await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
@@ -241,9 +244,9 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
   //return [];
 }
 
-String createLocalId(Data data) {
+String createLocalId(Data data, String uniqueId) {
   return data.id ??
       LOCALLY_ADDED_PREFIX +
           data.title.replaceAll(' ', '') +
-          '${data.runtimeType.toString()}_'; //${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
+          '${data.runtimeType.toString()}_${(uniqueId.hashCode).toRadixString(36)}'; //${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
 }
