@@ -19,6 +19,8 @@ import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
   List<String>? imagehashes = []; //should not be used
+
+  @JsonKey(ignore: true)
   Future<ImageData?> mainImage = Future.value(null);
   // ? get mainImage =>
   //     (mainhash != null && mainhash != Options().no_image_placeholder_name)
@@ -75,6 +77,11 @@ mixin WithOffline on Data {
   @JsonKey(name: 'offline')
   // ignore: non_constant_identifier_names
   bool? forceOffline_nullable = false;
+
+  @JsonKey(name: 'local_id')
+  String? id;
+  @JsonKey(name: 'parent_local_id')
+  String? parentId;
 
   @JsonKey(ignore: true)
   bool get forceOffline => forceOffline_nullable ?? false;
