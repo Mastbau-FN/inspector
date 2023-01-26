@@ -9,7 +9,7 @@ const frontend_to_backend_id_decorator = async (req, res, next) => {
 };
 
 const frontend_to_backend_id_decorator_inner = async (req) => {  
-    console.log('hihihi');  
+    //console.log('hihihi');  
     try {
        
         const frontend_id = req.body.data.local_id;
@@ -25,7 +25,7 @@ const frontend_to_backend_id_decorator_inner = async (req) => {
             
             return req;
         }
-        console.log("backend_id nach if von backend id" + backend_id)
+       // console.log("backend_id nach if von backend id" + backend_id)
         if(req.body.data.parent_local_id){
             let backend_id = {E1:null,E2:null,E3:null};
             console.log("davor");
@@ -42,7 +42,7 @@ const frontend_to_backend_id_decorator_inner = async (req) => {
             }    
             req.body.data = {...req.body.data, ...backend_id} 
 
-            console.log("backend_id nach if von parent id" + backend_id)
+            //console.log("backend_id nach if von parent id" + backend_id)
         }
     } catch (error) {
         // console.warn("decorating id error", error)
