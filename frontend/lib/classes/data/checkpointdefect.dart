@@ -73,9 +73,16 @@ class CheckPointDefect extends Data
 
   @override
   String get title =>
+      _title ??
       kurzText ??
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
+
+  void set title(String t) {
+    _title = t;
+  }
+
+  String? _title;
 
   @override
   String? get subtitle =>
