@@ -1,3 +1,3 @@
 # changes
 
-- fixed #291 partially
+- fixed #295,#298,.. hopefully
