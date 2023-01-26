@@ -69,12 +69,14 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
       loading = true;
     });
     bool s = await FailedRequestmanager().retryFailedrequests();
-    try {
-      await deleteAll(); //remove all offline data (to save storage space)
-    } catch (e) {
-      // wenn er nicht löschen kann war er auch nicht erfolgreich
-      // eigtl schon, deshalb auskommentiert
-      // s = false;
+    if (s) {
+      try {
+        await deleteAll(); //remove all offline data (to save storage space)
+      } catch (e) {
+        // wenn er nicht löschen kann war er auch nicht erfolgreich
+        // eigtl schon, deshalb auskommentiert
+        // s = false;
+      }
     }
 
     setState(() {
