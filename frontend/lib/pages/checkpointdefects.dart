@@ -28,6 +28,18 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   ];
 
   @override
+  get all => super.all.asyncMap((l) => l.map((e) {
+        String t = e.title;
+        // remove everything behind latest occurence of '#'
+        int i = t.lastIndexOf('#');
+        if (i != -1) {
+          t = t.substring(0, i);
+        }
+        e.title = t; //would be better to do this in the element itself
+        return e;
+      }).toList());
+
+  @override
   void open(
     BuildContext context,
     CheckPointDefect data,
@@ -94,7 +106,10 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
                   : ("Mangel " +
                       (CheckPointDefect.chipd(defect[oufnessChooser.name])
                               ?.label ??
-                          ""))); //ahhh so thats why we learn functional programming
+                          ""))) //ahhh so thats why we learn functional programming
+              +
+              " #" +
+              json.hashCode.toRadixString(36);
 
           await API()
               .setNew(CheckPointDefect.fromJson(defect), caller: currentData);

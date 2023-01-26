@@ -36,9 +36,7 @@ class SettingsView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Logout(
-              logoutcontext: logoutcontext,
-            ),
+            Logout(logoutcontext: logoutcontext),
             Spacer(),
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
