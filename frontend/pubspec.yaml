@@ -63,6 +63,9 @@ dependencies:
   # image picker duh
   image_picker: ^0.8.4
 
+
+  numberpicker: ^2.0.1
+
   # Provides tools to work with the cameras on the device
   camera: ^0.10.0  
 

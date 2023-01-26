@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:numberpicker/numberpicker.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
@@ -19,6 +20,7 @@ import 'package:provider/provider.dart';
 
 class ImagesPage<T extends Object> extends StatelessWidget {
   late final List<Stream<ImageData<T>?>> _images;
+  final List<Stream<ImageData<T>?>> selectedImages;
   final Future<String?> Function(List<XFile>) onNewImages;
   final int columnCount;
   final bool hasMainImage;
@@ -42,6 +44,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final Function(T) onDelete;
   final Function(T) onStar;
   final Function(T) onShare;
+  final Function(T) onSelect;
 
   ImagesPage.constant({
     List<ImageData<T>?>? images = const [],
@@ -51,6 +54,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
     this.hasMainImage = false,
   }) : super(key: key) {
     this._images =
@@ -65,6 +69,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
     this.hasMainImage = false,
   }) : super(key: key) {
     this._images =
@@ -79,13 +84,13 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
     this.hasMainImage = false,
   }) : super(key: key) {
     this._images = imageStreams ?? [];
   }
 
   final ImagePicker _picker = ImagePicker();
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -100,6 +105,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
             onDelete: onDelete,
             onShare: onShare,
             onStar: onStar,
+            onSelect: onSelect,
             hasFav: hasMainImage,
           ),
         ),

@@ -16,6 +16,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   final Function(T) onDelete;
   final Function(T) onStar;
   final Function(T) onShare;
+  final Function(T) onSelect;
 
   final bool? hasFav;
   final List<Stream<ImageData<T>?>> images;
@@ -28,6 +29,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
   })  : this.images = images.map((e) => Stream.value(e)).toList(),
         _allImages = images.map((e) => ImageItem.fromImageData(e)).toList(),
         super(key: key);
@@ -40,6 +42,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
   })  : this.images = images.map((e) => Stream.fromFuture(e)).toList(),
         _allImages =
             images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
@@ -53,6 +56,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
   })  : _allImages =
             images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
         super(key: key);
@@ -74,6 +78,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
                     onDelete: onDelete,
                     onShare: onShare,
                     onStar: onStar,
+                    onSelect: onSelect,
                     currentIndex: i,
                     chosenIndex: (hasFav ?? true)
                         ? 0
@@ -93,6 +98,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
   final Function(T) onDelete;
   final Function(T) onStar;
   final Function(T) onShare;
+  final Function(T) onSelect;
 
   ///which index has the main image ; -1 means none is chosen
   final int chosenIndex;
@@ -103,6 +109,8 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
   ///an optional List of all images on which we can scroll to
   final List<ImageItem<T>> allImages;
 
+  final List<int> selectedIndexes;
+
   ///whether one can slide from one opened widget to another one
   final bool _isScrollable;
   const OpenableImageView.scrollable({
@@ -110,10 +118,12 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
     required this.currentIndex,
     required this.allImages,
     Key? key,
+    this.selectedIndexes = const [1, 2],
     this.chosenIndex = -1,
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
   })  : assert(0 <= currentIndex && currentIndex < (allImages.length)),
         this._isScrollable = true,
         super(key: key);
@@ -126,8 +136,10 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onSelect = _default,
   })  : this._isScrollable = false,
         this.currentIndex = 0,
+        this.selectedIndexes = [1, 2],
         this.chosenIndex = isChosen ? 0 : -1,
         this.allImages = [image], //todo: make this literal const?
         super(key: key);
@@ -228,6 +240,15 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
                 ),
                 returnCase: ImageOptions.share,
               ),
+              _option(
+                context: context,
+                description: S.of(context).selectImages,
+                icon: Icon(
+                  Icons.select_all,
+                  color: Colors.blue,
+                ),
+                returnCase: ImageOptions.select,
+              ),
             ],
           );
         })) {
@@ -243,6 +264,10 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
       case ImageOptions.share:
         debugPrint("image shared");
         onShare(tag);
+        break;
+      case ImageOptions.select:
+        debugPrint("images selected");
+        onSelect(tag);
         break;
       case null:
         // dialog dismissed
@@ -279,6 +304,7 @@ enum ImageOptions {
   delete,
   setMain,
   share,
+  select,
   //XXX: mehr?
 }
 
