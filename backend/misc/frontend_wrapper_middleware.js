@@ -28,9 +28,9 @@ const frontend_to_backend_id_decorator_inner = async (req) => {
        // console.log("backend_id nach if von backend id" + backend_id)
         if(req.body.data.parent_local_id){
             let backend_id = {E1:null,E2:null,E3:null};
-            console.log("davor");
+            //console.log("davor");
             let parentbackendid = await get_backend_id_from_frontend_id(req.body.data.parent_local_id);
-            console.log("danach");
+            //console.log("danach");
             if(parentbackendid.E1 != null){
                 backend_id.E1 = parentbackendid.E1
             }
