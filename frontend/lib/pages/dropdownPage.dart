@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
@@ -43,7 +44,11 @@ class DropDownPage<
               : null,
           title: Text(ddmodel.title),
         ),
-        endDrawer: MainDrawer(),
+        endDrawer: MainDrawer(
+          showUpload: typeOf<ChildData>() ==
+              typeOf<InspectionLocation>(), //we are in the top level
+          // children: ddmodel.drawerchildren,
+        ),
         body: _DropDownBody<ChildData, ParentData, DDModel>(
           ddmodel: ddmodel,
         ),
