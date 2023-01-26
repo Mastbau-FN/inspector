@@ -14,7 +14,7 @@ import 'helpers.dart' as Helper;
 import 'offlineProvider.dart' /*as OP*/ show storeJson, getJson;
 
 class FailedRequestmanager {
-  Future<bool> retryFailedrequests() async {
+  Future<bool> retryFailedrequests({void Function(double)? onProgress}) async {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -23,7 +23,11 @@ class FailedRequestmanager {
     }
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
     bool success = true;
-    for (final reqd in failedReqs) {
+    num total = failedReqs.length;
+    onProgress?.call(0);
+    for (var i = 0; i < total; i++) {
+      if (onProgress != null) onProgress(i / total);
+      final reqd = failedReqs[i];
       final docID = reqd.item1;
       final rd = reqd.item2;
       if (rd != null) {

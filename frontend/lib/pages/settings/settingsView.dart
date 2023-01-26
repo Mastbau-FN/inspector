@@ -64,11 +64,16 @@ class UploadSyncTile extends StatefulWidget {
 class _UploadSyncTileState extends State<UploadSyncTile> {
   bool loading = false;
   bool? success;
+  double progress = 0;
   onPress(c) async {
     setState(() {
       loading = true;
     });
-    bool s = await FailedRequestmanager().retryFailedrequests();
+    bool s = await FailedRequestmanager().retryFailedrequests(
+        onProgress: (p) => setState(() {
+              print(p);
+              progress = p;
+            }));
     if (s) {
       try {
         await deleteAll(); //remove all offline data (to save storage space)
@@ -80,9 +85,8 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
     }
 
     setState(() {
+      progress = 0;
       success = s;
-    });
-    setState(() {
       loading = false;
     });
   }
@@ -90,10 +94,29 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   @override
   Widget build(BuildContext context) => MyCardListTile1(
         icon: Icons.sync,
-        text: S.current.uploadAndSyncData,
+        text: loading
+            ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
+            : S.of(context).uploadAndSyncData,
         onTap: () => onPress(context),
         child: loading
-            ? LoadingView()
+            ? Container(
+                height: 25,
+                width: 25,
+                // color: Colors.red,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: LoadingView(),
+                    ),
+                    CircularProgressIndicator(
+                      color: Colors.green,
+                      value: progress,
+                    ),
+                  ],
+                ),
+              )
             : (success != null
                 ? Icon(
                     success! ? Icons.check : Icons.error,

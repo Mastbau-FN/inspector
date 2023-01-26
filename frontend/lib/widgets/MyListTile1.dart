@@ -26,12 +26,12 @@ class MyCardListTile1 extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 140,
                     child: Text(
                       text,
                       //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
+                  Spacer(),
                   child ?? Container(),
                 ],
               )
