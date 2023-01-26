@@ -93,7 +93,7 @@ const update_hash_map = async (data, hash)=>{
     let frontend_hash = data.hash;
     
     let backend_hash = hash;
-    console.log("🚀 ~ file: frontend_wrapper_middleware.js:54 ~ hash", hash)
+    //console.log("🚀 ~ file: frontend_wrapper_middleware.js:54 ~ hash", hash)
     await hash_store.setItem(frontend_hash, backend_hash);
 }
 
