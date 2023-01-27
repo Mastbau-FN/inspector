@@ -79,58 +79,62 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     return TransformableActionbutton(
       expandedHeight:
           300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
-      expandedChild: (onCancel) => Adder(
-        'checkpointdefect',
-        onSet: (json) async {
-          Map<String, dynamic> defect = json['checkpointdefect'];
-          debugPrint("set ${json['checkpointdefect'].toString()}");
-          defect['PjNr'] = currentData.pjNr;
-          defect[CheckPointDefect.E1_key] = currentData.category_index;
-          defect[CheckPointDefect.E2_key] = currentData.index;
-          defect[CheckPointDefect.E3_key] = -1;
+      expandedChild: (onCancel) => adder(oufnessChooser, onCancel),
+    );
+  }
 
-          // debugPrint(defect[oufnessChooser.name].toString() +
-          //     "?=" +
-          //     OufnessChooser.default_none.toString() +
-          //     ": " +
-          //     (defect[oufnessChooser.name].toString() ==
-          //             OufnessChooser.default_none.toString())
-          //         .toString());
+  //TODO: #296 extract onSet and pass default values
+  Adder adder(OufnessChooser oufnessChooser, onCancel()) {
+    return Adder(
+      'checkpointdefect',
+      onSet: (json) async {
+        Map<String, dynamic> defect = json['checkpointdefect'];
+        debugPrint("set ${json['checkpointdefect'].toString()}");
+        defect['PjNr'] = currentData.pjNr;
+        defect[CheckPointDefect.E1_key] = currentData.category_index;
+        defect[CheckPointDefect.E2_key] = currentData.index;
+        defect[CheckPointDefect.E3_key] = -1;
 
-          /// this solves #48
-          defect[CheckPointDefect.kurzText_key] = currentData.title +
-              "  " +
-              ((defect[oufnessChooser.name].toString() ==
-                      OufnessChooser.default_none.toString())
-                  ? "ohne Mangel"
-                  : ("Mangel " +
-                      (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                              ?.label ??
-                          ""))) //ahhh so thats why we learn functional programming
-              +
-              " #" +
-              json.hashCode.toRadixString(36);
+        // debugPrint(defect[oufnessChooser.name].toString() +
+        //     "?=" +
+        //     OufnessChooser.default_none.toString() +
+        //     ": " +
+        //     (defect[oufnessChooser.name].toString() ==
+        //             OufnessChooser.default_none.toString())
+        //         .toString());
 
-          await API()
-              .setNew(CheckPointDefect.fromJson(defect), caller: currentData);
-          notifyListeners();
-        },
-        onCancel: onCancel,
-        children: [
-          oufnessChooser,
-          //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
-        ],
-        textfieldList: [
-          // InputData("KurzText", hint: "Name"), //removed according to #48
-          InputData(CheckPointDefect.langText_key,
-              hint: S.current.langTextHint),
-          InputData(CheckPointDefect.height_json_key,
-              hint: S.current.positionHeightHint,
-              verify: (val) => (val == null || val.length < 1)
-                  ? S.current.heightNotOptional
-                  : null), //added according to #49
-        ],
-      ),
+        /// this solves #48
+        defect[CheckPointDefect.kurzText_key] = currentData.title +
+            "  " +
+            ((defect[oufnessChooser.name].toString() ==
+                    OufnessChooser.default_none.toString())
+                ? "ohne Mangel"
+                : ("Mangel " +
+                    (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                            ?.label ??
+                        ""))) //ahhh so thats why we learn functional programming
+            +
+            " #" +
+            json.hashCode.toRadixString(36);
+
+        await API()
+            .setNew(CheckPointDefect.fromJson(defect), caller: currentData);
+        notifyListeners();
+      },
+      onCancel: onCancel,
+      children: [
+        oufnessChooser,
+        //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
+      ],
+      textfieldList: [
+        // InputData("KurzText", hint: "Name"), //removed according to #48
+        InputData(CheckPointDefect.langText_key, hint: S.current.langTextHint),
+        InputData(CheckPointDefect.height_json_key,
+            hint: S.current.positionHeightHint,
+            verify: (val) => (val == null || val.length < 1)
+                ? S.current.heightNotOptional
+                : null), //added according to #49
+      ],
     );
   }
 }

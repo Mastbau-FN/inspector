@@ -97,7 +97,9 @@ class CheckPointDefect extends Data
   Widget get editButton => IconButton(
         padding: EdgeInsets.zero,
         icon: Icon(Icons.edit),
-        onPressed: () {},
+        onPressed: () {
+          //TODO: #296 popup adder from model (maybe generate the IconButton already with static model function)
+        },
       );
 
   static ChipData? chipd(int? oufness) {
