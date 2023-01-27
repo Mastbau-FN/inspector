@@ -89,7 +89,16 @@ class CheckPointDefect extends Data
       height != null ? 'Ort: $height' : null; //'kein Ort spezifiziert';
 
   @override
-  Widget? get extra => chipd(ereArt)?.toChip;
+  List<Widget> get extras => [
+        chipd(ereArt)?.toChip ?? Container(),
+        editButton,
+      ];
+
+  Widget get editButton => IconButton(
+        padding: EdgeInsets.zero,
+        icon: Icon(Icons.edit),
+        onPressed: () {},
+      );
 
   static ChipData? chipd(int? oufness) {
     switch (oufness) {

@@ -170,9 +170,10 @@ class _DropDownBodyState<
         title: data.title,
         subtitle: data.subtitle,
         extra: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            data.extra ?? Container(),
+            ...data.extras,
             FutureBuilder(
               future: API().user,
               builder:

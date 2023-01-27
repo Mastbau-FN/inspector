@@ -41,7 +41,7 @@ abstract class Data implements WithImgHashes {
   String? id;
 
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
-  Widget? get extra => null;
+  List<Widget> get extras => const [];
 
   Map<String, dynamic> toJson();
   Map<String, dynamic> toSmallJson();

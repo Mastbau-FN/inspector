@@ -142,9 +142,9 @@ class InspectionLocation extends Data
   String get title => toString();
 
   @override
-  Widget? get extra => forceOffline
-      ? null
-      : _RecursiveDownloadButton(caller: CategoryModel(this));
+  List<Widget> get extras => [
+        if (forceOffline) _RecursiveDownloadButton(caller: CategoryModel(this)),
+      ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {

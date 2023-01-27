@@ -57,53 +57,72 @@ class ExpandableCard2 extends ExpandablesRadio {
   @override
   ExpansionPanelRadio make(BuildContext context) {
     return ExpansionPanelRadio(
-        backgroundColor:
-            color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-        headerBuilder: (context, isExpanded) => ListTile(
-              // selectedTileColor: Theme.of(context).colorScheme.secondary,
-              // selectedColor: Theme.of(context).colorScheme.secondary,
-              // selected: isExpanded,
-              // enabled: true,
-              leading: Padding(
-                padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
-                child: ClipOval(
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: FutureBuilder<ImageData?>(
-                        future: previewImg,
-                        builder: (context, snapshot) {
-                          var imagep = snapshot.data?.image.image;
-                          return (imagep != null
-                                  ? Image(image: imagep, fit: BoxFit.fill)
-                                  : null) ??
-                              Icon(
-                                Icons.construction,
-                                color: _color(isExpanded, context),
-                              );
-                        }),
-                  ),
-                ),
-              ),
-              trailing: extra,
-              title: Text(
-                title + (isExpanded ? ':' : ''),
-                style: isExpanded
-                    ? Theme.of(context).textTheme.headline5
-                    // ?.apply(
-                    //       color: Theme.of(context).colorScheme.primary,
-                    //     )
-                    : Theme.of(context).textTheme.bodyText1,
-              ),
-              subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
+      backgroundColor:
+          color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+      headerBuilder: (context, isExpanded) => ListTile(
+        // selectedTileColor: Theme.of(context).colorScheme.secondary,
+        // selectedColor: Theme.of(context).colorScheme.secondary,
+        // selected: isExpanded,
+        // enabled: true,
+        leading: Padding(
+          padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
+          child: ClipOval(
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: FutureBuilder<ImageData?>(
+                  future: previewImg,
+                  builder: (context, snapshot) {
+                    var imagep = snapshot.data?.image.image;
+                    return (imagep != null
+                            ? Image(image: imagep, fit: BoxFit.fill)
+                            : null) ??
+                        Icon(
+                          Icons.construction,
+                          color: _color(isExpanded, context),
+                        );
+                  }),
             ),
-        body: Container(
-          // color: Theme.of(context).colorScheme.secondary,
-          child: Column(
-            children: [...children, SizedBox(height: 10)],
           ),
         ),
-        canTapOnHeader: true,
-        value: key);
+        // trailing: extra,
+        title: Wrap(
+          direction: Axis.horizontal,
+          alignment: WrapAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title + (isExpanded ? ':' : ''),
+                  style: isExpanded
+                      ? Theme.of(context).textTheme.headline5
+                      // ?.apply(
+                      //       color: Theme.of(context).colorScheme.primary,
+                      //     )
+                      : Theme.of(context).textTheme.bodyText1,
+                ),
+                if (subtitle != null)
+                  Text(subtitle ?? "",
+                      style: Theme.of(context).textTheme.bodyText2),
+              ],
+            ),
+            if (extra != null) ...[
+              Spacer(),
+              extra!,
+            ]
+          ],
+        ),
+        // subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
+      ),
+      body: Container(
+        // color: Theme.of(context).colorScheme.secondary,
+        child: Column(
+          children: [...children, SizedBox(height: 10)],
+        ),
+      ),
+      canTapOnHeader: true,
+      value: key,
+    );
   }
 }
 
