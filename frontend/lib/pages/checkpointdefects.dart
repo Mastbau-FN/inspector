@@ -104,21 +104,22 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
       'checkpointdefect',
       onSet: (json) {
         Map<String, dynamic> defect = json['checkpointdefect'];
-        debugPrint("set ${json['checkpointdefect'].toString()}");
-        defect['PjNr'] = parent.pjNr;
-        defect[CheckPointDefect.E1_key] = parent.category_index;
-        defect[CheckPointDefect.E2_key] = parent.index;
-        defect[CheckPointDefect.E3_key] = -1;
+        if (currentDefect != null) {
+          defect = currentDefect.toJson()..addAll(defect);
+        } else {
+          debugPrint("set ${json['checkpointdefect'].toString()}");
+          defect['PjNr'] = parent.pjNr;
+          defect[CheckPointDefect.E1_key] = parent.category_index;
+          defect[CheckPointDefect.E2_key] = parent.index;
+          defect[CheckPointDefect.E3_key] = -1;
 
-        // debugPrint(defect[oufnessChooser.name].toString() +
-        //     "?=" +
-        //     OufnessChooser.default_none.toString() +
-        //     ": " +
-        //     (defect[oufnessChooser.name].toString() ==
-        //             OufnessChooser.default_none.toString())
-        //         .toString());
-
-        if (currentDefect == null)
+          // debugPrint(defect[oufnessChooser.name].toString() +
+          //     "?=" +
+          //     OufnessChooser.default_none.toString() +
+          //     ": " +
+          //     (defect[oufnessChooser.name].toString() ==
+          //             OufnessChooser.default_none.toString())
+          //         .toString());
 
           /// this solved #48
           defect[CheckPointDefect.kurzText_key] = parent.title +
@@ -134,6 +135,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
               "Mangel " +
               " #" +
               json.hashCode.toRadixString(36);
+        }
 
         onDone(CheckPointDefect.fromJson(defect)!);
       },
