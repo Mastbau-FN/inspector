@@ -142,7 +142,7 @@ class InspectionLocation extends Data
   String get title => toString();
 
   @override
-  List<Widget> get extras => [
+  List<Widget> extras({BuildContext? context}) => [
         if (forceOffline) _RecursiveDownloadButton(caller: CategoryModel(this)),
       ];
 

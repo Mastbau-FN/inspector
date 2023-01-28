@@ -41,7 +41,7 @@ abstract class Data implements WithImgHashes {
   String? id;
 
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
-  List<Widget> get extras => const [];
+  List<Widget> extras({BuildContext? context}) => const [];
 
   Map<String, dynamic> toJson();
   Map<String, dynamic> toSmallJson();
@@ -192,8 +192,8 @@ class DropDownModel<ChildData extends WithLangText,
     throw UnimplementedError();
   }
 
-  void update(ChildData data, txt) async {
-    data.langText = txt;
+  void update(ChildData data, {String? langText}) async {
+    if (langText != null) data.langText = langText;
     _maybeShowToast(await API().update(data, caller: currentData) ??
         S.current.didntGetAnyResponseAfterSend);
     notifyListeners();

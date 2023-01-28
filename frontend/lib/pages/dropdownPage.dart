@@ -141,7 +141,8 @@ class _DropDownBodyState<
                   snapshot.connectionState != ConnectionState.done ? 0.5 : 1,
               child: ExpandablesListRadio(
                   children: snapshot.data!
-                      .map((e) => dropDown_element(e, context, widget.ddmodel))
+                      .map((e) => dropDown_element(
+                          e, context, Provider.of<DDModel>(context)))
                       .toList()),
             ),
         ],
@@ -170,10 +171,10 @@ class _DropDownBodyState<
         title: data.title,
         subtitle: data.subtitle,
         extra: Row(
-          mainAxisSize: MainAxisSize.max,
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            ...data.extras,
+            ...data.extras(context: context),
             FutureBuilder(
               future: API().user,
               builder:
