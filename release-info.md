@@ -1,3 +1,3 @@
 # changes
 
-- fixed #295,#298,.. hopefully
+- its possible to edit defects with the new edit functionality
