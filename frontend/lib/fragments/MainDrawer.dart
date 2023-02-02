@@ -9,6 +9,15 @@ import '../generated/l10n.dart';
 import '../widgets/openNewViewTile.dart';
 
 class MainDrawer extends StatelessWidget {
+  final bool showUpload;
+  final List<Widget> children;
+
+  const MainDrawer({
+    Key? key,
+    this.showUpload = false,
+    this.children = const [],
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     var unlimiteddoggosTile = OpenNewViewTile(
@@ -33,9 +42,10 @@ class MainDrawer extends StatelessWidget {
         children: <Widget>[
           MainDrawerHeader(),
           settingsTile,
+          ...children,
           // if (Options().showDoggo) unlimiteddoggosTile,
           Spacer(),
-          if (Options().canBeOffline) UploadSyncTile(),
+          if (showUpload && Options().canBeOffline) UploadSyncTile(),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
