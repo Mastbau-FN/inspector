@@ -48,7 +48,12 @@ class MyApp extends StatelessWidget {
                 primarySwatch:
                     mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
                 brightness: Brightness.dark,
+                backgroundColor: Colors.black,
+                cardColor: Colors.grey[900],
               ),
+          appBarTheme: AppBarTheme(
+            color: Colors.black,
+          ),
           brightness: Brightness.dark,
         ),
         localizationsDelegates: [

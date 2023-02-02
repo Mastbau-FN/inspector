@@ -124,31 +124,38 @@ class _DropDownBodyState<
 
   Widget _list(AsyncSnapshot<List<ChildData>> snapshot, BuildContext context) {
     if (snapshot.connectionState != ConnectionState.waiting) {
-      return ListView(
-        children: [
-          if (snapshot.hasError)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ErrorText(S.of(context).somethingWentWrong +
-                    ':\n${snapshot.error ?? ''} \n\n' +
-                    S.of(context).pleaseDragDownToReloadThisPage),
+      return Container(
+        color: Theme.of(context).colorScheme.onBackground.withAlpha(20),
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            if (snapshot.hasError)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ErrorText(S.of(context).somethingWentWrong +
+                      ':\n${snapshot.error ?? ''} \n\n' +
+                      S.of(context).pleaseDragDownToReloadThisPage),
+                ),
               ),
-            ),
-          if (snapshot.hasData)
-            Opacity(
-              opacity:
-                  snapshot.connectionState != ConnectionState.done ? 0.5 : 1,
-              child: ExpandablesListRadio(
-                  children: snapshot.data!
-                      .map((e) => dropDown_element(
-                          e, context, Provider.of<DDModel>(context)))
-                      .toList()),
-            ),
-        ],
+            if (snapshot.hasData)
+              Opacity(
+                opacity:
+                    snapshot.connectionState != ConnectionState.done ? 0.5 : 1,
+                child: ExpandablesListRadio(
+                    children: snapshot.data!
+                        .map((e) => dropDown_element(
+                            e, context, Provider.of<DDModel>(context)))
+                        .toList()),
+              ),
+          ],
+        ),
       );
     }
-    return ExpandablesListRadio.fake(3);
+    return ExpandablesListRadio.fake(
+      3,
+      color: Theme.of(context).colorScheme.background,
+    );
   }
 
   Widget offlineIndicator(ChildData data) {
@@ -167,6 +174,7 @@ class _DropDownBodyState<
   ExpandableCard2 dropDown_element(
       ChildData data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
+        color: Theme.of(context).colorScheme.background,
         previewImg: data.previewImage,
         title: data.title,
         subtitle: data.subtitle,

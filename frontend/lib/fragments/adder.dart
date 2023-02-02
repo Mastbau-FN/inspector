@@ -196,6 +196,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
 
   Future<void> _alert(BuildContext context) async {
     return showDialog<void>(
+      barrierColor: Colors.black54,
+
       context: context,
       //barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {

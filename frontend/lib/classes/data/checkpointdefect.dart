@@ -106,6 +106,7 @@ class CheckPointDefect extends Data
             return;
           }
           return showDialog(
+            barrierColor: Colors.black54,
             context: context,
             // barrierDismissible: false, // user must tap button!
             barrierDismissible: true,
