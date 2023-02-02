@@ -90,7 +90,6 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     );
   }
 
-  //TODO: #296 extract onSet and pass default values
   static Adder adder({
     required CheckPoint parent,
     required onCancel(),

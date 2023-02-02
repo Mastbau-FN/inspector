@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
@@ -63,27 +64,53 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
   }
 
   @override
-  Widget? get floatingActionButton => TransformableActionbutton(
-        expandedHeight: 200,
-        expandedChild: (onCancel) => Adder(
-          'checkpoint',
-          onSet: (json) async {
-            Map<String, dynamic> category = json['checkpoint'];
-            category['PjNr'] = currentData.pjNr;
-            category['E1'] = -1;
-            await API()
-                .setNew(CheckCategory.fromJson(category), caller: currentData);
-            notifyListeners();
-            // all = API().getNextDatapoint(currentData);
-            // await Future.delayed(Duration(milliseconds: 5000));
-            // notifyListeners();
-          },
-          onCancel: onCancel,
-          textfieldList: [
-            InputData("KurzText", hint: S.current.kurzTextHint),
-            InputData("LangText",
-                hint: S.current.langTextHint, verify: InputData.alwaysCorrect),
-          ],
+  Widget? get floatingActionButton {
+    return TransformableActionbutton(
+      expandedHeight:
+          300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
+      expandedChild: (onCancel) => adder(
+        parent: currentData,
+        onCancel: onCancel,
+        onDone: (category) async {
+          await API().setNew(category, caller: currentData);
+          notifyListeners();
+        },
+      ),
+    );
+  }
+
+  static Adder adder({
+    required InspectionLocation parent,
+    required onCancel(),
+    required onDone(CheckCategory category),
+    CheckCategory? currentCategory,
+  }) {
+    return Adder(
+      'category',
+      onSet: (json) {
+        Map<String, dynamic> category = json['category'];
+        if (currentCategory != null) {
+          category = currentCategory.toJson()..addAll(category);
+        } else {
+          category['PjNr'] = parent.pjNr;
+          category['E1'] = -1;
+        }
+        onDone(CheckCategory.fromJson(category)!);
+      },
+      onCancel: onCancel,
+      textfieldList: [
+        InputData(
+          "KurzText",
+          hint: S.current.kurzTextHint,
+          value: currentCategory?.kurzText,
         ),
-      );
+        InputData(
+          "LangText",
+          hint: S.current.langTextHint,
+          verify: InputData.alwaysCorrect,
+          value: currentCategory?.langText,
+        ),
+      ],
+    );
+  }
 }
