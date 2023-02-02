@@ -271,10 +271,33 @@ const delete_ = async (data, KZL) => {
     )
   )
 
-  //console.log([ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL])
-  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);//, false,true);
-  // console.log(res)
-  try { res.success = true } catch (e) { false && console.warn('couldnt set success') };
+  switch (data.type) {
+    case(identifiers.category):
+    //console.log(await (await getCheckPoints(ld.pjNr, ld.E1)).hashImagesAndCreateIds())
+      for (let checkpoint of (await getCheckPoints(ld.PjNr, ld.E1))) {
+        console.log("bro",checkpoint)
+        for (let defect of await getCheckPointDefects(ld.PjNr, checkpoint.E1, checkpoint.E2)) {
+          let res1 = await queryFileWithParams("delete/delete", [ld.PjNr, defect.E1 ?? 0, defect.E2 ?? 0, defect.E3 ?? 0, KZL]);//, false,true);
+          console.log("E1  ",defect.E1,"  E2  ",defect.E2,"  E3  ",defect.E3, res1)
+        }
+        let res2 = await queryFileWithParams("delete/delete", [ld.PjNr, checkpoint.E1 ?? 0, checkpoint.E2 ?? 0, ld.E3 ?? 0, KZL]);//, false,true);
+        
+        console.log("E1  ",checkpoint.E1,"  E2  ",checkpoint.E2, res2)
+      }
+    break;
+    
+    case(identifiers.checkpoint):
+      for (let defect of await getCheckPointDefects(ld.PjNr, ld.E1,ld.E2)) {
+        let res1 = await queryFileWithParams("delete/delete", [ld.PjNr, defect.E1 ?? 0, defect.E2 ?? 0, defect.E3 ?? 0, KZL]);//, false,true);
+        console.log("E1  ",defect.E1,"  E2  ",defect.E2, res2)
+
+        
+      }
+    break;
+  }
+  
+  let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);
+  res.success = true;
   return res;
 }
 
@@ -402,7 +425,7 @@ const hashImagesAndCreateIds = async (tthis) => {
         || ["error_ image hashing failed to-te-totally"];
       // console.log(images)
       // set main image at first index
-    
+
       if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
         thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
 
