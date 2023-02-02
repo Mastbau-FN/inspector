@@ -39,7 +39,8 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: (Options().useSystemTheme ? lightDynamic : null) ??
-              ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
+              ColorScheme.fromSwatch(
+                  primarySwatch: mbgpalette0, backgroundColor: Colors.white),
         ),
         darkTheme: ThemeData(
           useMaterial3: true,
