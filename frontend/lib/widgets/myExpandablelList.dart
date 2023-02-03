@@ -89,31 +89,38 @@ class ExpandableCard2 extends ExpandablesRadio {
           ),
         ),
         // trailing: extra,
-        title: Wrap(
-          direction: Axis.horizontal,
-          alignment: WrapAlignment.spaceBetween,
+        title: Row(
+          // direction: Axis.horizontal,
+          // alignment: WrapAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title + (isExpanded ? ':' : ''),
-                  style: isExpanded
-                      ? Theme.of(context).textTheme.headline5
-                      // ?.apply(
-                      //       color: Theme.of(context).colorScheme.primary,
-                      //     )
-                      : Theme.of(context).textTheme.bodyText1,
-                ),
-                if (subtitle != null)
-                  Text(subtitle ?? "",
-                      style: Theme.of(context).textTheme.bodyText2),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title + (isExpanded ? ':' : ''),
+                    style: isExpanded
+                        ? Theme.of(context).textTheme.headline5
+                        // ?.apply(
+                        //       color: Theme.of(context).colorScheme.primary,
+                        //     )
+                        : Theme.of(context).textTheme.bodyText1,
+                    overflow: isExpanded
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
+                    maxLines: isExpanded ? 10 : 1,
+                  ),
+                  if (subtitle != null)
+                    Text(subtitle ?? "",
+                        style: Theme.of(context).textTheme.bodyText2),
+                ],
+              ),
             ),
-            if (extra != null) ...[
-              Spacer(),
-              extra!,
-            ]
+            if (extra != null) extra!,
           ],
         ),
         // subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
