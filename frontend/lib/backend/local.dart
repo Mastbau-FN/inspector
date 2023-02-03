@@ -86,11 +86,12 @@ class LocalMirror {
         if ((caller as WithOffline).forceOffline)
           (data as WithOffline).forceOffline = true;
       } catch (e) {}
-      data = Data.fromJson<DataT>(
-          data.toJson().copyWith({'Autor': author}))!; //kinda hacky
-      data.id = /*'_on_' + */ createLocalId(
-          data, caller.id ?? await API().rootID);
-      await storeData<DataT>(data, forId: caller.id!);
+      data = Data.fromJson<DataT>(data.toJson().copyWith({
+        'Autor': author,
+        // 'local_id':
+        //     LOCALLY_ADDED_PREFIX + UniqueKey().hashCode.toRadixString(36)
+      }))!; //kinda hacky
+      await storeData<DataT>(data, forId: caller.id);
       return data;
     }
     return null;
@@ -104,8 +105,6 @@ class LocalMirror {
   }) async {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null && caller.id != null) && data != null) {
-      data.id = /*'_oe_' + */ createLocalId(
-          data, caller?.id ?? await API().rootID);
       await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
@@ -122,7 +121,7 @@ class LocalMirror {
         data != null &&
         caller.id != null &&
         data.id != null) {
-      await OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+      await OP.deleteData<DataT>(data.id, parentId: caller.id);
       return 'success';
     }
     return null;
@@ -144,9 +143,8 @@ class LocalMirror {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    //TODO: #211
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+    if ((forceUpdate || caller != null) && data != null) {
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
         await OP.deleteImage(hash);
@@ -169,7 +167,7 @@ class LocalMirror {
   }) async {
     //TODO: #211
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+    if ((forceUpdate || caller != null) && data != null) {
       try {
         // data.id = createLocalId(data);
 
@@ -242,11 +240,4 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
         S.current.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
-}
-
-String createLocalId(Data data, String uniqueId) {
-  return data.id ??
-      LOCALLY_ADDED_PREFIX +
-          data.title.replaceAll(' ', '') +
-          '${data.runtimeType.toString()}_${(uniqueId.hashCode).toRadixString(36)}'; //${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
 }

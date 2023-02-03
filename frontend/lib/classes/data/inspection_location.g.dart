@@ -20,9 +20,11 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
           json['latLng'] as Map<String, dynamic>?),
     )
       ..mainhash = json['mainhash'] as String?
+      ..imagehashes =
+          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList()
+      ..id = Data.idFromJson(json['local_id'] as String?)
       ..langText = json['langText'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
-      ..id = json['local_id'] as String?
       ..parentId = json['parent_local_id'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
       ..bauwerkhoehe = (json['Bauwerkhoehe'] as num?)?.toDouble()
@@ -44,16 +46,15 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..wind_direction =
           $enumDecodeNullable(_$WindDirectionEnumMap, json['Windrichtung'])
       ..x = json['X'] as String?
-      ..y = json['Y'] as String?
-      ..imagehashes =
-          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
+      ..y = json['Y'] as String?;
 
 Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
     <String, dynamic>{
       'mainhash': instance.mainhash,
+      'images': instance.imagehashes,
+      'local_id': Data.idToJson(instance.id),
       'langText': instance.langText,
       'offline': instance.forceOffline_nullable,
-      'local_id': instance.id,
       'parent_local_id': instance.parentId,
       'PjNr': instance.pjNr,
       'PjName': instance.pjName,
@@ -84,7 +85,6 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'X': instance.x,
       'Y': instance.y,
       'latLng': _toplevelhelperLatLng_toJson(instance.fallback_coords),
-      'images': instance.imagehashes,
     };
 
 const _$WeatherEnumMap = {

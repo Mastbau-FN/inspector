@@ -52,16 +52,6 @@ class CheckPointDefect extends Data
   @JsonKey(name: author_key)
   String? author;
 
-  static const imagehashes_key = 'images'; //should  use_key = 'images';
-  @JsonKey(name: imagehashes_key)
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  // @JsonKey(ignore: true)
-  // Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
-
   CheckPointDefect(
       {required this.pjNr,
       this.bauleitung,
@@ -81,9 +71,9 @@ class CheckPointDefect extends Data
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
 
-  void set title(String t) {
-    _title = t;
-  }
+  // void set title(String t) {
+  //   _title = t;
+  // }
 
   String? _title;
 
@@ -161,7 +151,9 @@ class CheckPointDefect extends Data
   static CheckPointDefect? fromJson(Map<String, dynamic> json) {
     try {
       return _$CheckPointDefectFromJson(json);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint("error while parsing CheckPointDefect: $e");
+    }
     return null;
   }
 

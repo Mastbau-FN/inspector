@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
@@ -11,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '../classes/imageData.dart';
-import '../extension/future.dart';
 import '../generated/l10n.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
@@ -309,18 +307,19 @@ class API {
     if (data == null) return null;
     // data.id = null;
     return _run(
-      itPrefersCache: (caller as WithOffline)
-          .forceOffline, // _dataPrefersCache(caller, type: requestType),
+      itPrefersCache: (caller as WithOffline?)
+          ?.forceOffline, // _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
       onlineSuccessCB: (response) async {
         //toDo: etwas besser wäre das mit zu serialisieren und wenn der request bei retryFailedRequests später erfolgreich ist das auszuführen
         //aber unser hotfix wird sein beim erflogreichen retryFailedRequests alle lokalen daten zu entfernen (auch im die app-dateien-größe auf dauer kompakt zu halten)
-        await deleteData(createLocalId(data, caller.id ?? await API().rootID),
-            parentId: caller.id ?? await rootID);
+        await deleteData(
+          data.id,
+          parentId: caller?.id ?? await API().rootID,
+        );
       },
       onlineFailedCB: (DataT? data, rap) async {
-        data!.id = createLocalId(data, caller.id ?? await API().rootID);
         rap = remote.setNew<DataT>(data);
         await local.logFailedReq(rap.rd);
       },
@@ -328,7 +327,7 @@ class API {
     ).last;
   }
 
-  /// updates a [DataT] and returns the response
+  /// updates a [DataT] and returns the respons
   Future<String?> update<DataT extends Data>(
     DataT? data, {
     Data? caller,

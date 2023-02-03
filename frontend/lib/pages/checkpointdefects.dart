@@ -27,17 +27,17 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     ),
   ];
 
-  @override
-  get all => super.all.asyncMap((l) => l.map((e) {
-        String t = e.title;
-        // remove everything behind latest occurence of '#'
-        int i = t.lastIndexOf('#');
-        if (i != -1) {
-          t = t.substring(0, i);
-        }
-        e.title = t; //would be better to do this in the element itself
-        return e;
-      }).toList());
+  // @override
+  // get all => super.all.asyncMap((l) => l.map((e) {
+  //       String t = e.title;
+  //       // remove everything behind latest occurence of '#'
+  //       int i = t.lastIndexOf('#');
+  //       if (i != -1) {
+  //         t = t.substring(0, i);
+  //       }
+  //       e.title = t; //would be better to do this in the element itself
+  //       return e;
+  //     }).toList());
 
   @override
   void open(
@@ -122,18 +122,20 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
           /// this solved #48
           defect[CheckPointDefect.kurzText_key] = parent.title +
-              "  " +
-              // ((defect[oufnessChooser.name].toString() ==
-              //         OufnessChooser.default_none.toString())
-              //     ? "ohne Mangel"
-              //     : ("Mangel " +
-              //         (CheckPointDefect.chipd(defect[oufnessChooser.name])
-              //                 ?.label ??
-              //             ""))) //ahhh so thats why we learn functional programming
-              // +
-              "Mangel " +
-              " #" +
-              json.hashCode.toRadixString(36);
+                  "  " +
+                  // ((defect[oufnessChooser.name].toString() ==
+                  //         OufnessChooser.default_none.toString())
+                  //     ? "ohne Mangel"
+                  //     : ("Mangel " +
+                  //         (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                  //                 ?.label ??
+                  //             ""))) //ahhh so thats why we learn functional programming
+                  // +
+                  "Mangel "
+              //  +
+              // " #" +
+              // json.hashCode.toRadixString(36)
+              ;
         }
 
         onDone(CheckPointDefect.fromJson(defect)!);

@@ -33,18 +33,8 @@ class CheckCategory extends Data
   int? e2;
   @JsonKey(name: 'E3')
   int? e3;
-
   @JsonKey(name: 'Autor')
   String? author;
-
-  @JsonKey(name: 'images')
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  // @JsonKey(ignore: true)
-  // Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
 
   CheckCategory(
       {required this.pjNr,
