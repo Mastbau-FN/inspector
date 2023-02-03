@@ -46,11 +46,12 @@ class API {
   bool? _dataPrefersCache(Data? data,
       {required Helper.SimulatedRequestType type}) {
     bool? itPrefersCache;
-    //die simulated GET request senden keine daten (die für sync relevant sinc), bei den anderen muss woanders entschieden werden ob an den server gesendet wird oder nicht
-    if (type == Helper.SimulatedRequestType.GET)
-      try {
-        itPrefersCache = (data as WithOffline).forceOffline;
-      } catch (e) {}
+    //die simulated GET request senden keine daten (die für sync relevant sind), bei den anderen muss woanders entschieden werden ob an den server gesendet wird oder nicht
+    // #292 dirtyfix
+    // if (type == Helper.SimulatedRequestType.GET)
+    try {
+      itPrefersCache = (data as WithOffline).forceOffline;
+    } catch (e) {}
     return itPrefersCache;
   }
 
