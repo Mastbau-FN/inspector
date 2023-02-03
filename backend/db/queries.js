@@ -107,6 +107,7 @@ const queryFileWithParams = async (file, params, addHashFunction = true, debug =
  * @returns a Promise resolving all user data when the credentials are valid and throwing if not
  */
 const getValidUser = async (user) => {
+  if(user==null)throw new Error("no user credentials given");
   let userdata = (
     await queryFileWithParams("get/auth_user", [user.name, user.pass])
   )[0];
@@ -189,8 +190,10 @@ const addNew = async (data, KZL) => {
   let res = await queryFileWithParams(queryfile, params);
   const newdata = { ...(data.data), ...(res[0]) }
   _addfoldername(newdata);
-
-  ftb.update_id_map(newdata);
+  if(newdata.local_id!=null){
+    ftb.update_id_map(newdata);
+  }
+ 
 
   return res;
 }
@@ -439,7 +442,9 @@ const hashImagesAndCreateIds = async (tthis) => {
       thingy['images'] = images ?? ["error_ couldnt set image hashes"];
       if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
     }
-    thingy.local_id = `${thingy.KurzText}--${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
+    // TODO: #306
+    // could better be DB index or DB hash something, that doenst change , but is unique for every datenpunkt
+    thingy.local_id = `${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
     delete thingy.Link;
     //never needed anyways
