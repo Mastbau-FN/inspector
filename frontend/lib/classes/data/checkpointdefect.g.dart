@@ -28,8 +28,7 @@ CheckPointDefect _$CheckPointDefectFromJson(Map<String, dynamic> json) =>
       ..forceOffline_nullable = json['offline'] as bool?
       ..parentId = json['parent_local_id'] as String?
       ..height = json['Zusatz_Info'] as String?
-      ..author = json['Autor'] as String?
-      ..title = json['title'] as String;
+      ..author = json['Autor'] as String?;
 
 Map<String, dynamic> _$CheckPointDefectToJson(CheckPointDefect instance) =>
     <String, dynamic>{
@@ -50,5 +49,4 @@ Map<String, dynamic> _$CheckPointDefectToJson(CheckPointDefect instance) =>
       'E3': instance.index,
       'Zusatz_Info': instance.height,
       'Autor': instance.author,
-      'title': instance.title,
     };
