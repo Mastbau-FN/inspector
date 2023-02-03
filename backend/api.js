@@ -143,7 +143,7 @@ const update = (req, res, next) =>
  */
 const delete_ = (req, res, next) =>
   errsafejson(
-    async () => (await queries.delete_(req.body, req.user.KZL))[0],
+    async () => (await queries.delete_(req.body, req.user.KZL)),
     (json) => ({ success: json.success, id: json.Index }),
     res,
     next
