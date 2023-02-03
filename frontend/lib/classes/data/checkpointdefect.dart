@@ -52,16 +52,6 @@ class CheckPointDefect extends Data
   @JsonKey(name: author_key)
   String? author;
 
-  static const imagehashes_key = 'images'; //should  use_key = 'images';
-  @JsonKey(name: imagehashes_key)
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  // @JsonKey(ignore: true)
-  // Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
-
   CheckPointDefect(
       {required this.pjNr,
       this.bauleitung,

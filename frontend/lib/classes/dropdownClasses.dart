@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -18,27 +19,29 @@ import '../generated/l10n.dart';
 import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
-  List<String>? imagehashes = []; //should not be used
-
-  @JsonKey(ignore: true)
-  Future<ImageData?> mainImage = Future.value(null);
-  // ? get mainImage =>
-  //     (mainhash != null && mainhash != Options().no_image_placeholder_name)
-  //         ? API().getImageByHash(mainhash!)
-  //         : null;
-  Future<ImageData?> previewImage = Future.value(null);
-  List<Future<ImageData?>>? imageFutures = [];
   @JsonKey(name: 'mainhash')
   String? mainhash;
-  //Null Function() onNextImageLoaded = () {};
+  @JsonKey(name: 'images')
+  List<String>? imagehashes; //should not be used
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  Future<ImageData?> mainImage = Future.value(null);
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<Future<ImageData?>>? imageFutures;
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  Future<ImageData?> previewImage = Future.value(null);
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
+@JsonKey(includeIfNull: false)
 abstract class Data implements WithImgHashes {
   String get title;
   String? get subtitle => null;
 
-  String? id;
+  static idFromJson(String? id) =>
+      id ?? LOCALLY_ADDED_PREFIX + UniqueKey().hashCode.toRadixString(36);
+  static idToJson(String id) => id;
+  @JsonKey(fromJson: Data.idFromJson, toJson: Data.idToJson, name: 'local_id')
+  late String id;
 
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
   List<Widget> extras({BuildContext? context}) => const [];
@@ -78,8 +81,6 @@ mixin WithOffline on Data {
   // ignore: non_constant_identifier_names
   bool? forceOffline_nullable = false;
 
-  @JsonKey(name: 'local_id')
-  String? id;
   @JsonKey(name: 'parent_local_id')
   String? parentId;
 

@@ -109,13 +109,6 @@ class InspectionLocation extends Data
   )
   final LatLng? fallback_coords;
 
-  @JsonKey(name: 'images')
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
-
   InspectionLocation({
     this.bauleitung,
     ////this.defaultpicture,
@@ -143,7 +136,7 @@ class InspectionLocation extends Data
 
   @override
   List<Widget> extras({BuildContext? context}) => [
-        if (forceOffline) _RecursiveDownloadButton(caller: CategoryModel(this)),
+        _RecursiveDownloadButton(caller: CategoryModel(this)),
       ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {

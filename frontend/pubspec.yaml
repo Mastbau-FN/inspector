@@ -49,7 +49,7 @@ dependencies:
   #   git:
   #     url: https://github.com/Mastbau-FN/json_serializable.dart.git
   #     path: json_serializable
-  json_annotation: ^4.7.0
+  json_annotation: ^4.8.0
 
   # for editing descriptions 
   # flutter_quill: ^4.0.0

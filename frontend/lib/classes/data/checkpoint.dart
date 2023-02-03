@@ -39,15 +39,6 @@ class CheckPoint extends Data
   @JsonKey(name: 'Autor')
   String? author;
 
-  @JsonKey(name: 'images')
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  // @JsonKey(ignore: true)
-  // Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
-
   CheckPoint(
       {required this.pjNr,
       this.bauleitung,

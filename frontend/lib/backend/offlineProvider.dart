@@ -99,7 +99,7 @@ Future<String> storeData<DataT extends Data>(
   final collectionName = _getCollectionNameForData<DataT>(forId);
 
   var json = data.toJson();
-  String? oldId = data.id ?? json['local_id'];
+  String? oldId = data.id;
 
   final isExistent = ((await db.collection(collectionName).get())
           ?.keys

@@ -22,18 +22,19 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
       e3: json['E3'] as int?,
     )
       ..mainhash = json['mainhash'] as String?
-      ..forceOffline_nullable = json['offline'] as bool?
-      ..id = json['local_id'] as String?
-      ..parentId = json['parent_local_id'] as String?
-      ..author = json['Autor'] as String?
       ..imagehashes =
-          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList();
+          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList()
+      ..id = Data.idFromJson(json['local_id'] as String?)
+      ..forceOffline_nullable = json['offline'] as bool?
+      ..parentId = json['parent_local_id'] as String?
+      ..author = json['Autor'] as String?;
 
 Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>
     <String, dynamic>{
       'mainhash': instance.mainhash,
+      'images': instance.imagehashes,
+      'local_id': Data.idToJson(instance.id),
       'offline': instance.forceOffline_nullable,
-      'local_id': instance.id,
       'parent_local_id': instance.parentId,
       'PjNr': instance.pjNr,
       'Bauleitung': instance.bauleitung,
@@ -46,5 +47,4 @@ Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>
       'E2': instance.e2,
       'E3': instance.e3,
       'Autor': instance.author,
-      'images': instance.imagehashes,
     };
