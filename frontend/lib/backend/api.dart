@@ -189,11 +189,10 @@ class API {
     final connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
       throw NoConnectionToBackendException(S.current.noNetworkAvailable);
-    if ((requestType !=
-                Helper.SimulatedRequestType
-                    .GET && //XXX: should also check if connection == ConnectivityResult.none as specced, but as a dirty fix for #292 i removed it for now
-            !Options().useMobileNetworkForUpload) ||
-        !Options().useMobileNetworkForDownload)
+    if (connection == ConnectivityResult.mobile &&
+        ((requestType != Helper.SimulatedRequestType.GET &&
+                !Options().useMobileNetworkForUpload) ||
+            !Options().useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
   }
 
