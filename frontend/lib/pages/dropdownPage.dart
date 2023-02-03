@@ -113,8 +113,7 @@ class _DropDownBodyState<
   }
 
   Stream<bool> __refresh() async* {
-    await for (var freshall
-        in Provider.of<DDModel>(context, listen: false).all) {
+    await for (var _ in Provider.of<DDModel>(context, listen: false).all) {
       setState(() {
         // _future = Future.value(freshall);
       });

@@ -104,11 +104,11 @@ class ExpandableCard2 extends ExpandablesRadio {
                   Text(
                     title + (isExpanded ? ':' : ''),
                     style: isExpanded
-                        ? Theme.of(context).textTheme.headline5
+                        ? Theme.of(context).textTheme.headlineSmall
                         // ?.apply(
                         //       color: Theme.of(context).colorScheme.primary,
                         //     )
-                        : Theme.of(context).textTheme.bodyText1,
+                        : Theme.of(context).textTheme.bodyLarge,
                     overflow: isExpanded
                         ? TextOverflow.visible
                         : TextOverflow.ellipsis,
@@ -116,7 +116,7 @@ class ExpandableCard2 extends ExpandablesRadio {
                   ),
                   if (subtitle != null)
                     Text(subtitle ?? "",
-                        style: Theme.of(context).textTheme.bodyText2),
+                        style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),

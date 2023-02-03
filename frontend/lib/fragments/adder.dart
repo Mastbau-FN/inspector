@@ -194,6 +194,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
         //     textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
 
+  // ignore: unused_element
   Future<void> _alert(BuildContext context) async {
     return showDialog<void>(
       barrierColor: Colors.black54,

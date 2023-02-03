@@ -114,7 +114,7 @@ class API {
                   'we prefer the local variant');
             }
 
-            final __x = await tryNetwork(requestType: requestType);
+            await tryNetwork(requestType: requestType);
             final bool wantsmerged =
                 merge != null && Options().canBeOffline && !_itPrefersCache;
             final bool wantsonline =
@@ -163,7 +163,6 @@ class API {
 
         bool? onlineSucc = _success[0];
         bool? offlineSucc = _success[1];
-        var x = 0;
         if (!(onlineSucc ?? false) && !offlineSucc!) {
           onlineSucc = await doOnline(forceOnline: true);
         }
@@ -245,8 +244,7 @@ class API {
       try {
         cached.retainWhere((element) => (element as WithOffline).forceOffline);
         var cachedIds = cached.map((element) => element.id).toList();
-        upstream.retainWhere(
-            (element) => element.id != null && !cachedIds.contains(element.id));
+        upstream.retainWhere((element) => !cachedIds.contains(element.id));
         upstream.addAll(cached);
         return upstream;
       } catch (e) {

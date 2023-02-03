@@ -29,11 +29,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
   try {
     var file = await _localFile(name);
-    // var __x__;
-    // file = (await file.exists()) ? file : await file.create();
-    // file.writeAsString(imgBytes.toString());%
-    file =
-        await file.writeAsBytes(imgBytes); //u good? //TODO: doesnt complete?!
+    file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
@@ -50,6 +46,7 @@ class NoImagePlaceholderException implements Exception {
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
+  // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
       ? NoImagePlaceholderException()
       : Exception("file $file doesnt exist");
@@ -111,10 +108,9 @@ Future<String> storeData<DataT extends Data>(
   }
 
   //create a new document with new id if wanted
-  final id =
-      ((!isExistent || overrideMode == OverrideMode.update) && oldId != null)
-          ? oldId
-          : db.collection(collectionName).doc().id;
+  final id = (!isExistent || overrideMode == OverrideMode.update)
+      ? oldId
+      : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
   db.collection(collectionName).doc(id).set(json);

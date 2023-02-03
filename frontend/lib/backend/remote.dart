@@ -13,7 +13,6 @@ import '../generated/l10n.dart';
 import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
-import 'package:MBG_Inspektionen/options.dart';
 
 import './helpers.dart' as Helper;
 import 'api.dart';
@@ -153,7 +152,7 @@ class Remote {
                 (key, value) => MapEntry(
                     key,
                     value
-                        .toString()))); //TODO: this causes #279, but that must be fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
+                        .toString()))); // this causes #279, but that is fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
               ? await mreq.send()
@@ -201,7 +200,7 @@ class Remote {
         return null;
       else {
         try {
-          final file = await API().local.storeImage(res.bodyBytes, hash);
+          await API().local.storeImage(res.bodyBytes, hash);
           return ImageData(
             (await API().local.readImage(hash))!,
             id: hash,
@@ -433,7 +432,7 @@ class Remote {
             'we need a 2xx, but got ${res.statusCode}');
       }
       return (res.runtimeType == http.Response)
-          ? (res as http.Response?)?.body //TODO meh remove crash und stuff
+          ? (res as http.Response?)?.body //meh
           : await (res as http.StreamedResponse?)?.stream.bytesToString();
     }
 

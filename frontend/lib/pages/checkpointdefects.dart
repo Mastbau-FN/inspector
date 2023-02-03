@@ -1,15 +1,12 @@
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-
-import 'package:provider/provider.dart';
 
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     implements KnowsNext<CheckPointDefect> {
@@ -53,16 +50,11 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
             return standard_statefulImageView(this, data);
 
           default:
-            return Provider<CheckPointDefectsModel>(
-              //TODO: wozu ist hier der provider?
-              create: (context) =>
-                  this, //the injector //XXX: sadly this doesnt work for some reason
-              child: Builder(builder: (context) {
-                debugPrint('build new defectsdetails');
-                return alwaysPlainText(this, data,
-                    ((CheckPointDefect p0, p1) => update(p0, langText: p1)));
-              }),
-            );
+            return Builder(builder: (context) {
+              debugPrint('build new defectsdetails');
+              return alwaysPlainText(this, data,
+                  ((CheckPointDefect p0, p1) => update(p0, langText: p1)));
+            });
         }
       }),
     );

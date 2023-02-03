@@ -263,6 +263,7 @@ class _Map extends StatefulWidget {
   const _Map({
     Key? key,
     required this.locationdata,
+    // ignore: unused_element
     this.showsMapPerDefault = false,
   }) : super(key: key);
 

@@ -1,17 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../generated/l10n.dart';
 import '../helpers/toast.dart';
-import '../options.dart';
 import '../pages/checkcategories.dart';
 import '../pages/location.dart';
 import 'api.dart';
 import 'helpers.dart' as Helper;
-import 'offlineProvider.dart' /*as OP*/ show storeJson, getJson;
 
 class FailedRequestmanager {
   Future<bool> retryFailedrequests({void Function(double)? onProgress}) async {
@@ -87,8 +83,7 @@ class FailedRequestmanager {
         if (parentID == null) return false;
 
         try {
-          var id =
-              await API().local.storeData(caller.currentData, forId: parentID);
+          await API().local.storeData(caller.currentData, forId: parentID);
         } catch (e) {
           return false;
         }

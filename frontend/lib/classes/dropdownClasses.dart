@@ -32,7 +32,7 @@ abstract class WithImgHashes {
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
-@JsonKey(includeIfNull: false)
+@JsonSerializable(includeIfNull: false)
 abstract class Data implements WithImgHashes {
   String get title;
   String? get subtitle => null;
@@ -84,7 +84,7 @@ mixin WithOffline on Data {
   @JsonKey(name: 'parent_local_id')
   String? parentId;
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeToJson: false)
   bool get forceOffline => forceOffline_nullable ?? false;
 
   // @JsonKey(ignore: true)

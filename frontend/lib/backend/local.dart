@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
-import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
 import 'package:flutter/cupertino.dart';
@@ -80,7 +78,7 @@ class LocalMirror {
     Data? caller,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if (caller != null && data != null && caller.id != null) {
+    if (caller != null && data != null) {
       final author = (await API().user)!.name;
       try {
         if ((caller as WithOffline).forceOffline)
@@ -104,7 +102,7 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+    if ((forceUpdate || caller != null) && data != null) {
       await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
@@ -117,10 +115,7 @@ class LocalMirror {
     Data? caller,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if (caller != null &&
-        data != null &&
-        caller.id != null &&
-        data.id != null) {
+    if (caller != null && data != null) {
       await OP.deleteData<DataT>(data.id, parentId: caller.id);
       return 'success';
     }
@@ -158,19 +153,16 @@ class LocalMirror {
     return null;
   }
 
-  //sets an image specified by its hash as the new main image
+  /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
     DataT? data,
     String mainhash, {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    //TODO: #211
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null) && data != null) {
       try {
-        // data.id = createLocalId(data);
-
         // remove new main image from list
         data.imagehashes!.remove(mainhash);
         //reinstert old main image to list
@@ -213,7 +205,6 @@ class LocalMirror {
     await storeData(data, forId: caller?.id ?? await API().rootID);
     // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
-    // //TO-DO: test #211
   }
 
   final storeData = OP.storeData;
