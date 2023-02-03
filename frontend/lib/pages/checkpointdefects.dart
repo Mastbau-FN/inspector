@@ -68,9 +68,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   @override
   Widget? get floatingActionButton {
-    return TransformableActionbutton(
-      expandedHeight:
-          300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
+    return PopUpActionbutton(
       expandedChild: (onCancel) => adder(
         parent: currentData,
         onCancel: onCancel,
