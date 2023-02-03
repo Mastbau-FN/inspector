@@ -196,6 +196,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
 
   Future<void> _onLongPress(context, tag) async {
     switch (await showDialog<ImageOptions>(
+        barrierColor: Colors.black54,
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(

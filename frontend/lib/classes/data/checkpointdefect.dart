@@ -1,9 +1,12 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:provider/provider.dart';
 
 part 'checkpointdefect.g.dart';
 
@@ -89,7 +92,43 @@ class CheckPointDefect extends Data
       height != null ? 'Ort: $height' : null; //'kein Ort spezifiziert';
 
   @override
-  Widget? get extra => chipd(ereArt)?.toChip;
+  List<Widget> extras({BuildContext? context}) => [
+        chipd(ereArt)?.toChip ?? Container(),
+        editButton(context: context),
+      ];
+
+  Widget editButton({BuildContext? context}) => IconButton(
+        // padding: EdgeInsets.zero,
+        icon: Icon(Icons.edit),
+        onPressed: () async {
+          if (context == null) {
+            debugPrint("no context from wich we could alert");
+            return;
+          }
+          return showDialog(
+            barrierColor: Colors.black54,
+            context: context,
+            // barrierDismissible: false, // user must tap button!
+            barrierDismissible: true,
+            builder: (BuildContext innerContext) {
+              return AlertDialog(
+                title: Text('Mangel bearbeiten'),
+                content: CheckPointDefectsModel.adder(
+                    parent: Provider.of<CheckPointDefectsModel>(context)
+                        .currentData,
+                    currentDefect: this,
+                    onCancel: () => Navigator.of(context).pop(),
+                    onDone: (data) {
+                      Provider.of<CheckPointDefectsModel>(context,
+                              listen: false)
+                          .update(data);
+                      // Navigator.of(context).pop();
+                    }),
+              );
+            },
+          );
+        },
+      );
 
   static ChipData? chipd(int? oufness) {
     switch (oufness) {

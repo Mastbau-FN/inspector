@@ -55,7 +55,8 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
                 generateNextModel(data));
 
           default:
-            return alwaysPlainText(this, data, update);
+            return alwaysPlainText(this, data,
+                ((CheckCategory p0, p1) => update(p0, langText: p1)));
         }
       }),
     );
