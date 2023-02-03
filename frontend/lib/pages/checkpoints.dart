@@ -62,25 +62,54 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
   }
 
   @override
-  Widget? get floatingActionButton => TransformableActionbutton(
-        expandedHeight: 200,
-        expandedChild: (onCancel) => Adder(
-          'checkpoint',
-          onSet: (json) async {
-            Map<String, dynamic> checkpoint = json['checkpoint'];
-            checkpoint['PjNr'] = currentData.pjNr;
-            checkpoint['E1'] = currentData.index;
-            checkpoint['E2'] = -1;
-            await API()
-                .setNew(CheckPoint.fromJson(checkpoint), caller: currentData);
-            notifyListeners();
-          },
-          onCancel: onCancel,
-          textfieldList: [
-            InputData("KurzText", hint: S.current.kurzTextHint),
-            InputData("LangText",
-                hint: S.current.langTextHint, verify: InputData.alwaysCorrect),
-          ],
+  Widget? get floatingActionButton {
+    return TransformableActionbutton(
+      expandedHeight:
+          300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
+      expandedChild: (onCancel) => adder(
+        parent: currentData,
+        onCancel: onCancel,
+        onDone: (category) async {
+          await API().setNew(category, caller: currentData);
+          notifyListeners();
+        },
+      ),
+    );
+  }
+
+  static Adder adder({
+    required CheckCategory parent,
+    required onCancel(),
+    required onDone(CheckPoint checkpoint),
+    CheckPoint? currentCheckpoint,
+  }) {
+    return Adder(
+      'checkpoint',
+      onSet: (json) {
+        Map<String, dynamic> checkpoint = json['checkpoint'];
+        if (currentCheckpoint != null) {
+          checkpoint = currentCheckpoint.toJson()..addAll(checkpoint);
+        } else {
+          checkpoint['PjNr'] = parent.pjNr;
+          checkpoint['E1'] = parent.index;
+          checkpoint['E2'] = -1;
+        }
+        onDone(CheckPoint.fromJson(checkpoint)!);
+      },
+      onCancel: onCancel,
+      textfieldList: [
+        InputData(
+          "KurzText",
+          hint: S.current.kurzTextHint,
+          value: currentCheckpoint?.kurzText,
         ),
-      );
+        InputData(
+          "LangText",
+          hint: S.current.langTextHint,
+          verify: InputData.alwaysCorrect,
+          value: currentCheckpoint?.langText,
+        ),
+      ],
+    );
+  }
 }
