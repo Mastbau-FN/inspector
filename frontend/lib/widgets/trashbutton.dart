@@ -25,6 +25,7 @@ class _TrashButtonState extends State<TrashButton> {
 
   Future<void> _confirmedDelete(BuildContext context) async {
     return showDialog<void>(
+      barrierColor: Colors.black54,
       context: context,
       //barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {

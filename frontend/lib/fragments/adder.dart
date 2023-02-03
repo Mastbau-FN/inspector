@@ -39,6 +39,14 @@ class TransformableActionbuttonState extends State<TransformableActionbutton> {
   bool isClicked = false;
   bool wasClicked = false;
 
+  late Widget expandedChild;
+
+  @override
+  void initState() {
+    expandedChild = widget.expandedChild(cancel);
+    super.initState();
+  }
+
   // ignore: non_constant_identifier_names
   final transition_ms = ANIMATE ? 400 : 0;
 
@@ -217,8 +225,11 @@ class Adder extends StatelessWidget implements JsonExtractable {
         //     textfield_list.map((tf) => FocusNode()).toList(),
         this.json = {name: {}};
 
+  // ignore: unused_element
   Future<void> _alert(BuildContext context) async {
     return showDialog<void>(
+      barrierColor: Colors.black54,
+
       context: context,
       //barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
@@ -259,6 +270,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
+
       // autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -267,11 +279,14 @@ class Adder extends StatelessWidget implements JsonExtractable {
         //ListView wahrscheinlich besser als Column, da Scrollable 
 */
         children: <Widget>[
-          Spacer(),
+          // Spacer(),
           ...children,
-          ...List.generate(
-            textfieldList.length,
-            (i) => _Input(
+          ...List.generate(textfieldList.length, (i) {
+            _textfieldControllerList[i].value = TextEditingValue(
+              text: textfieldList[i].value ?? "",
+            );
+            return _Input(
+              // initialValue: textfieldList[i].value,
               hint: textfieldList[i].hint,
               isFirst: i == 0,
               isLast: i == textfieldList.length - 1,
@@ -288,8 +303,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
               // fn: _textfield_focusnode_list[i],
               c: _textfieldControllerList[i],
               validator: textfieldList[i].verify,
-            ),
-          ),
+            );
+          }),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -348,12 +363,14 @@ class _Input extends StatelessWidget {
     // required this.onDone,
     // required this.fn,
     required this.c,
+    // this.initialValue,
   }) : super(key: key);
 
   final String? Function(String? text) validator;
 
   // String? value;
 
+  // final String? initialValue;
   final bool isFirst;
   final bool isLast;
   final String hint;
@@ -366,6 +383,7 @@ class _Input extends StatelessWidget {
     return Container(
       padding: EdgeInsets.only(top: 10, left: 20, right: 20),
       child: TextFormField(
+        // initialValue: initialValue,
         // onSaved: (value) {
         //   this.value = value;
         // },
@@ -406,6 +424,8 @@ class InputData {
   /// under which name to store the result
   final String varName;
 
+  final String? value;
+
   /// the hint the user gets to see
   final String hint;
 
@@ -413,7 +433,7 @@ class InputData {
   /// shall return null if correct and an error-string otherwise
   final String? Function(String? text) verify;
   InputData(this.varName,
-      {required this.hint, this.verify = defaultVerification});
+      {required this.hint, this.value, this.verify = defaultVerification});
 
   static const defaultVerification = nonempty;
 

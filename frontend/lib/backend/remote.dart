@@ -13,7 +13,6 @@ import '../generated/l10n.dart';
 import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
-import 'package:MBG_Inspektionen/options.dart';
 
 import './helpers.dart' as Helper;
 import 'api.dart';
@@ -109,8 +108,6 @@ class Remote {
     final res = (timeout == null) ? await req : await req.timeout(timeout);
 
     final ret = await http.Response.fromStream(res); // res.forceRes();
-    if (Options().debugAllResponses && !returnsBinary)
-      debugPrint("res: " + ret.body);
     return ret;
   }
 
@@ -135,7 +132,6 @@ class Remote {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json = rd.json ?? {};
     rd.json!['user'] = _user?.toJson();
-    if (Options().debugAllResponses) debugPrint('req: ' + jsonEncode(rd.json));
     try {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
@@ -153,7 +149,10 @@ class Remote {
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
             ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
-                (key, value) => MapEntry(key, value.toString())));
+                (key, value) => MapEntry(
+                    key,
+                    value
+                        .toString()))); // this causes #279, but that is fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
               ? await mreq.send()
@@ -190,7 +189,7 @@ class Remote {
     final rd = RequestData(
       _getImageFromHash_r,
       json: {
-        'imghash': hash,
+        'hash': hash,
       },
       returnsBinary: true,
     );
@@ -201,9 +200,7 @@ class Remote {
         return null;
       else {
         try {
-          final file = await API().local.storeImage(res.bodyBytes, hash);
-          if (Options().debugImages || Options().debugLocalMirror)
-            debugPrint('stored image in $file');
+          await API().local.storeImage(res.bodyBytes, hash);
           return ImageData(
             (await API().local.readImage(hash))!,
             id: hash,
@@ -269,9 +266,6 @@ class Remote {
     required String route,
     Map<String, dynamic> other = const {},
   }) {
-    if (Options().debugAllResponses)
-      debugPrint("we will send this data to $route:" +
-          (data?.toJson().toString() ?? ""));
     assert(data != null, 'we cant send no data, data needs to be supplied');
     var jsonData = data!.toJson();
     final rd = RequestData(route, json: {
@@ -282,8 +276,6 @@ class Remote {
 
     parser(http.Response? res) {
       res = res?.forceRes();
-      if (Options().debugAllResponses)
-        debugPrint("and we received :" + (res?.body.toString() ?? ""));
 
       if (res != null && res.statusCode ~/ 100 != 2) {
         _maybeShowToast(
@@ -397,17 +389,17 @@ class Remote {
     return RequestAndParser(rd: rd, parser: parser);
   }
 
-  /// sets an image specified by its hash as the new main image
+  // sets an image specified by its hash as the new main image
   RequestAndParser<http.Response, String?>
       setMainImageByHash<DataT extends Data>(
     DataT? data,
-    String hash,
+    String mainhash,
   ) {
     final rap = _sendDataToRoute(
       data: data,
       route: _setMainImageByHash_r,
       other: {
-        'hash': hash,
+        'hash': mainhash,
       },
     );
     return RequestAndParser(
@@ -440,7 +432,7 @@ class Remote {
             'we need a 2xx, but got ${res.statusCode}');
       }
       return (res.runtimeType == http.Response)
-          ? (res as http.Response?)?.body //TODO meh remove crash und stuff
+          ? (res as http.Response?)?.body //meh
           : await (res as http.StreamedResponse?)?.stream.bytesToString();
     }
 

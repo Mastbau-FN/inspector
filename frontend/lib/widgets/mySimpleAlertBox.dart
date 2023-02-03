@@ -16,6 +16,7 @@ class MySimpleAlertBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: Design.mainBorderRadius,
       ),

@@ -56,6 +56,7 @@ extension StreamRepeatLatestExtension<T /*extends Object*/ > on Stream<T> {
       // currentListeners.clear();
     });
     return Stream.multi((controller) {
+      // ignore: dead_code
       if (done) {
         controller.close();
         return;

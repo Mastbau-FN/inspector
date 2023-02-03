@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
 import 'package:flutter/cupertino.dart';
@@ -79,12 +78,18 @@ class LocalMirror {
     Data? caller,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if (caller != null && data != null && caller.id != null) {
+    if (caller != null && data != null) {
       final author = (await API().user)!.name;
-      data = Data.fromJson<DataT>(
-          data.toJson().copyWith({'Autor': author}))!; //kinda hacky
-      data.id = /*'_on_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
-      OP.storeData<DataT>(data, forId: caller.id!);
+      try {
+        if ((caller as WithOffline).forceOffline)
+          (data as WithOffline).forceOffline = true;
+      } catch (e) {}
+      data = Data.fromJson<DataT>(data.toJson().copyWith({
+        'Autor': author,
+        // 'local_id':
+        //     LOCALLY_ADDED_PREFIX + UniqueKey().hashCode.toRadixString(36)
+      }))!; //kinda hacky
+      await storeData<DataT>(data, forId: caller.id);
       return data;
     }
     return null;
@@ -97,9 +102,8 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
-      data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
-      OP.storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+    if ((forceUpdate || caller != null) && data != null) {
+      await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
     return null;
@@ -111,11 +115,8 @@ class LocalMirror {
     Data? caller,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if (caller != null &&
-        data != null &&
-        caller.id != null &&
-        data.id != null) {
-      await OP.deleteData<DataT>(data.id!, parentId: caller.id!);
+    if (caller != null && data != null) {
+      await OP.deleteData<DataT>(data.id, parentId: caller.id);
       return 'success';
     }
     return null;
@@ -125,6 +126,7 @@ class LocalMirror {
   Future<ImageData?> getImageByHash(String hash) async {
     final img = await readImage(hash);
     if (img == null) throw Exception("no img cached");
+    // return null;
 
     return ImageData(img, id: hash);
   }
@@ -136,14 +138,13 @@ class LocalMirror {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    //TODO: #211
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+    if ((forceUpdate || caller != null) && data != null) {
       try {
-        // data.id = /*'_oe_' + */ (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
-        OP.deleteImage(hash);
+        // data.id = /*'_oe_' + */ createLocalId(data);
+        await OP.deleteImage(hash);
         data.imagehashes!.remove(hash);
-        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully deleted image offline';
       } catch (e) {
         debugPrint('failed to remove image locally');
@@ -155,18 +156,23 @@ class LocalMirror {
   /// sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
     DataT? data,
-    String hash, {
+    String mainhash, {
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    //TODO: #211
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null && caller.id != null) && data != null) {
+    if ((forceUpdate || caller != null) && data != null) {
       try {
-        // data.id = (data.id ?? LOCALLY_ADDED_PREFIX + data.title);
-        data.imagehashes!.remove(hash);
-        data.imagehashes!.insert(0, hash);
-        storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+        // remove new main image from list
+        data.imagehashes!.remove(mainhash);
+        //reinstert old main image to list
+        if (data.mainhash != null) data.imagehashes!.insert(0, data.mainhash!);
+        //set new main image
+        data.mainhash = mainhash;
+
+        debugPrint('set main image hash to $mainhash');
+
+        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully set main image offline';
       } catch (e) {
         debugPrint('failed to update main image locally');
@@ -176,7 +182,7 @@ class LocalMirror {
   }
 
   /// upload a bunch of images
-  Future<String?> uploadFiles<DataT extends Data>(
+  Future<String?> uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
     List<XFile> files, {
     Data? caller,
@@ -189,12 +195,16 @@ class LocalMirror {
       await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));
+    if (data.imagehashes == null) data.imagehashes = [];
+    if (data.imagehashes!.isEmpty && data.mainhash == null) {
+      data.mainhash = newLocalImageNames.first;
+      newLocalImageNames.removeAt(0);
+    }
     data.imagehashes?.addAll(newLocalImageNames);
     injectImages(data);
-    OP.storeData(data, forId: caller?.id ?? await API().rootID);
-    NewImages.addAllNulled(newLocalImageNames);
+    await storeData(data, forId: caller?.id ?? await API().rootID);
+    // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
-    //TODO: test #211
   }
 
   final storeData = OP.storeData;

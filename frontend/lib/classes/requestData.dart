@@ -35,7 +35,7 @@ class RequestData {
   bool returnsBinary;
 
   /// if the request should log if it failed, null to fallback to default behaviour (log everything that doesnt simulate a Get-Request)
-  @JsonKey(ignore: true)
+  @JsonKey(includeToJson: false)
   bool? logIfFailed;
 
   Map<String, dynamic> get serialized => _$RequestDataToJson(this);

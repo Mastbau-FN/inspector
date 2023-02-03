@@ -22,8 +22,3 @@ db.pool.asyncQuery = (querystring, args) =>
 module.exports = {
   db,
 };
-
-//delete whacknesses
-//pool = require("./db/pool")
-//pool.db.pool.query(`DELETE FROM "Events" WHERE "LinkOrdner" LIKE '%TODO%';`, null).then(e => console.log(e))
-//pool.db.pool.query(`DELETE FROM "Events" WHERE "Index" > 27 AND "Index" < 70;`, [  ]).then(e => console.log(e))

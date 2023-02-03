@@ -29,12 +29,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
   try {
     var file = await _localFile(name);
-    // var __x__;
-    // file = (await file.exists()) ? file : await file.create();
-    // file.writeAsString(imgBytes.toString());%
-    file =
-        await file.writeAsBytes(imgBytes); //u good? //TODO: doesnt complete?!
-    if (Options().debugLocalMirror) debugPrint('saved $file');
+    file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
@@ -51,10 +46,13 @@ class NoImagePlaceholderException implements Exception {
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name) async {
   final file = (await _localFile(name));
+  // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
       ? NoImagePlaceholderException()
       : Exception("file $file doesnt exist");
-  if (!file.existsSync()) throw err;
+  if (!file.existsSync())
+    // throw err;
+    return null;
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
@@ -69,7 +67,7 @@ Future<File> deleteImage(String name) async {
   return await file.delete() as File;
 }
 
-deleteAll() async =>
+Future<void> deleteAll() async =>
     (await getApplicationDocumentsDirectory()).delete(recursive: true);
 
 //MARK: data-stuff
@@ -98,7 +96,7 @@ Future<String> storeData<DataT extends Data>(
   final collectionName = _getCollectionNameForData<DataT>(forId);
 
   var json = data.toJson();
-  String? oldId = data.id ?? json['local_id'];
+  String? oldId = data.id;
 
   final isExistent = ((await db.collection(collectionName).get())
           ?.keys
@@ -110,13 +108,11 @@ Future<String> storeData<DataT extends Data>(
   }
 
   //create a new document with new id if wanted
-  final id =
-      ((!isExistent || overrideMode == OverrideMode.update) && oldId != null)
-          ? oldId
-          : db.collection(collectionName).doc().id;
+  final id = (!isExistent || overrideMode == OverrideMode.update)
+      ? oldId
+      : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
-  if (Options().debugLocalMirror) debugPrint("stored json: " + json.toString());
   db.collection(collectionName).doc(id).set(json);
 
   return id;

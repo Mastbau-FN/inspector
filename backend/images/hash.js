@@ -11,7 +11,14 @@ var cache = new NanoCache({
   bytes: NanoCache.SIZE.GB, // cache memory usage must not exceed 1GB
 });
 
+// const storage = require('node-persist');
+
+// const __hash_cache = storage.create({dir: '__hash_cache', ttl: 604800000*100});//store entries for 100 weeks
+// __hash_cache.init();
+// cache = {get:(e)=>__hash_cache.getItem(e), set:(e, b)=> __hash_cache.setItem(e,b)};
+
 const getFileFromHash = async (hash) => {
+   console.log("gettin file from ", await getPathFromHash(hash))
   return await imgfiler.getImageFrom(
     cache.get(hash + "r"),
     cache.get(hash + "l"),
@@ -39,12 +46,11 @@ const getPathFromHash = (hash) => {
 const memorize = (rootpath, link, filename) => {
   // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
   let key = (filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename+ 'v1').digest('base64');
-
-  //okay this is honestly kinda shitty, but probably faster than serializing and deserializing
+ 
   cache.set(key + "r", rootpath);
   cache.set(key + "l", link);
   cache.set(key + "f", filename);
-
+ 
   return key;
 };
 

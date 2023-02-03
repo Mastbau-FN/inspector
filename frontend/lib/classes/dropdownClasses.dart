@@ -1,7 +1,9 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,22 +19,32 @@ import '../generated/l10n.dart';
 import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
-  List<String>? imagehashes = []; //should not be used
-  Future<ImageData?>? mainImage = Future.value(null);
+  @JsonKey(name: 'mainhash')
+  String? mainhash;
+  @JsonKey(name: 'images')
+  List<String>? imagehashes; //should not be used
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  Future<ImageData?> mainImage = Future.value(null);
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<Future<ImageData?>>? imageFutures;
+  @JsonKey(includeToJson: false, includeFromJson: false)
   Future<ImageData?> previewImage = Future.value(null);
-  List<Future<ImageData?>>? imageFutures = [];
-  //Null Function() onNextImageLoaded = () {};
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
+@JsonSerializable(includeIfNull: false)
 abstract class Data implements WithImgHashes {
   String get title;
   String? get subtitle => null;
 
-  String? id;
+  static idFromJson(String? id) =>
+      id ?? LOCALLY_ADDED_PREFIX + UniqueKey().hashCode.toRadixString(36);
+  static idToJson(String id) => id;
+  @JsonKey(fromJson: Data.idFromJson, toJson: Data.idToJson, name: 'local_id')
+  late String id;
 
   /// an optional extra Widget, to display extra data (currently only used by [CheckPointDefect] to show the urgency)
-  Widget? get extra => null;
+  List<Widget> extras({BuildContext? context}) => const [];
 
   Map<String, dynamic> toJson();
   Map<String, dynamic> toSmallJson();
@@ -69,7 +81,10 @@ mixin WithOffline on Data {
   // ignore: non_constant_identifier_names
   bool? forceOffline_nullable = false;
 
-  @JsonKey(ignore: true)
+  @JsonKey(name: 'parent_local_id')
+  String? parentId;
+
+  @JsonKey(includeToJson: false)
   bool get forceOffline => forceOffline_nullable ?? false;
 
   // @JsonKey(ignore: true)
@@ -114,8 +129,8 @@ class DropDownModel<ChildData extends WithLangText,
     }
   }
 
-  Future<ChildData?> get currentlyChosenChildData =>
-      _getCurrentlyChosenChildData().first;
+  Future<ChildData?> get currentlyChosenChildData => _getCurrentlyChosenChildData()
+      .last; //XXX: locally mirrored (.first) should suffice, but as this doenst work perfectly rn we rather use .last to override with online data
   // int? _currentlyChosenChildDataIndex;
   // // ChildData? _currentlyChosenChildData;
   // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
@@ -152,12 +167,12 @@ class DropDownModel<ChildData extends WithLangText,
 
   Future<T?> updateCurrentChild<T>(
       Future<T> Function(ChildData) updater) async {
-    //TODO: das hier caused den zweiten teil von #182
-    debugPrint('you about to change $currentlyChosenChildId');
     ChildData? childD = await currentlyChosenChildData;
     if (childD != null) {
       T ret = await updater(childD);
       notifyListeners();
+      // await Future.delayed(Duration(milliseconds: 3000));
+      // notifyListeners();
       return ret;
     }
     return null;
@@ -178,8 +193,8 @@ class DropDownModel<ChildData extends WithLangText,
     throw UnimplementedError();
   }
 
-  void update(ChildData data, txt) async {
-    data.langText = txt;
+  void update(ChildData data, {String? langText}) async {
+    if (langText != null) data.langText = langText;
     _maybeShowToast(await API().update(data, caller: currentData) ??
         S.current.didntGetAnyResponseAfterSend);
     notifyListeners();
@@ -222,8 +237,8 @@ Widget nextModel<
         ChildData extends WithLangText,
         ParentData extends WithOffline?,
         DDModel extends DropDownModel<ChildData, ParentData>>(DDModel child) =>
-    ChangeNotifierProvider<DDModel>.value(
-      value: child,
+    ChangeNotifierProvider<DDModel>(
+      create: (context) => child,
       child: DropDownPage<ChildData, ParentData, DDModel>(),
     );
 
@@ -247,20 +262,44 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
             return FutureBuilder<ChildData?>(
                 future: model.currentlyChosenChildData,
                 builder: (context, snapshot) {
+                  var hasMain = snapshot.data?.mainImage != null &&
+                      (snapshot.data!.mainhash ??
+                              Options().no_image_placeholder_name) !=
+                          Options().no_image_placeholder_name;
                   return Stack(
                     children: [
                       ImagesPage.futured(
-                        hasMainImage:
-                            (snapshot.data ?? data)?.mainImage != null,
-                        futureImages: (snapshot.data ?? data)?.imageFutures,
-                        //s ?.map((e) => e.asBroadcastStream())
+                        hasMainImage: hasMain,
+                        futureImages: [
+                          if (hasMain) snapshot.data!.mainImage,
+                          // snapshot.data!.mainImage,
+                          ...?((snapshot.data ?? data)?.imageFutures)
+                          //didnt help:
+                          //  ??
+                          //     <Future<ImageData<Object>?>>[
+                          //       Future.value(ImageData(
+                          //           Image.network(
+                          //               'https://communities.apple.com/public/assets/welcome/welcome-toast.png'),
+                          //           id: UniqueKey()))
+                          //     ]),
+                          // Future.value(ImageData(
+                          //     Image.network(
+                          //         'https://communities.apple.com/public/assets/welcome/welcome-toast.png'),
+                          //     id: UniqueKey()))
+                        ],
+                        //s ?.map((e) => e.asBroadcastSteream())
                         // .toList(),
                         onNewImages: (files) async {
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
-                            (data) => API().uploadFiles(data, files,
-                                caller: model.currentData, forceUpdate: true),
+                            (data) async {
+                              var ret = await API().uploadNewImagesOrFiles(
+                                  data, files,
+                                  caller: model.currentData, forceUpdate: true);
+                              // await Future.delayed(Duration(seconds: 5));
+                              return ret;
+                            },
                           );
 
                           _maybeShowToast(value);

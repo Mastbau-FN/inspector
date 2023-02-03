@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
@@ -11,7 +10,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '../classes/imageData.dart';
-import '../extension/future.dart';
 import '../generated/l10n.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
@@ -48,11 +46,12 @@ class API {
   bool? _dataPrefersCache(Data? data,
       {required Helper.SimulatedRequestType type}) {
     bool? itPrefersCache;
-    if (type == Helper.SimulatedRequestType.GET ||
-        Options().tryOnlineUploadRequestsInCachedMode)
-      try {
-        itPrefersCache = (data as WithOffline).forceOffline;
-      } catch (e) {}
+    //die simulated GET request senden keine daten (die für sync relevant sind), bei den anderen muss woanders entschieden werden ob an den server gesendet wird oder nicht
+    // #292 dirtyfix
+    // if (type == Helper.SimulatedRequestType.GET)
+    try {
+      itPrefersCache = (data as WithOffline).forceOffline;
+    } catch (e) {}
     return itPrefersCache;
   }
 
@@ -106,47 +105,32 @@ class API {
 
     Future<RequestAndParser<R, T>>(online).then(
       (rap) async {
-        // final _ukey = UniqueKey();
+        // ignore: unused_local_variable
         late Object _latestErr;
-        Future<bool> doOnline(
+        Future<bool?> doOnline(
             {bool orDontIf = false, bool? forceOnline}) async {
-          // debugPrint(_ukey.toString() + 'running online');
           try {
-            // debugPrint(orDontIf ? 'we gonna skip' : 'online');
             if (orDontIf) {
               throw BackendCommunicationException(
                   'we prefer the local variant');
             }
-            // debugPrint(_ukey.toString() + 'network?');
-            final __x = await tryNetwork(requestType: requestType);
-            // debugPrint(_ukey.toString() + 'network worked');
-            final bool wantsmerged = merge != null &&
-                Options().canBeOffline &&
-                (Options().mergeOnlineEvenInCached ||
-                    Options().mergeOnline && !_itPrefersCache);
-            final bool wantsonline = forceOnline ??
-                //TODO: okay but this might be the wrong type
-                ((requestType != Helper.SimulatedRequestType.GET) ||
-                    Options().preferRemoteData ||
-                    Options().preferRemoteImgs);
+
+            await tryNetwork(requestType: requestType);
+            final bool wantsmerged =
+                merge != null && Options().canBeOffline && !_itPrefersCache;
+            final bool wantsonline =
+                forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
             if (wantsonline || wantsmerged) {
-              await Future.delayed(Duration(milliseconds: 100));
               // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
+              await Future.delayed(Duration(milliseconds: 100));
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
               if (wantsonline) controller.add(onlineRes);
               if (wantsmerged)
                 controller.add(await merge(offlineRes, onlineRes));
-              // debugPrint(_ukey.toString() +
-              //     'online succeeded: ' +
-              //     onlineRes.toString());
-            }
-            // debugPrint(_ukey.toString() +
-            //     'ran online ' +
-            //     wantsonline.toString() +
-            //     wantsmerged.toString());
+            } else
+              return null;
           } catch (e) {
-            // debugPrint(_ukey.toString() + 'online failed: ' + e.toString());
             _latestErr = e;
             return false;
           }
@@ -158,38 +142,34 @@ class API {
               (requestType != Helper.SimulatedRequestType.GET);
           if (onlineFailedCB != null)
             await onlineFailedCB(offlineRes, rap);
-          else if (log) await local.logFailedReq(rap.rd);
-          if (Options().debugLocalMirror)
-            debugPrint(
-                'failed request ${log ? "and logged it" : ""}: ${rap.rd.json} \n\t error was $_latestErr');
+          else if (log) {
+            await local.logFailedReq(rap.rd);
+          }
         }
 
         onlineSuccessProcedure() async {
-          if (onlineSuccessCB != null)
-            await onlineSuccessCB(
-                onlineRes); //XXX: vllt das onsuccess lieber dem rd übergeben?
+          if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
+          //XXX: vllt das onsuccess lieber dem rd übergeben?
         }
 
-        List<bool> _success = await Future.wait([
+        List<bool?> _success = await Future.wait([
           doOnline(
-            orDontIf: _itPrefersCache && !Options().mergeOnlineEvenInCached,
+            orDontIf: _itPrefersCache,
+            forceOnline: Options().canBeOffline ? null : true,
           ),
           doOffline(
             orDontIf: !Options().canBeOffline,
           )
         ], eagerError: false);
 
-        bool onlineSucc = _success[0];
-        bool offlineSucc = _success[1];
-        var x = 0;
-        if (!onlineSucc && !offlineSucc && Options().tryOnlineIfOfflineFailed) {
-          // debugPrint(_ukey.toString() + 'trying online again');
-          onlineSucc = await doOnline(
-              forceOnline:
-                  true); //TODO: offline has to succeed normally so we dont fetch online if we dont *really* need to
+        bool? onlineSucc = _success[0];
+        bool? offlineSucc = _success[1];
+        if (!(onlineSucc ?? false) && !offlineSucc!) {
+          onlineSucc = await doOnline(forceOnline: true);
         }
         controller.close();
-        onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+        if (onlineSucc != null)
+          onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
       },
     );
     return controller.stream;
@@ -203,7 +183,6 @@ class API {
     Duration? timeout,
     required Helper.SimulatedRequestType requestType,
   }) async {
-    // debugPrint('network testing..');
     //check network
     if (Options().forceOffline)
       throw NoConnectionToBackendException(
@@ -216,7 +195,6 @@ class API {
                 !Options().useMobileNetworkForUpload) ||
             !Options().useMobileNetworkForDownload))
       throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
-    // debugPrint('network good');
   }
 
   Future<String> get rootID async => (await user)!.name;
@@ -234,9 +212,6 @@ class API {
 
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
-    // final requestType =
-    //     Helper.SimulatedRequestType.GET;
-    // if user is already logged in
     if (await isUserLoggedIn(user)) return this.user;
     try {
       final _user = await remote.login(user);
@@ -270,8 +245,7 @@ class API {
       try {
         cached.retainWhere((element) => (element as WithOffline).forceOffline);
         var cachedIds = cached.map((element) => element.id).toList();
-        upstream.retainWhere(
-            (element) => element.id != null && !cachedIds.contains(element.id));
+        upstream.retainWhere((element) => !cachedIds.contains(element.id));
         upstream.addAll(cached);
         return upstream;
       } catch (e) {
@@ -303,19 +277,33 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
-
+    try {
+      (data as WithOffline).parentId = caller?.id ?? await rootID;
+    } catch (e) {}
+    if (data == null) return null;
+    // data.id = null;
     return _run(
-      itPrefersCache: _dataPrefersCache(caller, type: requestType),
+      itPrefersCache: (caller as WithOffline?)
+          ?.forceOffline, // _dataPrefersCache(caller, type: requestType),
       offline: () => local.setNew(data, caller: caller),
       online: () => remote.setNew(data),
       onlineSuccessCB: (response) async {
-        // TODO
+        //toDo: etwas besser wäre das mit zu serialisieren und wenn der request bei retryFailedRequests später erfolgreich ist das auszuführen
+        //aber unser hotfix wird sein beim erflogreichen retryFailedRequests alle lokalen daten zu entfernen (auch im die app-dateien-größe auf dauer kompakt zu halten)
+        await deleteData(
+          data.id,
+          parentId: caller?.id ?? await API().rootID,
+        );
+      },
+      onlineFailedCB: (DataT? data, rap) async {
+        rap = remote.setNew<DataT>(data);
+        await local.logFailedReq(rap.rd);
       },
       requestType: requestType,
     ).last;
   }
 
-  /// updates a [DataT] and returns the response
+  /// updates a [DataT] and returns the respons
   Future<String?> update<DataT extends Data>(
     DataT? data, {
     Data? caller,
@@ -344,12 +332,12 @@ class API {
     ).last;
   }
 
-  /// deletes an image specified by its hash and returns the response
+  /// gets image specified by its hash
   Future<ImageData?> getImageByHash(String hash) async {
     final requestType = Helper.SimulatedRequestType.GET;
-
     return _run(
-      itPrefersCache: !Options().preferRemoteImgs,
+      itPrefersCache:
+          false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
       offline: () => local.getImageByHash(hash),
       online: () => remote.getImageByHash(hash),
       requestType: requestType,
@@ -364,23 +352,30 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    if (hash == data?.mainhash) {
+      data?.mainhash = null;
+      debugPrint('deleted mainhash');
+      await update(data, caller: caller, forceUpdate: forceUpdate);
+    }
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.setMainImageByHash(
-        data,
-        hash,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      ),
+      // offline: () => local.setMainImageByHash(
+      //   data,
+      //   hash,
+      //   caller: caller,
+      //   forceUpdate: forceUpdate,
+      // ),
+      offline: () => local.deleteImageByHash(data, hash,
+          caller: caller, forceUpdate: forceUpdate),
       online: () => remote.deleteImageByHash(hash),
       requestType: requestType,
     ).last;
   }
 
-  /// sets an image specified by its hash as the new main image
+  // sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
     DataT? data,
-    String hash, {
+    String mainhash, {
     Data? caller,
     bool forceUpdate = false,
   }) async {
@@ -389,20 +384,20 @@ class API {
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.setMainImageByHash(
         data,
-        hash,
+        mainhash,
         caller: caller,
         forceUpdate: forceUpdate,
       ),
       online: () => remote.setMainImageByHash(
         data,
-        hash,
+        mainhash,
       ),
       requestType: requestType,
     ).last;
   }
 
   /// upload a bunch of images
-  Future<String?> uploadFiles<DataT extends Data>(
+  Future<String?> uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
     List<XFile> files, {
     Data? caller,
@@ -411,7 +406,7 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.uploadFiles(
+      offline: () => local.uploadNewImagesOrFiles(
         data,
         files,
         caller: caller,
@@ -421,37 +416,51 @@ class API {
         data,
         files,
       ),
-      onlineSuccessCB: (response) async {
-        // TODO: get actual hash and replace (in NewImages and in Data)
-        // NewImages.addAll(response)
-        // data.imagehashes.
+      // onlineSuccessCB: (response) async {},
+      onlineFailedCB: (onlineRes, rap) {
+        debugPrint('failed to upload images, ' +
+            rap.rd.json.toString() +
+            ': ' +
+            onlineRes.toString());
+        var rd = rap.rd;
+        //biscchen ugly
+        rd.multipartFiles = rd.multipartFiles.map((e) {
+          // e.name = newName;
+          var newName = LOCALLY_ADDED_PREFIX + e.name;
+          var newPath =
+              e.path.substring(0, e.path.length - e.name.length) + newName;
+          e.saveTo(newPath);
+          e = XFile(newPath);
+          return e;
+        }).toList();
+        local.logFailedReq(rd);
       },
-      // onlineFailedCB:
-      // (onlineRes, rap) {
-      //   debugPrint('failed to upload images, ' +
-      //       rap.rd.json.toString() +
-      //       ': ' +
-      //       onlineRes.toString());
-      // },
       requestType: requestType,
     ).last;
   }
 }
 
 D injectImages<D extends WithImgHashes>(D data) {
-  if (data.imagehashes == null ||
-      data.imagehashes!.length == 0) //the second check *could* be omitted
-    return data;
-  String _firstHash = data.imagehashes![0];
-  data.mainImage = (_firstHash == Options().no_image_placeholder_name)
-      ? null
-      : API().getImageByHash(_firstHash);
-  data.imageFutures = data.imagehashes
-      ?.map((hash) => API().getImageByHash(hash))
-      .toList()
-      .sublist((_firstHash == Options().no_image_placeholder_name) ? 1 : 0);
-  data.previewImage = data.imageFutures != null
-      ? data.imageFutures!.ordered_firstNonNull
-      : Future.value(null);
+  if (data.mainhash != null &&
+      data.mainhash != Options().no_image_placeholder_name) {
+    var mainImage = API().getImageByHash(data.mainhash!);
+
+    data.imageFutures =
+        data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+    data.mainImage = mainImage;
+    data.previewImage = mainImage;
+  } else {
+    //no main image set
+    if (data.imagehashes == null ||
+        data.imagehashes!.length == 0) //the second check *could* be omitted
+      return data;
+    data.previewImage = Future.value(null);
+    if (data.imagehashes != null && data.imagehashes!.length > 0) {
+      data.imageFutures =
+          data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+      data.previewImage = data.imageFutures!.first;
+    }
+  }
+
   return data;
 }

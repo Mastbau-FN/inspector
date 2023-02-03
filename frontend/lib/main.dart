@@ -1,4 +1,3 @@
-import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -17,7 +16,7 @@ Future main() async {
 
   await dotenv.load(fileName: ".env");
   await Options().load();
-  await NewImages.load();
+  // await NewImages.load();
 
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`
@@ -39,7 +38,8 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: (Options().useSystemTheme ? lightDynamic : null) ??
-              ColorScheme.fromSwatch(primarySwatch: mbgpalette0),
+              ColorScheme.fromSwatch(
+                  primarySwatch: mbgpalette0, backgroundColor: Colors.white),
         ),
         darkTheme: ThemeData(
           useMaterial3: true,
@@ -48,7 +48,12 @@ class MyApp extends StatelessWidget {
                 primarySwatch:
                     mbgpalette0, //if someone wonders why this doesnt work, it might be with a future flutter upgrade (https://github.com/flutter/flutter/issues/19089)
                 brightness: Brightness.dark,
+                backgroundColor: Colors.black,
+                cardColor: Colors.grey[900],
               ),
+          appBarTheme: AppBarTheme(
+            color: Colors.black,
+          ),
           brightness: Brightness.dark,
         ),
         localizationsDelegates: [

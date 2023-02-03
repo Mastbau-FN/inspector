@@ -44,8 +44,12 @@ class ExpandableCard2 extends ExpandablesRadio {
     Key? key,
   }) : this.key = key ?? UniqueKey();
 
-  factory ExpandableCard2.fake() {
-    return ExpandableCard2._(opacity: 0.4, title: S.current.loading);
+  factory ExpandableCard2.fake({Color? color}) {
+    return ExpandableCard2._(
+      opacity: 0.4,
+      title: S.current.loading,
+      color: color,
+    );
   }
 
   Color _color(isExpanded, context) => !isExpanded
@@ -57,53 +61,79 @@ class ExpandableCard2 extends ExpandablesRadio {
   @override
   ExpansionPanelRadio make(BuildContext context) {
     return ExpansionPanelRadio(
-        backgroundColor:
-            color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-        headerBuilder: (context, isExpanded) => ListTile(
-              // selectedTileColor: Theme.of(context).colorScheme.secondary,
-              // selectedColor: Theme.of(context).colorScheme.secondary,
-              // selected: isExpanded,
-              // enabled: true,
-              leading: Padding(
-                padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
-                child: ClipOval(
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: FutureBuilder<ImageData?>(
-                        future: previewImg,
-                        builder: (context, snapshot) {
-                          var imagep = snapshot.data?.image.image;
-                          return (imagep != null
-                                  ? Image(image: imagep, fit: BoxFit.fill)
-                                  : null) ??
-                              Icon(
-                                Icons.construction,
-                                color: _color(isExpanded, context),
-                              );
-                        }),
-                  ),
-                ),
-              ),
-              trailing: extra,
-              title: Text(
-                title + (isExpanded ? ':' : ''),
-                style: isExpanded
-                    ? Theme.of(context).textTheme.headline5
-                    // ?.apply(
-                    //       color: Theme.of(context).colorScheme.primary,
-                    //     )
-                    : Theme.of(context).textTheme.bodyText1,
-              ),
-              subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
+      backgroundColor:
+          color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+      headerBuilder: (context, isExpanded) => ListTile(
+        // selectedTileColor: Theme.of(context).colorScheme.secondary,
+        // selectedColor: Theme.of(context).colorScheme.secondary,
+        // selected: isExpanded,
+        // enabled: true,
+        leading: Padding(
+          padding: EdgeInsets.all(isExpanded ? 0.0 : 8.0),
+          child: ClipOval(
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: FutureBuilder<ImageData?>(
+                  future: previewImg,
+                  builder: (context, snapshot) {
+                    var imagep = snapshot.data?.image.image;
+                    return (imagep != null
+                            ? Image(image: imagep, fit: BoxFit.fill)
+                            : null) ??
+                        Icon(
+                          Icons.construction,
+                          color: _color(isExpanded, context),
+                        );
+                  }),
             ),
-        body: Container(
-          // color: Theme.of(context).colorScheme.secondary,
-          child: Column(
-            children: [...children, SizedBox(height: 10)],
           ),
         ),
-        canTapOnHeader: true,
-        value: key);
+        // trailing: extra,
+        title: Row(
+          // direction: Axis.horizontal,
+          // alignment: WrapAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title + (isExpanded ? ':' : ''),
+                    style: isExpanded
+                        ? Theme.of(context).textTheme.headlineSmall
+                        // ?.apply(
+                        //       color: Theme.of(context).colorScheme.primary,
+                        //     )
+                        : Theme.of(context).textTheme.bodyLarge,
+                    overflow: isExpanded
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
+                    maxLines: isExpanded ? 10 : 1,
+                  ),
+                  if (subtitle != null)
+                    Text(subtitle ?? "",
+                        style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+            ),
+            if (extra != null) extra!,
+          ],
+        ),
+        // subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
+      ),
+      body: Container(
+        // color: Theme.of(context).colorScheme.secondary,
+        child: Column(
+          children: [...children, SizedBox(height: 10)],
+        ),
+      ),
+      canTapOnHeader: true,
+      value: key,
+    );
   }
 }
 
@@ -112,9 +142,10 @@ class ExpandablesListRadio extends StatelessWidget {
   const ExpandablesListRadio({this.children = const [], Key? key})
       : super(key: key);
 
-  factory ExpandablesListRadio.fake(int amount) {
+  factory ExpandablesListRadio.fake(int amount, {Color? color}) {
     return ExpandablesListRadio(
-      children: List.generate(amount, (i) => ExpandableCard2.fake()),
+      children:
+          List.generate(amount, (i) => ExpandableCard2.fake(color: color)),
     );
   }
 

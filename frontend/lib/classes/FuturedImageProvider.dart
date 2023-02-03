@@ -26,7 +26,7 @@ class FuturedImageProvider implements ImageProvider {
       (await futureImage).evict();
 
   @override
-  ImageStreamCompleter load(Object key, DecoderCallback decode) {
+  ImageStreamCompleter load(Object key, decode) {
     return _imageStream!
         .completer!; //TODO: das ausrufezeichen hinter dem completer ist gefährlich
   }

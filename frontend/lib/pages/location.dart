@@ -7,9 +7,9 @@ import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:maps_launcher/maps_launcher.dart';
+import 'package:map_launcher/map_launcher.dart';
 
-import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map/flutter_map.dart' as FM;
 
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
@@ -118,8 +118,9 @@ class LocationDetailPage extends StatelessWidget {
                 updateData(locationdata);
               },
             ),
-            Divider(),
-            _ASP(locationdata, updateData: updateData),
+            //Divider(),
+            //ASP(locationdata, updateData: updateData),
+            //Issue-236
             Divider(),
             EditableText(
               label: S.current.locationWayUp,
@@ -130,24 +131,25 @@ class LocationDetailPage extends StatelessWidget {
               },
             ),
             Divider(),
-            EditableText(
-              label: S.current.locationAbschaltung,
-              text: locationdata.abschaltungen,
-              onChanged: (val) {
-                locationdata.abschaltungen = val;
-                updateData(locationdata);
-              },
-            ),
-            Divider(),
-            EditableText(
-              label: S.current.locationSteigschutzKey,
-              text: locationdata.steigschutzschluessel,
-              onChanged: (val) {
-                locationdata.steigschutzschluessel = val;
-                updateData(locationdata);
-              },
-            ),
-            Divider(),
+            // EditableText(
+            //   label: S.current.locationAbschaltung,
+            //   text: locationdata.abschaltungen,
+            //   onChanged: (val) {
+            //     locationdata.abschaltungen = val;
+            //     updateData(locationdata);
+            //   },
+            // ),
+            // Divider(),
+            // EditableText(
+            //   label: S.current.locationSteigschutzKey,
+            //   text: locationdata.steigschutzschluessel,
+            //   onChanged: (val) {
+            //     locationdata.steigschutzschluessel = val;
+            //     updateData(locationdata);
+            //   },
+            // ),
+            // Divider(),
+            // Issue 235 Felder wieder entfernt, da sie nicht mehr benötigt werden
             EditableText(
               keyboardType: TextInputType.numberWithOptions(decimal: false),
               label: S.current.locationHeight,
@@ -173,8 +175,9 @@ class LocationDetailPage extends StatelessWidget {
               },
             ),
             Divider(),
-            _Schluessel(locationdata, updateData: updateData),
-            Divider(),
+            // Schluessel(locationdata, updateData: updateData),
+            //Divider(),
+            //Issue 235 Felder wieder entfernt, da sie nicht mehr benötigt werden
             NamedNulleableBoolToggle(
               label: S.current.locationHasWCLabel,
               isSelected: locationdata.has_wc,
@@ -260,6 +263,7 @@ class _Map extends StatefulWidget {
   const _Map({
     Key? key,
     required this.locationdata,
+    // ignore: unused_element
     this.showsMapPerDefault = false,
   }) : super(key: key);
 
@@ -292,19 +296,19 @@ class _MapState extends State<_Map> {
                             400, //XXX expanded to take available space would be much better than giving a fixed height
                         child: Stack(
                           children: [
-                            FlutterMap(
-                              options: MapOptions(
+                            FM.FlutterMap(
+                              options: FM.MapOptions(
                                 center: widget.locationdata.coords!,
                                 zoom: 8.0,
                               ),
                               layers: [
-                                TileLayerOptions(
+                                FM.TileLayerOptions(
                                     urlTemplate:
                                         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                                     subdomains: ['a', 'b', 'c']),
-                                MarkerLayerOptions(
+                                FM.MarkerLayerOptions(
                                   markers: [
-                                    Marker(
+                                    FM.Marker(
                                       width: 80.0,
                                       height: 80.0,
                                       point: widget.locationdata.coords!,
@@ -356,11 +360,17 @@ class _MapState extends State<_Map> {
                     padding: const EdgeInsets.all(8.0),
                     child: FloatingActionButton(
                       child: Icon(Icons.navigation_rounded),
-                      onPressed: () {
-                        MapsLauncher.launchCoordinates(
-                            widget.locationdata.coords!.latitude,
-                            widget.locationdata.coords!.longitude,
-                            widget.locationdata.pjName);
+                      onPressed: () async {
+                        return await (await MapLauncher.installedMaps)
+                            .first
+                            .showMarker(
+                              coords: Coords(
+                                  widget.locationdata.coords!.latitude,
+                                  widget.locationdata.coords!.longitude),
+                              title: widget.locationdata.title,
+                              description: widget.locationdata.subtitle ??
+                                  widget.locationdata.langText,
+                            );
                       },
                     ),
                   ),
@@ -458,100 +468,101 @@ class NamedNulleableBoolToggle extends StatelessWidget {
   }
 }
 
-class _ASP extends StatefulWidget {
-  final InspectionLocation loc;
-  final Function(InspectionLocation) updateData;
-  const _ASP(this.loc, {required this.updateData, Key? key}) : super(key: key);
+// class _ASP extends StatefulWidget {
+//   final InspectionLocation loc;
+//   final Function(InspectionLocation) updateData;
+//   const _ASP(this.loc, {required this.updateData, Key? key}) : super(key: key);
 
-  @override
-  State<_ASP> createState() => __ASPState();
-}
+//   @override
+//   State<_ASP> createState() => __ASPState();
+// }
 
-class __ASPState extends State<_ASP> {
-  @override
-  void initState() {
-    isOn = widget.loc.asp_required;
-    super.initState();
-  }
+// class __ASPState extends State<_ASP> {
+//   @override
+//   void initState() {
+//     isOn = widget.loc.asp_required;
+//     super.initState();
+//   }
 
-  bool? isOn;
-  @override
-  Widget build(BuildContext context) {
-    var locationdata = widget.loc;
-    return Column(
-      children: [
-        NamedNulleableBoolToggle(
-          label: S.current.locationASPRequieredLabel,
-          isSelected: locationdata.asp_required,
-          onSelected: (val) {
-            locationdata.asp_required = val;
-            widget.updateData(locationdata);
-            setState(() {
-              isOn = val;
-            });
-          },
-        ),
-        if (isOn ?? false)
-          EditableText(
-            label: S.current.locationASPLabel,
-            text: locationdata.ansprechpartner,
-            onChanged: (val) {
-              locationdata.ansprechpartner = val;
-              widget.updateData(locationdata);
-            },
-          ),
-      ],
-    );
-  }
-}
+//   bool? isOn;
+//   @override
+//   Widget build(BuildContext context) {
+//     var locationdata = widget.loc;
+//     return Column(
+//       children: [
+//         NamedNulleableBoolToggle(
+//           label: S.current.locationASPRequieredLabel,
+//           isSelected: locationdata.asp_required,
+//           onSelected: (val) {
+//             locationdata.asp_required = val;
+//             widget.updateData(locationdata);
+//             setState(() {
+//               isOn = val;
+//             });
+//           },
+//         ),
+//         if (isOn ?? false)
+//           EditableText(
+//             label: S.current.locationASPLabel,
+//             text: locationdata.ansprechpartner,
+//             onChanged: (val) {
+//               locationdata.ansprechpartner = val;
+//               widget.updateData(locationdata);
+//             },
+//           ),
+//       ],
+//     );
+//   }
+// }
+//
+// class _Schluessel extends StatefulWidget {
+//   final InspectionLocation loc;
+//   final Function(InspectionLocation) updateData;
+//   const _Schluessel(this.loc, {required this.updateData, Key? key})
+//       : super(key: key);
 
-class _Schluessel extends StatefulWidget {
-  final InspectionLocation loc;
-  final Function(InspectionLocation) updateData;
-  const _Schluessel(this.loc, {required this.updateData, Key? key})
-      : super(key: key);
+//   @override
+//   State<_Schluessel> createState() => __SchluesselState();
+// }
 
-  @override
-  State<_Schluessel> createState() => __SchluesselState();
-}
+// class __SchluesselState extends State<_Schluessel> {
+//   @override
+//   void initState() {
+//     isOn = widget.loc.needs_schluessel;
+//     super.initState();
+//   }
 
-class __SchluesselState extends State<_Schluessel> {
-  @override
-  void initState() {
-    isOn = widget.loc.needs_schluessel;
-    super.initState();
-  }
-
-  bool? isOn;
-  @override
-  Widget build(BuildContext context) {
-    var locationdata = widget.loc;
-    return Column(
-      children: [
-        NamedNulleableBoolToggle(
-          isSelected: locationdata.needs_schluessel,
-          label: S.current.locationRequiresKeyLabel,
-          onSelected: (val) {
-            locationdata.needs_schluessel = val;
-            widget.updateData(locationdata);
-            setState(() {
-              isOn = val;
-            });
-          },
-        ),
-        if (isOn ?? true)
-          EditableText(
-            label: S.current.locationKeyAddintionalInfoLabel,
-            text: locationdata.schluessel_description,
-            onChanged: (val) {
-              locationdata.schluessel_description = val;
-              widget.updateData(locationdata);
-            },
-          ),
-      ],
-    );
-  }
-}
+//   bool? isOn;
+//   @override
+//   Widget build(BuildContext context) {
+//     var locationdata = widget.loc;
+//     return Column(
+//       children: [
+//         NamedNulleableBoolToggle(
+//           isSelected: locationdata.needs_schluessel,
+//           label: S.current.locationRequiresKeyLabel,
+//           onSelected: (val) {
+//             locationdata.needs_schluessel = val;
+//             widget.updateData(locationdata);
+//             setState(() {
+//               isOn = val;
+//             });
+//           },
+//         ),
+//         if (isOn ?? true)
+//           EditableText(
+//             label: S.current.locationKeyAddintionalInfoLabel,
+//             text: locationdata.schluessel_description,
+//             onChanged: (val) {
+//               locationdata.schluessel_description = val;
+//               widget.updateData(locationdata);
+//             },
+//           ),
+//       ],
+//     );
+//   }
+// }
+// issue: 235 schluessel nicht mehr benötigt
 
 class _SteckDosen extends StatefulWidget {
   final InspectionLocation loc;

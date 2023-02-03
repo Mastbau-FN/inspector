@@ -1,15 +1,12 @@
 import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-
-import 'package:provider/provider.dart';
 
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     implements KnowsNext<CheckPointDefect> {
@@ -27,6 +24,18 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     ),
   ];
 
+  // @override
+  // get all => super.all.asyncMap((l) => l.map((e) {
+  //       String t = e.title;
+  //       // remove everything behind latest occurence of '#'
+  //       int i = t.lastIndexOf('#');
+  //       if (i != -1) {
+  //         t = t.substring(0, i);
+  //       }
+  //       e.title = t; //would be better to do this in the element itself
+  //       return e;
+  //     }).toList());
+
   @override
   void open(
     BuildContext context,
@@ -41,15 +50,11 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
             return standard_statefulImageView(this, data);
 
           default:
-            return Provider<CheckPointDefectsModel>(
-              //TODO: wozu ist hier der provider?
-              create: (context) =>
-                  this, //the injector //XXX: sadly this doesnt work for some reason
-              child: Builder(builder: (context) {
-                debugPrint('build new defectsdetails');
-                return alwaysPlainText(this, data, update);
-              }),
-            );
+            return Builder(builder: (context) {
+              debugPrint('build new defectsdetails');
+              return alwaysPlainText(this, data,
+                  ((CheckPointDefect p0, p1) => update(p0, langText: p1)));
+            });
         }
       }),
     );
@@ -63,22 +68,40 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   @override
   Widget? get floatingActionButton {
-    var oufnessChooser = OufnessChooser();
     return TransformableActionbutton(
-
-      expandedHeight: 350,
-/*
       expandedHeight:
           300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
-*/
-      expandedChild: (onCancel) => Adder(
-        'checkpointdefect',
-        onSet: (json) async {
-          Map<String, dynamic> defect = json['checkpointdefect'];
+      expandedChild: (onCancel) => adder(
+        parent: currentData,
+        onCancel: onCancel,
+        onDone: (defect) async {
+          await API().setNew(defect, caller: currentData);
+          notifyListeners();
+        },
+      ),
+    );
+  }
+
+  static Adder adder({
+    required CheckPoint parent,
+    required onCancel(),
+    required onDone(CheckPointDefect defect),
+    CheckPointDefect? currentDefect,
+  }) {
+    var oufnessChooser = OufnessChooser(
+      preSelected: currentDefect?.ereArt,
+    );
+    return Adder(
+      'checkpointdefect',
+      onSet: (json) {
+        Map<String, dynamic> defect = json['checkpointdefect'];
+        if (currentDefect != null) {
+          defect = currentDefect.toJson()..addAll(defect);
+        } else {
           debugPrint("set ${json['checkpointdefect'].toString()}");
-          defect['PjNr'] = currentData.pjNr;
-          defect[CheckPointDefect.E1_key] = currentData.category_index;
-          defect[CheckPointDefect.E2_key] = currentData.index;
+          defect['PjNr'] = parent.pjNr;
+          defect[CheckPointDefect.E1_key] = parent.category_index;
+          defect[CheckPointDefect.E2_key] = parent.index;
           defect[CheckPointDefect.E3_key] = -1;
 
           // debugPrint(defect[oufnessChooser.name].toString() +
@@ -89,37 +112,45 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           //             OufnessChooser.default_none.toString())
           //         .toString());
 
-          /// this solves #48
-          defect[CheckPointDefect.kurzText_key] = currentData.title +
-              "  " +
-              ((defect[oufnessChooser.name].toString() ==
-                      OufnessChooser.default_none.toString())
-                  ? "ohne Mangel"
-                  : ("Mangel " +
-                      (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                              ?.label ??
-                          ""))); //ahhh so thats why we learn functional programming
+          /// this solved #48
+          defect[CheckPointDefect.kurzText_key] = parent.title +
+                  "  " +
+                  // ((defect[oufnessChooser.name].toString() ==
+                  //         OufnessChooser.default_none.toString())
+                  //     ? "ohne Mangel"
+                  //     : ("Mangel " +
+                  //         (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                  //                 ?.label ??
+                  //             ""))) //ahhh so thats why we learn functional programming
+                  // +
+                  "Mangel "
+              //  +
+              // " #" +
+              // json.hashCode.toRadixString(36)
+              ;
+        }
 
-          await API()
-              .setNew(CheckPointDefect.fromJson(defect), caller: currentData);
-          notifyListeners();
-        },
-        onCancel: onCancel,
-        children: [
-          oufnessChooser,
-          //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
-        ],
-        textfieldList: [
-          // InputData("KurzText", hint: "Name"), //removed according to #48
-          InputData(CheckPointDefect.langText_key,
-              hint: S.current.langTextHint),
-          InputData(CheckPointDefect.height_json_key,
-              hint: S.current.positionHeightHint,
-              verify: (val) => (val == null || val.length < 1)
-                  ? S.current.heightNotOptional
-                  : null), //added according to #49
-        ],
-      ),
+        onDone(CheckPointDefect.fromJson(defect)!);
+      },
+      onCancel: onCancel,
+      children: [
+        oufnessChooser,
+        //KurzTextCreator(), //creates the Mangel name //this way was utter BS i was kinda sleepy sorry lol
+      ],
+      textfieldList: [
+        // InputData("KurzText", hint: "Name"), //removed according to #48
+        InputData(
+          CheckPointDefect.langText_key,
+          hint: S.current.langTextHint,
+          value: currentDefect?.langText,
+        ),
+        InputData(CheckPointDefect.height_json_key,
+            hint: S.current.positionHeightHint,
+            value: currentDefect?.height,
+            verify: (val) => (val == null || val.length < 1)
+                ? S.current.heightNotOptional
+                : null), //added according to #49
+      ],
     );
   }
 }
@@ -157,6 +188,9 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
   dynamic get json => _selected;
   String get name => CheckPointDefect.ereArt_key;
+  int? preSelected;
+
+  OufnessChooser({super.key, this.preSelected});
 
   // ignore: non_constant_identifier_names
   static final int default_none = 5204;
@@ -174,6 +208,12 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
 
 class _OufnessChooserState extends State<OufnessChooser> {
   int select = OufnessChooser.default_none;
+
+  @override
+  void initState() {
+    if (widget.preSelected != null) select = widget.preSelected!;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

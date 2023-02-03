@@ -31,7 +31,7 @@ const getAllImagenamesFrom = async (rootpath, link) => {
   try {
     return await _getAllImagenamesFromPath(pathm.join(rootpath, link));
   } catch (e) {
-    console.warn("failed to get image names: ", e);
+    // console.warn("failed to get image names: ", e);
     return [];
   }
 };

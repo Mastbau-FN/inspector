@@ -2,7 +2,6 @@
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
-import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +18,6 @@ part 'inspection_location.g.dart';
 @JsonSerializable()
 class InspectionLocation extends Data
     with WithImgHashes, WithLangText, WithOffline {
-  @JsonKey(name: 'local_id')
-  String? id;
   @JsonKey(name: 'PjNr')
   final int pjNr;
   @JsonKey(name: 'PjName')
@@ -78,7 +75,7 @@ class InspectionLocation extends Data
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   WeatherData get weatherData => WeatherData(
       temperature: temp,
       weather: weather,
@@ -111,15 +108,6 @@ class InspectionLocation extends Data
   )
   final LatLng? fallback_coords;
 
-  @JsonKey(name: 'images')
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  @JsonKey(ignore: true)
-  Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
-
   InspectionLocation({
     this.bauleitung,
     ////this.defaultpicture,
@@ -146,7 +134,9 @@ class InspectionLocation extends Data
   String get title => toString();
 
   @override
-  Widget? get extra => _RecursiveDownloadButton(caller: CategoryModel(this));
+  List<Widget> extras({BuildContext? context}) => [
+        _RecursiveDownloadButton(caller: CategoryModel(this)),
+      ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {

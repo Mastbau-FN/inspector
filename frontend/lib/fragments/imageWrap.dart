@@ -33,15 +33,16 @@ class ImageWrap<T extends Object> extends StatelessWidget {
         super(key: key);
 
   ImageWrap.futured({
-    required this.images,
+    required List<Future<ImageData<T>?>> images,
     this.columnCount = 4,
     Key? key,
     this.hasFav,
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
-  })  : _allImages =
-            images.map((e) => ImageItem.fromImageDataStream(e)).toList(),
+  })  : this.images = images.map((e) => Stream.fromFuture(e)).toList(),
+        _allImages =
+            images.map((e) => ImageItem.fromFutureImageData(e)).toList(),
         super(key: key);
 
   ImageWrap.streamed({
@@ -145,7 +146,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               if (chosenIndex == currentIndex)
                 Positioned(
                   child: Icon(
-                    //todo: maybe ad shadow or border to better see it
+                    //todo: maybe add shadow or border to better see it
                     Icons.star,
                     color: Colors.amber,
                   ),
@@ -195,6 +196,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
 
   Future<void> _onLongPress(context, tag) async {
     switch (await showDialog<ImageOptions>(
+        barrierColor: Colors.black54,
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(

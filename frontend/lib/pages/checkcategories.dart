@@ -55,31 +55,61 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
                 generateNextModel(data));
 
           default:
-            return alwaysPlainText(this, data, update);
+            return alwaysPlainText(this, data,
+                ((CheckCategory p0, p1) => update(p0, langText: p1)));
         }
       }),
     );
   }
 
   @override
-  Widget? get floatingActionButton => TransformableActionbutton(
-        expandedHeight: 250,
-        expandedChild: (onCancel) => Adder(
-          'checkpoint',
-          onSet: (json) async {
-            Map<String, dynamic> category = json['checkpoint'];
-            category['PjNr'] = currentData.pjNr;
-            category['E1'] = -1;
-            await API()
-                .setNew(CheckCategory.fromJson(category), caller: currentData);
-            notifyListeners();
-          },
-          onCancel: onCancel,
-          textfieldList: [
-            InputData("KurzText", hint: S.current.kurzTextHint),
-            InputData("LangText",
-                hint: S.current.langTextHint, verify: InputData.alwaysCorrect),
-          ],
+  Widget? get floatingActionButton {
+    return TransformableActionbutton(
+      expandedHeight:
+          300, //muss noch in Abhängigkeit der Breite des Bildschirms gesetzt werden
+      expandedChild: (onCancel) => adder(
+        parent: currentData,
+        onCancel: onCancel,
+        onDone: (category) async {
+          await API().setNew(category, caller: currentData);
+          notifyListeners();
+        },
+      ),
+    );
+  }
+
+  static Adder adder({
+    required InspectionLocation parent,
+    required onCancel(),
+    required onDone(CheckCategory category),
+    CheckCategory? currentCategory,
+  }) {
+    return Adder(
+      'category',
+      onSet: (json) {
+        Map<String, dynamic> category = json['category'];
+        if (currentCategory != null) {
+          category = currentCategory.toJson()..addAll(category);
+        } else {
+          category['PjNr'] = parent.pjNr;
+          category['E1'] = -1;
+        }
+        onDone(CheckCategory.fromJson(category)!);
+      },
+      onCancel: onCancel,
+      textfieldList: [
+        InputData(
+          "KurzText",
+          hint: S.current.kurzTextHint,
+          value: currentCategory?.kurzText,
         ),
-      );
+        InputData(
+          "LangText",
+          hint: S.current.langTextHint,
+          verify: InputData.alwaysCorrect,
+          value: currentCategory?.langText,
+        ),
+      ],
+    );
+  }
 }

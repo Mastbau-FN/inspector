@@ -1,17 +1,16 @@
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:provider/provider.dart';
 
 part 'checkpointdefect.g.dart';
 
 @JsonSerializable()
 class CheckPointDefect extends Data
     with WithLangText, WithImgHashes, WithAuthor, WithOffline {
-  @JsonKey(name: 'local_id')
-  String? id;
   static const pjNr_key = 'PjNr';
   @JsonKey(name: pjNr_key)
   int pjNr;
@@ -51,16 +50,6 @@ class CheckPointDefect extends Data
   @JsonKey(name: author_key)
   String? author;
 
-  static const imagehashes_key = 'images'; //should  use_key = 'images';
-  @JsonKey(name: imagehashes_key)
-  List<String>? imagehashes; //should not be used
-  @JsonKey(ignore: true)
-  List<Future<ImageData?>>? imageFutures;
-  @JsonKey(ignore: true)
-  Future<ImageData?>? mainImage;
-  @JsonKey(ignore: true)
-  Future<ImageData?> previewImage = Future.value(null);
-
   CheckPointDefect(
       {required this.pjNr,
       this.bauleitung,
@@ -75,16 +64,59 @@ class CheckPointDefect extends Data
 
   @override
   String get title =>
+      _title ??
       kurzText ??
       langText ??
       '$pjNr: Kategorie $category_index, Prüfpunkt $check_index, Mangel $index';
+
+  // void set title(String t) {
+  //   _title = t;
+  // }
+
+  String? _title;
 
   @override
   String? get subtitle =>
       height != null ? 'Ort: $height' : null; //'kein Ort spezifiziert';
 
   @override
-  Widget? get extra => chipd(ereArt)?.toChip;
+  List<Widget> extras({BuildContext? context}) => [
+        chipd(ereArt)?.toChip ?? Container(),
+        editButton(context: context),
+      ];
+
+  Widget editButton({BuildContext? context}) => IconButton(
+        // padding: EdgeInsets.zero,
+        icon: Icon(Icons.edit),
+        onPressed: () async {
+          if (context == null) {
+            debugPrint("no context from wich we could alert");
+            return;
+          }
+          return showDialog(
+            barrierColor: Colors.black54,
+            context: context,
+            // barrierDismissible: false, // user must tap button!
+            barrierDismissible: true,
+            builder: (BuildContext innerContext) {
+              return AlertDialog(
+                title: Text('Mangel bearbeiten'),
+                content: CheckPointDefectsModel.adder(
+                    parent: Provider.of<CheckPointDefectsModel>(context)
+                        .currentData,
+                    currentDefect: this,
+                    onCancel: () => Navigator.of(context).pop(),
+                    onDone: (data) {
+                      Provider.of<CheckPointDefectsModel>(context,
+                              listen: false)
+                          .update(data);
+                      // Navigator.of(context).pop();
+                    }),
+              );
+            },
+          );
+        },
+      );
 
   static ChipData? chipd(int? oufness) {
     switch (oufness) {
@@ -117,7 +149,9 @@ class CheckPointDefect extends Data
   static CheckPointDefect? fromJson(Map<String, dynamic> json) {
     try {
       return _$CheckPointDefectFromJson(json);
-    } catch (e) {}
+    } catch (e) {
+      debugPrint("error while parsing CheckPointDefect: $e");
+    }
     return null;
   }
 

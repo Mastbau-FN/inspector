@@ -1,21 +1,16 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../generated/l10n.dart';
 import '../helpers/toast.dart';
-import '../options.dart';
 import '../pages/checkcategories.dart';
 import '../pages/location.dart';
 import 'api.dart';
 import 'helpers.dart' as Helper;
-import 'offlineProvider.dart' /*as OP*/ show storeJson, getJson;
 
 class FailedRequestmanager {
-  Future<bool> retryFailedrequests() async {
-    //TODO: replace image hashes according to NewImages
+  Future<bool> retryFailedrequests({void Function(double)? onProgress}) async {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -24,7 +19,11 @@ class FailedRequestmanager {
     }
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
     bool success = true;
-    for (final reqd in failedReqs) {
+    num total = failedReqs.length;
+    onProgress?.call(0);
+    for (var i = 0; i < total; i++) {
+      if (onProgress != null) onProgress(i / total);
+      final reqd = failedReqs[i];
       final docID = reqd.item1;
       final rd = reqd.item2;
       if (rd != null) {
@@ -59,7 +58,6 @@ class FailedRequestmanager {
     String? parentID,
   }) async {
     // base-case: CheckPointDefects have no children
-    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
     depth--;
     try {
@@ -69,11 +67,6 @@ class FailedRequestmanager {
       var children = await caller.all.last;
       var didSucceed = await Future.wait(children.map(
         (child) async {
-          if (Options().debugLocalMirror) {
-            name = '$name-> ${child.title}';
-            debugPrint('__1234 got $depth: $name');
-          }
-
           if (depth == 0)
             return true; //base-case as to not call generateNextModel
           bool childSucceeded = await loadAndCacheAll(
@@ -90,11 +83,7 @@ class FailedRequestmanager {
         if (parentID == null) return false;
 
         try {
-          var id =
-              await API().local.storeData(caller.currentData, forId: parentID);
-          if (Options().debugLocalMirror)
-            debugPrint(
-                '_32 loading. ${depth + 1} stored : $id  ${caller.currentData.title}');
+          await API().local.storeData(caller.currentData, forId: parentID);
         } catch (e) {
           return false;
         }
@@ -133,7 +122,6 @@ class FailedRequestmanager {
     String? parentID,
   }) async {
     // base-case: CheckPointDefects have no children
-    // if (typeOf<ChildData>() == CheckPointDefect) return true;//XXX: shit, this generic bums wont work
     if (depth == 0) return true;
     depth--;
     var children = await caller.all.last;
@@ -151,50 +139,50 @@ class FailedRequestmanager {
   }
 }
 
-class NewImages /*extends Map<String, String?>*/ {
-  factory NewImages() => _instance;
-  static final NewImages _instance = NewImages._internal();
-  NewImages._internal() {
-    load();
-  }
+// class NewImages /*extends Map<String, String?>*/ {
+//   factory NewImages() => _instance;
+//   static final NewImages _instance = NewImages._internal();
+//   NewImages._internal() {
+//     load();
+//   }
 
-  static Map<String, dynamic> localImageToRemoteImage_ = {};
-  static Future<Map<String, dynamic>> get() async {
-    // await load();
-    return localImageToRemoteImage_;
-  }
+//   static Map<String, dynamic> localImageToRemoteImage_ = {};
+//   static Future<Map<String, dynamic>> get() async {
+//     // await load();
+//     return localImageToRemoteImage_;
+//   }
 
-  static set(Map<String, String?> map) async {
-    localImageToRemoteImage_ = map;
-    await store();
-  }
+//   static set(Map<String, String?> map) async {
+//     localImageToRemoteImage_ = map;
+//     await store();
+//   }
 
-  static add(String local, String remote) => addAll({local: remote});
+//   static add(String local, String remote) => addAll({local: remote});
 
-  static remove(String local) async {
-    // await load();
-    localImageToRemoteImage_.remove(local);
-    await store();
-  }
+//   static remove(String local) async {
+//     // await load();
+//     localImageToRemoteImage_.remove(local);
+//     await store();
+//   }
 
-  static clear() async {
-    localImageToRemoteImage_.clear();
-    await store();
-  }
+//   static clear() async {
+//     localImageToRemoteImage_.clear();
+//     await store();
+//   }
 
-  static addAll(Map<String, String?> map) async {
-    // await load();
-    localImageToRemoteImage_.addAll(map);
-    await store();
-  }
+//   static addAll(Map<String, String?> map) async {
+//     // await load();
+//     localImageToRemoteImage_.addAll(map);
+//     await store();
+//   }
 
-  static addAllNulled(List<String> l) => addAll({for (var e in l) e: null});
+//   static addAllNulled(List<String> l) => addAll({for (var e in l) e: null});
 
-  static const _IMGDOC_ = '__localImageToRemoteImageMap__';
-  static store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
-  static load() async {
-    final json = await getJson(_IMGDOC_);
-    debugPrint('loaded: $json');
-    localImageToRemoteImage_ = json ?? {};
-  }
-}
+//   static const _IMGDOC_ = '__localImageToRemoteImageMap__';
+//   static store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
+//   static load() async {
+//     final json = await getJson(_IMGDOC_);
+//     debugPrint('loaded: $json');
+//     localImageToRemoteImage_ = json ?? {};
+//   }
+// }
