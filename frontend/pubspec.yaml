@@ -67,13 +67,17 @@ dependencies:
   camera: ^0.10.0  
 
   # Finds the correct paths to store images
-  path_provider: null
+  path_provider: ^2.0.12
 
   # Creates paths that work on any platform
-  path: null
+  path: ^1.8.2
 
   # check if a network is connected and what kind of network (mobile/wifi etc)
   connectivity_plus: ^2.0.2
+
+  # for sharing files via native dialogs
+  share_plus: ^6.3.0
+  image: ^3.0.2
 
   # storing sensitive data like username and password
   flutter_secure_storage: ^5.0.0-beta.5

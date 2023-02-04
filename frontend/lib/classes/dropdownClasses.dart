@@ -12,9 +12,12 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
+import 'package:image/image.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../backend/offlineProvider.dart';
 import '../generated/l10n.dart';
 import 'data/checkcategory.dart';
 
@@ -272,23 +275,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         hasMainImage: hasMain,
                         futureImages: [
                           if (hasMain) snapshot.data!.mainImage,
-                          // snapshot.data!.mainImage,
                           ...?((snapshot.data ?? data)?.imageFutures)
-                          //didnt help:
-                          //  ??
-                          //     <Future<ImageData<Object>?>>[
-                          //       Future.value(ImageData(
-                          //           Image.network(
-                          //               'https://communities.apple.com/public/assets/welcome/welcome-toast.png'),
-                          //           id: UniqueKey()))
-                          //     ]),
-                          // Future.value(ImageData(
-                          //     Image.network(
-                          //         'https://communities.apple.com/public/assets/welcome/welcome-toast.png'),
-                          //     id: UniqueKey()))
                         ],
-                        //s ?.map((e) => e.asBroadcastSteream())
-                        // .toList(),
                         onNewImages: (files) async {
                           showToast(
                               S.of(context).newImageSendingThisMayTakeASec);
@@ -329,6 +317,24 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                             _maybeShowToast(value);
                             return value;
                           });
+                        },
+                        onShare: (hash) async {
+                          var files = await Future.wait(
+                              [await localFile(hash.toString())]
+                                  .map(
+                                    (e) async => XFile.fromData(
+                                      Uint8List.fromList(
+                                        encodePng(
+                                          decodeImage(await e.readAsBytes())!,
+                                        ),
+                                      ),
+                                      name:
+                                          'mbg_${hash.hashCode.toRadixString(36)}.png',
+                                      mimeType: 'image/png',
+                                    ),
+                                  )
+                                  .toList());
+                          await Share.shareXFiles(files, text: 'Internes Bild');
                         },
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)

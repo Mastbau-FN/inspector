@@ -18,17 +18,17 @@ import './helpers.dart' as Helper;
 
 // MARK: image stuff
 
-Future<String> get _localPath async =>
+Future<String> get localPath async =>
     (await getApplicationDocumentsDirectory()).path;
 
-Future<File> _localFile(String name) async =>
-    File('${await _localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
+Future<File> localFile(String name) async =>
+    File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
 Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
   try {
-    var file = await _localFile(name);
+    var file = await localFile(name);
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -45,7 +45,7 @@ class NoImagePlaceholderException implements Exception {
 
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name) async {
-  final file = (await _localFile(name));
+  final file = (await localFile(name));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
       ? NoImagePlaceholderException()
@@ -56,12 +56,12 @@ Future<Image?> readImage(String name) async {
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  return Image.file(await _localFile(name));
+  return Image.file(await localFile(name));
 }
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
-  final file = (await _localFile(name));
+  final file = (await localFile(name));
   if (!file.existsSync()) throw Exception("file $file doesnt exist");
 
   return await file.delete() as File;

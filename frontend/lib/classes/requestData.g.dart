@@ -11,7 +11,7 @@ RequestData _$RequestDataFromJson(Map<String, dynamic> json) => RequestData(
       json: json['json'] as Map<String, dynamic>?,
       multipartFiles: json['multipartFiles'] == null
           ? const []
-          : _multipartFilesFromJson(json['multipartFiles'] as List),
+          : multipartFilesFromHashList(json['multipartFiles'] as List),
       timeout: json['timeout'] == null
           ? null
           : Duration(microseconds: json['timeout'] as int),
@@ -22,7 +22,7 @@ Map<String, dynamic> _$RequestDataToJson(RequestData instance) =>
     <String, dynamic>{
       'route': instance.route,
       'json': instance.json,
-      'multipartFiles': _multipartFilesToJson(instance.multipartFiles),
+      'multipartFiles': multipartFilesToHashList(instance.multipartFiles),
       'timeout': instance.timeout?.inMicroseconds,
       'returnsBinary': instance.returnsBinary,
     };
