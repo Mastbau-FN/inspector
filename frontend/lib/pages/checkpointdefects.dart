@@ -101,32 +101,23 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           defect[CheckPointDefect.E1_key] = parent.category_index;
           defect[CheckPointDefect.E2_key] = parent.index;
           defect[CheckPointDefect.E3_key] = -1;
-
-          // debugPrint(defect[oufnessChooser.name].toString() +
-          //     "?=" +
-          //     OufnessChooser.default_none.toString() +
-          //     ": " +
-          //     (defect[oufnessChooser.name].toString() ==
-          //             OufnessChooser.default_none.toString())
-          //         .toString());
-
-          /// this solved #48
-          defect[CheckPointDefect.kurzText_key] = parent.title +
-                  "  " +
-                  // ((defect[oufnessChooser.name].toString() ==
-                  //         OufnessChooser.default_none.toString())
-                  //     ? "ohne Mangel"
-                  //     : ("Mangel " +
-                  //         (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                  //                 ?.label ??
-                  //             ""))) //ahhh so thats why we learn functional programming
-                  // +
-                  "Mangel "
-              //  +
-              // " #" +
-              // json.hashCode.toRadixString(36)
-              ;
         }
+
+        defect[CheckPointDefect.kurzText_key] = parent.title +
+                "  " +
+                ((defect[oufnessChooser.name].toString() ==
+                        OufnessChooser.default_none.toString())
+                    ? "ohne Mangel"
+                    : ("Mangel " +
+                        (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                                ?.label ??
+                            ""))) //ahhh so thats why we learn functional programming
+            // +
+            // "Mangel "
+            //  +
+            // " #" +
+            // json.hashCode.toRadixString(36)
+            ;
 
         onDone(CheckPointDefect.fromJson(defect)!);
       },
@@ -152,35 +143,6 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     );
   }
 }
-
-// class HeightField extends StatelessWidget implements JsonExtractable {
-//   dynamic get json => 3; //_height;
-//   String get name => "Insp_Stelle";
-//   const HeightField({Key? key}) : super(key: key);
-
-//   // //thats the state and its a no-no to have it in the widget itself but i need it to return the json
-//   // int? _height;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return TextField();
-//   }
-// }
-
-// class KurzTextCreator extends StatelessWidget implements JsonExtractable {
-//   const KurzTextCreator({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container();
-//   }
-
-//   @override
-//   get json => "Mangel";
-
-//   @override
-//   String get name => "KurzText";
-// }
 
 // ignore: must_be_immutable
 class OufnessChooser extends StatefulWidget implements JsonExtractable {
