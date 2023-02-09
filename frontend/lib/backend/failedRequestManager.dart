@@ -51,7 +51,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           category: NotificationCategory.Progress,
           notificationLayout: NotificationLayout.ProgressBar,
           progress: (i / total * 100).round(),
-          locked: true,
+          // locked: true,
+          actionType: ActionType.SilentBackgroundAction,
         ),
       );
     }
@@ -78,16 +79,17 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     }
   }
   if (input.notificationsAllowed) {
+    //TODO: play sound
     AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: 1,
         channelKey: 'progress',
-        title: 'Upload Sync',
+        title: Emojis.symbols_check_mark_button + ' ' + 'Upload Sync Done',
         body: 'Offline Änderungen wurden hochsynchronisiert',
         category: NotificationCategory.Progress,
         notificationLayout: NotificationLayout.ProgressBar,
         progress: 100,
-        locked: false,
+        // locked: false,
       ),
     );
   }
