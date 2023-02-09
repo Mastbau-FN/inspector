@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
+import '../classes/user.dart';
 import '../generated/l10n.dart';
 import '../helpers/toast.dart';
 import '../pages/checkcategories.dart';
@@ -19,6 +20,12 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   BackgroundIsolateBinaryMessenger.ensureInitialized(input.rootIsolateToken);
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
+  DisplayUser? user = await API()
+      .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
+  if (user == null) {
+    input.progressSender.send(Tuple2<double, bool?>(1, false));
+    return;
+  }
   bool success = true;
   num total = failedReqs.length;
   input.progressSender.send(Tuple2<double, bool?>(0, null));
@@ -29,6 +36,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     final rd = reqd.item2;
     if (rd != null) {
       try {
+        debugPrint('retry request $i/$total: ${rd.route}');
         rd.logIfFailed = false;
         final res = await API().remote.postJSON(rd);
         //nur 200er als ok einstufen
