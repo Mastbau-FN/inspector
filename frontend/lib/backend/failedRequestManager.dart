@@ -1,49 +1,156 @@
+import 'dart:async';
+import 'dart:isolate';
+
+import 'package:MBG_Inspektionen/notifications/controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
+import '../classes/user.dart';
 import '../generated/l10n.dart';
+import '../helpers/background.dart' as BG;
 import '../helpers/toast.dart';
 import '../pages/checkcategories.dart';
 import '../pages/location.dart';
 import 'api.dart';
 import 'helpers.dart' as Helper;
 
+import 'package:awesome_notifications/awesome_notifications.dart';
+
+void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
+  if (!kIsWeb) {
+    // Register the background isolate with the root isolate.
+    BG.initialize(input.rootIsolateToken);
+  }
+
+  final failedReqs = await API().local.getAllFailedRequests() ?? [];
+  DisplayUser? user = await API()
+      .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
+  if (user == null) {
+    input.progressSender.send(Tuple2<double, bool?>(1, false));
+    return;
+  }
+  bool success = true;
+  num total = failedReqs.length;
+
+  input.progressSender.send(Tuple2<double, bool?>(0, null));
+
+  final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
+  for (var i = 0; i < total; i++) {
+    input.progressSender.send(Tuple2<double, bool?>(i / total, null));
+    if (lastStep.difference(DateTime.now()).inSeconds >= 1) {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'progress',
+          title: 'Upload Sync',
+          body: 'Offline Änderungen werden hochsynchronisiert...',
+          category: NotificationCategory.Progress,
+          notificationLayout: NotificationLayout.ProgressBar,
+          progress: (i / total * 100).round(),
+          locked: true,
+        ),
+      );
+    }
+    final reqd = failedReqs[i];
+    final docID = reqd.item1;
+    final rd = reqd.item2;
+    if (rd != null) {
+      try {
+        debugPrint('retry request $i/$total: ${rd.route}');
+        rd.logIfFailed = false;
+        final res = await API().remote.postJSON(rd);
+        //nur 200er als ok einstufen
+        if (res!.statusCode ~/ 100 == 2) {
+          API().local.failedRequestWasSuccessful(docID);
+        } else {
+          success = false;
+          //TODO: what todo here?
+          break;
+        }
+      } catch (e) {
+        debugPrint('failed to retry request: $e');
+        success = false;
+      }
+    }
+  }
+  if (input.notificationsAllowed) {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 1,
+        channelKey: 'progress',
+        title: 'Upload Sync',
+        body: 'Offline Änderungen wurden hochsynchronisiert',
+        category: NotificationCategory.Progress,
+        notificationLayout: NotificationLayout.ProgressBar,
+        progress: 100,
+        locked: false,
+      ),
+    );
+  }
+  input.progressSender.send(Tuple2<double, bool?>(1, success));
+}
+
+class _RetryFailedRequestsIsolateInput {
+  final RootIsolateToken rootIsolateToken;
+  final API api;
+  final SendPort progressSender;
+  final bool notificationsAllowed;
+  const _RetryFailedRequestsIsolateInput({
+    required this.rootIsolateToken,
+    required this.api,
+    required this.progressSender,
+    this.notificationsAllowed = false,
+  });
+}
+
 class FailedRequestmanager {
-  Future<bool> retryFailedrequests({void Function(double)? onProgress}) async {
+  Future<bool> retryFailedrequests(
+      {required BuildContext context,
+      void Function(double)? onProgress}) async {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
       showToast(S.current.noViableInternetConnection);
       return false;
     }
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    bool success = true;
-    num total = failedReqs.length;
-    onProgress?.call(0);
-    for (var i = 0; i < total; i++) {
-      if (onProgress != null) onProgress(i / total);
-      final reqd = failedReqs[i];
-      final docID = reqd.item1;
-      final rd = reqd.item2;
-      if (rd != null) {
-        try {
-          rd.logIfFailed = false;
-          final res = await API().remote.postJSON(rd);
-          //nur 200er als ok einstufen
-          if (res!.statusCode ~/ 100 == 2) {
-            API().local.failedRequestWasSuccessful(docID);
-          } else {
-            success = false;
-            //TODO: what todo here?
-            break;
-          }
-        } catch (e) {
-          debugPrint('failed to retry request: $e');
-          success = false;
+
+    bool notificationsAllowed = await allowNotificationGuard(
+      context,
+      S.of(context).weCanSendYouANotificationAboutTheSyncProgress,
+    );
+
+    bool success = false;
+    ReceivePort progressReceiver = ReceivePort();
+    var isolateInputData = _RetryFailedRequestsIsolateInput(
+      rootIsolateToken: RootIsolateToken.instance!,
+      api: API(),
+      progressSender: progressReceiver.sendPort,
+      notificationsAllowed: notificationsAllowed,
+    );
+
+    StreamSubscription ss = progressReceiver.listen((progress) {
+      if (progress is Tuple2<double, bool?>) {
+        if (progress.item2 != null) {
+          success = progress.item2!;
+          progressReceiver.close();
+        } else {
+          onProgress?.call(progress.item1);
         }
       }
-    }
+    });
+
+    // ss.
+    if (!kIsWeb)
+      await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
+    else
+      _retryFailedRequestsIsolate(isolateInputData);
+
+    await ss.asFuture();
+
     return success;
   }
 

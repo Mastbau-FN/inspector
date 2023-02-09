@@ -87,7 +87,7 @@ mixin WithOffline on Data {
   @JsonKey(name: 'parent_local_id')
   String? parentId;
 
-  @JsonKey(includeToJson: false)
+  @JsonKey(includeToJson: false, includeFromJson: false)
   bool get forceOffline => forceOffline_nullable ?? false;
 
   // @JsonKey(ignore: true)

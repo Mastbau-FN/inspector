@@ -91,6 +91,9 @@ dependencies:
   # used to query and send data to our API
   http: ^0.13.3
 
+  # show push notifications (progress on retryfailedrequests)
+  awesome_notifications: any
+
   flutter:
     sdk: flutter
   flutter_localizations: # Add this line
@@ -109,6 +112,7 @@ dependencies:
 
   # to displays svg duh
   flutter_svg: ^1.1.5
+  url_launcher: ^6.1.9
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9

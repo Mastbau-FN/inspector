@@ -68,6 +68,7 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
       loading = true;
     });
     bool s = await FailedRequestmanager().retryFailedrequests(
+        context: context,
         onProgress: (p) => setState(() {
               print(p);
               progress = p;
