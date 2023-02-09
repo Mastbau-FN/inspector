@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the tryNetwork method from the API class, for the Dart programming language.">
+  <title>tryNetwork method - API class - api library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+
+  
+</head>
+
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../../backend_api/backend_api-library.html">api</a></li>
+    <li><a href="../../backend_api/API-class.html">API</a></li>
+    <li class="self-crumb">tryNetwork method</li>
+  </ol>
+  <div class="self-name">tryNetwork</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <div class="toggle" id="theme-button">
+    <label for="theme">
+      <input type="checkbox" id="theme" value="light-theme">
+      <span class="material-symbols-outlined">
+        brightness_4
+      </span>
+    </label>
+  </div>
+</header>
+<main>
+
+  <div id="dartdoc-main-content" class="main-content">
+      <div>
+<h1><span class="kind-method">tryNetwork</span> method 
+    <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a></span>
+<span class="name ">tryNetwork</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="tryNetwork-param-timeout">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>, </span></li>
+<li><span class="parameter" id="tryNetwork-param-requestType"><span>required</span> <span class="type-annotation"><a href="../../backend_helpers/SimulatedRequestType.html">SimulatedRequestType</a></span> <span class="parameter-name">requestType</span>}</span></li>
+</ol>)
+
+      
+
+    </section>
+    
+<section class="desc markdown">
+  <p>checks whether a connection to the network is allowed
+throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.html">NoConnectionToBackendException</a> or <a href="https://api.flutter.dev/flutter/dart-io/SocketException-class.html">SocketException</a> if its not.</p>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future tryNetwork({
+  Duration? timeout,
+  required Helper.SimulatedRequestType requestType,
+}) async {
+  &#47;&#47;check network
+  if (Options().forceOffline)
+    throw NoConnectionToBackendException(
+        S.current.nonetwork_forcedOfflineMode);
+  final connection = await (Connectivity().checkConnectivity());
+  if (connection == ConnectivityResult.none)
+    throw NoConnectionToBackendException(S.current.noNetworkAvailable);
+  if (connection == ConnectivityResult.mobile &amp;&amp;
+      ((requestType != Helper.SimulatedRequestType.GET &amp;&amp;
+              !Options().useMobileNetworkForUpload) ||
+          !Options().useMobileNetworkForDownload))
+    throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+  <li><a href="../../index.html">MBG_Inspektionen</a></li>
+  <li><a href="../../backend_api/backend_api-library.html">api</a></li>
+  <li><a href="../../backend_api/API-class.html">API</a></li>
+  <li class="self-crumb">tryNetwork method</li>
+</ol>
+
+
+    <h5>API class</h5>
+    <ol>
+
+        <li class="section-title"><a href="../../backend_api/API-class.html#constructors">Constructors</a></li>
+          <li><a href="../../backend_api/API/API.html">API</a></li>
+
+
+        <li class="section-title">
+          <a href="../../backend_api/API-class.html#instance-properties">Properties</a>
+        </li>
+          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
+          <li><a href="../../backend_api/API/isAnyoneLoggedIn.html">isAnyoneLoggedIn</a></li>
+          <li><a href="../../backend_api/API/local.html">local</a></li>
+          <li><a href="../../backend_api/API/remote.html">remote</a></li>
+          <li><a href="../../backend_api/API/rootID.html">rootID</a></li>
+          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
+          <li><a href="../../backend_api/API/user.html">user</a></li>
+
+        <li class="section-title"><a href="../../backend_api/API-class.html#instance-methods">Methods</a></li>
+          <li><a href="../../backend_api/API/delete.html">delete</a></li>
+          <li><a href="../../backend_api/API/deleteImageByHash.html">deleteImageByHash</a></li>
+          <li><a href="../../backend_api/API/getImageByHash.html">getImageByHash</a></li>
+          <li><a href="../../backend_api/API/getNextDatapoint.html">getNextDatapoint</a></li>
+          <li><a href="../../backend_api/API/isUserLoggedIn.html">isUserLoggedIn</a></li>
+          <li><a href="../../backend_api/API/login.html">login</a></li>
+          <li><a href="../../backend_api/API/logout.html">logout</a></li>
+          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
+          <li><a href="../../backend_api/API/setMainImageByHash.html">setMainImageByHash</a></li>
+          <li><a href="../../backend_api/API/setNew.html">setNew</a></li>
+          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
+          <li><a href="../../backend_api/API/tryNetwork.html">tryNetwork</a></li>
+          <li><a href="../../backend_api/API/update.html">update</a></li>
+          <li><a href="../../backend_api/API/uploadNewImagesOrFiles.html">uploadNewImagesOrFiles</a></li>
+
+        <li class="section-title inherited"><a href="../../backend_api/API-class.html#operators">Operators</a></li>
+          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
+
+
+
+
+</ol>
+
+  </div><!--/.sidebar-offcanvas-->
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    MBG_Inspektionen
+      1.2.2+52
+  </span>
+
+  
+</footer>
+
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+
+
+</body>
+
+</html>
+

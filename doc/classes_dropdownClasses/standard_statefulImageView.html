@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the standard_statefulImageView function from the dropdownClasses library, for the Dart programming language.">
+  <title>standard_statefulImageView function - dropdownClasses library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+
+  
+</head>
+
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
+    <li class="self-crumb">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt; function</li>
+  </ol>
+  <div class="self-name">standard_statefulImageView</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <div class="toggle" id="theme-button">
+    <label for="theme">
+      <input type="checkbox" id="theme" value="light-theme">
+      <span class="material-symbols-outlined">
+        brightness_4
+      </span>
+    </label>
+  </div>
+</header>
+<main>
+
+  <div id="dartdoc-main-content" class="main-content">
+      <div>
+<h1><span class="kind-function">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt;</span> function 
+    <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
+ 
+</h1></div>
+
+    <section class="multi-line-signature">
+        
+
+<span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>
+<span class="name ">standard_statefulImageView</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="standard_statefulImageView-param-model"><span class="type-annotation">DDModel</span> <span class="parameter-name">model</span>, </span></li>
+<li><span class="parameter" id="standard_statefulImageView-param-data"><span class="type-annotation">ChildData?</span> <span class="parameter-name">data</span></span></li>
+</ol>)
+
+        
+
+    </section>
+    
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Widget standard_statefulImageView&lt;ChildData extends WithLangText,
+            DDModel extends DropDownModel&lt;ChildData, WithOffline?&gt;&gt;(
+        DDModel model, ChildData? data) =&gt;
+    ChangeNotifierProvider&lt;DDModel&gt;.value(
+        value: model,
+        &#47;&#47; child: ChangeNotifierProvider&lt;ChildData&gt;.value(
+        &#47;&#47;   value: data,
+        child: Builder(builder: (context) {
+          return Consumer&lt;DDModel&gt;(builder: (context, model, child) {
+            &#47;&#47; return Consumer&lt;ChildData&gt;(builder: (context, data, child) {
+            return FutureBuilder&lt;ChildData?&gt;(
+                future: model.currentlyChosenChildData,
+                builder: (context, snapshot) {
+                  var hasMain = snapshot.data?.mainImage != null &amp;&amp;
+                      (snapshot.data!.mainhash ??
+                              Options().no_image_placeholder_name) !=
+                          Options().no_image_placeholder_name;
+                  return Stack(
+                    children: [
+                      ImagesPage.futured(
+                        hasMainImage: hasMain,
+                        futureImages: [
+                          if (hasMain) snapshot.data!.mainImage,
+                          ...?((snapshot.data ?? data)?.imageFutures)
+                        ],
+                        onNewImages: (files) async {
+                          showToast(
+                              S.of(context).newImageSendingThisMayTakeASec);
+                          var value = await model.updateCurrentChild(
+                            (data) async {
+                              var ret = await API().uploadNewImagesOrFiles(
+                                  data, files,
+                                  caller: model.currentData, forceUpdate: true);
+                              &#47;&#47; await Future.delayed(Duration(seconds: 5));
+                              return ret;
+                            },
+                          );
+
+                          _maybeShowToast(value);
+                          return value;
+                        },
+                        onStar: (hash) {
+                          showToast(
+                              S.of(context).settingMainImageThisMayTakeASec);
+                          model
+                              .updateCurrentChild((data) =&gt; API()
+                                  .setMainImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
+                              .then((value) {
+                            _maybeShowToast(value);
+                            return value;
+                          });
+                        },
+                        onDelete: (hash) {
+                          showToast(S.of(context).deletingImageThisMayTakeASec);
+                          model
+                              .updateCurrentChild((data) =&gt; API()
+                                  .deleteImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
+                              .then((value) {
+                            _maybeShowToast(value);
+                            return value;
+                          });
+                        },
+                        onShare: (hash) async {
+                          var files = await Future.wait(
+                              [await localFile(hash.toString())]
+                                  .map(
+                                    (e) async =&gt; XFile.fromData(
+                                      Uint8List.fromList(
+                                        encodePng(
+                                          decodeImage(await e.readAsBytes())!,
+                                        ),
+                                      ),
+                                      name:
+                                          &#39;mbg_${hash.hashCode.toRadixString(36)}.png&#39;,
+                                      mimeType: &#39;image&#47;png&#39;,
+                                    ),
+                                  )
+                                  .toList());
+                          await Share.shareXFiles(files, text: &#39;Internes Bild&#39;);
+                        },
+                      ),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        Card(
+                          child:
+                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
+                        ),
+                    ],
+                  );
+                });
+          });
+        })
+        &#47;&#47; ;
+        &#47;&#47; }),
+        &#47;&#47; ),
+        );</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+  <li><a href="../index.html">MBG_Inspektionen</a></li>
+  <li><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
+  <li class="self-crumb">standard_statefulImageView&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt; function</li>
+</ol>
+
+
+    <h5>dropdownClasses library</h5>
+    <ol>
+      <li class="section-title"><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html#classes">Classes</a></li>
+        <li><a href="../classes_dropdownClasses/Data-class.html">Data</a></li>
+        <li><a href="../classes_dropdownClasses/DropDownModel-class.html">DropDownModel</a></li>
+        <li><a href="../classes_dropdownClasses/KnowsNext-class.html">KnowsNext</a></li>
+        <li><a href="../classes_dropdownClasses/WithImgHashes-class.html">WithImgHashes</a></li>
+
+
+      <li class="section-title"><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html#mixins">Mixins</a></li>
+        <li><a href="../classes_dropdownClasses/WithAuthor-mixin.html">WithAuthor</a></li>
+        <li><a href="../classes_dropdownClasses/WithLangText-mixin.html">WithLangText</a></li>
+        <li><a href="../classes_dropdownClasses/WithOffline-mixin.html">WithOffline</a></li>
+
+
+
+      <li class="section-title"><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html#functions">Functions</a></li>
+        <li><a href="../classes_dropdownClasses/nextModel.html">nextModel</a></li>
+        <li><a href="../classes_dropdownClasses/standard_statefulImageView.html">standard_statefulImageView</a></li>
+        <li><a href="../classes_dropdownClasses/typeOf.html">typeOf</a></li>
+
+
+      <li class="section-title"><a href="../classes_dropdownClasses/classes_dropdownClasses-library.html#typedefs">Typedefs</a></li>
+        <li><a href="../classes_dropdownClasses/BuilderT.html">BuilderT</a></li>
+
+</ol>
+
+  </div><!--/.sidebar-offcanvas-left-->
+
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    MBG_Inspektionen
+      1.2.2+52
+  </span>
+
+  
+</footer>
+
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+
+
+</body>
+
+</html>
+
