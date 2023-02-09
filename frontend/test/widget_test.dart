@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:integration_test/integration_test_driver_extended.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 
@@ -38,10 +37,6 @@ Future main() async {
   } catch (e) {
     print('Error occured: $e');
   }
-
-  //load dotenv file (uses rootBundle, which inturn needs to be initialized)
-  TestWidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
 //   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
 //     // Build our app and trigger a frame.
@@ -93,8 +88,9 @@ Future main() async {
             widget is TextField &&
             widget.decoration!.labelText!.contains('name')),
         'NL');
-    assert(dotenv.env['NL_PASS'] != null);
-    await tester.enterText(find.textContaining('pass'), dotenv.env['NL_PASS']!);
+    assert(Platform.environment['NL_PASS'] != null);
+    await tester.enterText(
+        find.textContaining('pass'), Platform.environment['NL_PASS']!);
   });
 
   ///test backend

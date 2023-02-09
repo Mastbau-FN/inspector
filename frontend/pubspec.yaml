@@ -97,7 +97,7 @@ dependencies:
     sdk: flutter
 
   # to pass variables from a .env file (e.g. used for secrets like API-Key)
-  flutter_dotenv: ^5.0.0
+  envied: ^0.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -126,6 +126,7 @@ dev_dependencies:
 
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
   flutter_launcher_icons: ^0.10.0
+  envied_generator: ^0.3.0
 
 flutter_icons:
   android: "launcher_icon"

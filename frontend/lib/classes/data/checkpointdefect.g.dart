@@ -27,6 +27,7 @@ CheckPointDefect _$CheckPointDefectFromJson(Map<String, dynamic> json) =>
       ..id = Data.idFromJson(json['local_id'] as String?)
       ..forceOffline_nullable = json['offline'] as bool?
       ..parentId = json['parent_local_id'] as String?
+      ..forceOffline = json['forceOffline'] as bool
       ..height = json['Zusatz_Info'] as String?
       ..author = json['Autor'] as String?;
 

@@ -4,12 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../generated/l10n.dart';
 
-//should be held up to date with FloatingActionButton
-const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
-  width: 56.0,
-  height: 56.0,
-);
-
 class PopUpActionbutton extends StatelessWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
