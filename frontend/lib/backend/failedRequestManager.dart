@@ -41,7 +41,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(Tuple2<double, bool?>(i / total, null));
-    if (lastStep.difference(DateTime.now()).inSeconds >= 1) {
+    if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
           id: 1,
