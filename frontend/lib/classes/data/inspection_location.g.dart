@@ -26,7 +26,6 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..langText = json['langText'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
       ..parentId = json['parent_local_id'] as String?
-      ..forceOffline = json['forceOffline'] as bool
       ..eigentuemer = json['Eigentuemer'] as String?
       ..bauwerkhoehe = (json['Bauwerkhoehe'] as num?)?.toDouble()
       ..baujahr = json['Baujahr'] as int?
