@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../generated/l10n.dart';
@@ -19,9 +21,9 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
   bool success = true;
   num total = failedReqs.length;
-  input.progressCB(0, null);
+  input.progressSender.send(Tuple2<double, bool?>(0, null));
   for (var i = 0; i < total; i++) {
-    input.progressCB(i / total, null);
+    input.progressSender.send(Tuple2<double, bool?>(i / total, null));
     final reqd = failedReqs[i];
     final docID = reqd.item1;
     final rd = reqd.item2;
@@ -43,17 +45,17 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       }
     }
   }
-  input.progressCB(1, success);
+  input.progressSender.send(Tuple2<double, bool?>(1, success));
 }
 
 class _RetryFailedRequestsIsolateInput {
   final RootIsolateToken rootIsolateToken;
   final API api;
-  final void Function(double, bool?) progressCB;
+  final SendPort progressSender;
   const _RetryFailedRequestsIsolateInput({
     required this.rootIsolateToken,
     required this.api,
-    required this.progressCB,
+    required this.progressSender,
   });
 }
 
@@ -67,16 +69,29 @@ class FailedRequestmanager {
     }
 
     bool success = false;
+    ReceivePort progressReceiver = ReceivePort();
     var isolateInputData = _RetryFailedRequestsIsolateInput(
       rootIsolateToken: RootIsolateToken.instance!,
       api: API(),
-      progressCB: (progress, s) {
-        if (onProgress != null) onProgress(progress);
-        if (s != null) success = s;
-      },
+      progressSender: progressReceiver.sendPort,
     );
 
-    Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
+    StreamSubscription ss = progressReceiver.listen((progress) {
+      if (progress is Tuple2<double, bool?>) {
+        if (progress.item2 != null) {
+          success = progress.item2!;
+          progressReceiver.close();
+        } else {
+          onProgress?.call(progress.item1);
+        }
+      }
+    });
+
+    // ss.
+
+    await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
+
+    await ss.asFuture();
 
     return success;
   }
