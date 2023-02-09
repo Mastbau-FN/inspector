@@ -1,5 +1,6 @@
 # secrets and environment vars
 *.env
+env.g.dart
 
 # Miscellaneous
 *.class

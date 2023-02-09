@@ -27,6 +27,7 @@ CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
       ..id = Data.idFromJson(json['local_id'] as String?)
       ..forceOffline_nullable = json['offline'] as bool?
       ..parentId = json['parent_local_id'] as String?
+      ..forceOffline = json['forceOffline'] as bool
       ..author = json['Autor'] as String?;
 
 Map<String, dynamic> _$CheckCategoryToJson(CheckCategory instance) =>

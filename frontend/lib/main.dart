@@ -2,7 +2,6 @@ import 'package:MBG_Inspektionen/options.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:MBG_Inspektionen/pages/login/loginView.dart';
 import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
@@ -11,10 +10,6 @@ import 'generated/l10n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future main() async {
-  //TODO: the .env is stored as plaintext file (for web at least) thats super no good (e.g. for storing API-KEY) so TODO: obfuscate .env storage (have a look at freerasp plugin)
-  // could be done via --dart-define=API_KEY=SOME_VALUE flutter cli arg
-
-  await dotenv.load(fileName: ".env");
   await Options().load();
   // await NewImages.load();
 

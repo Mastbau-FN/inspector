@@ -16,6 +16,7 @@ RequestData _$RequestDataFromJson(Map<String, dynamic> json) => RequestData(
           ? null
           : Duration(microseconds: json['timeout'] as int),
       returnsBinary: json['returnsBinary'] as bool? ?? false,
+      logIfFailed: json['logIfFailed'] as bool?,
     );
 
 Map<String, dynamic> _$RequestDataToJson(RequestData instance) =>
