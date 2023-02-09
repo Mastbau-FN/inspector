@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:MBG_Inspektionen/notifications/controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -9,15 +11,20 @@ import 'package:tuple/tuple.dart';
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
 import '../generated/l10n.dart';
+import '../helpers/background.dart' as BG;
 import '../helpers/toast.dart';
 import '../pages/checkcategories.dart';
 import '../pages/location.dart';
 import 'api.dart';
 import 'helpers.dart' as Helper;
 
+import 'package:awesome_notifications/awesome_notifications.dart';
+
 void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
-  // Register the background isolate with the root isolate.
-  BackgroundIsolateBinaryMessenger.ensureInitialized(input.rootIsolateToken);
+  if (!kIsWeb) {
+    // Register the background isolate with the root isolate.
+    BG.initialize(input.rootIsolateToken);
+  }
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
   DisplayUser? user = await API()
@@ -28,9 +35,26 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   }
   bool success = true;
   num total = failedReqs.length;
+
   input.progressSender.send(Tuple2<double, bool?>(0, null));
+
+  final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(Tuple2<double, bool?>(i / total, null));
+    if (lastStep.difference(DateTime.now()).inSeconds >= 1) {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'progress',
+          title: 'Upload Sync',
+          body: 'Offline Änderungen werden hochsynchronisiert...',
+          category: NotificationCategory.Progress,
+          notificationLayout: NotificationLayout.ProgressBar,
+          progress: (i / total * 100).round(),
+          locked: true,
+        ),
+      );
+    }
     final reqd = failedReqs[i];
     final docID = reqd.item1;
     final rd = reqd.item2;
@@ -53,6 +77,20 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       }
     }
   }
+  if (input.notificationsAllowed) {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 1,
+        channelKey: 'progress',
+        title: 'Upload Sync',
+        body: 'Offline Änderungen wurden hochsynchronisiert',
+        category: NotificationCategory.Progress,
+        notificationLayout: NotificationLayout.ProgressBar,
+        progress: 100,
+        locked: false,
+      ),
+    );
+  }
   input.progressSender.send(Tuple2<double, bool?>(1, success));
 }
 
@@ -60,15 +98,19 @@ class _RetryFailedRequestsIsolateInput {
   final RootIsolateToken rootIsolateToken;
   final API api;
   final SendPort progressSender;
+  final bool notificationsAllowed;
   const _RetryFailedRequestsIsolateInput({
     required this.rootIsolateToken,
     required this.api,
     required this.progressSender,
+    this.notificationsAllowed = false,
   });
 }
 
 class FailedRequestmanager {
-  Future<bool> retryFailedrequests({void Function(double)? onProgress}) async {
+  Future<bool> retryFailedrequests(
+      {required BuildContext context,
+      void Function(double)? onProgress}) async {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -76,12 +118,18 @@ class FailedRequestmanager {
       return false;
     }
 
+    bool notificationsAllowed = await allowNotificationGuard(
+      context,
+      S.of(context).weCanSendYouANotificationAboutTheSyncProgress,
+    );
+
     bool success = false;
     ReceivePort progressReceiver = ReceivePort();
     var isolateInputData = _RetryFailedRequestsIsolateInput(
       rootIsolateToken: RootIsolateToken.instance!,
       api: API(),
       progressSender: progressReceiver.sendPort,
+      notificationsAllowed: notificationsAllowed,
     );
 
     StreamSubscription ss = progressReceiver.listen((progress) {
@@ -96,8 +144,10 @@ class FailedRequestmanager {
     });
 
     // ss.
-
-    await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
+    if (!kIsWeb)
+      await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
+    else
+      _retryFailedRequestsIsolate(isolateInputData);
 
     await ss.asFuture();
 
