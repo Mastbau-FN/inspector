@@ -10,12 +10,12 @@ import 'generated/l10n.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future main() async {
-  await Options().load();
-  // await NewImages.load();
-
   // Ensure that plugin services are initialized so that `availableCameras()`
   // can be called before `runApp()`
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Options().load();
+  // await NewImages.load();
 
   runApp(GlobalProviders(child: MyApp()));
 }

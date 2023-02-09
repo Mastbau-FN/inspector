@@ -1,4 +1,7 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
@@ -9,6 +12,51 @@ import '../pages/location.dart';
 import 'api.dart';
 import 'helpers.dart' as Helper;
 
+void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
+  // Register the background isolate with the root isolate.
+  BackgroundIsolateBinaryMessenger.ensureInitialized(input.rootIsolateToken);
+
+  final failedReqs = await API().local.getAllFailedRequests() ?? [];
+  bool success = true;
+  num total = failedReqs.length;
+  input.progressCB(0, null);
+  for (var i = 0; i < total; i++) {
+    input.progressCB(i / total, null);
+    final reqd = failedReqs[i];
+    final docID = reqd.item1;
+    final rd = reqd.item2;
+    if (rd != null) {
+      try {
+        rd.logIfFailed = false;
+        final res = await API().remote.postJSON(rd);
+        //nur 200er als ok einstufen
+        if (res!.statusCode ~/ 100 == 2) {
+          API().local.failedRequestWasSuccessful(docID);
+        } else {
+          success = false;
+          //TODO: what todo here?
+          break;
+        }
+      } catch (e) {
+        debugPrint('failed to retry request: $e');
+        success = false;
+      }
+    }
+  }
+  input.progressCB(1, success);
+}
+
+class _RetryFailedRequestsIsolateInput {
+  final RootIsolateToken rootIsolateToken;
+  final API api;
+  final void Function(double, bool?) progressCB;
+  const _RetryFailedRequestsIsolateInput({
+    required this.rootIsolateToken,
+    required this.api,
+    required this.progressCB,
+  });
+}
+
 class FailedRequestmanager {
   Future<bool> retryFailedrequests({void Function(double)? onProgress}) async {
     try {
@@ -17,33 +65,19 @@ class FailedRequestmanager {
       showToast(S.current.noViableInternetConnection);
       return false;
     }
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    bool success = true;
-    num total = failedReqs.length;
-    onProgress?.call(0);
-    for (var i = 0; i < total; i++) {
-      if (onProgress != null) onProgress(i / total);
-      final reqd = failedReqs[i];
-      final docID = reqd.item1;
-      final rd = reqd.item2;
-      if (rd != null) {
-        try {
-          rd.logIfFailed = false;
-          final res = await API().remote.postJSON(rd);
-          //nur 200er als ok einstufen
-          if (res!.statusCode ~/ 100 == 2) {
-            API().local.failedRequestWasSuccessful(docID);
-          } else {
-            success = false;
-            //TODO: what todo here?
-            break;
-          }
-        } catch (e) {
-          debugPrint('failed to retry request: $e');
-          success = false;
-        }
-      }
-    }
+
+    bool success = false;
+    var isolateInputData = _RetryFailedRequestsIsolateInput(
+      rootIsolateToken: RootIsolateToken.instance!,
+      api: API(),
+      progressCB: (progress, s) {
+        if (onProgress != null) onProgress(progress);
+        if (s != null) success = s;
+      },
+    );
+
+    Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
+
     return success;
   }
 
