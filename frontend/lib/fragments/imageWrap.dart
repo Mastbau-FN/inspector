@@ -80,6 +80,8 @@ class ImageWrap<T extends Object> extends StatelessWidget {
                         : -1, //// make this dynamic on callback or something for #20
                     // instead solve #36 and move chosen image to front
                     allImages: _allImages,
+                    approxWidth:
+                        MediaQuery.of(context).size.width / columnCount,
                   ));
         },
       );
@@ -94,6 +96,9 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
   final Function(T) onStar;
   final Function(T) onShare;
 
+  ///expected width of thumbnail to determine resolution
+  final num approxWidth;
+
   ///which index has the main image ; -1 means none is chosen
   final int chosenIndex;
 
@@ -103,8 +108,6 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
   ///an optional List of all images on which we can scroll to
   final List<ImageItem<T>> allImages;
 
-  ///whether one can slide from one opened widget to another one
-  final bool _isScrollable;
   const OpenableImageView.scrollable({
     //which item from this list shall be opened
     required this.currentIndex,
@@ -114,22 +117,8 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    required this.approxWidth,
   })  : assert(0 <= currentIndex && currentIndex < (allImages.length)),
-        this._isScrollable = true,
-        super(key: key);
-
-  /*const*/ OpenableImageView.only({
-    //which item from this list shall be opened
-    required ImageItem<T> image,
-    Key? key,
-    bool isChosen = false,
-    this.onDelete = _default,
-    this.onStar = _default,
-    this.onShare = _default,
-  })  : this._isScrollable = false,
-        this.currentIndex = 0,
-        this.chosenIndex = isChosen ? 0 : -1,
-        this.allImages = [image], //todo: make this literal const?
         super(key: key);
 
   @override
@@ -170,6 +159,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
         tag: tag,
         child: FittedImageContainer(
           img: img,
+          approxWidth: approxWidth,
         ),
       ),
       onLongPress: () => _onLongPress(context, tag),
@@ -180,18 +170,14 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
   void _onShortPress(context, tag) => Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (c) => _isScrollable
-                ? GalleryPhotoViewWrapper(
-                    galleryItems: allImages,
-                    backgroundDecoration:
-                        BoxDecoration(color: Theme.of(context).canvasColor),
-                    initialIndex: currentIndex,
-                    scrollDirection: Axis.horizontal,
-                  )
-                : FullImagePage(
-                    tag: tag,
-                    img: allImages[currentIndex],
-                  )),
+          builder: (c) => GalleryPhotoViewWrapper(
+            galleryItems: allImages,
+            backgroundDecoration:
+                BoxDecoration(color: Theme.of(context).canvasColor),
+            initialIndex: currentIndex,
+            scrollDirection: Axis.horizontal,
+          ),
+        ),
       );
 
   Future<void> _onLongPress(context, tag) async {
@@ -288,55 +274,36 @@ class FittedImageContainer extends StatelessWidget {
     Key? key,
     required this.img,
     this.fit = BoxFit.cover,
+    required this.approxWidth,
   }) : super(key: key);
 
   final ImageItem img;
   final BoxFit fit;
+  final num approxWidth;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: img,
       child: Consumer<ImageItem>(builder: (_, img, __) {
-        return Container(
-          child: img.image != null ? null : img.fallBackWidget,
-          decoration: img.image == null
-              ? null
-              : BoxDecoration(
-                  image: DecorationImage(
-                    image: img
-                        .image!, //XXX: have a list of imageproviders instead of image widgets
-                    fit: fit,
-                  ),
-                ),
-        );
+        return FutureBuilder<Image?>(
+            future: (approxWidth > 100)
+                ? img.image!.fullImage()
+                : Future.value(img.image!.thumbnail),
+            builder: (context, snapshot) {
+              return Container(
+                child: img.image != null ? null : img.fallBackWidget,
+                decoration: snapshot.data?.image == null
+                    ? null
+                    : BoxDecoration(
+                        image: DecorationImage(
+                          image: snapshot.data!.image,
+                          fit: fit,
+                        ),
+                      ),
+              );
+            });
       }),
-    );
-  }
-}
-
-class FullImagePage extends StatelessWidget {
-  const FullImagePage({
-    required this.img,
-    required this.tag,
-    Key? key,
-  }) : super(key: key);
-
-  final ImageItem img;
-  final Object tag;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).image)),
-      body: Hero(
-        child: PhotoView(
-          imageProvider: img.image,
-          backgroundDecoration:
-              BoxDecoration(color: Theme.of(context).canvasColor),
-        ),
-        tag: tag,
-      ),
     );
   }
 }
