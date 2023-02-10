@@ -6,7 +6,7 @@ import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +23,11 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final bool hasMainImage;
 
   static Future<String?> _defaultAdd(List<XFile> list) async {
-    showToast(S.current.notAvailable);
+    showToast("Not implemented");
     return "";
   }
 
-  static _default(Object _) => showToast(S.current.notAvailable);
+  static _default(Object _) => showToast("Not implemented");
 
   // static _defaultDelete(Object id) async {
   //   try {
@@ -294,11 +294,12 @@ class _ImageAddButtonState extends State<ImageAddButton>
     XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
     var resstring = pic != null
         ? await widget.onNewImages([pic])
-        : S.of(context).sorryNoImageToUpload;
+        : AppLocalizations.of(context)!.sorryNoImageToUpload;
     debugPrint(resstring);
     if (kDebugMode)
       showToast(resstring ??
-          S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
+          AppLocalizations.of(context)!
+              .uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
     collapse();
     discardShot(context);
   }
@@ -332,7 +333,8 @@ class _ImageAddButtonState extends State<ImageAddButton>
           var resstring = await widget.onNewImages(newImages ?? []);
           if (kDebugMode)
             showToast(resstring ??
-                S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
+                AppLocalizations.of(context)!
+                    .uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
         },
       );
 

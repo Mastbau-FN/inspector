@@ -2,7 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../main.dart';
 import '../theme.dart';
 
@@ -71,15 +71,15 @@ Future<bool> allowNotificationGuard(BuildContext context, String reason) async {
     bool? willAsk = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-              title: Text(S.of(context).allowNotifications),
+              title: Text(AppLocalizations.of(context)!.allowNotifications),
               content: Text(reason),
               actions: [
                 TextButton(
-                  child: Text(S.of(context).cancel),
+                  child: Text(AppLocalizations.of(context)!.cancel),
                   onPressed: () => Navigator.of(context).pop(false),
                 ),
                 TextButton(
-                  child: Text(S.of(context).allow),
+                  child: Text(AppLocalizations.of(context)!.allow),
                   onPressed: () async {
                     Navigator.of(context).pop(true);
                   },
@@ -89,7 +89,7 @@ Future<bool> allowNotificationGuard(BuildContext context, String reason) async {
     if (willAsk == true) {
       await AwesomeNotifications().requestPermissionToSendNotifications();
       return await allowNotificationGuard(
-          context, S.of(context).didYouMisclick + ' ' + reason);
+          context, AppLocalizations.of(context)!.didYouMisclick + ' ' + reason);
     } else {
       return false;
     }

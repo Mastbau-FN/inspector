@@ -9,7 +9,7 @@ import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     implements KnowsNext<CheckCategory> {
@@ -24,11 +24,11 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
       icon: Icons.checklist,
     ),
     MyListTileData(
-      title: S.current.imagesButton,
+      title: AppLocalizations.of(context)!.imagesButton,
       icon: Icons.photo_library,
     ),
     MyListTileData(
-      title: S.current.commentsOrDetailsButton,
+      title: AppLocalizations.of(context)!.commentsOrDetailsButton,
       icon: Icons.text_snippet,
     ),
   ];
@@ -47,7 +47,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
-        if (tiledata.title == S.current.imagesButton)
+        if (tiledata.title == AppLocalizations.of(context)!.imagesButton)
           return standard_statefulImageView(this, data);
         switch (tiledata.title) {
           case _nextViewTitle:
@@ -98,12 +98,12 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
       textfieldList: [
         InputData(
           "KurzText",
-          hint: S.current.kurzTextHint,
+          hint: AppLocalizations.of(context)!.kurzTextHint,
           value: currentCategory?.kurzText,
         ),
         InputData(
           "LangText",
-          hint: S.current.langTextHint,
+          hint: AppLocalizations.of(context)!.langTextHint,
           verify: InputData.alwaysCorrect,
           value: currentCategory?.langText,
         ),

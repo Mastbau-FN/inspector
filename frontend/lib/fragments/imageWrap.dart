@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'galleryWrapper.dart';
 
 class ImageWrap<T extends Object> extends StatelessWidget {
   static _default(Object _) {
-    showToast(S.current.notAvailable);
+    showToast(AppLocalizations.of(context)!.notAvailable);
   }
 
   final Function(T) onDelete;
@@ -89,7 +89,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
 class OpenableImageView<T extends Object> extends StatelessWidget {
   static _default(_) {
-    showToast(S.current.notAvailable);
+    showToast(AppLocalizations.of(context)!.notAvailable);
   }
 
   final Function(T) onDelete;
@@ -186,11 +186,13 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return SimpleDialog(
-            title: Text(S.of(context).optionsForThisImageHeadLine),
+            title:
+                Text(AppLocalizations.of(context)!.optionsForThisImageHeadLine),
             children: <Widget>[
               _option(
                 context: context,
-                description: S.of(context).permanentlyRemoveImage,
+                description:
+                    AppLocalizations.of(context)!.permanentlyRemoveImage,
                 icon: Icon(
                   Icons.delete,
                   color: Colors.red,
@@ -199,7 +201,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               ),
               _option(
                 context: context,
-                description: S.of(context).setAsMainImage,
+                description: AppLocalizations.of(context)!.setAsMainImage,
                 icon: Icon(
                   Icons.star,
                   color: Colors.amber[300],
@@ -208,7 +210,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               ),
               _option(
                 context: context,
-                description: S.of(context).shareImage,
+                description: AppLocalizations.of(context)!.shareImage,
                 icon: Icon(
                   Icons.share,
                   color: Colors.blue,

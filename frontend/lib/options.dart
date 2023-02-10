@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:tuple/tuple.dart';
 import 'backend/offlineProvider.dart' as OP;
-import 'generated/l10n.dart';
+
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 part 'options.g.dart';
 
@@ -23,24 +24,25 @@ class Options {
   var useSystemTheme = false;
 
   // @JsonKey(ignore: true)//is a getter anyway
-  Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
+  Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools(
+          BuildContext context) =>
       {
-        S.current.option_canbeoffline:
+        AppLocalizations.of(context)!.option_canbeoffline:
             Tuple2(() => canBeOffline, (bool value) => canBeOffline = value),
         if (canBeOffline)
-          S.current.option_forceOffline:
+          AppLocalizations.of(context)!.option_forceOffline:
               Tuple2(() => forceOffline, (bool value) => forceOffline = value),
-        S.current.option_usemobilenetworkforupload:
+        AppLocalizations.of(context)!.option_usemobilenetworkforupload:
             Tuple2(() => useMobileNetworkForUpload, (bool value) {
           useMobileNetworkForUpload = value;
           if (value) useMobileNetworkForDownload = true;
         }),
-        S.current.option_usemobilenetworkfordownload:
+        AppLocalizations.of(context)!.option_usemobilenetworkfordownload:
             Tuple2(() => useMobileNetworkForDownload, (bool value) {
           useMobileNetworkForDownload = value;
           if (!value) useMobileNetworkForUpload = false;
         }),
-        S.current.option_usesystemtheme: Tuple2(
+        AppLocalizations.of(context)!.option_usesystemtheme: Tuple2(
             () => useSystemTheme, (bool value) => useSystemTheme = value),
       };
 

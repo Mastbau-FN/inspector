@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
@@ -232,7 +232,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
     debugPrint(
         'could not parse response: ' + e.toString() + '<--' + jsonEncode(json));
     throw BackendCommunicationException(
-        S.current.couldNotParseResponse + jsonEncode(json));
+        AppLocalizations.of(context)!.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
 }

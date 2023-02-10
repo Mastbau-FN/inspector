@@ -96,8 +96,9 @@ dependencies:
 
   flutter:
     sdk: flutter
-  flutter_localizations: # Add this line
+  flutter_localizations:
     sdk: flutter
+  intl: any
 
   # to pass variables from a .env file (e.g. used for secrets like API-Key)
   envied: ^0.3.0
@@ -126,7 +127,7 @@ dev_dependencies:
   # for unit test mocking (see https://flutter.dev/docs/cookbook/testing/unit/mocking)
   mockito: ^5.0.0
   build_runner: ^2.0.6
-  intl_utils: ^2.6.0
+  # intl_utils: ^2.0.0
 
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
   flutter_launcher_icons: ^0.10.0
@@ -179,6 +180,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  generate: true
+
+
 flutter_intl:
   enabled: true
 dependency_overrides:

@@ -18,7 +18,7 @@ class SettingsView extends StatelessWidget {
 
   Widget get developerOptions => OpenNewViewTile(
         icon: Icons.developer_mode,
-        title: S.current.developerOptions,
+        title: AppLocalizations.of(context)!.developerOptions,
         newView: DeveloperSettings(),
         // onPop: (_) {
         //   Options().store();
@@ -29,7 +29,7 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).settings),
+        title: Text(AppLocalizations.of(context)!.settings),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -39,7 +39,7 @@ class SettingsView extends StatelessWidget {
             Logout(logoutcontext: logoutcontext),
             Spacer(),
             Divider(),
-            Text(S.of(context).advancedSettingsHeadline),
+            Text(AppLocalizations.of(context)!.advancedSettingsHeadline),
             if (Options().canBeOffline) UploadSyncTile(),
             developerOptions,
             // DeleteCachedImages(),
@@ -94,8 +94,9 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   Widget build(BuildContext context) => MyCardListTile1(
         icon: Icons.sync,
         text: loading
-            ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
-            : S.of(context).uploadAndSyncData,
+            ? '${(progress * 100).floor()}%  ' +
+                AppLocalizations.of(context)!.plsWait
+            : AppLocalizations.of(context)!.uploadAndSyncData,
         onTap: () => onPress(context),
         child: loading
             ? Container(
@@ -135,7 +136,7 @@ class DeleteCachedImages extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.delete),
-            Text(S.of(context).deleteLocalImagesButton),
+            Text(AppLocalizations.of(context)!.deleteLocalImagesButton),
           ],
         ));
   }
@@ -164,7 +165,7 @@ class Logout extends StatelessWidget {
   Widget build(BuildContext context) {
     return MyCardListTile1(
       icon: Icons.exit_to_app,
-      text: S.of(context).logoutButton,
+      text: AppLocalizations.of(context)!.logoutButton,
       onTap: () => _logout(context),
     );
     // return TextButton(

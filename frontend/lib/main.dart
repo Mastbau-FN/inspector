@@ -9,8 +9,7 @@ import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'generated/l10n.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'pages/defaultNotificationPage.dart';
 
@@ -73,13 +72,8 @@ class _MyAppState extends State<MyApp> {
           ),
           brightness: Brightness.dark,
         ),
-        localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          S.delegate,
-        ],
-        supportedLocales: S.delegate.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         initialRoute: '/',
         onGenerateRoute: (settings) {
           switch (settings.name) {

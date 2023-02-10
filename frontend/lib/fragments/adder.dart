@@ -2,7 +2,7 @@ import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PopUpActionbutton extends StatelessWidget {
   final Widget collapsedChild;
@@ -104,8 +104,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
           actions: <Widget>[
             DismissTextButton(),
           ],
-          bodyLines: [S.of(context).addingDataTryAgain],
-          title: S.of(context).addingDataSomethingWrong,
+          bodyLines: [AppLocalizations.of(context)!.addingDataTryAgain],
+          title: AppLocalizations.of(context)!.addingDataSomethingWrong,
         );
       },
     );
@@ -305,6 +305,6 @@ class InputData {
 
   static String? nonempty(String? str) => (str != null && str.isNotEmpty)
       ? null
-      : S.current.addingDataEnterSomethingHere;
+      : AppLocalizations.of(context)!.addingDataEnterSomethingHere;
   static String? alwaysCorrect(String? str) => null;
 }

@@ -36,7 +36,7 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).loading),
+        title: Text(AppLocalizations.of(context)!.loading),
       ),
       body: Padding(
         padding: const EdgeInsets.all(80.0),

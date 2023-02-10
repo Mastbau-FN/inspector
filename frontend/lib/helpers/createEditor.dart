@@ -4,7 +4,7 @@ import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // rich was totally removed
 // DetailsPage createRichIfPossibleEditor<DataT extends WithLangText>(
@@ -56,7 +56,7 @@ Widget alwaysPlainText<ChildData extends WithLangText,
                       title: (snapshot.data ?? data).title,
                       details: (snapshot.data ?? data).langText,
                       onChanged: (txt) {
-                        showToast(S.of(context).uploading);
+                        showToast(AppLocalizations.of(context)!.uploading);
                         model.updateCurrentChild((p0) => uploadString(p0, txt));
                       });
                 });

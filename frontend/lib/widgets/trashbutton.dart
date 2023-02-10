@@ -1,7 +1,7 @@
 import 'package:MBG_Inspektionen/widgets/rotating.dart';
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'mySimpleAlertBox.dart';
 
 class TrashButton extends StatefulWidget {
@@ -37,13 +37,13 @@ class _TrashButtonState extends State<TrashButton> {
                   _delete();
                   Navigator.of(context).pop();
                 },
-                child: Text(S.of(context).validateDeletionSure))
+                child: Text(AppLocalizations.of(context)!.validateDeletionSure))
           ],
           title: 'Sicher?',
           bodyLines: [
             '${widget.confirmName != null ? '"' + widget.confirmName! + '"' : ''}' +
-                S.of(context).validateDeletionPromtHeadline,
-            S.of(context).validateDeletionPromtWarning
+                AppLocalizations.of(context)!.validateDeletionPromtHeadline,
+            AppLocalizations.of(context)!.validateDeletionPromtWarning
           ],
         );
       },

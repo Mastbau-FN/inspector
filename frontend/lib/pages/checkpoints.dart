@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -62,9 +63,10 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
   }
 
   @override
-  Widget? get floatingActionButton {
+  Widget? floatingActionButton(BuildContext context) {
     return PopUpActionbutton(
       expandedChild: (onCancel) => adder(
+        context: context,
         parent: currentData,
         onCancel: onCancel,
         onDone: (category) async {
@@ -76,6 +78,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
   }
 
   static Adder adder({
+    required BuildContext context,
     required CheckCategory parent,
     required onCancel(),
     required onDone(CheckPoint checkpoint),
@@ -98,12 +101,12 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
       textfieldList: [
         InputData(
           "KurzText",
-          hint: S.current.kurzTextHint,
+          hint: AppLocalizations.of(context)!.kurzTextHint,
           value: currentCheckpoint?.kurzText,
         ),
         InputData(
           "LangText",
-          hint: S.current.langTextHint,
+          hint: AppLocalizations.of(context)!.langTextHint,
           verify: InputData.alwaysCorrect,
           value: currentCheckpoint?.langText,
         ),

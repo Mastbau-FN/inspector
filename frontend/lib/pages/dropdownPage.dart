@@ -14,7 +14,7 @@ import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
-import '../generated/l10n.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // XXX get to new page with hero transition
 
@@ -132,9 +132,11 @@ class _DropDownBodyState<
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ErrorText(S.of(context).somethingWentWrong +
-                      ':\n${snapshot.error ?? ''} \n\n' +
-                      S.of(context).pleaseDragDownToReloadThisPage),
+                  child: ErrorText(
+                      AppLocalizations.of(context)!.somethingWentWrong +
+                          ':\n${snapshot.error ?? ''} \n\n' +
+                          AppLocalizations.of(context)!
+                              .pleaseDragDownToReloadThisPage),
                 ),
               ),
             if (snapshot.hasData)
@@ -154,6 +156,7 @@ class _DropDownBodyState<
     return ExpandablesListRadio.fake(
       3,
       color: Theme.of(context).colorScheme.background,
+      context: context,
     );
   }
 
@@ -195,7 +198,8 @@ class _DropDownBodyState<
                           .delete<ChildData>(data, caller: ddmodel.currentData)
                           .then((value) => value != null
                               ? (kDebugMode ? showToast(value) : (_) {})
-                              : showToast(S.of(context).deleteUnseccessful)),
+                              : showToast(AppLocalizations.of(context)!
+                                  .deleteUnseccessful)),
                       confirmName: data.title,
                     );
                 } catch (e) {}
