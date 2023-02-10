@@ -34,7 +34,7 @@ const _removeHighestLevel = (data) => {
   let data_copy = { ...data };
 
   //remove highest event
-  if (!data_copy.E1 > 0) {
+  if (!(data_copy.E1 > 0)) {
     throw Error("could not get parent, we already are the parent");
   } else if (!(data_copy.E2 > 0)) {
     data_copy.E1 = null;
@@ -273,6 +273,12 @@ const delete_ = async (data, KZL) => {
       && ld.E3
     )
   )
+  try {
+    //delete image folders
+    ld = await _addfoldername(ld)
+    if(ld.LinkOrdner != null && ld.LinkOrdner.length > 4)
+    await fsp.rmdir(require('../images/filesystem').formatpath(ld.LinkOrdner), { recursive: true, force: true });
+  } catch (error) {}
 
   switch (data.type) {
     case(identifiers.category):
@@ -293,6 +299,8 @@ const delete_ = async (data, KZL) => {
   }
   
   let res = await queryFileWithParams("delete/delete", [ld.PjNr, ld.E1 ?? 0, ld.E2 ?? 0, ld.E3 ?? 0, KZL]);
+
+
   res.success = true;
   return res;
 }
