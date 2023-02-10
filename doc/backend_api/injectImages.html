@@ -58,7 +58,8 @@
         
 
 <span class="returntype">D</span>
-<span class="name ">injectImages</span>&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="injectImages-param-data"><span class="type-annotation">D</span> <span class="parameter-name">data</span></span></li>
+<span class="name ">injectImages</span>&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="injectImages-param-data"><span class="type-annotation">D</span> <span class="parameter-name">data</span>, </span></li>
+<li><span class="parameter" id="injectImages-param-preloadFull">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">preloadFull</span> = <span class="default-value">true</span>}</span></li>
 </ol>)
 
         
@@ -70,13 +71,20 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends WithImgHashes&gt;(D data) {
+  <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends WithImgHashes&gt;(D data, {bool preloadFull = true}) {
+  Future&lt;ImageData?&gt; getImgDataFromHash(String? hash) {
+    if (preloadFull) API().getImageByHash(hash!, compressed: false);
+    return API().getImageByHash(hash!, compressed: true).then((value) =&gt; value
+      ?..fullImageGetter = () =&gt; API()
+          .getImageByHash(hash, compressed: false)
+          .then((value) =&gt; value?.fullImage()));
+  }
+
   if (data.mainhash != null &amp;&amp;
       data.mainhash != Options().no_image_placeholder_name) {
-    var mainImage = API().getImageByHash(data.mainhash!);
-
+    var mainImage = getImgDataFromHash(data.mainhash);
     data.imageFutures =
-        data.imagehashes?.map((hash) =&gt; API().getImageByHash(hash)).toList();
+        data.imagehashes?.map((hash) =&gt; getImgDataFromHash(hash)).toList();
     data.mainImage = mainImage;
     data.previewImage = mainImage;
   } else {
@@ -87,7 +95,7 @@
     data.previewImage = Future.value(null);
     if (data.imagehashes != null &amp;&amp; data.imagehashes!.length &gt; 0) {
       data.imageFutures =
-          data.imagehashes?.map((hash) =&gt; API().getImageByHash(hash)).toList();
+          data.imagehashes?.map((hash) =&gt; getImgDataFromHash(hash)).toList();
       data.previewImage = data.imageFutures!.first;
     }
   }

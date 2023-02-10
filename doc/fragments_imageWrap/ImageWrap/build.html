@@ -131,6 +131,8 @@ Widget build(BuildContext context) =&gt; Builder(
                       : -1, &#47;&#47;&#47;&#47; make this dynamic on callback or something for #20
                   &#47;&#47; instead solve #36 and move chosen image to front
                   allImages: _allImages,
+                  approxWidth:
+                      MediaQuery.of(context).size.width &#47; columnCount,
                 ));
       },
     );</code></pre>

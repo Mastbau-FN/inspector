@@ -73,7 +73,7 @@
 })  : this.tag = UniqueKey(),
       this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
   image.then((value) {
-    this.image = value?.image.image;
+    this.image = value;
     if (value != null) this.tag = value.id;
     &#47;&#47; debugPrint(this.tag.toString());
     notifyListeners();
@@ -103,9 +103,7 @@
     <ol>
 
         <li class="section-title"><a href="../../fragments_galleryWrapper/ImageItem-class.html#constructors">Constructors</a></li>
-          <li><a class="deprecated" href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromFutureImage.html">fromFutureImage</a></li>
           <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromFutureImageData.html">fromFutureImageData</a></li>
-          <li><a class="deprecated" href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromImage.html">fromImage</a></li>
           <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromImageData.html">fromImageData</a></li>
           <li><a href="../../fragments_galleryWrapper/ImageItem/ImageItem.fromImageDataStream.html">fromImageDataStream</a></li>
 

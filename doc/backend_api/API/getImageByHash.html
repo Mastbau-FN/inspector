@@ -58,7 +58,8 @@
       
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../classes_imageData/ImageData-class.html">ImageData</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span>&gt;</span>?</span>&gt;</span></span>
-<span class="name ">getImageByHash</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="getImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span></span></li>
+<span class="name ">getImageByHash</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="getImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, </span></li>
+<li><span class="parameter" id="getImageByHash-param-compressed">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">compressed</span> = <span class="default-value">false</span>}</span></li>
 </ol>)
 
       
@@ -73,13 +74,14 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;ImageData?&gt; getImageByHash(String hash) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;ImageData?&gt; getImageByHash(String hash,
+    {bool compressed = false}) async {
   final requestType = Helper.SimulatedRequestType.GET;
   return _run(
     itPrefersCache:
         false, &#47;&#47;! wir nehmen immer lieber lokale bilder, bandbreite und so
-    offline: () =&gt; local.getImageByHash(hash),
-    online: () =&gt; remote.getImageByHash(hash),
+    offline: () =&gt; local.getImageByHash(hash, compressed: compressed),
+    online: () =&gt; remote.getImageByHash(hash, compressed: compressed),
     requestType: requestType,
   ).last;
 }</code></pre>

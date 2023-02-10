@@ -68,7 +68,8 @@
 ) = <span class="default-value">_default</span>, </span></li>
 <li><span class="parameter" id="scrollable-param-onShare"><span class="type-annotation">dynamic</span> <span class="parameter-name">onShare</span>(<ol class="parameter-list"><li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>
-) = <span class="default-value">_default</span>}</span></li>
+) = <span class="default-value">_default</span>, </span></li>
+<li><span class="parameter" id="scrollable-param-approxWidth"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/num-class.html">num</a></span> <span class="parameter-name">approxWidth</span>}</span></li>
 </ol>)
     </section>
 
@@ -87,8 +88,8 @@
   this.onDelete = _default,
   this.onStar = _default,
   this.onShare = _default,
+  required this.approxWidth,
 })  : assert(0 &lt;= currentIndex &amp;&amp; currentIndex &lt; (allImages.length)),
-      this._isScrollable = true,
       super(key: key);</code></pre>
 </section>
 
@@ -114,7 +115,6 @@
     <ol>
 
         <li class="section-title"><a href="../../fragments_imageWrap/OpenableImageView-class.html#constructors">Constructors</a></li>
-          <li><a href="../../fragments_imageWrap/OpenableImageView/OpenableImageView.only.html">only</a></li>
           <li><a href="../../fragments_imageWrap/OpenableImageView/OpenableImageView.scrollable.html">scrollable</a></li>
 
 
@@ -122,6 +122,7 @@
           <a href="../../fragments_imageWrap/OpenableImageView-class.html#instance-properties">Properties</a>
         </li>
           <li><a href="../../fragments_imageWrap/OpenableImageView/allImages.html">allImages</a></li>
+          <li><a href="../../fragments_imageWrap/OpenableImageView/approxWidth.html">approxWidth</a></li>
           <li><a href="../../fragments_imageWrap/OpenableImageView/chosenIndex.html">chosenIndex</a></li>
           <li><a href="../../fragments_imageWrap/OpenableImageView/currentIndex.html">currentIndex</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>

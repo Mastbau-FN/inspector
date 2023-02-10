@@ -115,18 +115,23 @@ Widget build(BuildContext context) {
   return ChangeNotifierProvider.value(
     value: img,
     child: Consumer&lt;ImageItem&gt;(builder: (_, img, __) {
-      return Container(
-        child: img.image != null ? null : img.fallBackWidget,
-        decoration: img.image == null
-            ? null
-            : BoxDecoration(
-                image: DecorationImage(
-                  image: img
-                      .image!, &#47;&#47;XXX: have a list of imageproviders instead of image widgets
-                  fit: fit,
-                ),
-              ),
-      );
+      return FutureBuilder&lt;Image?&gt;(
+          future: (approxWidth &gt; 100)
+              ? img.image!.fullImage()
+              : Future.value(img.image!.thumbnail),
+          builder: (context, snapshot) {
+            return Container(
+              child: img.image != null ? null : img.fallBackWidget,
+              decoration: snapshot.data?.image == null
+                  ? null
+                  : BoxDecoration(
+                      image: DecorationImage(
+                        image: snapshot.data!.image,
+                        fit: fit,
+                      ),
+                    ),
+            );
+          });
     }),
   );
 }</code></pre>
@@ -160,6 +165,7 @@ Widget build(BuildContext context) {
         <li class="section-title">
           <a href="../../fragments_imageWrap/FittedImageContainer-class.html#instance-properties">Properties</a>
         </li>
+          <li><a href="../../fragments_imageWrap/FittedImageContainer/approxWidth.html">approxWidth</a></li>
           <li><a href="../../fragments_imageWrap/FittedImageContainer/fit.html">fit</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
           <li><a href="../../fragments_imageWrap/FittedImageContainer/img.html">img</a></li>
