@@ -173,7 +173,7 @@ const setMainImgByHash = async (req, res, next) => {
  */
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imghasher.getFileFromHash(req.body.hash);
+    let img = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
     res.writeHead(200, { "Content-type": "image/jpg" });
     res.end(img);
   } catch (e) {

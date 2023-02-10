@@ -1,6 +1,9 @@
 const imgfiler = require("./filesystem");
-
+const fs = require("fs");
+const fsp = fs.promises;
+const homedir = require('os').homedir()
 const crypto = require('crypto');
+const sharp = require('sharp')
 
 // XXX: for #92 use https://www.npmjs.com/package/data-store
 const NanoCache = require("nano-cache");
@@ -17,13 +20,28 @@ var cache = new NanoCache({
 // __hash_cache.init();
 // cache = {get:(e)=>__hash_cache.getItem(e), set:(e, b)=> __hash_cache.setItem(e,b)};
 
-const getFileFromHash = async (hash) => {
-   console.log("gettin file from ", await getPathFromHash(hash))
-  return await imgfiler.getImageFrom(
+const getFileFromHash = async (hash, compressed) => {
+  console.log("gettin file from ", await getPathFromHash(hash))
+  let compressed_path = homedir+"/compressed_images/"+hash
+  if(compressed && fs.existsSync(compressed_path+'/img.heic')){
+    let img = await fsp.readFile(compressed_path+'/img.heic')
+    return img
+  }
+  
+  let img = await imgfiler.getImageFrom(
     cache.get(hash + "r"),
     cache.get(hash + "l"),
     cache.get(hash + "f")
   );
+  if(compressed){
+    img = await sharp(img)
+    .heif({quality:1,effort:1})
+    .toBuffer();
+
+    await fsp.mkdir(compressed_path,{recursive:true});
+    fsp.writeFile(compressed_path+'/img.heic',img)
+  }
+  return img
 };
 
 function throwExpression(errorMessage){
