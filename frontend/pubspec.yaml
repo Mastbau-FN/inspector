@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.1.50+50
+version: 1.2.2+52
 
 environment:
   sdk: ">=2.17.0"
@@ -67,13 +67,17 @@ dependencies:
   camera: ^0.10.0  
 
   # Finds the correct paths to store images
-  path_provider: null
+  path_provider: ^2.0.12
 
   # Creates paths that work on any platform
-  path: null
+  path: ^1.8.2
 
   # check if a network is connected and what kind of network (mobile/wifi etc)
   connectivity_plus: ^2.0.2
+
+  # for sharing files via native dialogs
+  share_plus: ^6.3.0
+  image: ^3.0.2
 
   # storing sensitive data like username and password
   flutter_secure_storage: ^5.0.0-beta.5
@@ -87,13 +91,16 @@ dependencies:
   # used to query and send data to our API
   http: ^0.13.3
 
+  # show push notifications (progress on retryfailedrequests)
+  awesome_notifications: any
+
   flutter:
     sdk: flutter
   flutter_localizations: # Add this line
     sdk: flutter
 
   # to pass variables from a .env file (e.g. used for secrets like API-Key)
-  flutter_dotenv: ^5.0.0
+  envied: ^0.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -105,6 +112,7 @@ dependencies:
 
   # to displays svg duh
   flutter_svg: ^1.1.5
+  url_launcher: ^6.1.9
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9
@@ -122,6 +130,7 @@ dev_dependencies:
 
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
   flutter_launcher_icons: ^0.10.0
+  envied_generator: ^0.3.0
 
 flutter_icons:
   android: "launcher_icon"

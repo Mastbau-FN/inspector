@@ -4,8 +4,8 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
+import 'package:MBG_Inspektionen/env.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -61,18 +61,15 @@ class Remote {
   User? _user;
   injectUser(User? user) => _user = user;
 
-  final _baseurl = dotenv.env['API_URL'];
+  final _baseurl = Env.mbgUrl;
   // ignore: non_constant_identifier_names
-  final _api_key = dotenv.env['API_KEY'] ?? "apitestkey";
+  final _api_key = Env.mbgKey;
 
   // MARK: available Helpers
 
   /// checks whether a connection to the backend is possible
   /// throws [NoConnectionToBackendException] or [SocketException] if its not.
   Future connectionGuard({Duration? timeout}) async {
-    if (_baseurl == null)
-      throw NoConnectionToBackendException(
-          S.current.exceptionNoUrlToConnectToProvided);
     try {
       // check if we can reach our api
       await postJSON(RequestData(
@@ -120,7 +117,7 @@ class Remote {
   }) {
     headers = headers ?? {};
     headers.addAll({HttpHeaders.authorizationHeader: _api_key});
-    var fullURL = Uri.parse(_baseurl! + route);
+    var fullURL = Uri.parse(_baseurl + route);
     final req = http.Request('post', fullURL)..headers.addAll(headers);
     if (encoding != null) req.encoding = encoding;
     if (body != null) req.body = body;
@@ -136,7 +133,7 @@ class Remote {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
-          var fullURL = Uri.parse(_baseurl! + rd.route);
+          var fullURL = Uri.parse(_baseurl + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
             ..files.addAll(
               List<http.MultipartFile>.from((await Future.wait(

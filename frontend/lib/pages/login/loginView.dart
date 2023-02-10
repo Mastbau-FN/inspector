@@ -174,6 +174,27 @@ class _LoginFieldState extends State<LoginField> {
     }
   }
 
+  InputDecoration fieldDecoration(BuildContext context,
+          {required String name}) =>
+      InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(50.0),
+          borderSide: BorderSide(
+            //XXX: should be .outline (as it is per default), but isnt liked by uwe
+            color: Theme.of(context).colorScheme.scrim.withAlpha(50),
+            width: 1,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.tertiary,
+            width: 2,
+          ),
+        ),
+        // border: OutlineInputBorder(),
+        labelText: name,
+      );
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -219,10 +240,8 @@ class _LoginFieldState extends State<LoginField> {
                       return null;
                     },
                     autofocus: widget.autofocus,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: S.of(context).loginUsername,
-                    ),
+                    decoration: fieldDecoration(context,
+                        name: S.of(context).loginUsername),
                     textInputAction: TextInputAction.next,
                   ),
                 ),
@@ -241,10 +260,8 @@ class _LoginFieldState extends State<LoginField> {
                     obscureText: true,
                     enableSuggestions: false,
                     autocorrect: false,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: S.of(context).loginLabelPassword,
-                    ),
+                    decoration: fieldDecoration(context,
+                        name: S.of(context).loginLabelPassword),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => logmein(context),
                   ),

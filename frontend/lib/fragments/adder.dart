@@ -4,141 +4,39 @@ import 'package:flutter/material.dart';
 
 import '../generated/l10n.dart';
 
-//should be held up to date with FloatingActionButton
-const BoxConstraints _kSizeConstraints = BoxConstraints.tightFor(
-  width: 56.0,
-  height: 56.0,
-);
-
-class TransformableActionbutton extends StatefulWidget {
+class PopUpActionbutton extends StatelessWidget {
   final Widget collapsedChild;
   final Widget Function(Function()) expandedChild;
-  final double expandedHeight;
 
   //XXX: could blur background
 
   final EdgeInsets padding;
 
-  const TransformableActionbutton({
+  const PopUpActionbutton({
     Key? key,
     this.collapsedChild = const Icon(Icons.add),
     required this.expandedChild,
     this.padding = const EdgeInsets.all(15),
-    this.expandedHeight = 400,
   }) : super(key: key);
 
   @override
-  TransformableActionbuttonState createState() =>
-      TransformableActionbuttonState();
-}
-
-class TransformableActionbuttonState extends State<TransformableActionbutton> {
-  bool isClicked = false;
-  bool wasClicked = false;
-
-  late Widget expandedChild;
-
-  @override
-  void initState() {
-    expandedChild = widget.expandedChild(cancel);
-    super.initState();
-  }
-
-  // ignore: non_constant_identifier_names
-  final transition_ms = 400;
-
-  void popupGroup() {
-    setState(() {
-      isClicked = true;
-    });
-    Future.delayed(Duration(milliseconds: transition_ms), () {
-      setState(() {
-        wasClicked = true;
-      });
-    });
-  }
-
-  void cancel() {
-    setState(() {
-      wasClicked = false;
-      isClicked = false;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    ThemeData theme = Theme.of(context);
-    FloatingActionButtonThemeData ftheme =
-        Theme.of(context).floatingActionButtonTheme;
-    double radius =
-        (ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth) / 2;
-    return WillPopScope(
-      onWillPop: () async {
-        if (!wasClicked) return true;
-        cancel();
-        return false;
-      },
-      child: GestureDetector(
-        onTap: popupGroup,
-        child: AnimatedContainer(
-          key: UniqueKey(),
-          //padding: isClicked ? widget.padding : EdgeInsets.all(0), //not needed, since the floatingAction Button from scaffold is already padded
-          decoration: BoxDecoration(
-            boxShadow: isClicked
-                ? [
-                    BoxShadow(
-                        // color: theme.colorScheme.primary.withAlpha(30),
-                        blurRadius: radius,
-                        spreadRadius: -radius * .5)
-                  ]
-                : [],
-            color: isClicked
-                ? theme.cardColor
-                : ftheme.backgroundColor ?? theme.colorScheme.primary,
-            borderRadius: BorderRadius.circular(radius),
+    return FloatingActionButton(
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            child: Container(
+              padding: padding,
+              child: expandedChild(() => Navigator.of(context).pop()),
+            ),
           ),
-          curve: Curves.easeInOutCubic,
-          duration: Duration(milliseconds: transition_ms),
-          height: isClicked
-              ? widget.expandedHeight
-              : ftheme.sizeConstraints?.maxHeight ??
-                  _kSizeConstraints.maxHeight,
-          width: isClicked
-              ? MediaQuery.of(context).size.width -
-                  widget.padding.left -
-                  widget.padding.right
-              : ftheme.sizeConstraints?.maxWidth ?? _kSizeConstraints.maxWidth,
-          child: isClicked /*wasClicked*/ //Yes this makes  layout err, but it looks better in prod, could use wasClicked and for better transition the isClicked below
-              ? Container(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: expandedChild,
-                  ),
-                )
-              : /*isClicked
-                  ? Container()
-                  : */
-              Container(
-                  child: FloatingActionButton(
-                    child: widget.collapsedChild,
-                    onPressed: popupGroup,
-                  ),
-                ),
-        ),
-      ),
+        );
+      },
+      child: collapsedChild,
     );
   }
 }
-
-/*class Cancelable {
-  final Function(Function) builder;
-  const Cancelable({
-    Key? key,
-    required this.builder,
-  });
-
-  Widget withcancel(Function onCancel) => builder(onCancel);
-}*/
 
 extension Unique<E, Id> on List<E> {
   List<E> unique([Id Function(E element)? id, bool inplace = true]) {
@@ -237,57 +135,59 @@ class Adder extends StatelessWidget implements JsonExtractable {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
 
-      // autovalidateMode: AutovalidateMode.onUserInteraction,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          // Spacer(),
-          ...children,
-          ...List.generate(textfieldList.length, (i) {
-            _textfieldControllerList[i].value = TextEditingValue(
-              text: textfieldList[i].value ?? "",
-            );
-            return _Input(
-              // initialValue: textfieldList[i].value,
-              hint: textfieldList[i].hint,
-              isFirst: i == 0,
-              isLast: i == textfieldList.length - 1,
-              // onDone: (name) {
-              //   try {
-              //     //TextInputAction.next;
-              //     FocusScope.of(context)
-              //         .requestFocus(_textfield_focusnode_list[i + 1]);
-              //   } catch (e) {
-              //     FocusScope.of(context)
-              //         .requestFocus(_textfield_focusnode_list[0]);
-              //   }
-              // },
-              // fn: _textfield_focusnode_list[i],
-              c: _textfieldControllerList[i],
-              validator: textfieldList[i].verify,
-            );
-          }),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              _PaddedButton(
-                icon: Icons.cancel,
-                onPressed: onCancel,
-              ),
-              //if (textfield_list.isNotEmpty) _mainField(set),
-              _PaddedButton(
-                icon: Icons.check_circle,
-                onPressed: () {
-                  if (set(context)) onCancel?.call(); //as requested by #118
-                },
-              ),
-            ],
-          ),
-        ],
+        // autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            // Spacer(),
+            ...children,
+            ...List.generate(textfieldList.length, (i) {
+              _textfieldControllerList[i].value = TextEditingValue(
+                text: textfieldList[i].value ?? "",
+              );
+              return _Input(
+                // initialValue: textfieldList[i].value,
+                hint: textfieldList[i].hint,
+                isFirst: i == 0,
+                isLast: i == textfieldList.length - 1,
+                // onDone: (name) {
+                //   try {
+                //     //TextInputAction.next;
+                //     FocusScope.of(context)
+                //         .requestFocus(_textfield_focusnode_list[i + 1]);
+                //   } catch (e) {
+                //     FocusScope.of(context)
+                //         .requestFocus(_textfield_focusnode_list[0]);
+                //   }
+                // },
+                // fn: _textfield_focusnode_list[i],
+                c: _textfieldControllerList[i],
+                validator: textfieldList[i].verify,
+              );
+            }),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                _PaddedButton(
+                  icon: Icons.cancel,
+                  onPressed: onCancel,
+                ),
+                //if (textfield_list.isNotEmpty) _mainField(set),
+                _PaddedButton(
+                  icon: Icons.check_circle,
+                  onPressed: () {
+                    if (set(context)) onCancel?.call(); //as requested by #118
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

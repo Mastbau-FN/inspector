@@ -90,5 +90,10 @@
   "option_tryonlinerequestincachedmode": "tryOnlineRequestInCachedMode",
   "option_tryOnlineIfOfflineFailed": "probier online-Verfahren wenn es offline gescheitert ist",
   "option_usesystemtheme": "System Stil statt MBG Palette nutzen",
-  "plsWait": "bitte warten"
+  "plsWait": "bitte warten",
+  "allowNotifications": "Allow Notifications",
+  "cancel": "cancel",
+  "allow": "allow",
+  "didYouMisclick": "Vercklickt?",
+  "weCanSendYouANotificationAboutTheSyncProgress": "We can send you a notification about the sync progress"
 }

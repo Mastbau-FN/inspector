@@ -25,7 +25,8 @@ class RequestData {
   Map<String, dynamic>? json;
 
   /// the files to send
-  @JsonKey(toJson: _multipartFilesToJson, fromJson: _multipartFilesFromJson)
+  @JsonKey(
+      toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)
   List<XFile> multipartFiles;
 
   /// the timeout for the request
@@ -43,12 +44,12 @@ class RequestData {
       _$RequestDataFromJson(json);
 }
 
-List<String> _multipartFilesToJson(List<XFile> files) => files
+List<String> multipartFilesToHashList(List<XFile> files) => files
     .map((file) =>
         file.path) //XXX: path usage is discouraged as it wont work in web
     .toList();
 
-List<XFile> _multipartFilesFromJson(List<dynamic> files) => files
+List<XFile> multipartFilesFromHashList(List<dynamic> files) => files
     .map((file) => XFile(file
         .toString())) //XXX: path usage is discouraged as it wont work in web
     .toList();

@@ -135,7 +135,8 @@ class InspectionLocation extends Data
 
   @override
   List<Widget> extras({BuildContext? context}) => [
-        _RecursiveDownloadButton(caller: CategoryModel(this)),
+        if (!forceOffline)
+          _RecursiveDownloadButton(caller: CategoryModel(this)),
       ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
