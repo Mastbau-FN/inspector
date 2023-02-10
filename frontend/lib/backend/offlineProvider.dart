@@ -43,8 +43,10 @@ class NoImagePlaceholderException implements Exception {
       'tried to read the placeholder image, which of course is not there';
 }
 
+String convertToCompressedHashName(String hash) => 'compressed/$hash';
+
 ///tries to open an [Image] given by its [name] and returns it if successful
-Future<Image?> readImage(String name) async {
+Future<Image?> readImage(String name, {int? cacheSize}) async {
   final file = (await localFile(name));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
@@ -56,7 +58,8 @@ Future<Image?> readImage(String name) async {
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TODO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  return Image.file(await localFile(name));
+  return Image.file(await localFile(name),
+      cacheHeight: cacheSize, cacheWidth: cacheSize);
 }
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
@@ -232,66 +235,3 @@ extension SerializableMultiPartReq on http.MultipartRequest {
   // static http.MultipartRequest fromJson(Map<String, dynamic> json) =>
   //     requestFromJson(json) as http.MultipartRequest;
 }
-
-// extension DeserializableRequest<T extends http.BaseRequest> on T {
-//   static T fromJson(Map<String, dynamic> json) => requestFromJson(json) as T;
-
-//   static requestFromJson(Map<String, dynamic> json) async {
-//     switch (json['type']) {
-//       case 'Request':
-//         return http.Request(json['method'], Uri.parse(json['url']))
-//           ..headers.addAll(json['headers'])
-//           ..encoding = json['encoding']
-//           ..body = json['body'];
-//       case 'MultipartRequest':
-//         return http.MultipartRequest(json['method'], Uri.parse(json['url']))
-//           ..headers.addAll(json['headers'])
-//           ..fields.addAll(json['body'])
-//           ..files.addAll(
-//             List<http.MultipartFile>.from((await Future.wait(
-//               json['file-names'].map(
-//                 (String name) async => http.MultipartFile.fromPath(
-//                     'package',
-//                     (await _localFile(name))
-//                         .path), //TO-DO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-//               ),
-//             ))
-//                 .whereType<http.MultipartFile>()),
-//           );
-//       default:
-//         throw UnimplementedError();
-//     }
-//   }
-// }
-
-// Future<Tuple2<http.Request?, http.MultipartRequest?>> _requestFromJson(
-//     Map<String, dynamic> json) async {
-//   final headers = Map<String, String>.from(json['headers']);
-//   switch (json['type']) {
-//     case 'Request':
-//       var req = http.Request(json['method'], Uri.parse(json['url']))
-//         ..headers.addAll(headers);
-//       if (json['encoding'] != null) req.encoding = json['encoding'];
-//       if (json['body'] != null) req.body = conv.json.encode(json['body']);
-//       return Tuple2(req, null);
-//     case 'MultipartRequest':
-//       var req = http.MultipartRequest(json['method'], Uri.parse(json['url']))
-//         ..headers.addAll(headers)
-//         ..files.addAll(
-//           List<http.MultipartFile>.from((await Future.wait(
-//             json['file-names'].map(
-//               (String name) async => http.MultipartFile.fromPath(
-//                   'package',
-//                   (await _localFile(name))
-//                       .path), //TODO: eventuell macht hier das .img im _localfile ein problem, da es im name wahrscheinlich schon enthalten ist idk, muss getestet werden
-//             ),
-//           ))
-//               .whereType<http.MultipartFile>()),
-//         );
-//       if (json['body'] != null) req.fields.addAll(json['body']);
-
-//       return Tuple2(null, req);
-//     default:
-//       throw UnimplementedError();
-//   }
-// }

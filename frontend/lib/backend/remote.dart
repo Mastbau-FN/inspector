@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
 import 'package:MBG_Inspektionen/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -182,11 +184,13 @@ class Remote {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash) {
+  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
+      {bool compressed = false}) {
     final rd = RequestData(
       _getImageFromHash_r,
       json: {
         'hash': hash,
+        'compressed': compressed,
       },
       returnsBinary: true,
     );
@@ -197,9 +201,12 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeImage(res.bodyBytes, hash);
+          await API().local.storeImage(res.bodyBytes,
+              compressed ? OP.convertToCompressedHashName(hash) : hash);
           return ImageData(
-            (await API().local.readImage(hash))!,
+            (await API().local.readImage(
+                compressed ? OP.convertToCompressedHashName(hash) : hash,
+                cacheSize: compressed ? CACHESIZE : null))!,
             id: hash,
           );
         } catch (e) {

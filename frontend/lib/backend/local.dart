@@ -17,6 +17,8 @@ import 'api.dart';
 
 const LOCALLY_ADDED_PREFIX = '__locally_added__';
 
+const CACHESIZE = 128;
+
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
   // MARK: internals
@@ -123,8 +125,10 @@ class LocalMirror {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> getImageByHash(String hash) async {
-    final img = await readImage(hash);
+  Future<ImageData?> getImageByHash(String hash,
+      {bool compressed = false}) async {
+    if (compressed) hash = OP.convertToCompressedHashName(hash);
+    final img = await readImage(hash, cacheSize: compressed ? CACHESIZE : null);
     if (img == null) throw Exception("no img cached");
     // return null;
 

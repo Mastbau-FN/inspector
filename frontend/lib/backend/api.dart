@@ -333,13 +333,14 @@ class API {
   }
 
   /// gets image specified by its hash
-  Future<ImageData?> getImageByHash(String hash) async {
+  Future<ImageData?> getImageByHash(String hash,
+      {bool compressed = false}) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
       itPrefersCache:
           false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
-      offline: () => local.getImageByHash(hash),
-      online: () => remote.getImageByHash(hash),
+      offline: () => local.getImageByHash(hash, compressed: compressed),
+      online: () => remote.getImageByHash(hash, compressed: compressed),
       requestType: requestType,
     ).last;
   }
@@ -440,13 +441,20 @@ class API {
   }
 }
 
-D injectImages<D extends WithImgHashes>(D data) {
+D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = true}) {
+  Future<ImageData?> getImgDataFromHash(String? hash) {
+    if (preloadFull) API().getImageByHash(hash!, compressed: false);
+    return API().getImageByHash(hash!, compressed: true).then((value) => value
+      ?..fullImageGetter = () => API()
+          .getImageByHash(hash, compressed: false)
+          .then((value) => value?.fullImage()));
+  }
+
   if (data.mainhash != null &&
       data.mainhash != Options().no_image_placeholder_name) {
-    var mainImage = API().getImageByHash(data.mainhash!);
-
+    var mainImage = getImgDataFromHash(data.mainhash);
     data.imageFutures =
-        data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+        data.imagehashes?.map((hash) => getImgDataFromHash(hash)).toList();
     data.mainImage = mainImage;
     data.previewImage = mainImage;
   } else {
@@ -457,7 +465,7 @@ D injectImages<D extends WithImgHashes>(D data) {
     data.previewImage = Future.value(null);
     if (data.imagehashes != null && data.imagehashes!.length > 0) {
       data.imageFutures =
-          data.imagehashes?.map((hash) => API().getImageByHash(hash)).toList();
+          data.imagehashes?.map((hash) => getImgDataFromHash(hash)).toList();
       data.previewImage = data.imageFutures!.first;
     }
   }
