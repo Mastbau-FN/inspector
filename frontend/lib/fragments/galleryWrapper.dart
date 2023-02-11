@@ -101,19 +101,20 @@ class FullImg extends StatelessWidget {
     return AnimatedBuilder(
       animation: item,
       builder: (context, child) => FutureBuilder(
-          future: item.image?.fullImage(),
-          builder: (context, AsyncSnapshot<Image?> snapshot) =>
-              (snapshot.hasData)
-                  ? snapshot.data!
-                  : (snapshot.connectionState != ConnectionState.waiting)
-                      ? item.image?.thumbnail ?? item.fallBackWidget
-                      : Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (item.image != null) item.image!.thumbnail,
-                            const LoadingView(),
-                          ],
-                        )),
+        future: item.image?.fullImage(),
+        builder: (context, AsyncSnapshot<Image?> snapshot) =>
+            snapshot.data ??
+            item.image?.thumbnail ??
+            ((snapshot.hasError)
+                ? item.fallBackWidget
+                : Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (item.image != null) item.image!.thumbnail,
+                      const LoadingView(),
+                    ],
+                  )),
+      ),
     );
   }
 }

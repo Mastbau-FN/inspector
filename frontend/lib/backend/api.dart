@@ -449,7 +449,7 @@ D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
     return API().getImageByHash(hash!, compressed: true).then((value) => value
       ?..fullImageGetter = () => API()
           .getImageByHash(hash, compressed: false)
-          .then((value) => value?.fullImage()));
+          .then((value) => value?.thumbnail));
   }
 
   if (data.mainhash != null &&
