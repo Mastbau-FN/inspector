@@ -1,6 +1,9 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
+
+import 'package:MBG_Inspektionen/extension/image.dart';
 
 import 'package:provider/provider.dart';
 
@@ -148,7 +151,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
     );
   }
 
-  Widget _heroImg(context, img) {
+  Widget _heroImg(context, ImageItem img) {
     Object tag = img.tag;
     return TextButton(
       style: TextButton.styleFrom(
@@ -156,9 +159,12 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
       ),
       child: Hero(
         tag: tag,
-        child: FittedImageContainer(
-          img: img,
-          approxWidth: approxWidth,
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: FittedImageContainer(
+            item: img,
+            approxWidth: approxWidth,
+          ),
         ),
       ),
       onLongPress: () => _onLongPress(context, tag),
@@ -271,40 +277,31 @@ enum ImageOptions {
 class FittedImageContainer extends StatelessWidget {
   const FittedImageContainer({
     Key? key,
-    required this.img,
+    required this.item,
     this.fit = BoxFit.cover,
     required this.approxWidth,
   }) : super(key: key);
 
-  final ImageItem img;
+  final ImageItem item;
   final BoxFit fit;
   final num approxWidth;
 
+  // ImageData? get img => item.image;
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: img,
-      child: Consumer<ImageItem>(builder: (_, img, __) {
-        return FutureBuilder<Image?>(
-            future: (img.image == null)
-                ? null
-                : ((approxWidth > 100)
-                    ? img.image!.fullImage()
-                    : Future.value(img.image!.thumbnail)),
-            builder: (context, snapshot) {
-              return Container(
-                child: img.image != null ? null : img.fallBackWidget,
-                decoration: snapshot.data?.image == null
-                    ? null
-                    : BoxDecoration(
-                        image: DecorationImage(
-                          image: snapshot.data!.image,
-                          fit: fit,
-                        ),
-                      ),
-              );
-            });
-      }),
+    return AnimatedBuilder(
+      builder: (context, child) => FutureBuilder<Image?>(
+          future: (item.image == null)
+              ? null
+              : ((approxWidth > 100)
+                  ? item.image!.fullImage()
+                  : Future.value(item.image!.thumbnail)),
+          builder: (context, snapshot) {
+            return (snapshot.data ?? item.image?.thumbnail)?.refit(fit) ??
+                ((snapshot.hasError) ? item.fallBackWidget : LoadingView());
+          }),
+      animation: item,
     );
   }
 }

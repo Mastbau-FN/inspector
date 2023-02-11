@@ -55,7 +55,31 @@ class _MyAppState extends State<MyApp> {
           useMaterial3: true,
           colorScheme: (Options().useSystemTheme ? lightDynamic : null) ??
               ColorScheme.fromSwatch(
-                  primarySwatch: mbgpalette0, backgroundColor: Colors.white),
+                primarySwatch: mbgpalette0,
+                backgroundColor: Colors.white,
+              ),
+          switchTheme: SwitchThemeData(
+            thumbColor: MaterialStateProperty.resolveWith<Color>(
+                (Set<MaterialState> states) {
+              if (states.contains(MaterialState.disabled)) {
+                return Colors.orange.withOpacity(.48);
+              }
+              if (states.contains(MaterialState.selected)) {
+                return Colors.white;
+              }
+              return mbgpalette0;
+            }),
+            trackColor: MaterialStateProperty.resolveWith<Color>(
+                (Set<MaterialState> states) {
+              if (states.contains(MaterialState.disabled)) {
+                return Colors.orange.withOpacity(.48);
+              }
+              if (states.contains(MaterialState.selected)) {
+                return mbgpalette0;
+              }
+              return Colors.grey;
+            }),
+          ),
         ),
         darkTheme: ThemeData(
           useMaterial3: true,

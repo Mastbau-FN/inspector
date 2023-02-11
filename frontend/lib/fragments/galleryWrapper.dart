@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:provider/provider.dart';
 
 import 'loadingscreen/loadingView.dart';
 
@@ -65,7 +66,7 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
             Container(
               padding: const EdgeInsets.all(20.0),
               child: Text(
-                "Image ${currentIndex + 1}",
+                "Image ${currentIndex + 1}:${widget.galleryItems[currentIndex].image?.id.toString().split('/').last ?? ')'}",
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 17.0,
@@ -81,42 +82,39 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
 
   PhotoViewGalleryPageOptions _buildItem(BuildContext context, int index) {
     final ImageItem item = widget.galleryItems[index];
-    return (item.image == null)
-        ? PhotoViewGalleryPageOptions.customChild(
-            child: item.fallBackWidget,
-            childSize: const Size(300, 300),
-            initialScale: PhotoViewComputedScale.contained,
-            minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
-            maxScale: PhotoViewComputedScale.covered * 4.1,
-            heroAttributes: PhotoViewHeroAttributes(tag: item.tag),
-          )
-        : PhotoViewGalleryPageOptions.customChild(
-            child: FullImg(img: item.image!),
-            initialScale: PhotoViewComputedScale.contained,
-            minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
-            maxScale: PhotoViewComputedScale.covered * 4.1,
-            heroAttributes: PhotoViewHeroAttributes(tag: item.tag),
-          );
+    return PhotoViewGalleryPageOptions.customChild(
+      child: FullImg(item: item),
+      initialScale: PhotoViewComputedScale.contained,
+      minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
+      maxScale: PhotoViewComputedScale.covered * 4.1,
+      heroAttributes: PhotoViewHeroAttributes(tag: item.tag),
+    );
   }
 }
 
 class FullImg extends StatelessWidget {
-  final ImageData img;
-  const FullImg({super.key, required this.img});
+  final ImageItem item;
+  const FullImg({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: img.fullImage(),
-        builder: (context, AsyncSnapshot<Image?> snapshot) => (snapshot.hasData)
-            ? snapshot.data!
-            : Stack(
-                alignment: Alignment.center,
-                children: [
-                  img.thumbnail,
-                  const LoadingView(),
-                ],
-              ));
+    return AnimatedBuilder(
+      animation: item,
+      builder: (context, child) => FutureBuilder(
+          future: item.image?.fullImage(),
+          builder: (context, AsyncSnapshot<Image?> snapshot) =>
+              (snapshot.hasData)
+                  ? snapshot.data!
+                  : (snapshot.connectionState != ConnectionState.waiting)
+                      ? item.image?.thumbnail ?? item.fallBackWidget
+                      : Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (item.image != null) item.image!.thumbnail,
+                            const LoadingView(),
+                          ],
+                        )),
+    );
   }
 }
 
