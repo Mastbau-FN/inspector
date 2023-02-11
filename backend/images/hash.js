@@ -37,20 +37,29 @@ const getFileFromHash = async (hash, compressed) => {
     const orig_img = img;
     img = await sharp(img)
       // .heif({ quality: 1, effort: 0 }) //while apple and newer android devices support this, older ones dont, and in the feature we could switch to .avif, which is completely open
-      .heif({ quality: 1, effort: 0, compression: 'hevc' }) //hevc is further supported (but worse) then av1
-      // .webp({ quality: 1, effort: 4 }) // this is 100% supported by flutter, could be used as fallback
+      // .heif({ quality: 1, effort: 0, compression: 'hevc' }) //hevc is further supported (but worse) then av1
+      .webp({ quality: 1, effort: 4 }) // this is 100% supported by flutter, could be used as fallback
       .toBuffer();
 
-    //to not auslasten the server too much at a time, compress at a random time (at night), lol
-    const secondUntilEndOfTheDay = 86400 - Math.floor(new Date() / 1000) % 86400;
-    (new Promise((res) => setTimeout(() => res("time's up"), secondUntilEndOfTheDay - Math.random() * 10000000))).then(
-      async (_) => {
-        const compr_img = await sharp(orig_img)
-        .heif({ quality: 1, effort: 6, compression: 'hevc' }) //see above
-          .toBuffer();
-        await fsp.mkdir(compressed_path, { recursive: true });
-        fsp.writeFile(compressed_path + '/img.heic', compr_img)
-      })
+    //TODO: when heic/avif is supported swipswap
+    const heic_supported = false;
+    if (heic_supported) {
+      //to not auslasten the server too much at a time, compress at a random time (at night), lol
+      const secondUntilEndOfTheDay = 86400 - Math.floor(new Date() / 1000) % 86400;
+      (new Promise((res) => setTimeout(() => res("time's up"), secondUntilEndOfTheDay - Math.random() * 10000000))).then(
+        async (_) => {
+          const compr_img = await sharp(orig_img)
+            .heif({ quality: 1, effort: 6, compression: 'hevc' }) //see above
+            .toBuffer();
+          await fsp.mkdir(compressed_path, { recursive: true });
+          fsp.writeFile(compressed_path + '/img.heic', compr_img)
+        })
+    }
+    else {
+      await fsp.mkdir(compressed_path, { recursive: true });
+      fsp.writeFile(compressed_path + '/img.heic', img)
+    }
+
   }
   return img
 };
