@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:MBG_Inspektionen/notifications/controller.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -172,7 +173,9 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
-      var children = await caller.all(preloadFullImages: true).last;
+      var children = await caller
+          .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
+          .last;
       var didSucceed = await Future.wait(children.map(
         (child) async {
           if (depth == 0)
