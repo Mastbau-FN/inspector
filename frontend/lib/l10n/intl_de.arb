@@ -135,7 +135,7 @@
   "option_showdoggo": "showDoggo",
   "@option_showdoggo": {},
   "option_tryOnlineIfOfflineFailed": "probier online-Verfahren wenn es offline gescheitert ist",
-  "option_preloadFullImagesOnManualDownload": "unkomprimierte Bilder bei Download präventiv herunterladen",
+  "option_compactDownload": "kompakten Download (stark komprimierte Bilder) nutzen",
   "@option_tryOnlineIfOfflineFailed": {},
   "option_tryonlinerequestincachedmode": "probier online-Verfahren obwohl wir offline sind",
   "@option_tryonlinerequestincachedmode": {},

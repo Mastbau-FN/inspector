@@ -18,7 +18,8 @@ class Options {
   var useMobileNetworkForDownload = true;
   //
 
-  var preloadFullImagesOnManualDownload = true;
+  bool get preloadFullImagesOnManualDownload => !compactDownload;
+  bool compactDownload = false;
 
   var no_image_placeholder_name = "no_default_picture_yet";
 
@@ -44,9 +45,9 @@ class Options {
         }),
         S.current!.option_usesystemtheme: Tuple2(
             () => useSystemTheme, (bool value) => useSystemTheme = value),
-        S.current!.option_preloadFullImagesOnManualDownload:
-            Tuple2(() => preloadFullImagesOnManualDownload, (bool value) {
-          preloadFullImagesOnManualDownload = value;
+        S.current!.option_compactDownload:
+            Tuple2(() => compactDownload, (bool value) {
+          compactDownload = value;
         }),
       };
 
