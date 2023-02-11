@@ -5,4 +5,4 @@
 - 🖌️ Mängel-Schwere und Titel von Datenpunkten dank neuem id-System überarbeitbar
 - 🔼 improved UI and capabilities
 - 🛰️ upload der Daten im Hintergrund, push-Nachricht über Fortschritt
-- 🖼️ Besser Performance, denn: Bilder bekommen ein deutlich weniger ressourcenintensives Thumbnail und werden dynamisch nachgeladen
+- 🖼️ Besser Performance, denn: Bilder bekommen ein deutlich weniger ressourcenintensives Thumbnail und werden nur bei Bedarf nachgeladen
