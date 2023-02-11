@@ -39,13 +39,16 @@ const getFileFromHash = async (hash, compressed) => {
       .heif({ quality: 1, effort: 0 })
       .toBuffer();
 
-    sharp(orig_img)
-      .heif({ quality: 1, effort: 9 })
-      .toBuffer().then(async (buf) => {
+    //to not auslasten the server too much at a time, compress at a random time (at night), lol
+    const secondUntilEndOfTheDay = 86400 - Math.floor(new Date() / 1000) % 86400;
+    (new Promise((res) => setTimeout(() => res("time's up"), secondUntilEndOfTheDay - Math.random() * 10000000))).then(
+      async (_) => {
+        const compr_img = await sharp(orig_img)
+          .heif({ quality: 1, effort: 7 })
+          .toBuffer();
         await fsp.mkdir(compressed_path, { recursive: true });
-        fsp.writeFile(compressed_path + '/img.heic', img)
+        fsp.writeFile(compressed_path + '/img.heic', compr_img)
       })
-
   }
   return img
 };

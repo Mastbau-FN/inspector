@@ -3,7 +3,7 @@ services:
   node-api-server:
     user: "${UID}:${GID}"
     restart: always
-    image: node:17-alpine
+    image: node:19-buster
     working_dir: /home/node/api
  # das ist etwas whack, idealerweise würde der postgres-service ebenfalls dockerized sein dann wär das nicht nötig
     network_mode: host
@@ -13,6 +13,7 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /home/administrator/images:/home/administrator/images
+      - /home/administrator/compressed_images:/home/administrator/compressed_images
       - ${CERT_PATH}:${CERT_PATH}
 
       - .:/home/node/api
