@@ -77,7 +77,7 @@
     return API().getImageByHash(hash!, compressed: true).then((value) =&gt; value
       ?..fullImageGetter = () =&gt; API()
           .getImageByHash(hash, compressed: false)
-          .then((value) =&gt; value?.fullImage()));
+          .then((value) =&gt; value?.thumbnail));
   }
 
   if (data.mainhash != null &amp;&amp;

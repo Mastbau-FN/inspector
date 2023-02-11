@@ -112,29 +112,18 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  return ChangeNotifierProvider.value(
-    value: img,
-    child: Consumer&lt;ImageItem&gt;(builder: (_, img, __) {
-      return FutureBuilder&lt;Image?&gt;(
-          future: (img.image == null)
-              ? null
-              : ((approxWidth &gt; 100)
-                  ? img.image!.fullImage()
-                  : Future.value(img.image!.thumbnail)),
-          builder: (context, snapshot) {
-            return Container(
-              child: img.image != null ? null : img.fallBackWidget,
-              decoration: snapshot.data?.image == null
-                  ? null
-                  : BoxDecoration(
-                      image: DecorationImage(
-                        image: snapshot.data!.image,
-                        fit: fit,
-                      ),
-                    ),
-            );
-          });
-    }),
+  return AnimatedBuilder(
+    builder: (context, child) =&gt; FutureBuilder&lt;Image?&gt;(
+        future: (item.image == null)
+            ? null
+            : ((approxWidth &gt; 100)
+                ? item.image!.fullImage()
+                : Future.value(item.image!.thumbnail)),
+        builder: (context, snapshot) {
+          return (snapshot.data ?? item.image?.thumbnail)?.refit(fit) ??
+              ((snapshot.hasError) ? item.fallBackWidget : LoadingView());
+        }),
+    animation: item,
   );
 }</code></pre>
 </section>
@@ -170,7 +159,7 @@ Widget build(BuildContext context) {
           <li><a href="../../fragments_imageWrap/FittedImageContainer/approxWidth.html">approxWidth</a></li>
           <li><a href="../../fragments_imageWrap/FittedImageContainer/fit.html">fit</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/hashCode.html">hashCode</a></li>
-          <li><a href="../../fragments_imageWrap/FittedImageContainer/img.html">img</a></li>
+          <li><a href="../../fragments_imageWrap/FittedImageContainer/item.html">item</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/widgets/Widget/key.html">key</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
 
