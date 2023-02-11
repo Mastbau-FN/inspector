@@ -5,7 +5,7 @@ import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/l10n.dart';
 import '../widgets/openNewViewTile.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -21,13 +21,13 @@ class MainDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var unlimiteddoggosTile = OpenNewViewTile(
-      title: AppLocalizations.of(context)!.seeSomeDoggos,
+      title: S.of(context).seeSomeDoggos,
       icon: Icons.child_care,
       newView: RandomDogsScrollView(),
     );
 
     var settingsTile = OpenNewViewTile(
-      title: AppLocalizations.of(context)!.settings,
+      title: S.of(context).settings,
       icon: Icons.settings,
       newView: SettingsView(
         logoutcontext: context,

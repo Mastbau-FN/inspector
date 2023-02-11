@@ -15,8 +15,7 @@ class LoginModel extends ChangeNotifier {
   Future login(String? username, String? password) async {
     // current kürzel and password for testing are HH testpass
     if (username == null || password == null) {
-      throw Exception(
-          AppLocalizations.of(context)!.usernameOrPasswordWasNotGiven);
+      throw Exception(S.current.usernameOrPasswordWasNotGiven);
     }
 
     var res = await API().login(User(username, password));

@@ -1,4 +1,4 @@
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/namedToggle.dart';
@@ -11,8 +11,7 @@ class DeveloperSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: Text(AppLocalizations.of(context)!.developerOptions)),
+      appBar: AppBar(title: Text(S.of(context).developerOptions)),
       body: ListView(
         children: [
           MyCardListTile1(

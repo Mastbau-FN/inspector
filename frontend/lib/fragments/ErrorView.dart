@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/l10n.dart';
 
 class ErrorView extends StatelessWidget {
   final Object? err;
@@ -11,8 +11,8 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       child: Scaffold(
-          body: ErrorText(err?.toString() ??
-              AppLocalizations.of(context)!.anUnknownErrorOccured)),
+          body: ErrorText(
+              err?.toString() ?? S.of(context).anUnknownErrorOccured)),
     );
   }
 }

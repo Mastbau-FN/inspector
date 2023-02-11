@@ -1,7 +1,7 @@
 // ignore_for_file: unused_element
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:MBG_Inspektionen/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 abstract class ExpandablesRadio extends StatelessWidget {
@@ -44,10 +44,10 @@ class ExpandableCard2 extends ExpandablesRadio {
     Key? key,
   }) : this.key = key ?? UniqueKey();
 
-  factory ExpandableCard2.fake({required BuildContext context, Color? color}) {
+  factory ExpandableCard2.fake({Color? color}) {
     return ExpandableCard2._(
       opacity: 0.4,
-      title: AppLocalizations.of(context)!.loading,
+      title: S.current.loading,
       color: color,
     );
   }
@@ -142,11 +142,10 @@ class ExpandablesListRadio extends StatelessWidget {
   const ExpandablesListRadio({this.children = const [], Key? key})
       : super(key: key);
 
-  factory ExpandablesListRadio.fake(int amount,
-      {Color? color, required BuildContext context}) {
+  factory ExpandablesListRadio.fake(int amount, {Color? color}) {
     return ExpandablesListRadio(
-      children: List.generate(
-          amount, (i) => ExpandableCard2.fake(color: color, context: context)),
+      children:
+          List.generate(amount, (i) => ExpandableCard2.fake(color: color)),
     );
   }
 

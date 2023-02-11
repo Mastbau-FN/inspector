@@ -17,7 +17,7 @@ import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/l10n.dart';
 import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation, Null> {
@@ -97,25 +97,25 @@ class LocationDetailPage extends StatelessWidget {
             Container(height: 20),
             _mgauftr(),
             Container(height: 20),
-            _weatherBlock(context),
+            _weatherBlock,
             Container(height: 20),
-            _additionalInfo(context),
+            _additionalInfo,
             Container(height: 20),
             _standort(),
           ],
         ),
       ));
 
-  Widget _additionalInfo(BuildContext context) => Padding(
+  Widget get _additionalInfo => Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             EditableText(
-              label: AppLocalizations.of(context)!.localtionOwner,
+              label: S.current.localtionOwner,
               text: locationdata.eigentuemer,
               onChanged: (val) {
                 locationdata.eigentuemer = val;
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               },
             ),
             //Divider(),
@@ -123,16 +123,16 @@ class LocationDetailPage extends StatelessWidget {
             //Issue-236
             Divider(),
             EditableText(
-              label: AppLocalizations.of(context)!.locationWayUp,
+              label: S.current.locationWayUp,
               text: locationdata.steigwegtyp,
               onChanged: (val) {
                 locationdata.steigwegtyp = val;
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               },
             ),
             Divider(),
             // EditableText(
-            //   label: AppLocalizations.of(context)!.locationAbschaltung,
+            //   label: S.current.locationAbschaltung,
             //   text: locationdata.abschaltungen,
             //   onChanged: (val) {
             //     locationdata.abschaltungen = val;
@@ -141,7 +141,7 @@ class LocationDetailPage extends StatelessWidget {
             // ),
             // Divider(),
             // EditableText(
-            //   label: AppLocalizations.of(context)!.locationSteigschutzKey,
+            //   label: S.current.locationSteigschutzKey,
             //   text: locationdata.steigschutzschluessel,
             //   onChanged: (val) {
             //     locationdata.steigschutzschluessel = val;
@@ -152,7 +152,7 @@ class LocationDetailPage extends StatelessWidget {
             // Issue 235 Felder wieder entfernt, da sie nicht mehr benötigt werden
             EditableText(
               keyboardType: TextInputType.numberWithOptions(decimal: false),
-              label: AppLocalizations.of(context)!.locationHeight,
+              label: S.current.locationHeight,
               text: locationdata.bauwerkhoehe.toString(),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(
@@ -161,17 +161,17 @@ class LocationDetailPage extends StatelessWidget {
               onChanged: (val) {
                 locationdata.bauwerkhoehe =
                     double.parse(val.replaceAll(r',', '.'));
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               },
             ),
             Divider(),
             EditableText(
               keyboardType: TextInputType.number,
-              label: AppLocalizations.of(context)!.locationYearOfBuild,
+              label: S.current.locationYearOfBuild,
               text: locationdata.baujahr.toString(),
               onChanged: (val) {
                 locationdata.baujahr = int.tryParse(val);
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               },
             ),
             Divider(),
@@ -179,23 +179,22 @@ class LocationDetailPage extends StatelessWidget {
             //Divider(),
             //Issue 235 Felder wieder entfernt, da sie nicht mehr benötigt werden
             NamedNulleableBoolToggle(
-              label: AppLocalizations.of(context)!.locationHasWCLabel,
+              label: S.current.locationHasWCLabel,
               isSelected: locationdata.has_wc,
               onSelected: (val) {
                 locationdata.has_wc = val;
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               },
             ),
             Divider(),
-            _SteckDosen(locationdata,
-                updateData: (e) => updateData(e, context: context)),
+            _SteckDosen(locationdata, updateData: updateData),
             Divider(),
             NamedNulleableBoolToggle(
-              label: AppLocalizations.of(context)!.locationHasStorageSpaceLabel,
+              label: S.current.locationHasStorageSpaceLabel,
               isSelected: locationdata.has_lagerraeume,
               onSelected: (val) {
                 locationdata.has_lagerraeume = val;
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               },
             ),
             Divider(),
@@ -203,10 +202,9 @@ class LocationDetailPage extends StatelessWidget {
         ),
       );
 
-  Future<String?> updateData(InspectionLocation loc,
-      {required BuildContext context}) async {
+  Future<String?> updateData(InspectionLocation loc) async {
     var val = await API().update(loc, forceUpdate: true);
-    _maybeShowToast(AppLocalizations.of(context)!.updateSuccessful + ": $val");
+    _maybeShowToast(S.current.updateSuccessful + ": $val");
     return val;
   }
 
@@ -245,7 +243,7 @@ class LocationDetailPage extends StatelessWidget {
         ],
       );
 
-  Widget _weatherBlock(BuildContext context) => Column(
+  Widget get _weatherBlock => Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Divider(),
@@ -253,7 +251,7 @@ class LocationDetailPage extends StatelessWidget {
               weatherData: locationdata.weatherData,
               onChanged: (newweather) {
                 locationdata.weatherData = newweather;
-                updateData(locationdata, context: context);
+                updateData(locationdata);
               }),
           Divider(),
         ],
@@ -493,7 +491,7 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 //     return Column(
 //       children: [
 //         NamedNulleableBoolToggle(
-//           label: AppLocalizations.of(context)!.locationASPRequieredLabel,
+//           label: S.current.locationASPRequieredLabel,
 //           isSelected: locationdata.asp_required,
 //           onSelected: (val) {
 //             locationdata.asp_required = val;
@@ -505,7 +503,7 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 //         ),
 //         if (isOn ?? false)
 //           EditableText(
-//             label: AppLocalizations.of(context)!.locationASPLabel,
+//             label: S.current.locationASPLabel,
 //             text: locationdata.ansprechpartner,
 //             onChanged: (val) {
 //               locationdata.ansprechpartner = val;
@@ -542,7 +540,7 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 //       children: [
 //         NamedNulleableBoolToggle(
 //           isSelected: locationdata.needs_schluessel,
-//           label: AppLocalizations.of(context)!.locationRequiresKeyLabel,
+//           label: S.current.locationRequiresKeyLabel,
 //           onSelected: (val) {
 //             locationdata.needs_schluessel = val;
 //             widget.updateData(locationdata);
@@ -553,7 +551,7 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 //         ),
 //         if (isOn ?? true)
 //           EditableText(
-//             label: AppLocalizations.of(context)!.locationKeyAddintionalInfoLabel,
+//             label: S.current.locationKeyAddintionalInfoLabel,
 //             text: locationdata.schluessel_description,
 //             onChanged: (val) {
 //               locationdata.schluessel_description = val;
@@ -590,7 +588,7 @@ class __SteckDosenState extends State<_SteckDosen> {
     return Column(
       children: [
         NamedNulleableBoolToggle(
-          label: AppLocalizations.of(context)!.locationHasSteckdosenLabel,
+          label: S.current.locationHasSteckdosenLabel,
           isSelected: locationdata.has_steckdosen,
           onSelected: (val) {
             locationdata.has_steckdosen = val;
@@ -602,8 +600,7 @@ class __SteckDosenState extends State<_SteckDosen> {
         ),
         if (isOn ?? false)
           EditableText(
-            label: AppLocalizations.of(context)!
-                .locationAdditionalInfoSteckdosenLabel,
+            label: S.current.locationAdditionalInfoSteckdosenLabel,
             text: locationdata.steckdosen_description,
             onChanged: (val) {
               locationdata.steckdosen_description = val;

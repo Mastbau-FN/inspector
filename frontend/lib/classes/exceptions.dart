@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/l10n.dart';
 
 class NoConnectionToBackendException extends BackendCommunicationException {
   @override
@@ -22,11 +22,11 @@ class ResponseException implements Exception {
       try {
         error = jsonDecode(res!.body)['error'];
       } catch (e) {
-        AppLocalizations.of(context)!.theBodyHadNoErrorField;
+        S.current.theBodyHadNoErrorField;
       }
       return '${res?.statusCode}: $error';
     }
-    return AppLocalizations.of(context)!.noResponse;
+    return S.current.noResponse;
   }
 
   ResponseException(this.res);
@@ -38,9 +38,7 @@ class BackendCommunicationException implements Exception {
   String? cause;
   @override
   String toString() {
-    return cause ??
-        AppLocalizations.of(context)!
-            .somethingWentWrongWhileCommunicatingWithTheApi;
+    return cause ?? S.current.somethingWentWrongWhileCommunicatingWithTheApi;
   }
 
   BackendCommunicationException(this.cause);

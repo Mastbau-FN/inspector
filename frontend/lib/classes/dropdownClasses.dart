@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../backend/offlineProvider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/l10n.dart';
 import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
@@ -199,7 +199,7 @@ class DropDownModel<ChildData extends WithLangText,
   void update(ChildData data, {String? langText}) async {
     if (langText != null) data.langText = langText;
     _maybeShowToast(await API().update(data, caller: currentData) ??
-        AppLocalizations.of(context)!.didntGetAnyResponseAfterSend);
+        S.current.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
 
@@ -223,7 +223,7 @@ class DropDownModel<ChildData extends WithLangText,
 
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)
-  Widget? floatingActionButton() => null;
+  Widget? floatingActionButton;
 
   @override
   DropDownModel<WithLangText, WithOffline> generateNextModel(ChildData data) {
@@ -278,8 +278,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           ...?((snapshot.data ?? data)?.imageFutures)
                         ],
                         onNewImages: (files) async {
-                          showToast(AppLocalizations.of(context)!
-                              .newImageSendingThisMayTakeASec);
+                          showToast(
+                              S.of(context).newImageSendingThisMayTakeASec);
                           var value = await model.updateCurrentChild(
                             (data) async {
                               var ret = await API().uploadNewImagesOrFiles(
@@ -294,8 +294,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           return value;
                         },
                         onStar: (hash) {
-                          showToast(AppLocalizations.of(context)!
-                              .settingMainImageThisMayTakeASec);
+                          showToast(
+                              S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => API()
                                   .setMainImageByHash(data, hash.toString(),
@@ -307,8 +307,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           });
                         },
                         onDelete: (hash) {
-                          showToast(AppLocalizations.of(context)!
-                              .deletingImageThisMayTakeASec);
+                          showToast(S.of(context).deletingImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => API()
                                   .deleteImageByHash(data, hash.toString(),
@@ -340,8 +339,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)
                         Card(
-                          child: Text(AppLocalizations.of(context)!
-                              .pleaseWaitDataIsBeeingSynced),
+                          child:
+                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
                         ),
                     ],
                   );

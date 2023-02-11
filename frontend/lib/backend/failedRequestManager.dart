@@ -10,7 +10,7 @@ import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../generated/l10n.dart';
 import '../helpers/background.dart' as BG;
 import '../helpers/toast.dart';
 import '../pages/checkcategories.dart';
@@ -116,14 +116,13 @@ class FailedRequestmanager {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
-      showToast(AppLocalizations.of(context)!.noViableInternetConnection);
+      showToast(S.current.noViableInternetConnection);
       return false;
     }
 
     bool notificationsAllowed = await allowNotificationGuard(
       context,
-      AppLocalizations.of(context)!
-          .weCanSendYouANotificationAboutTheSyncProgress,
+      S.of(context).weCanSendYouANotificationAboutTheSyncProgress,
     );
 
     bool success = false;
@@ -202,9 +201,7 @@ class FailedRequestmanager {
       return success;
     } catch (error) {
       debugPrint('failed! ${depth + 1}');
-      showToast(error.toString() +
-          "\n" +
-          AppLocalizations.of(context)!.tryAgainLater_noNetwork);
+      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
       return false; //failed
     }
   }

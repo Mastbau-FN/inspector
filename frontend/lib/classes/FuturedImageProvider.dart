@@ -59,12 +59,6 @@ class FuturedImageProvider implements ImageProvider {
     // TODO: implement loadBuffer
     return _imageStream!.completer!;
   }
-
-  @override
-  ImageStreamCompleter loadImage(Object key, ImageDecoderCallback decode) {
-    // TODO: implement loadImage
-    return _imageStream!.completer!;
-  }
 }
 
 // class _FutureImageStreamCompleter implements ImageStreamCompleter {

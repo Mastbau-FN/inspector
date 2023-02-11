@@ -27,13 +27,13 @@ Future main() async {
 
   try {
     await integrationDriver(
-        // onScreenshot: (String screenshotName, List<int> screenshotBytes) async {
-        //   final File image = await File('screenshots/$screenshotName.png')
-        //       .create(recursive: true);
-        //   image.writeAsBytesSync(screenshotBytes);
-        //   return true;
-        // },
-        );
+      onScreenshot: (String screenshotName, List<int> screenshotBytes) async {
+        final File image = await File('screenshots/$screenshotName.png')
+            .create(recursive: true);
+        image.writeAsBytesSync(screenshotBytes);
+        return true;
+      },
+    );
   } catch (e) {
     print('Error occured: $e');
   }

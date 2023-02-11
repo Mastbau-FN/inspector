@@ -145,8 +145,7 @@ class _LoginFieldState extends State<LoginField> {
     if (_formKey.currentState!.validate()) {
       final controller = ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(AppLocalizations.of(context)!
-                .loginCredentialsAreBeeingVerified)),
+            content: Text(S.of(context).loginCredentialsAreBeeingVerified)),
       );
       try {
         _formKey.currentState!.save();
@@ -236,14 +235,13 @@ class _LoginFieldState extends State<LoginField> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!
-                            .loginErrorPleaseEnterUserName;
+                        return S.of(context).loginErrorPleaseEnterUserName;
                       }
                       return null;
                     },
                     autofocus: widget.autofocus,
                     decoration: fieldDecoration(context,
-                        name: AppLocalizations.of(context)!.loginUsername),
+                        name: S.of(context).loginUsername),
                     textInputAction: TextInputAction.next,
                   ),
                 ),
@@ -255,8 +253,7 @@ class _LoginFieldState extends State<LoginField> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppLocalizations.of(context)!
-                            .loginErrorPleaseEnterPassword;
+                        return S.of(context).loginErrorPleaseEnterPassword;
                       }
                       return null;
                     },
@@ -264,7 +261,7 @@ class _LoginFieldState extends State<LoginField> {
                     enableSuggestions: false,
                     autocorrect: false,
                     decoration: fieldDecoration(context,
-                        name: AppLocalizations.of(context)!.loginLabelPassword),
+                        name: S.of(context).loginLabelPassword),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => logmein(context),
                   ),
@@ -273,7 +270,7 @@ class _LoginFieldState extends State<LoginField> {
                   onPressed: () {
                     logmein(context);
                   },
-                  child: Text(AppLocalizations.of(context)!.loginButton),
+                  child: Text(S.of(context).loginButton),
                 ),
               ],
             ),
