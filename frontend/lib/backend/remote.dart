@@ -2,14 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
 import 'package:MBG_Inspektionen/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
@@ -79,7 +81,7 @@ class Remote {
       )); ////logIfFailed: false));
     } catch (e) {
       throw NoConnectionToBackendException(
-          S.current.couldntReach + " $_baseurl");
+          S.current!.couldntReach + " $_baseurl");
     }
   }
 
@@ -182,11 +184,13 @@ class Remote {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash) {
+  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
+      {bool compressed = false}) {
     final rd = RequestData(
       _getImageFromHash_r,
       json: {
         'hash': hash,
+        'compressed': compressed,
       },
       returnsBinary: true,
     );
@@ -197,9 +201,12 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeImage(res.bodyBytes, hash);
+          await API().local.storeImage(res.bodyBytes,
+              compressed ? OP.convertToCompressedHashName(hash) : hash);
           return ImageData(
-            (await API().local.readImage(hash))!,
+            (await API().local.readImage(
+                compressed ? OP.convertToCompressedHashName(hash) : hash,
+                cacheSize: compressed ? CACHESIZE : null))!,
             id: hash,
           );
         } catch (e) {
@@ -213,13 +220,13 @@ class Remote {
 
   Future<DataT?> Function(Map<String, dynamic>)
       _generateImageFetcher<DataT extends Data>(
-    DataT? Function(Map<String, dynamic>) jsoner,
-  ) {
+          DataT? Function(Map<String, dynamic>) jsoner,
+          {bool preloadFullImages = false}) {
     // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      return injectImages(data);
+      return injectImages(data, preloadFull: preloadFullImages);
     };
   }
 
@@ -231,6 +238,7 @@ class Remote {
     required String route,
     required String jsonResponseID,
     Map<String, dynamic>? json,
+    preloadFullImages = false,
     required ChildData? Function(Map<String, dynamic>) fromJson,
   }) {
     final rd = RequestData(
@@ -242,7 +250,7 @@ class Remote {
 
     Future<List<ChildData>> parser(http.Response? res) {
       Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
-          _generateImageFetcher(fromJson);
+          _generateImageFetcher(fromJson, preloadFullImages: preloadFullImages);
       Future<List<ChildData>> __parse(__json) => getListFromJson(
             __json,
             imageFetcher,
@@ -276,7 +284,7 @@ class Remote {
 
       if (res != null && res.statusCode ~/ 100 != 2) {
         _maybeShowToast(
-            "${S.current.anUnknownErrorOccured}, ${res.statusCode}: ${res.reasonPhrase}");
+            "${S.current!.anUnknownErrorOccured}, ${res.statusCode}: ${res.reasonPhrase}");
       }
       return res;
     }
@@ -314,15 +322,18 @@ class Remote {
   /// if no [ParentData] is given it defaults to root
   RequestAndParser<http.Response, List<ChildData>>
       getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
-    ParentData data,
-  ) {
+    ParentData data, {
+    preloadFullImages = false,
+  }) {
     final childTypeStr = Helper.getIdentifierFromData<ChildData>(null);
     if (childTypeStr == null) throw Exception('type not supported');
     return _getAllForNextLevel(
-        route: routesFromData<ChildData>(null),
-        jsonResponseID: childTypeStr + 's',
-        json: data?.toSmallJson(),
-        fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json));
+      route: routesFromData<ChildData>(null),
+      jsonResponseID: childTypeStr + 's',
+      json: data?.toSmallJson(),
+      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      preloadFullImages: preloadFullImages,
+    );
   }
 
   /// sets a new [DataT]
@@ -450,7 +461,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
     debugPrint(
         'could not parse response: ' + e.toString() + '<--' + jsonEncode(json));
     throw BackendCommunicationException(
-        S.current.couldNotParseResponse + jsonEncode(json));
+        S.current!.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
 }

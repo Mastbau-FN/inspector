@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../backend/offlineProvider.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
@@ -116,7 +116,7 @@ class DropDownModel<ChildData extends WithLangText,
       {int? remainingTries}) async* {
     // int reloadTries = (remainingTries ?? Options().reloadTries) - 1;
     debugPrint('getting $currentlyChosenChildId');
-    await for (var a in all) {
+    await for (var a in all()) {
       if (currentlyChosenChildId == null) yield null;
 
       try {
@@ -186,9 +186,11 @@ class DropDownModel<ChildData extends WithLangText,
   bool get isOffline => currentData?.forceOffline ?? false;
 
   /// returns a [List] of all the [Data] for this Model
-  Stream<List<ChildData>> get all => API().getNextDatapoint<ChildData,
-          ParentData>(
-      currentData); //TO/DO: not use last, but buffer latest element somehow if even possible?
+  Stream<List<ChildData>> all({bool preloadFullImages = false}) =>
+      API().getNextDatapoint<ChildData, ParentData>(
+        currentData,
+        preloadFullImages: preloadFullImages,
+      );
 
   /// a [List] which all the actions that could be made for a specific DropDown
   List<MyListTileData> get actions {
@@ -199,7 +201,7 @@ class DropDownModel<ChildData extends WithLangText,
   void update(ChildData data, {String? langText}) async {
     if (langText != null) data.langText = langText;
     _maybeShowToast(await API().update(data, caller: currentData) ??
-        S.current.didntGetAnyResponseAfterSend);
+        S.current!.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
 

@@ -43,6 +43,7 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: Container(
         decoration: widget.backgroundDecoration,
         constraints: BoxConstraints.expand(
@@ -89,8 +90,8 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
             maxScale: PhotoViewComputedScale.covered * 4.1,
             heroAttributes: PhotoViewHeroAttributes(tag: item.tag),
           )
-        : PhotoViewGalleryPageOptions(
-            imageProvider: item.image,
+        : PhotoViewGalleryPageOptions.customChild(
+            child: FullImg(img: item.image!),
             initialScale: PhotoViewComputedScale.contained,
             minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
             maxScale: PhotoViewComputedScale.covered * 4.1,
@@ -99,32 +100,36 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   }
 }
 
+class FullImg extends StatelessWidget {
+  final ImageData img;
+  const FullImg({super.key, required this.img});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: img.fullImage(),
+        builder: (context, AsyncSnapshot<Image?> snapshot) => (snapshot.hasData)
+            ? snapshot.data!
+            : Stack(
+                alignment: Alignment.center,
+                children: [
+                  img.thumbnail,
+                  const LoadingView(),
+                ],
+              ));
+  }
+}
+
 class ImageItem<T extends Object> with ChangeNotifier {
   Widget fallBackWidget;
-  ImageProvider? image;
+  ImageData? image;
   Object tag;
-  @deprecated
-  /* const */ ImageItem.fromImage(Image? image,
-      {required this.tag,
-      this.fallBackWidget =
-          const Center(child: const Icon(Icons.report_problem))})
-      : this.image = image?.image;
 
   /* const */ ImageItem.fromImageData(ImageData<T>? imaged,
       {this.fallBackWidget =
           const Center(child: const Icon(Icons.report_problem))})
-      : this.image = imaged?.image.image,
+      : this.image = imaged,
         this.tag = imaged?.id ?? UniqueKey();
-
-  @deprecated
-  ImageItem.fromFutureImage(Future<Image?> image,
-      {required this.tag, this.fallBackWidget = const LoadingView()}) {
-    image.then((value) {
-      this.image = value?.image;
-      this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
-      notifyListeners();
-    });
-  }
 
   ImageItem.fromFutureImageData(
     Future<ImageData<T>?> image, {
@@ -132,7 +137,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
   })  : this.tag = UniqueKey(),
         this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
     image.then((value) {
-      this.image = value?.image.image;
+      this.image = value;
       if (value != null) this.tag = value.id;
       // debugPrint(this.tag.toString());
       notifyListeners();
@@ -145,7 +150,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
   })  : this.tag = UniqueKey(),
         this.fallBackWidget = const LoadingView() {
     image.forEach((value) {
-      this.image = value?.image.image;
+      this.image = value;
       if (value != null)
         this.tag = value.id;
       else

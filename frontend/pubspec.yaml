@@ -15,11 +15,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.2.2+52
+version: 1.2.3+53
 
 environment:
   sdk: ">=2.17.0"
-  flutter: ^3.1.0
+  flutter: ">=3.1.0"
 
 dependencies:
 
@@ -92,12 +92,15 @@ dependencies:
   http: ^0.13.3
 
   # show push notifications (progress on retryfailedrequests)
-  awesome_notifications: any
+  awesome_notifications: ">=0.7.1"
+    # git: https://github.com/HannesGitH/awesome_notifications.git #intl 0.18.0
+
 
   flutter:
     sdk: flutter
-  flutter_localizations: # Add this line
+  flutter_localizations:
     sdk: flutter
+  intl: any
 
   # to pass variables from a .env file (e.g. used for secrets like API-Key)
   envied: ^0.3.0
@@ -126,7 +129,7 @@ dev_dependencies:
   # for unit test mocking (see https://flutter.dev/docs/cookbook/testing/unit/mocking)
   mockito: ^5.0.0
   build_runner: ^2.0.6
-  intl_utils: ^2.6.0
+  # intl_utils: ^2.0.0
 
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
   flutter_launcher_icons: ^0.10.0
@@ -179,6 +182,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  generate: true
+
+
 flutter_intl:
   enabled: true
 dependency_overrides:

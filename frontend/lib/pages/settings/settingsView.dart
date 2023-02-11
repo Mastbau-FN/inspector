@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
-import '../../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../../widgets/openNewViewTile.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
@@ -18,7 +18,7 @@ class SettingsView extends StatelessWidget {
 
   Widget get developerOptions => OpenNewViewTile(
         icon: Icons.developer_mode,
-        title: S.current.developerOptions,
+        title: S.current!.developerOptions,
         newView: DeveloperSettings(),
         // onPop: (_) {
         //   Options().store();

@@ -6,7 +6,7 @@ import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +23,11 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final bool hasMainImage;
 
   static Future<String?> _defaultAdd(List<XFile> list) async {
-    showToast(S.current.notAvailable);
+    showToast(S.current!.notAvailable);
     return "";
   }
 
-  static _default(Object _) => showToast(S.current.notAvailable);
+  static _default(Object _) => showToast(S.current!.notAvailable);
 
   // static _defaultDelete(Object id) async {
   //   try {

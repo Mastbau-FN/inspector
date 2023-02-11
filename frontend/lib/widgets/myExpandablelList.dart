@@ -1,7 +1,7 @@
 // ignore_for_file: unused_element
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:flutter/material.dart';
 
 abstract class ExpandablesRadio extends StatelessWidget {
@@ -47,7 +47,7 @@ class ExpandableCard2 extends ExpandablesRadio {
   factory ExpandableCard2.fake({Color? color}) {
     return ExpandableCard2._(
       opacity: 0.4,
-      title: S.current.loading,
+      title: S.current!.loading,
       color: color,
     );
   }
@@ -76,7 +76,7 @@ class ExpandableCard2 extends ExpandablesRadio {
               child: FutureBuilder<ImageData?>(
                   future: previewImg,
                   builder: (context, snapshot) {
-                    var imagep = snapshot.data?.image.image;
+                    var imagep = snapshot.data?.thumbnail.image;
                     return (imagep != null
                             ? Image(image: imagep, fit: BoxFit.fill)
                             : null) ??

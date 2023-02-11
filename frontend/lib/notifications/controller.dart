@@ -2,7 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../main.dart';
 import '../theme.dart';
 

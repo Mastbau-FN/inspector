@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:MBG_Inspektionen/notifications/controller.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +11,7 @@ import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../helpers/background.dart' as BG;
 import '../helpers/toast.dart';
 import '../pages/checkcategories.dart';
@@ -52,7 +53,6 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           notificationLayout: NotificationLayout.ProgressBar,
           progress: (i / total * 100).round(),
           // locked: true,
-          actionType: ActionType.SilentBackgroundAction,
         ),
       );
     }
@@ -116,7 +116,7 @@ class FailedRequestmanager {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
-      showToast(S.current.noViableInternetConnection);
+      showToast(S.current!.noViableInternetConnection);
       return false;
     }
 
@@ -173,7 +173,9 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
-      var children = await caller.all.last;
+      var children = await caller
+          .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
+          .last;
       var didSucceed = await Future.wait(children.map(
         (child) async {
           if (depth == 0)
@@ -201,7 +203,7 @@ class FailedRequestmanager {
       return success;
     } catch (error) {
       debugPrint('failed! ${depth + 1}');
-      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+      showToast(error.toString() + "\n" + S.current!.tryAgainLater_noNetwork);
       return false; //failed
     }
   }
@@ -209,7 +211,7 @@ class FailedRequestmanager {
   ///this is used to remove all no-cloud icons from every datapoint aka set every [forceOffline] of [WithOffline] [Data]s
   setOnlineTotal(BuildContext context) async {
     final model = Provider.of<LocationModel>(context, listen: false);
-    final locations = await model.all.last;
+    final locations = await model.all().last;
     for (final loc in locations) {
       final caller = CategoryModel(loc);
       await setOnlineAll(
@@ -233,7 +235,7 @@ class FailedRequestmanager {
     // base-case: CheckPointDefects have no children
     if (depth == 0) return true;
     depth--;
-    var children = await caller.all.last;
+    var children = await caller.all().last;
     caller.currentData.forceOffline = false;
     if (parentID != null)
       API().local.storeData(caller.currentData, forId: parentID);

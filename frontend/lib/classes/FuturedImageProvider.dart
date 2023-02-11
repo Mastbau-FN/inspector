@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class FuturedImageProvider implements ImageProvider {
@@ -57,6 +59,13 @@ class FuturedImageProvider implements ImageProvider {
   @override
   ImageStreamCompleter loadBuffer(Object key, DecoderBufferCallback decode) {
     // TODO: implement loadBuffer
+    return _imageStream!.completer!;
+  }
+
+  // ignore: override_on_non_overriding_member
+  @override
+  ImageStreamCompleter loadImage(Object key, ImageDecoderCallback decode) {
+    // TODO: implement loadImage
     return _imageStream!.completer!;
   }
 }

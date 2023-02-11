@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
@@ -16,6 +16,8 @@ import './helpers.dart' as Helper;
 import 'api.dart';
 
 const LOCALLY_ADDED_PREFIX = '__locally_added__';
+
+const CACHESIZE = 128;
 
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
@@ -123,8 +125,10 @@ class LocalMirror {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> getImageByHash(String hash) async {
-    final img = await readImage(hash);
+  Future<ImageData?> getImageByHash(String hash,
+      {bool compressed = false}) async {
+    if (compressed) hash = OP.convertToCompressedHashName(hash);
+    final img = await readImage(hash, cacheSize: compressed ? CACHESIZE : null);
     if (img == null) throw Exception("no img cached");
     // return null;
 
@@ -228,7 +232,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
     debugPrint(
         'could not parse response: ' + e.toString() + '<--' + jsonEncode(json));
     throw BackendCommunicationException(
-        S.current.couldNotParseResponse + jsonEncode(json));
+        S.current!.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
 }
