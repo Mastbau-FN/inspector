@@ -1,7 +1,7 @@
 config_version: 1.0 # Required. Only 1.0 available
 project_id: 38d9854e-655e-4c0d-9c2a-1bc399cf2fac # Required. Your project ID from: https://app.localizely.com/projects
 file_type: flutter_arb # Required. Available values : android_xml, ios_strings, ios_stringsdict, java_properties, rails_yaml, angular_xlf, flutter_arb, dotnet_resx, po, pot, json, csv, xlsx
-branch: staging # Optional. Your branch in Localizely project to sync files with.
+# branch: staging # Optional. Your branch in Localizely project to sync files with.
 upload: # Required.
   files: # Required. List of files for upload to Localizely. Usually, it is just one file used for the main locale
     - file: lib/l10n/intl_de.arb # Required. Path to the translation file
