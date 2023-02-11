@@ -89,7 +89,7 @@ class _DropDownBodyState<
 
   @override
   void didChangeDependencies() {
-    _future = Provider.of<DDModel>(context, listen: false).all.last;
+    _future = Provider.of<DDModel>(context, listen: false).all().last;
     super.didChangeDependencies();
   }
 
@@ -97,7 +97,7 @@ class _DropDownBodyState<
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
       return FutureBuilder<List<ChildData>>(
-        future: ddmodel.all.last,
+        future: ddmodel.all().last,
         builder: (context, snapshot) => RefreshIndicator(
           onRefresh: _refresh,
           child: _list(snapshot, context),
@@ -113,7 +113,7 @@ class _DropDownBodyState<
   }
 
   Stream<bool> __refresh() async* {
-    await for (var _ in Provider.of<DDModel>(context, listen: false).all) {
+    await for (var _ in Provider.of<DDModel>(context, listen: false).all()) {
       setState(() {
         // _future = Future.value(freshall);
       });

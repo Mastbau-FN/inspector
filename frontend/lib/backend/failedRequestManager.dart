@@ -172,7 +172,7 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
-      var children = await caller.all.last;
+      var children = await caller.all(preloadFullImages: true).last;
       var didSucceed = await Future.wait(children.map(
         (child) async {
           if (depth == 0)
@@ -208,7 +208,7 @@ class FailedRequestmanager {
   ///this is used to remove all no-cloud icons from every datapoint aka set every [forceOffline] of [WithOffline] [Data]s
   setOnlineTotal(BuildContext context) async {
     final model = Provider.of<LocationModel>(context, listen: false);
-    final locations = await model.all.last;
+    final locations = await model.all().last;
     for (final loc in locations) {
       final caller = CategoryModel(loc);
       await setOnlineAll(
@@ -232,7 +232,7 @@ class FailedRequestmanager {
     // base-case: CheckPointDefects have no children
     if (depth == 0) return true;
     depth--;
-    var children = await caller.all.last;
+    var children = await caller.all().last;
     caller.currentData.forceOffline = false;
     if (parentID != null)
       API().local.storeData(caller.currentData, forId: parentID);

@@ -234,8 +234,9 @@ class API {
   /// if no [ParentData] is given it defaults to root
   Stream<List<ChildData>>
       getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
-    ParentData data,
-  ) async* {
+    ParentData data, {
+    bool preloadFullImages = false,
+  }) async* {
     final requestType = Helper.SimulatedRequestType.GET;
     assert((await API().user) != null,
         S.current!.wontFetchAnythingSinceNoOneIsLoggedIn);
@@ -257,7 +258,8 @@ class API {
     yield* _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.getNextDatapoint(data),
-      online: () => remote.getNextDatapoint(data),
+      online: () =>
+          remote.getNextDatapoint(data, preloadFullImages: preloadFullImages),
       onlineSuccessCB: (childDatas) => childDatas.forEach((childData) async {
         await local.storeData(
           childData,
@@ -441,7 +443,7 @@ class API {
   }
 }
 
-D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = true}) {
+D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {
     if (preloadFull) API().getImageByHash(hash!, compressed: false);
     return API().getImageByHash(hash!, compressed: true).then((value) => value

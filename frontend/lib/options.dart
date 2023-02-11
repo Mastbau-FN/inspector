@@ -18,6 +18,8 @@ class Options {
   var useMobileNetworkForDownload = true;
   //
 
+  var preloadFullImagesOnManualDownload = true;
+
   var no_image_placeholder_name = "no_default_picture_yet";
 
   var useSystemTheme = false;
@@ -42,6 +44,10 @@ class Options {
         }),
         S.current!.option_usesystemtheme: Tuple2(
             () => useSystemTheme, (bool value) => useSystemTheme = value),
+        S.current!.option_preloadFullImagesOnManualDownload:
+            Tuple2(() => preloadFullImagesOnManualDownload, (bool value) {
+          preloadFullImagesOnManualDownload = value;
+        }),
       };
 
   static final String _id = '__options__';

@@ -2,7 +2,6 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 
-import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
@@ -287,9 +286,11 @@ class FittedImageContainer extends StatelessWidget {
       value: img,
       child: Consumer<ImageItem>(builder: (_, img, __) {
         return FutureBuilder<Image?>(
-            future: (approxWidth > 100)
-                ? img.image!.fullImage()
-                : Future.value(img.image!.thumbnail),
+            future: (img.image == null)
+                ? null
+                : ((approxWidth > 100)
+                    ? img.image!.fullImage()
+                    : Future.value(img.image!.thumbnail)),
             builder: (context, snapshot) {
               return Container(
                 child: img.image != null ? null : img.fallBackWidget,

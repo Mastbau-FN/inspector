@@ -116,7 +116,7 @@ class DropDownModel<ChildData extends WithLangText,
       {int? remainingTries}) async* {
     // int reloadTries = (remainingTries ?? Options().reloadTries) - 1;
     debugPrint('getting $currentlyChosenChildId');
-    await for (var a in all) {
+    await for (var a in all()) {
       if (currentlyChosenChildId == null) yield null;
 
       try {
@@ -186,9 +186,11 @@ class DropDownModel<ChildData extends WithLangText,
   bool get isOffline => currentData?.forceOffline ?? false;
 
   /// returns a [List] of all the [Data] for this Model
-  Stream<List<ChildData>> get all => API().getNextDatapoint<ChildData,
-          ParentData>(
-      currentData); //TO/DO: not use last, but buffer latest element somehow if even possible?
+  Stream<List<ChildData>> all({bool preloadFullImages = false}) =>
+      API().getNextDatapoint<ChildData, ParentData>(
+        currentData,
+        preloadFullImages: preloadFullImages,
+      );
 
   /// a [List] which all the actions that could be made for a specific DropDown
   List<MyListTileData> get actions {

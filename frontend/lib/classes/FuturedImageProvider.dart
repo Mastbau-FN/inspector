@@ -62,6 +62,7 @@ class FuturedImageProvider implements ImageProvider {
     return _imageStream!.completer!;
   }
 
+  // ignore: override_on_non_overriding_member
   @override
   ImageStreamCompleter loadImage(Object key, ImageDecoderCallback decode) {
     // TODO: implement loadImage

@@ -220,13 +220,13 @@ class Remote {
 
   Future<DataT?> Function(Map<String, dynamic>)
       _generateImageFetcher<DataT extends Data>(
-    DataT? Function(Map<String, dynamic>) jsoner,
-  ) {
+          DataT? Function(Map<String, dynamic>) jsoner,
+          {bool preloadFullImages = false}) {
     // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      return injectImages(data);
+      return injectImages(data, preloadFull: preloadFullImages);
     };
   }
 
@@ -238,6 +238,7 @@ class Remote {
     required String route,
     required String jsonResponseID,
     Map<String, dynamic>? json,
+    preloadFullImages = false,
     required ChildData? Function(Map<String, dynamic>) fromJson,
   }) {
     final rd = RequestData(
@@ -249,7 +250,7 @@ class Remote {
 
     Future<List<ChildData>> parser(http.Response? res) {
       Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
-          _generateImageFetcher(fromJson);
+          _generateImageFetcher(fromJson, preloadFullImages: preloadFullImages);
       Future<List<ChildData>> __parse(__json) => getListFromJson(
             __json,
             imageFetcher,
@@ -321,15 +322,18 @@ class Remote {
   /// if no [ParentData] is given it defaults to root
   RequestAndParser<http.Response, List<ChildData>>
       getNextDatapoint<ChildData extends Data, ParentData extends WithOffline?>(
-    ParentData data,
-  ) {
+    ParentData data, {
+    preloadFullImages = false,
+  }) {
     final childTypeStr = Helper.getIdentifierFromData<ChildData>(null);
     if (childTypeStr == null) throw Exception('type not supported');
     return _getAllForNextLevel(
-        route: routesFromData<ChildData>(null),
-        jsonResponseID: childTypeStr + 's',
-        json: data?.toSmallJson(),
-        fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json));
+      route: routesFromData<ChildData>(null),
+      jsonResponseID: childTypeStr + 's',
+      json: data?.toSmallJson(),
+      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      preloadFullImages: preloadFullImages,
+    );
   }
 
   /// sets a new [DataT]
