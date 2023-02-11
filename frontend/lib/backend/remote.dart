@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../helpers/toast.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
@@ -81,7 +81,7 @@ class Remote {
       )); ////logIfFailed: false));
     } catch (e) {
       throw NoConnectionToBackendException(
-          S.current.couldntReach + " $_baseurl");
+          S.current!.couldntReach + " $_baseurl");
     }
   }
 
@@ -283,7 +283,7 @@ class Remote {
 
       if (res != null && res.statusCode ~/ 100 != 2) {
         _maybeShowToast(
-            "${S.current.anUnknownErrorOccured}, ${res.statusCode}: ${res.reasonPhrase}");
+            "${S.current!.anUnknownErrorOccured}, ${res.statusCode}: ${res.reasonPhrase}");
       }
       return res;
     }
@@ -457,7 +457,7 @@ Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
     debugPrint(
         'could not parse response: ' + e.toString() + '<--' + jsonEncode(json));
     throw BackendCommunicationException(
-        S.current.couldNotParseResponse + jsonEncode(json));
+        S.current!.couldNotParseResponse + jsonEncode(json));
   }
   //return [];
 }

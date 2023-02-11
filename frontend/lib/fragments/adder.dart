@@ -2,7 +2,7 @@ import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/widgets/mySimpleAlertBox.dart';
 import 'package:flutter/material.dart';
 
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 
 class PopUpActionbutton extends StatelessWidget {
   final Widget collapsedChild;
@@ -305,6 +305,6 @@ class InputData {
 
   static String? nonempty(String? str) => (str != null && str.isNotEmpty)
       ? null
-      : S.current.addingDataEnterSomethingHere;
+      : S.current!.addingDataEnterSomethingHere;
   static String? alwaysCorrect(String? str) => null;
 }

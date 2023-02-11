@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/namedToggle.dart';

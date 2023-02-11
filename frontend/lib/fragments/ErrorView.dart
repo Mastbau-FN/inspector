@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 
 class ErrorView extends StatelessWidget {
   final Object? err;
