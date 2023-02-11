@@ -27,6 +27,10 @@ const getFileFromHash = async (hash, compressed) => {
     let img = await fsp.readFile(compressed_path + '/img.heic')
     return img
   }
+  if (compressed && fs.existsSync(compressed_path + '/img.webp')) {
+    let img = await fsp.readFile(compressed_path + '/img.webp')
+    return img
+  }
 
   let img = await imgfiler.getImageFrom(
     cache.get(hash + "r"),
@@ -57,7 +61,7 @@ const getFileFromHash = async (hash, compressed) => {
     }
     else {
       await fsp.mkdir(compressed_path, { recursive: true });
-      fsp.writeFile(compressed_path + '/img.heic', img)
+      fsp.writeFile(compressed_path + '/img.webp', img)
     }
 
   }
