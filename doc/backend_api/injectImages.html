@@ -59,7 +59,7 @@
 
 <span class="returntype">D</span>
 <span class="name ">injectImages</span>&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="injectImages-param-data"><span class="type-annotation">D</span> <span class="parameter-name">data</span>, </span></li>
-<li><span class="parameter" id="injectImages-param-preloadFull">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">preloadFull</span> = <span class="default-value">true</span>}</span></li>
+<li><span class="parameter" id="injectImages-param-preloadFull">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">preloadFull</span> = <span class="default-value">false</span>}</span></li>
 </ol>)
 
         
@@ -71,7 +71,7 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends WithImgHashes&gt;(D data, {bool preloadFull = true}) {
+  <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends WithImgHashes&gt;(D data, {bool preloadFull = false}) {
   Future&lt;ImageData?&gt; getImgDataFromHash(String? hash) {
     if (preloadFull) API().getImageByHash(hash!, compressed: false);
     return API().getImageByHash(hash!, compressed: true).then((value) =&gt; value
@@ -147,7 +147,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

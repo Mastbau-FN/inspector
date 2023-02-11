@@ -73,7 +73,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget get developerOptions =&gt; OpenNewViewTile(
       icon: Icons.developer_mode,
-      title: S.current.developerOptions,
+      title: S.current!.developerOptions,
       newView: DeveloperSettings(),
       &#47;&#47; onPop: (_) {
       &#47;&#47;   Options().store();
@@ -147,7 +147,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

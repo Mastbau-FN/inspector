@@ -82,15 +82,15 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
   &#47;&#47;check network
   if (Options().forceOffline)
     throw NoConnectionToBackendException(
-        S.current.nonetwork_forcedOfflineMode);
+        S.current!.nonetwork_forcedOfflineMode);
   final connection = await (Connectivity().checkConnectivity());
   if (connection == ConnectivityResult.none)
-    throw NoConnectionToBackendException(S.current.noNetworkAvailable);
+    throw NoConnectionToBackendException(S.current!.noNetworkAvailable);
   if (connection == ConnectivityResult.mobile &amp;&amp;
       ((requestType != Helper.SimulatedRequestType.GET &amp;&amp;
               !Options().useMobileNetworkForUpload) ||
           !Options().useMobileNetworkForDownload))
-    throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
+    throw NoConnectionToBackendException(S.current!.mobileNetworkNotAllowed);
 }</code></pre>
 </section>
 
@@ -164,7 +164,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

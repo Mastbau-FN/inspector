@@ -93,11 +93,11 @@ String toString() {
     try {
       error = jsonDecode(res!.body)[&#39;error&#39;];
     } catch (e) {
-      S.current.theBodyHadNoErrorField;
+      S.current!.theBodyHadNoErrorField;
     }
     return &#39;${res?.statusCode}: $error&#39;;
   }
-  return S.current.noResponse;
+  return S.current!.noResponse;
 }</code></pre>
 </section>
 
@@ -155,7 +155,7 @@ String toString() {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

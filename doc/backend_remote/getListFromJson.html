@@ -89,7 +89,7 @@
     debugPrint(
         &#39;could not parse response: &#39; + e.toString() + &#39;&lt;--&#39; + jsonEncode(json));
     throw BackendCommunicationException(
-        S.current.couldNotParseResponse + jsonEncode(json));
+        S.current!.couldNotParseResponse + jsonEncode(json));
   }
   &#47;&#47;return [];
 }</code></pre>
@@ -140,7 +140,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

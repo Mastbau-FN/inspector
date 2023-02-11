@@ -92,7 +92,9 @@
     &#47;&#47;fail early if no connection
     await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
     &#47;&#47;get all children, this will also cache them internally
-    var children = await caller.all.last;
+    var children = await caller
+        .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
+        .last;
     var didSucceed = await Future.wait(children.map(
       (child) async {
         if (depth == 0)
@@ -120,7 +122,7 @@
     return success;
   } catch (error) {
     debugPrint(&#39;failed! ${depth + 1}&#39;);
-    showToast(error.toString() + &quot;\n&quot; + S.current.tryAgainLater_noNetwork);
+    showToast(error.toString() + &quot;\n&quot; + S.current!.tryAgainLater_noNetwork);
     return false; &#47;&#47;failed
   }
 }</code></pre>
@@ -183,7 +185,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

@@ -74,7 +74,7 @@
   <pre class="language-dart"><code class="language-dart">void update(ChildData data, {String? langText}) async {
   if (langText != null) data.langText = langText;
   _maybeShowToast(await API().update(data, caller: currentData) ??
-      S.current.didntGetAnyResponseAfterSend);
+      S.current!.didntGetAnyResponseAfterSend);
   notifyListeners();
 }</code></pre>
 </section>
@@ -108,7 +108,6 @@
           <a href="../../classes_dropdownClasses/DropDownModel-class.html#instance-properties">Properties</a>
         </li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/actions.html">actions</a></li>
-          <li><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/currentData.html">currentData</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/currentlyChosenChildData.html">currentlyChosenChildData</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/currentlyChosenChildId.html">currentlyChosenChildId</a></li>
@@ -121,6 +120,7 @@
 
         <li class="section-title"><a href="../../classes_dropdownClasses/DropDownModel-class.html#instance-methods">Methods</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
+          <li><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/chooseChild.html">chooseChild</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/generateNextModel.html">generateNextModel</a></li>
@@ -150,7 +150,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

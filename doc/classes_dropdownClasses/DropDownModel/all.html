@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the all property from the DropDownModel class, for the Dart programming language.">
-  <title>all property - DropDownModel class - dropdownClasses library - Dart API</title>
+  <meta name="description" content="API docs for the all method from the DropDownModel class, for the Dart programming language.">
+  <title>all method - DropDownModel class - dropdownClasses library - Dart API</title>
 
 
   
@@ -31,7 +31,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
     <li><a href="../../classes_dropdownClasses/DropDownModel-class.html">DropDownModel<span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends WithOffline?</span>&gt;</span></a></li>
-    <li class="self-crumb">all property</li>
+    <li class="self-crumb">all method</li>
   </ol>
   <div class="self-name">all</div>
   <form class="search navbar-right" role="search">
@@ -50,35 +50,34 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-property">all</span> property 
+<h1><span class="kind-method">all</span> method 
     <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
+    <section class="multi-line-signature">
+      
 
-        
-<section id="getter">
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
+<span class="name ">all</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="all-param-preloadFullImages">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">preloadFullImages</span> = <span class="default-value">false</span>}</span></li>
+</ol>)
 
-<section class="multi-line-signature">
-  
-  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">ChildData</span>&gt;</span></span>&gt;</span></span>
-  <span class="name ">all</span>
-  
+      
 
-</section>
-
-
+    </section>
+    
 <section class="desc markdown">
   <p>returns a <code>List</code> of all the <a href="../../classes_dropdownClasses/Data-class.html">Data</a> for this Model</p>
 </section>
 
 
+    
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Stream&lt;List&lt;ChildData&gt;&gt; get all =&gt; API().getNextDatapoint&lt;ChildData,
-        ParentData&gt;(
-    currentData);</code></pre>
-</section>
-
+  <pre class="language-dart"><code class="language-dart">Stream&lt;List&lt;ChildData&gt;&gt; all({bool preloadFullImages = false}) =&gt;
+    API().getNextDatapoint&lt;ChildData, ParentData&gt;(
+      currentData,
+      preloadFullImages: preloadFullImages,
+    );</code></pre>
 </section>
 
 
@@ -95,7 +94,7 @@
   <li><a href="../../index.html">MBG_Inspektionen</a></li>
   <li><a href="../../classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
   <li><a href="../../classes_dropdownClasses/DropDownModel-class.html">DropDownModel<span class="signature">&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends WithOffline?</span>&gt;</span></a></li>
-  <li class="self-crumb">all property</li>
+  <li class="self-crumb">all method</li>
 </ol>
 
 
@@ -110,7 +109,6 @@
           <a href="../../classes_dropdownClasses/DropDownModel-class.html#instance-properties">Properties</a>
         </li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/actions.html">actions</a></li>
-          <li><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/currentData.html">currentData</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/currentlyChosenChildData.html">currentlyChosenChildData</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/currentlyChosenChildId.html">currentlyChosenChildId</a></li>
@@ -123,6 +121,7 @@
 
         <li class="section-title"><a href="../../classes_dropdownClasses/DropDownModel-class.html#instance-methods">Methods</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
+          <li><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/chooseChild.html">chooseChild</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
           <li><a href="../../classes_dropdownClasses/DropDownModel/generateNextModel.html">generateNextModel</a></li>
@@ -152,7 +151,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

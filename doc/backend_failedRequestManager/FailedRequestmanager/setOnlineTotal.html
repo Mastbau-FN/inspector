@@ -75,7 +75,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">setOnlineTotal(BuildContext context) async {
   final model = Provider.of&lt;LocationModel&gt;(context, listen: false);
-  final locations = await model.all.last;
+  final locations = await model.all().last;
   for (final loc in locations) {
     final caller = CategoryModel(loc);
     await setOnlineAll(
@@ -145,7 +145,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

@@ -77,7 +77,7 @@
   <pre class="language-dart"><code class="language-dart">Future login(String? username, String? password) async {
   &#47;&#47; current kürzel and password for testing are HH testpass
   if (username == null || password == null) {
-    throw Exception(S.current.usernameOrPasswordWasNotGiven);
+    throw Exception(S.current!.usernameOrPasswordWasNotGiven);
   }
 
   var res = await API().login(User(username, password));
@@ -148,7 +148,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

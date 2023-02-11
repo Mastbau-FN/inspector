@@ -88,7 +88,7 @@ mainly for debugging or logging.</p>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 String toString() {
-  return cause ?? S.current.somethingWentWrongWhileCommunicatingWithTheApi;
+  return cause ?? S.current!.somethingWentWrongWhileCommunicatingWithTheApi;
 }</code></pre>
 </section>
 
@@ -146,7 +146,7 @@ String toString() {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

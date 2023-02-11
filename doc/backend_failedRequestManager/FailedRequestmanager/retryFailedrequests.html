@@ -79,7 +79,7 @@
   try {
     await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
   } catch (e) {
-    showToast(S.current.noViableInternetConnection);
+    showToast(S.current!.noViableInternetConnection);
     return false;
   }
 
@@ -177,7 +177,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

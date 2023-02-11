@@ -126,14 +126,14 @@
       &#47;&#47; InputData(&quot;KurzText&quot;, hint: &quot;Name&quot;), &#47;&#47;removed according to #48
       InputData(
         CheckPointDefect.langText_key,
-        hint: S.current.langTextHint,
+        hint: S.current!.langTextHint,
         value: currentDefect?.langText,
       ),
       InputData(CheckPointDefect.height_json_key,
-          hint: S.current.positionHeightHint,
+          hint: S.current!.positionHeightHint,
           value: currentDefect?.height,
           verify: (val) =&gt; (val == null || val.length &lt; 1)
-              ? S.current.heightNotOptional
+              ? S.current!.heightNotOptional
               : null), &#47;&#47;added according to #49
     ],
   );
@@ -169,7 +169,6 @@
           <a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html#instance-properties">Properties</a>
         </li>
           <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/actions.html">actions</a></li>
-          <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
           <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/currentData.html">currentData</a></li>
           <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/currentlyChosenChildData.html">currentlyChosenChildData</a></li>
           <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/currentlyChosenChildId.html">currentlyChosenChildId</a></li>
@@ -182,6 +181,7 @@
 
         <li class="section-title"><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html#instance-methods">Methods</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
+          <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/all.html">all</a></li>
           <li class="inherited"><a href="../../classes_dropdownClasses/DropDownModel/chooseChild.html">chooseChild</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
           <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel/generateNextModel.html">generateNextModel</a></li>
@@ -213,7 +213,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

@@ -116,9 +116,11 @@ Widget build(BuildContext context) {
     value: img,
     child: Consumer&lt;ImageItem&gt;(builder: (_, img, __) {
       return FutureBuilder&lt;Image?&gt;(
-          future: (approxWidth &gt; 100)
-              ? img.image!.fullImage()
-              : Future.value(img.image!.thumbnail),
+          future: (img.image == null)
+              ? null
+              : ((approxWidth &gt; 100)
+                  ? img.image!.fullImage()
+                  : Future.value(img.image!.thumbnail)),
           builder: (context, snapshot) {
             return Container(
               child: img.image != null ? null : img.fallBackWidget,
@@ -202,7 +204,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   

@@ -84,7 +84,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
     )); &#47;&#47;&#47;&#47;logIfFailed: false));
   } catch (e) {
     throw NoConnectionToBackendException(
-        S.current.couldntReach + &quot; $_baseurl&quot;);
+        S.current!.couldntReach + &quot; $_baseurl&quot;);
   }
 }</code></pre>
 </section>
@@ -157,7 +157,7 @@ throws <a href="../../classes_exceptions/NoConnectionToBackendException-class.ht
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.2+52
+      1.2.3+53
   </span>
 
   
