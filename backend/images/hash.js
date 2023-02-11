@@ -36,11 +36,13 @@ const getFileFromHash = async (hash, compressed) => {
   if (compressed) {
     const orig_img = img;
     img = await sharp(img)
-      .heif({ quality: 1, effort: 0 })
+      // .heif({ quality: 1, effort: 0 }) //while apple and newer android devices support this, older ones dont, and in the feature we could switch to .avif, which is completely open
+      .heif({ quality: 1, effort: 0, compression: 'hevc' }) //hevc is further supported (but worse) then av1
+      // .webp({ quality: 1, effort: 4 }) // this is 100% supported by flutter, could be used as fallback
       .toBuffer();
 
     sharp(orig_img)
-      .heif({ quality: 1, effort: 9 })
+      .heif({ quality: 1, effort: 5, compression: 'hevc' }) //see above
       .toBuffer().then(async (buf) => {
         await fsp.mkdir(compressed_path, { recursive: true });
         fsp.writeFile(compressed_path + '/img.heic', img)
