@@ -7,7 +7,7 @@ import 'package:MBG_Inspektionen/pages/location.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
-import '../../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'loginModel.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 

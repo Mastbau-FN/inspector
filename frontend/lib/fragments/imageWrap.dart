@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'galleryWrapper.dart';
 
 class ImageWrap<T extends Object> extends StatelessWidget {
   static _default(Object _) {
-    showToast(S.current.notAvailable);
+    showToast(S.current!.notAvailable);
   }
 
   final Function(T) onDelete;
@@ -89,7 +89,7 @@ class ImageWrap<T extends Object> extends StatelessWidget {
 
 class OpenableImageView<T extends Object> extends StatelessWidget {
   static _default(_) {
-    showToast(S.current.notAvailable);
+    showToast(S.current!.notAvailable);
   }
 
   final Function(T) onDelete;

@@ -10,7 +10,7 @@ import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../helpers/background.dart' as BG;
 import '../helpers/toast.dart';
 import '../pages/checkcategories.dart';
@@ -52,7 +52,6 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           notificationLayout: NotificationLayout.ProgressBar,
           progress: (i / total * 100).round(),
           // locked: true,
-          actionType: ActionType.SilentBackgroundAction,
         ),
       );
     }
@@ -116,7 +115,7 @@ class FailedRequestmanager {
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
-      showToast(S.current.noViableInternetConnection);
+      showToast(S.current!.noViableInternetConnection);
       return false;
     }
 
@@ -201,7 +200,7 @@ class FailedRequestmanager {
       return success;
     } catch (error) {
       debugPrint('failed! ${depth + 1}');
-      showToast(error.toString() + "\n" + S.current.tryAgainLater_noNetwork);
+      showToast(error.toString() + "\n" + S.current!.tryAgainLater_noNetwork);
       return false; //failed
     }
   }

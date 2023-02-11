@@ -1,4 +1,4 @@
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -130,14 +130,14 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
         // InputData("KurzText", hint: "Name"), //removed according to #48
         InputData(
           CheckPointDefect.langText_key,
-          hint: S.current.langTextHint,
+          hint: S.current!.langTextHint,
           value: currentDefect?.langText,
         ),
         InputData(CheckPointDefect.height_json_key,
-            hint: S.current.positionHeightHint,
+            hint: S.current!.positionHeightHint,
             value: currentDefect?.height,
             verify: (val) => (val == null || val.length < 1)
-                ? S.current.heightNotOptional
+                ? S.current!.heightNotOptional
                 : null), //added according to #49
       ],
     );

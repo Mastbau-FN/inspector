@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import '../classes/imageData.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';
 import '/classes/user.dart';
 import 'package:MBG_Inspektionen/options.dart';
@@ -186,15 +186,15 @@ class API {
     //check network
     if (Options().forceOffline)
       throw NoConnectionToBackendException(
-          S.current.nonetwork_forcedOfflineMode);
+          S.current!.nonetwork_forcedOfflineMode);
     final connection = await (Connectivity().checkConnectivity());
     if (connection == ConnectivityResult.none)
-      throw NoConnectionToBackendException(S.current.noNetworkAvailable);
+      throw NoConnectionToBackendException(S.current!.noNetworkAvailable);
     if (connection == ConnectivityResult.mobile &&
         ((requestType != Helper.SimulatedRequestType.GET &&
                 !Options().useMobileNetworkForUpload) ||
             !Options().useMobileNetworkForDownload))
-      throw NoConnectionToBackendException(S.current.mobileNetworkNotAllowed);
+      throw NoConnectionToBackendException(S.current!.mobileNetworkNotAllowed);
   }
 
   Future<String> get rootID async => (await user)!.name;
@@ -238,7 +238,7 @@ class API {
   ) async* {
     final requestType = Helper.SimulatedRequestType.GET;
     assert((await API().user) != null,
-        S.current.wontFetchAnythingSinceNoOneIsLoggedIn);
+        S.current!.wontFetchAnythingSinceNoOneIsLoggedIn);
 
     Future<List<ChildData>> merge(
         List<ChildData> cached, List<ChildData> upstream) async {

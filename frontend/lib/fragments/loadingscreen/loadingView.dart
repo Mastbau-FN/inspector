@@ -1,7 +1,7 @@
 import 'package:MBG_Inspektionen/widgets/rotating.dart';
 import 'package:flutter/material.dart';
 
-import '../../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 
 class LoadingView extends StatelessWidget {
   const LoadingView({Key? key, this.fixedSize = true}) : super(key: key);

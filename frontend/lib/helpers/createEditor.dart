@@ -4,7 +4,7 @@ import 'package:MBG_Inspektionen/pages/detailsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 
 // rich was totally removed
 // DetailsPage createRichIfPossibleEditor<DataT extends WithLangText>(

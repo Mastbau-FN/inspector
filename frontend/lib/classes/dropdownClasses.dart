@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../backend/offlineProvider.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'data/checkcategory.dart';
 
 abstract class WithImgHashes {
@@ -199,7 +199,7 @@ class DropDownModel<ChildData extends WithLangText,
   void update(ChildData data, {String? langText}) async {
     if (langText != null) data.langText = langText;
     _maybeShowToast(await API().update(data, caller: currentData) ??
-        S.current.didntGetAnyResponseAfterSend);
+        S.current!.didntGetAnyResponseAfterSend);
     notifyListeners();
   }
 

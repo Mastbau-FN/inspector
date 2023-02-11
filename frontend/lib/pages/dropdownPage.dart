@@ -14,7 +14,7 @@ import 'package:MBG_Inspektionen/widgets/myExpandablelList.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 
 // XXX get to new page with hero transition
 

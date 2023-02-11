@@ -5,7 +5,7 @@ import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../generated/l10n.dart';
+import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../widgets/openNewViewTile.dart';
 
 class MainDrawer extends StatelessWidget {
