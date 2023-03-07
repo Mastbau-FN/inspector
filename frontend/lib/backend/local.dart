@@ -104,7 +104,12 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null) && data != null) {
+    debugPrint(data.toString());
+    if (
+        // (forceUpdate ||
+        //       caller != null ||
+        //       typeOf<DataT>() == typeOf<InspectionLocation>()) &&
+        data != null) {
       await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
       return 'success';
     }
