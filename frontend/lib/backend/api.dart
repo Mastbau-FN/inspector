@@ -415,7 +415,7 @@ class API {
         caller: caller,
         forceUpdate: forceUpdate,
       ),
-      online: () => remote.uploadFiles(
+      online: () => remote.uploadNewImagesOrFiles(
         data,
         files,
       ),
