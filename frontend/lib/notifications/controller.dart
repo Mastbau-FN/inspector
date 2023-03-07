@@ -8,6 +8,24 @@ import '../theme.dart';
 
 part 'channels.dart';
 
+class NotificationPayload {
+  static progress(int progress, num max) {
+    return {
+      'type': 'progress',
+      'title': 'Upload Sync in Progress',
+      'progress': progress,
+      'max': max,
+    };
+  }
+
+  static done() {
+    return {
+      'type': 'done',
+      'title': 'Upload Sync Done',
+    };
+  }
+}
+
 /// This class is used to control the notifications
 class NotificationController {
   static initialize() {
@@ -55,12 +73,12 @@ class NotificationController {
     // Your code goes here
 
     // Navigate into pages, avoiding to open the notification details page over another details page already opened
-    MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        '/notification-page',
-        (route) =>
-            (route.settings.name != '/default-notification-page') ||
-            route.isFirst,
-        arguments: receivedAction);
+    MyApp.navigatorKey.currentState
+        ?.pushNamed /*AndRemoveUntil*/ ('/default-notification-page',
+            // (route) =>
+            //     (route.settings.name != '/default-notification-page') ||
+            //     route.isFirst,
+            arguments: receivedAction);
   }
 }
 
