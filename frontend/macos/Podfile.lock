@@ -64,7 +64,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   awesome_notifications: 428f5c15a700b117418aed09e29c21c5806fcf69
   connectivity_plus_macos: f6e86fd000e971d361e54b5afcadc8c8fa773308
-  dynamic_color: 394d6a888650f8534e029b27d2f8bc5c64e44008
+  dynamic_color: 2eaa27267de1ca20d879fbd6e01259773fb1670f
   flutter_secure_storage_macos: 6ceee8fbc7f484553ad17f79361b556259df89aa
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   package_info_plus_macos: f010621b07802a241d96d01876d6705f15e77c1c

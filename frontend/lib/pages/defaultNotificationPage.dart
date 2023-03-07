@@ -9,15 +9,30 @@ class DefaultNotificationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Default Notification Page'),
+        title: Text(action.payload?['title'] ?? 'Nothing to See Here'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Default Notification Page'),
-            Text('Payload: ${action.payload}'),
-          ],
+          children: action.payload?['type'] == 'done'
+              ? [
+                  Text('Upload Sync Done'),
+                  Icon(Icons.check, size: 50),
+                ]
+              : action.payload?['type'] == 'progress'
+                  ? [
+                      Text('Upload Sync in Progress'),
+                      Text(
+                          '${action.payload!['progress']} / ${action.payload!['max']}'),
+                      LinearProgressIndicator(
+                        value: int.tryParse(action.payload!['progress']!)! /
+                            int.tryParse(action.payload!['max']!)!,
+                      ),
+                    ]
+                  : [
+                      Text('Default Notification Page'),
+                      Text('Payload: ${action.payload}'),
+                    ],
         ),
       ),
     );
