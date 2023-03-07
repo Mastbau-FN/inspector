@@ -418,7 +418,8 @@ class Remote {
   }
 
   /// upload a bunch of images
-  RequestAndParser<http.BaseResponse, String?> uploadFiles<DataT extends Data>(
+  RequestAndParser<http.BaseResponse, String?>
+      uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
     List<XFile> files,
   ) {

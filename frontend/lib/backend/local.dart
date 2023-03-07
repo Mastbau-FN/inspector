@@ -132,7 +132,11 @@ class LocalMirror {
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> getImageByHash(String hash,
       {bool compressed = false}) async {
-    if (compressed) hash = OP.convertToCompressedHashName(hash);
+    if (compressed) {
+      final img = await readImage(OP.convertToCompressedHashName(hash),
+          cacheSize: compressed ? CACHESIZE : null);
+      if (img != null) return ImageData(img, id: hash);
+    }
     final img = await readImage(hash, cacheSize: compressed ? CACHESIZE : null);
     if (img == null) throw Exception("no img cached");
     // return null;
@@ -210,7 +214,7 @@ class LocalMirror {
       newLocalImageNames.removeAt(0);
     }
     data.imagehashes?.addAll(newLocalImageNames);
-    injectImages(data);
+    injectImages(data, preloadFull: true);
     await storeData(data, forId: caller?.id ?? await API().rootID);
     // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';
