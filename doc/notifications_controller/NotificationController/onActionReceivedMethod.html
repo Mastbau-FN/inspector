@@ -40,8 +40,11 @@
   <div class="toggle" id="theme-button">
     <label for="theme">
       <input type="checkbox" id="theme" value="light-theme">
-      <span class="material-symbols-outlined">
+      <span id="dark-theme-button" class="material-symbols-outlined">
         brightness_4
+      </span>
+      <span id="light-theme-button" class="material-symbols-outlined">
+        brightness_5
       </span>
     </label>
   </div>
@@ -51,7 +54,6 @@
   <div id="dartdoc-main-content" class="main-content">
       <div>
 <h1><span class="kind-method">onActionReceivedMethod</span> static method 
-    <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
     <section class="multi-line-signature">
@@ -79,12 +81,12 @@ static Future&lt;void&gt; onActionReceivedMethod(
   &#47;&#47; Your code goes here
 
   &#47;&#47; Navigate into pages, avoiding to open the notification details page over another details page already opened
-  MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      &#39;&#47;notification-page&#39;,
-      (route) =&gt;
-          (route.settings.name != &#39;&#47;default-notification-page&#39;) ||
-          route.isFirst,
-      arguments: receivedAction);
+  MyApp.navigatorKey.currentState
+      ?.pushNamed &#47;*AndRemoveUntil*&#47; (&#39;&#47;default-notification-page&#39;,
+          &#47;&#47; (route) =&gt;
+          &#47;&#47;     (route.settings.name != &#39;&#47;default-notification-page&#39;) ||
+          &#47;&#47;     route.isFirst,
+          arguments: receivedAction);
 }</code></pre>
 </section>
 
@@ -148,7 +150,7 @@ static Future&lt;void&gt; onActionReceivedMethod(
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.3+53
+      1.2.4+54
   </span>
 
   

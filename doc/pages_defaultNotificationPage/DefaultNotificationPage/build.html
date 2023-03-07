@@ -40,8 +40,11 @@
   <div class="toggle" id="theme-button">
     <label for="theme">
       <input type="checkbox" id="theme" value="light-theme">
-      <span class="material-symbols-outlined">
+      <span id="dark-theme-button" class="material-symbols-outlined">
         brightness_4
+      </span>
+      <span id="light-theme-button" class="material-symbols-outlined">
+        brightness_5
       </span>
     </label>
   </div>
@@ -51,7 +54,6 @@
   <div id="dartdoc-main-content" class="main-content">
       <div>
 <h1><span class="kind-method">build</span> method 
-    <a href="https://dart.dev/null-safety" class="feature feature-null-safety" title="Supports the null safety language feature.">Null safety</a>
 </h1></div>
 
     <section class="multi-line-signature">
@@ -114,15 +116,30 @@ and</li>
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: Text(&#39;Default Notification Page&#39;),
+      title: Text(action.payload?[&#39;title&#39;] ?? &#39;Nothing to See Here&#39;),
     ),
     body: Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(&#39;Default Notification Page&#39;),
-          Text(&#39;Payload: ${action.payload}&#39;),
-        ],
+        children: action.payload?[&#39;type&#39;] == &#39;done&#39;
+            ? [
+                Text(&#39;Upload Sync Done&#39;),
+                Icon(Icons.check, size: 50),
+              ]
+            : action.payload?[&#39;type&#39;] == &#39;progress&#39;
+                ? [
+                    Text(&#39;Upload Sync in Progress&#39;),
+                    Text(
+                        &#39;${action.payload![&#39;progress&#39;]} &#47; ${action.payload![&#39;max&#39;]}&#39;),
+                    LinearProgressIndicator(
+                      value: int.tryParse(action.payload![&#39;progress&#39;]!)! &#47;
+                          int.tryParse(action.payload![&#39;max&#39;]!)!,
+                    ),
+                  ]
+                : [
+                    Text(&#39;Default Notification Page&#39;),
+                    Text(&#39;Payload: ${action.payload}&#39;),
+                  ],
       ),
     ),
   );
@@ -192,7 +209,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.3+53
+      1.2.4+54
   </span>
 
   
