@@ -5,7 +5,7 @@ const api_wall = (req, res, next) => {
   if (!req.headers.authorization) {
     return res.status(401).json({ error: "No auth header given" });
   }
-  if (!(req.headers.authorization == process.env.API_KEY_OLD || eq.headers.authorization == process.env.API_KEY)) { //TODO: remove old key
+  if (!(req.headers.authorization == process.env.API_KEY_OLD || req.headers.authorization == process.env.API_KEY)) { //TODO: remove old key
     console.log("tried auth", req.headers.authorization);
     return res.status(403).json({ error: "NOT AUTHORIZED" });
   }

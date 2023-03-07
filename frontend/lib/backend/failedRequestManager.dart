@@ -45,15 +45,15 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
-          id: 1,
-          channelKey: 'progress',
-          title: 'Upload Sync',
-          body: 'Offline Änderungen werden hochsynchronisiert...',
-          category: NotificationCategory.Progress,
-          notificationLayout: NotificationLayout.ProgressBar,
-          progress: (i / total * 100).round(),
-          // locked: true,
-        ),
+            id: 1,
+            channelKey: 'progress',
+            title: 'Upload Sync',
+            body: 'Offline Änderungen werden hochsynchronisiert...',
+            category: NotificationCategory.Progress,
+            notificationLayout: NotificationLayout.ProgressBar,
+            progress: (i / total * 100).round(),
+            // locked: true,
+            payload: NotificationPayload.progress(i, total)),
       );
     }
     final reqd = failedReqs[i];
@@ -89,6 +89,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
         category: NotificationCategory.Progress,
         notificationLayout: NotificationLayout.ProgressBar,
         progress: 100,
+        payload: NotificationPayload.done(),
         // locked: false,
       ),
     );
