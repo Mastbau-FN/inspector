@@ -155,7 +155,7 @@ class LocalMirror {
     if ((forceUpdate || caller != null) && data != null) {
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
-        await OP.deleteImage(hash);
+        // await OP.deleteImage(hash); //TODO: delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
         data.imagehashes!.remove(hash);
         await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully deleted image offline';
