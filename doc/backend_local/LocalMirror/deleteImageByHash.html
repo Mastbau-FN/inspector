@@ -88,7 +88,7 @@
   if ((forceUpdate || caller != null) &amp;&amp; data != null) {
     try {
       &#47;&#47; data.id = &#47;*&#39;_oe_&#39; + *&#47; createLocalId(data);
-      await OP.deleteImage(hash);
+      &#47;&#47; await OP.deleteImage(hash); &#47;&#47;TODO: delete image from disk, such that when &#39;hochsyncen&#39; it is not uploaded and the &#39;hochsync&#39; is not interrupted (which it would be if it just tries to upload a file that is now deleted)
       data.imagehashes!.remove(hash);
       await storeData&lt;DataT&gt;(data, forId: caller?.id ?? await API().rootID);
       &#47;&#47; return &#39;successfully deleted image offline&#39;;
@@ -167,7 +167,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.4+54
+      1.2.5+55
   </span>
 
   
