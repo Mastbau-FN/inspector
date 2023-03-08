@@ -2,8 +2,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 class CameraModel extends ChangeNotifier {
-
-
   // @override
   // void didChangeAppLifecycleState(AppLifecycleState state) {
   //   // App state changed before we got the chance to initialize.
@@ -23,7 +21,7 @@ class CameraModel extends ChangeNotifier {
         // Get a specific camera from the list of available cameras.
         await currentCamera,
         // Define the resolution to use.
-        ResolutionPreset.medium,
+        ResolutionPreset.max,
       );
 
   CameraController? controller;
