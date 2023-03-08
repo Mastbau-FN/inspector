@@ -2,8 +2,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 class CameraModel extends ChangeNotifier {
-
-
   // @override
   // void didChangeAppLifecycleState(AppLifecycleState state) {
   //   // App state changed before we got the chance to initialize.
@@ -62,12 +60,16 @@ class CameraModel extends ChangeNotifier {
     int len = (await allCameras).length;
     _currentCameraIndex++;
     _currentCameraIndex %= len;
+    controller = await newController;
+    notifyListeners();
   }
 
   Future prevCamera() async {
     int len = (await allCameras).length;
     _currentCameraIndex--;
     _currentCameraIndex %= len;
+    controller = await newController;
+    notifyListeners();
   }
 
   Future<CameraDescription> get currentCamera async {
