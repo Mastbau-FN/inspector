@@ -287,24 +287,28 @@ class _ImageAddButtonState extends State<ImageAddButton>
   void discardShot(context) =>
       Provider.of<CameraModel>(context, listen: false).discardPic();
 
-  void uploadShot(context, {bool instant = false}) async {
-    if (!instant)
-      setState(() {
-        uploadingImage = true;
-      });
+  List<XFile> queue = [];
+
+  Future<void> addLatestToQueue(context) async {
     XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
-    if (instant) discardShot(context);
-    var resstring = pic != null
-        ? await widget.onNewImages([pic])
-        : S.of(context).sorryNoImageToUpload;
+    if (pic != null) {
+      queue.add(pic);
+      debugPrint("added to queue");
+      discardShot(context);
+    }
+  }
+
+  void uploadShots(context) async {
+    setState(() {
+      uploadingImage = true;
+    });
+    String? resstring = await widget.onNewImages(queue);
     debugPrint(resstring);
     if (kDebugMode)
       showToast(resstring ??
           S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
-    if (!instant) {
-      collapse();
-      discardShot(context);
-    }
+    queue = [];
+    collapse();
   }
 
   FloatingActionButton get add => FloatingActionButton(
@@ -322,14 +326,36 @@ class _ImageAddButtonState extends State<ImageAddButton>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                SizedBox(height: 5),
-                uploadPhoto,
+                ...queueButtonStuff,
                 SizedBox(height: 5),
                 photoDone,
                 SizedBox(height: 5),
                 discardPhoto,
               ],
             );
+
+  List<Widget> get queueButtonStuff => [
+        ...queue.asMap().entries.map((entry) {
+          int idx = entry.key;
+          XFile file = entry.value;
+          return Transform.translate(
+            offset: Offset(0, queue.length * 30 - 30.0 * idx),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: Image.file(
+                  File(file.path),
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
+            ),
+          );
+        }),
+        // SizedBox(height: 15),
+        addToQueue,
+      ];
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
         child: Icon(Icons.folder),
@@ -349,14 +375,17 @@ class _ImageAddButtonState extends State<ImageAddButton>
       onPressed: () => discardShot(context));
 
   FloatingActionButton get photoDone => FloatingActionButton(
-      backgroundColor: Colors.green,
-      child: uploadingImage ? LoadingView() : Icon(Icons.check),
-      onPressed: () => uploadShot(context));
+        backgroundColor: Colors.green,
+        child: uploadingImage ? LoadingView() : Icon(Icons.check),
+        onPressed: () =>
+            addLatestToQueue(context).then((value) => uploadShots(context)),
+      );
 
-  Widget get uploadPhoto => uploadingImage
+  Widget get addToQueue => uploadingImage
       ? Container()
       : FloatingActionButton(
           backgroundColor: Colors.blue,
-          child: Icon(Icons.upload),
-          onPressed: () => uploadShot(context, instant: true));
+          child: Icon(Icons.add_photo_alternate),
+          onPressed: () => addLatestToQueue(context),
+        );
 }
