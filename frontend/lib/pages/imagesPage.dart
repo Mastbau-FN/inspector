@@ -287,10 +287,11 @@ class _ImageAddButtonState extends State<ImageAddButton>
   void discardShot(context) =>
       Provider.of<CameraModel>(context, listen: false).discardPic();
 
-  void uploadShot(context) async {
-    setState(() {
-      uploadingImage = true;
-    });
+  void uploadShot(context, {bool instant = false}) async {
+    if (!instant)
+      setState(() {
+        uploadingImage = true;
+      });
     XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
     var resstring = pic != null
         ? await widget.onNewImages([pic])
@@ -299,7 +300,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
     if (kDebugMode)
       showToast(resstring ??
           S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
-    collapse();
+    if (!instant) collapse();
     discardShot(context);
   }
 
@@ -318,7 +319,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                uploadPhoto,
+                photoDone,
                 SizedBox(height: 5),
                 discardPhoto,
               ],
@@ -341,8 +342,13 @@ class _ImageAddButtonState extends State<ImageAddButton>
       child: Icon(Icons.replay),
       onPressed: () => discardShot(context));
 
-  FloatingActionButton get uploadPhoto => FloatingActionButton(
+  FloatingActionButton get photoDone => FloatingActionButton(
       backgroundColor: Colors.green,
       child: uploadingImage ? LoadingView() : Icon(Icons.check),
       onPressed: () => uploadShot(context));
+
+  FloatingActionButton get uploadPhoto => FloatingActionButton(
+      backgroundColor: Colors.green,
+      child: uploadingImage ? LoadingView() : Icon(Icons.check),
+      onPressed: () => uploadShot(context, instant: true));
 }
