@@ -59,7 +59,7 @@
     <section class="multi-line-signature">
       
 
-<span class="returntype">dynamic</span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>&gt;</span>?</span>
 <span class="name ">progress</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="progress-param-progress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">progress</span>, </span></li>
 <li><span class="parameter" id="progress-param-max"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/num-class.html">num</a></span> <span class="parameter-name">max</span></span></li>
 </ol>)
@@ -73,12 +73,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static progress(int progress, num max) {
+  <pre class="language-dart"><code class="language-dart">static Map&lt;String, String?&gt;? progress(int progress, num max) {
   return {
     &#39;type&#39;: &#39;progress&#39;,
     &#39;title&#39;: &#39;Upload Sync in Progress&#39;,
-    &#39;progress&#39;: progress,
-    &#39;max&#39;: max,
+    &#39;progress&#39;: progress.toString(),
+    &#39;max&#39;: max.toString(),
   };
 }</code></pre>
 </section>
