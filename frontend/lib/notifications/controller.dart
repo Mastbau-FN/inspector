@@ -9,16 +9,16 @@ import '../theme.dart';
 part 'channels.dart';
 
 class NotificationPayload {
-  static progress(int progress, num max) {
+  static Map<String, String?>? progress(int progress, num max) {
     return {
       'type': 'progress',
       'title': 'Upload Sync in Progress',
-      'progress': progress,
-      'max': max,
+      'progress': progress.toString(),
+      'max': max.toString(),
     };
   }
 
-  static done() {
+  static Map<String, String?>? done() {
     return {
       'type': 'done',
       'title': 'Upload Sync Done',
