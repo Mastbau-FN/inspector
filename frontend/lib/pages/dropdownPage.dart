@@ -194,7 +194,11 @@ class _DropDownBodyState<
                       delete: () => API()
                           .delete<ChildData>(data, caller: ddmodel.currentData)
                           .then((value) => value != null
-                              ? (kDebugMode ? showToast(value) : (_) {})
+                              ? () {
+                                  (kDebugMode ? showToast(value) : (_) {});
+                                  ddmodel
+                                      .notifyListeners(); //refresh; quickfix for #336
+                                }()
                               : showToast(S.of(context).deleteUnseccessful)),
                       confirmName: data.title,
                     );
