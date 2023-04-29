@@ -126,6 +126,7 @@ class LocalMirror {
       await OP.deleteData<DataT>(data.id, parentId: caller.id);
       return 'success';
     }
+    debugPrint("heyichbinhier1" + data!.imagehashes!.first);
     setMainImageByHash(data, data!.imagehashes!.first);
     return null;
   }
@@ -164,6 +165,8 @@ class LocalMirror {
         debugPrint('failed to remove image locally');
       }
     }
+    debugPrint("heyichbinhier" + data!.imagehashes!.first);
+    setMainImageByHash(data, data!.imagehashes!.first);
     return null;
   }
 
@@ -172,7 +175,7 @@ class LocalMirror {
     DataT? data,
     String mainhash, {
     Data? caller,
-    bool forceUpdate = false,
+    bool forceUpdate = true,
   }) async {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null) && data != null) {
