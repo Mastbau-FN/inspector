@@ -126,6 +126,7 @@ class LocalMirror {
       await OP.deleteData<DataT>(data.id, parentId: caller.id);
       return 'success';
     }
+    setMainImageByHash(data, data!.imagehashes!.first);
     return null;
   }
 
