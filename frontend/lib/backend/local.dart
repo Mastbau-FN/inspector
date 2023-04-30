@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
+import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -126,8 +127,6 @@ class LocalMirror {
       await OP.deleteData<DataT>(data.id, parentId: caller.id);
       return 'success';
     }
-    debugPrint("heyichbinhier1" + data!.imagehashes!.first);
-    setMainImageByHash(data, data!.imagehashes!.first);
     return null;
   }
 
@@ -154,7 +153,9 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
+
     if ((forceUpdate || caller != null) && data != null) {
+      debugPrint("mainhash" + data.mainhash! + "  hash" + hash);
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
         // await OP.deleteImage(hash); //TODO: delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
@@ -164,9 +165,19 @@ class LocalMirror {
       } catch (e) {
         debugPrint('failed to remove image locally');
       }
+      try {
+        if (hash == data.mainhash) {
+          data.mainhash = data.imagehashes!.first;
+          data.imagehashes!.remove(data.mainhash);
+          debugPrint('deleted mainhash');
+          await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+          await update(data, caller: caller, forceUpdate: forceUpdate);
+        }
+      } catch (e) {
+        debugPrint('failed to update main image locally');
+      }
     }
-    debugPrint("heyichbinhier" + data!.imagehashes!.first);
-    setMainImageByHash(data, data!.imagehashes!.first);
+
     return null;
   }
 

@@ -355,11 +355,7 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
-    if (hash == data?.mainhash) {
-      data?.mainhash = null;
-      debugPrint('deleted mainhash');
-      await update(data, caller: caller, forceUpdate: forceUpdate);
-    }
+   
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       // offline: () => local.setMainImageByHash(
