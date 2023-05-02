@@ -155,7 +155,6 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
 
     if ((forceUpdate || caller != null) && data != null) {
-      debugPrint("mainhash" + data.mainhash! + "  hash" + hash);
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
         // await OP.deleteImage(hash); //TODO: delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
@@ -167,10 +166,9 @@ class LocalMirror {
       }
       try {
         if (hash == data.mainhash) {
-          data.mainhash = data.imagehashes!.first;
-          data.imagehashes!.remove(data.mainhash);
-          debugPrint('deleted mainhash');
-          await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+          data.mainhash = data.imagehashes!.removeAt(0);
+          debugPrint(
+              'deleted mainhash and set the next one as main per default');
           await update(data, caller: caller, forceUpdate: forceUpdate);
         }
       } catch (e) {
@@ -186,7 +184,7 @@ class LocalMirror {
     DataT? data,
     String mainhash, {
     Data? caller,
-    bool forceUpdate = true,
+    bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
     if ((forceUpdate || caller != null) && data != null) {
