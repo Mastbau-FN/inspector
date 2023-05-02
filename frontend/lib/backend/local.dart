@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
-import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -153,7 +152,6 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     //offline procedure, needs some stuff changed and added..
-
     if ((forceUpdate || caller != null) && data != null) {
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
@@ -164,18 +162,7 @@ class LocalMirror {
       } catch (e) {
         debugPrint('failed to remove image locally');
       }
-      try {
-        if (hash == data.mainhash) {
-          data.mainhash = data.imagehashes!.removeAt(0);
-          debugPrint(
-              'deleted mainhash and set the next one as main per default');
-          await update(data, caller: caller, forceUpdate: forceUpdate);
-        }
-      } catch (e) {
-        debugPrint('failed to update main image locally');
-      }
     }
-
     return null;
   }
 
