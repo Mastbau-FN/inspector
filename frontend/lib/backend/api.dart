@@ -310,14 +310,28 @@ class API {
     DataT? data, {
     Data? caller,
     bool forceUpdate = false,
+    // String? oldmainhash,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
-    return _run(
+    final rems = remote.update(data /*, oldmainhash: oldmainhash*/);
+    final ret1 = _run(
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.update(data, caller: caller),
-      online: () => remote.update(data),
+      online: () => /*rems[0]*/ rems,
       requestType: requestType,
     ).last;
+
+    // //TO DO: thats kinda bad and non-atamoc, but it works for now
+    // for (var i = 1; i < rems.length; i++) {
+    //   //run all the other backend requests for update; the remote update return a list
+    //   _run(
+    //     itPrefersCache: _dataPrefersCache(caller, type: requestType),
+    //     offline: () => {},
+    //     online: () => rems[i],
+    //     requestType: requestType,
+    //   ).last;
+    // }
+    return ret1;
   }
 
   /// deletes a [DataT] and returns the response
@@ -355,12 +369,7 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
-    if (hash == data?.mainhash) {
-      data?.mainhash = null;
-      debugPrint('deleted mainhash');
-      await update(data, caller: caller, forceUpdate: forceUpdate);
-    }
-    return _run(
+    final ret = _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       // offline: () => local.setMainImageByHash(
       //   data,
@@ -373,6 +382,23 @@ class API {
       online: () => remote.deleteImageByHash(hash),
       requestType: requestType,
     ).last;
+    if (hash == data?.mainhash) {
+      debugPrint('deleted mainhash image, setting new main...');
+      // final update_ret = await update(
+      //   data,
+      //   caller: caller,
+      //   forceUpdate: forceUpdate, /*oldmainhash: hash*/
+      // );
+      if (data?.imagehashes?.isNotEmpty == true) {
+        final setMain_ret = await setMainImageByHash(
+            data, data!.imagehashes!.first,
+            caller: caller, forceUpdate: forceUpdate);
+        debugPrint('set new mainhash: ' + setMain_ret.toString());
+        // return '$update_ret, $setMain_ret';
+      }
+      // return update_ret;
+    }
+    return ret;
   }
 
   // sets an image specified by its hash as the new main image

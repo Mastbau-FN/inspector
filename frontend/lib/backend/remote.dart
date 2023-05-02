@@ -368,6 +368,34 @@ class Remote {
           return (await rap.parser(x))?.body;
         });
   }
+  // final RequestAndParser<http.Response, String?> updated_rap =
+  //       RequestAndParser(
+  //           rd: rap.rd,
+  //           parser: (x) async {
+  //             return (await rap.parser(x))?.body;
+  //           });
+  //   if (/*updatedMainhash*/ /*data?.mainhash != null*/ oldmainhash != null
+  //       // && data?.imagehashes?.isNotEmpty == true
+  //       ) {
+  //     // final rap2 = _sendDataToRoute(
+  //     //   data: data,
+  //     //   route: _updateMainhash_r,
+  //     // );
+  //     // final RequestAndParser<http.Response, String?> updatedMainhash_rap =
+  //     //     RequestAndParser(
+  //     //         rd: rap2.rd,
+  //     //         parser: (x) async {
+  //     //           return (await rap2.parser(x))?.body;
+  //     //         });
+
+  //     return [
+  //       updated_rap,
+  //       deleteImageByHash(oldmainhash),
+  //       // setMainImageByHash(data, data!.imagehashes!.first),
+  //     ];
+  //   }
+  //   return [updated_rap];
+  // }
 
   /// deletes a [DataT] and returns the response
   RequestAndParser<http.Response, String?> delete<DataT extends Data>(
