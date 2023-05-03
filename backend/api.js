@@ -164,7 +164,7 @@ const setMainImgByHash = async (req, res, next) => {
   // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
   req.body.data.Link = newLink;
   // console.log("setmainimagehash api backend", req.body.hash, newLink);
-  // res.status(200).json({ reason: 'kein 404 bitte'}) //FIXME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
+  // res.status(200).json({ reason: 'kein 404 bitte'}) //FIX-ME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);
 };
 

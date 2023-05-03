@@ -127,7 +127,7 @@ class DropDownModel<ChildData extends WithLangText,
       } catch (e) {
         // yield await _getCurrentlyChosenChildData(
         //     remainingTries:
-        //         reloadTries); //refetch //XXX: this will result in a stack overflow if no data can be retreived
+        //         reloadTries); //refetch //X-XX: this will result in a stack overflow if no data can be retreived
       }
     }
   }

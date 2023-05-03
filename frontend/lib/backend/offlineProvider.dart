@@ -56,7 +56,7 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
     // throw err;
     return null;
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
-  //TODO: was wenn keine datei da lesbar ist? -> return null
+  //TO-DO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await localFile(name),
       cacheHeight: cacheSize, cacheWidth: cacheSize);

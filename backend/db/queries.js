@@ -443,7 +443,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       thingy['images'] = images ?? ["error_ couldnt set image hashes"];
       if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
     }
-    // TODO: #306
+    // TO-DO: #306
     // could better be DB index or DB hash something, that doenst change , but is unique for every datenpunkt
     thingy.local_id = `${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
     // no longer needed
