@@ -88,23 +88,23 @@ jobs:
           map: |
             {
               "web": {
-                "builtpath": "web"
+                "builtpath": "build/web"
               },
               "apk": {
-                "builtpath": "app/outputs/flutter-apk/app-release.apk"
+                "builtpath": "build/app/outputs/flutter-apk/app-release.apk"
               },
               "debugapk": {
-                "builtpath": "app/debug/app-debug.apk"
+                "builtpath": "build/app/outputs/flutter-apk/app-debug.apk"
               },
               "appbundle": {
-                "builtpath": "app/outputs/bundle/release/app-release.aab"
+                "builtpath": "build/app/outputs/bundle/release/app-release.aab"
               }
             }
       - name: upload ${{matrix.platform}} artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.platform}}
-          path:  ${{env.working-directory}}/build/${{env.builtpath}}
+          path: ${{env.working-directory}}/${{env.builtpath}}
 
   deploy-web:
     needs: [build-doc,build-app]
@@ -177,7 +177,7 @@ jobs:
           asset_path: app-release.apk
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
-      - name: download apk
+      - name: download debug apk
         uses: actions/download-artifact@v2
         with:
           name: apk --debug
