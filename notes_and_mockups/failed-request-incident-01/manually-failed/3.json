@@ -1,0 +1,28 @@
+{
+  "route": "/set",
+  "json": {
+    "type": "defect",
+    "data": {
+      "mainhash": null,
+      "images": null,
+      "local_id": "__locally_added__47j8su",
+      "offline": true,
+      "parent_local_id": "20236163-7-4-0",
+      "PjNr": 20236163,
+      "Bauleitung": null,
+      "KurzText": "Antenne  ohne Mangel",
+      "LangText": "Links",
+      "ErDat": null,
+      "EventID": null,
+      "EREArt": 5204,
+      "E1": 7,
+      "E2": 4,
+      "E3": -1,
+      "Zusatz_Info": "26",
+      "Autor": "pc"
+    }
+  },
+  "multipartFiles": [],
+  "timeout": null,
+  "returnsBinary": false
+}

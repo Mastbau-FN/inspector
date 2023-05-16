@@ -1,0 +1,10 @@
+{
+  "route": "/image/set",
+  "json": {
+    "type": "defect",
+    "data": "{\"mainhash\":\"__locally_added__CAP6632727446902452352.jpg\",\"images\":[],\"local_id\":\"__locally_added__arojbg\",\"offline\":true,\"parent_local_id\":\"__locally_added__48ncws\",\"PjNr\":20236162,\"Bauleitung\":null,\"KurzText\":\"Halterung   ohne Mangel\",\"LangText\":\"Links-Stahlbügel \",\"ErDat\":null,\"EventID\":null,\"EREArt\":5204,\"E1\":-1,\"E2\":-1,\"E3\":-1,\"Zusatz_Info\":\"26\",\"Autor\":\"pc\"}"
+  },
+  "multipartFiles": [],
+  "timeout": null,
+  "returnsBinary": false
+}

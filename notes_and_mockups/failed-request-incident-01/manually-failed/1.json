@@ -1,0 +1,12 @@
+{
+  "route": "/image/set",
+  "json": {
+    "type": "defect",
+    "data": "{\"mainhash\":null,\"images\":null,\"local_id\":\"__locally_added__ghs2by\",\"offline\":true,\"parent_local_id\":\"20236169-5-4-0\",\"PjNr\":20236169,\"Bauleitung\":null,\"KurzText\":\"Stoßverbindungen  ohne Mangel\",\"LangText\":\"1. Stoß\",\"ErDat\":null,\"EventID\":null,\"EREArt\":5204,\"E1\":5,\"E2\":4,\"E3\":-1,\"Zusatz_Info\":\"16 m\",\"Autor\":\"pc\"}"
+  },
+  "multipartFiles": [
+    "/data/user/0/com.mbgsolutions.inspector/cache/__locally_added__CAP9127427789338511378.jpg"
+  ],
+  "timeout": null,
+  "returnsBinary": false
+}

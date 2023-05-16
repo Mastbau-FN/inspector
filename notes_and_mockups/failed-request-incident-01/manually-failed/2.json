@@ -1,0 +1,10 @@
+{
+  "route": "/image/set",
+  "json": {
+    "type": "defect",
+    "data": "{\"mainhash\":\"__locally_added__CAP641179786664396452.jpg\",\"images\":[\"__locally_added__CAP1326231461192157085.jpg\",\"__locally_added__CAP1013147474014556283.jpg\"],\"local_id\":\"__locally_added__10i9bz\",\"offline\":true,\"parent_local_id\":\"20236163-6-3-0\",\"PjNr\":20236163,\"Bauleitung\":null,\"KurzText\":\"Beschichtung  Mangel leicht\",\"LangText\":\"Oberfläche leicht verrostet\",\"ErDat\":null,\"EventID\":null,\"EREArt\":5201,\"E1\":6,\"E2\":3,\"E3\":-1,\"Zusatz_Info\":\"Untere 2 Segment \",\"Autor\":\"pc\"}"
+  },
+  "multipartFiles": [],
+  "timeout": null,
+  "returnsBinary": false
+}
