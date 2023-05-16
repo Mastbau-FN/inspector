@@ -28,7 +28,7 @@ dependencies:
     git: https://github.com/Mastbau-FN/weather_icons.git
 
   # to display current app-version
-  package_info_plus: ^1.0.6
+  package_info_plus: ^3.0.3
 
   # storing json like stuff on-device (used for caching datapoints)
   localstore: null
