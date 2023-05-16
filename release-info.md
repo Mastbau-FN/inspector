@@ -1,3 +1,3 @@
 # changes
 
-- fixed [#336](https://github.com/Mastbau-FN/inspector/issues/336)
+- working on #343 (this will trigger a new build but as a debuggable apk, to use tha same signature to update app)
