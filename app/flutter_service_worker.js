@@ -39,13 +39,13 @@ const RESOURCES = {
 "assets/packages/weather_icons/lib/fonts/weathericons-regular-webfont.ttf": "4618f0de2a818e7ad3fe880e0b74d04a",
 "assets/FontManifest.json": "b093338320911ca194290b85fbdbfb42",
 "assets/AssetManifest.json": "cb67a0997a8243e3af494799fe32864c",
-"index.html": "f068e1a3f790f23e2f2999ea68b45f77",
-"/": "f068e1a3f790f23e2f2999ea68b45f77",
+"index.html": "a531f8f4b9703358364764ea9ae137a4",
+"/": "a531f8f4b9703358364764ea9ae137a4",
 "favicon.png": "b0d744ab17e2391c03cb527550c7c3cd",
 "version.json": "3221a4dde7a0509cff8d3d6dd23964be",
 "icons/Icon-192.png": "8a6f3c8d32b4d612cc6ef48823a35a1a",
 "icons/Icon-512.png": "caba8d8c73e37df17c748783f50b0301",
-"main.dart.js": "5e3733a32489a422488622ea82e4c521",
+"main.dart.js": "e2d59dea1feb25496a8d5e7b52161f67",
 "manifest.json": "9085e740e9610073ea24a519251e7d1b"
 };
 
