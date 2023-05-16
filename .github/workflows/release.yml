@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [web, apk --debug, apk --release, appbundle]
+        platform: [web, apkd, apkr, appbundle]
 
     steps:
       - uses: actions/checkout@v2
@@ -77,10 +77,7 @@ jobs:
           printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
           ls 
           pwd
-
-      - name: Build ${{matrix.platform}}
-        run: flutter build ${{matrix.platform}}
-
+          
       - name: map build-type (platform) to path
         uses: kanga333/variable-mapper@v0.2.2
         with:
@@ -89,17 +86,24 @@ jobs:
             {
               "web": {
                 "builtpath": "build/web"
+                "buildcmd": "flutter build web"
               },
-              "apk --release": {
+              "apkr": {
                 "builtpath": "build/app/outputs/flutter-apk/app-release.apk"
+                "buildcmd": "flutter build apk --release"
               },
-              "apk --debug": {
+              "apkd": {
                 "builtpath": "build/app/outputs/flutter-apk/app-debug.apk"
+                "buildcmd": "flutter build apk --debug"
               },
               "appbundle": {
                 "builtpath": "build/app/outputs/bundle/release/app-release.aab"
+                "buildcmd": "flutter build appbundle"
               }
             }
+      - name: Build ${{matrix.platform}}
+        run: ${{env.buildcmd}}
+
       - name: upload ${{matrix.platform}} artifact
         uses: actions/upload-artifact@v2
         with:
