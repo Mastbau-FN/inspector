@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [web, apk --debug, appbundle]
+        platform: [web, apk --debug, apk --release, appbundle]
 
     steps:
       - uses: actions/checkout@v2
@@ -92,6 +92,9 @@ jobs:
               },
               "apk": {
                 "builtpath": "app/outputs/flutter-apk/app-release.apk"
+              },
+              "debugapk": {
+                "builtpath": "app/debug/app-debug.apk"
               },
               "appbundle": {
                 "builtpath": "app/outputs/bundle/release/app-release.aab"
@@ -173,6 +176,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: app-release.apk
           asset_name: inspector.apk
+          asset_content_type: application/octet-stream
+      - name: upload debug apk
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app-debug.apk
+          asset_name: inspector-debug.apk
           asset_content_type: application/octet-stream
 
   release-playstore:
