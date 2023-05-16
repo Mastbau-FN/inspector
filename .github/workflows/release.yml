@@ -90,10 +90,10 @@ jobs:
               "web": {
                 "builtpath": "build/web"
               },
-              "apk": {
+              "apk --release": {
                 "builtpath": "build/app/outputs/flutter-apk/app-release.apk"
               },
-              "debugapk": {
+              "apk --debug": {
                 "builtpath": "build/app/outputs/flutter-apk/app-debug.apk"
               },
               "appbundle": {
