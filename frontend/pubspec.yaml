@@ -193,3 +193,4 @@ dependency_overrides:
       url: https://github.com/elmar001/plugins.git
       path: packages/camera/camera_android
       ref: 5172b44088a4082ff0899594614c5380457d341b
+  intl: ^0.18.1
