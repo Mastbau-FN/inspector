@@ -136,10 +136,17 @@ Widget build(BuildContext context) {
                           int.tryParse(action.payload![&#39;max&#39;]!)!,
                     ),
                   ]
-                : [
-                    Text(&#39;Default Notification Page&#39;),
-                    Text(&#39;Payload: ${action.payload}&#39;),
-                  ],
+                : action.payload?[&#39;type&#39;] == &#39;failed&#39;
+                    ? [
+                        Text(&#39;Upload Sync Failed&#39;),
+                        Text(
+                            &#39;Request Data: ${action.payload![&#39;requestData&#39;]}&#39;),
+                        Icon(Icons.error, size: 50),
+                      ]
+                    : [
+                        Text(&#39;Default Notification Page&#39;),
+                        Text(&#39;Payload: ${action.payload}&#39;),
+                      ],
       ),
     ),
   );
@@ -209,7 +216,7 @@ Widget build(BuildContext context) {
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.6+56
+      1.2.7+57
   </span>
 
   

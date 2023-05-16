@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the FailedRequestmanager constructor from Class FailedRequestmanager from the failedRequestManager library, for the Dart programming language.">
-  <title>FailedRequestmanager constructor - FailedRequestmanager - failedRequestManager library - Dart API</title>
+  <meta name="description" content="API docs for the failed method from the NotificationPayload class, for the Dart programming language.">
+  <title>failed method - NotificationPayload class - controller library - Dart API</title>
 
 
   
@@ -29,11 +29,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../backend_failedRequestManager/backend_failedRequestManager-library.html">failedRequestManager</a></li>
-    <li><a href="../../backend_failedRequestManager/FailedRequestmanager-class.html">FailedRequestmanager</a></li>
-    <li class="self-crumb">FailedRequestmanager constructor</li>
+    <li><a href="../../notifications_controller/notifications_controller-library.html">controller</a></li>
+    <li><a href="../../notifications_controller/NotificationPayload-class.html">NotificationPayload</a></li>
+    <li class="self-crumb">failed static method</li>
   </ol>
-  <div class="self-name">FailedRequestmanager</div>
+  <div class="self-name">failed</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -53,18 +53,33 @@
 
   <div id="dartdoc-main-content" class="main-content">
       <div>
-<h1><span class="kind-constructor">FailedRequestmanager</span> constructor 
+<h1><span class="kind-method">failed</span> static method 
 </h1></div>
 
     <section class="multi-line-signature">
       
-      <span class="name ">FailedRequestmanager</span>(<wbr>)
+
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>&gt;</span>?</span>
+<span class="name ">failed</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="failed-param-requestData"><span class="type-annotation"><a href="../../classes_requestData/RequestData-class.html">RequestData</a>?</span> <span class="parameter-name">requestData</span></span></li>
+</ol>)
+
+      
+
     </section>
-
     
 
 
     
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">static Map&lt;String, String?&gt;? failed(RequestData? requestData) {
+  return {
+    &#39;type&#39;: &#39;failed&#39;,
+    &#39;title&#39;: &#39;Upload Sync Failed&#39;,
+    &#39;requestData&#39;: (requestData != null) ? requestData.toString() : null,
+  };
+}</code></pre>
+</section>
 
 
   </div> <!-- /.main-content -->
@@ -78,42 +93,42 @@
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
   <li><a href="../../index.html">MBG_Inspektionen</a></li>
-  <li><a href="../../backend_failedRequestManager/backend_failedRequestManager-library.html">failedRequestManager</a></li>
-  <li><a href="../../backend_failedRequestManager/FailedRequestmanager-class.html">FailedRequestmanager</a></li>
-  <li class="self-crumb">FailedRequestmanager constructor</li>
+  <li><a href="../../notifications_controller/notifications_controller-library.html">controller</a></li>
+  <li><a href="../../notifications_controller/NotificationPayload-class.html">NotificationPayload</a></li>
+  <li class="self-crumb">failed static method</li>
 </ol>
 
 
-    <h5>FailedRequestmanager class</h5>
+    <h5>NotificationPayload class</h5>
     <ol>
 
-        <li class="section-title"><a href="../../backend_failedRequestManager/FailedRequestmanager-class.html#constructors">Constructors</a></li>
-          <li><a href="../../backend_failedRequestManager/FailedRequestmanager/FailedRequestmanager.html">FailedRequestmanager</a></li>
+        <li class="section-title"><a href="../../notifications_controller/NotificationPayload-class.html#constructors">Constructors</a></li>
+          <li><a href="../../notifications_controller/NotificationPayload/NotificationPayload.html">NotificationPayload</a></li>
 
 
         <li class="section-title inherited">
-          <a href="../../backend_failedRequestManager/FailedRequestmanager-class.html#instance-properties">Properties</a>
+          <a href="../../notifications_controller/NotificationPayload-class.html#instance-properties">Properties</a>
         </li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
 
-        <li class="section-title"><a href="../../backend_failedRequestManager/FailedRequestmanager-class.html#instance-methods">Methods</a></li>
-          <li><a href="../../backend_failedRequestManager/FailedRequestmanager/loadAndCacheAll.html">loadAndCacheAll</a></li>
+        <li class="section-title inherited"><a href="../../notifications_controller/NotificationPayload-class.html#instance-methods">Methods</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
-          <li><a href="../../backend_failedRequestManager/FailedRequestmanager/retryFailedrequests.html">retryFailedrequests</a></li>
-          <li><a href="../../backend_failedRequestManager/FailedRequestmanager/setOnlineAll.html">setOnlineAll</a></li>
-          <li><a href="../../backend_failedRequestManager/FailedRequestmanager/setOnlineTotal.html">setOnlineTotal</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
 
-        <li class="section-title inherited"><a href="../../backend_failedRequestManager/FailedRequestmanager-class.html#operators">Operators</a></li>
+        <li class="section-title inherited"><a href="../../notifications_controller/NotificationPayload-class.html#operators">Operators</a></li>
           <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
 
 
 
+        <li class="section-title"><a href="../../notifications_controller/NotificationPayload-class.html#static-methods">Static methods</a></li>
+          <li><a href="../../notifications_controller/NotificationPayload/done.html">done</a></li>
+          <li><a href="../../notifications_controller/NotificationPayload/failed.html">failed</a></li>
+          <li><a href="../../notifications_controller/NotificationPayload/progress.html">progress</a></li>
 
 </ol>
 
-  </div><!--/.sidebar-offcanvas-left-->
+  </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
   </div><!--/.sidebar-offcanvas-->
