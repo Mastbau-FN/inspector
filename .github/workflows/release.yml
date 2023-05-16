@@ -59,7 +59,7 @@ jobs:
           path: ${{ env.working-directory}}/doc/api
 
   build-app:
-    needs: test
+    # needs: test
     name: Build Web + Android (apk+aab)
     runs-on: ubuntu-latest
     strategy:
@@ -85,19 +85,19 @@ jobs:
           map: |
             {
               "web": {
-                "builtpath": "build/web"
+                "builtpath": "build/web",
                 "buildcmd": "flutter build web"
               },
               "apkr": {
-                "builtpath": "build/app/outputs/flutter-apk/app-release.apk"
+                "builtpath": "build/app/outputs/flutter-apk/app-release.apk",
                 "buildcmd": "flutter build apk --release"
               },
               "apkd": {
-                "builtpath": "build/app/outputs/flutter-apk/app-debug.apk"
+                "builtpath": "build/app/outputs/flutter-apk/app-debug.apk",
                 "buildcmd": "flutter build apk --debug"
               },
               "appbundle": {
-                "builtpath": "build/app/outputs/bundle/release/app-release.aab"
+                "builtpath": "build/app/outputs/bundle/release/app-release.aab",
                 "buildcmd": "flutter build appbundle"
               }
             }
@@ -111,7 +111,7 @@ jobs:
           path: ${{env.working-directory}}/${{env.builtpath}}
 
   deploy-web:
-    needs: [build-doc,build-app]
+    needs: [build-doc,build-app,test]
     name: Deploy Web-App and Docs
     runs-on: ubuntu-latest
     steps:
@@ -147,7 +147,7 @@ jobs:
           folder: gh-pages
 
   release-GH:
-    needs: build-app
+    needs: [build-app, test]
     name: Release to GH
     runs-on: ubuntu-latest
     steps:
@@ -197,7 +197,7 @@ jobs:
 
   release-playstore:
     if: false #github.ref_name == 'release'
-    needs: build-app
+    needs: [build-app,test]
     name: Release to the google playstore
     runs-on: ubuntu-latest
     steps:
