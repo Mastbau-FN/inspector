@@ -86,7 +86,7 @@
     &#47;&#47; throw err;
     return null;
   if (file.lengthSync() &lt; 5) throw Exception(&quot;file $file definitely to small&quot;);
-  &#47;&#47;TODO: was wenn keine datei da lesbar ist? -&gt; return null
+  &#47;&#47;TO-DO: was wenn keine datei da lesbar ist? -&gt; return null
   &#47;&#47; das ist wichtig damit der placeholder statt einem &quot;image corrupt&quot; dargestellt wird
   return Image.file(await localFile(name),
       cacheHeight: cacheSize, cacheWidth: cacheSize);
