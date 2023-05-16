@@ -29,10 +29,17 @@ class DefaultNotificationPage extends StatelessWidget {
                             int.tryParse(action.payload!['max']!)!,
                       ),
                     ]
-                  : [
-                      Text('Default Notification Page'),
-                      Text('Payload: ${action.payload}'),
-                    ],
+                  : action.payload?['type'] == 'failed'
+                      ? [
+                          Text('Upload Sync Failed'),
+                          Text(
+                              'Request Data: ${action.payload!['requestData']}'),
+                          Icon(Icons.error, size: 50),
+                        ]
+                      : [
+                          Text('Default Notification Page'),
+                          Text('Payload: ${action.payload}'),
+                        ],
         ),
       ),
     );
