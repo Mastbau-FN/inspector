@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [web, apk, appbundle]
+        platform: [web, apk --debug, appbundle]
 
     steps:
       - uses: actions/checkout@v2
