@@ -15,7 +15,7 @@ const RESOURCES = {
 "assets/lib/assets/icon.png": "19a57c6c8dd6500c79e8915c761e2bb1",
 "assets/lib/assets/mbg_16x16.ico": "b0d744ab17e2391c03cb527550c7c3cd",
 "assets/fonts/MaterialIcons-Regular.otf": "e7069dfd19b331be16bed984668fe080",
-"assets/NOTICES": "0089a2b11ef3bbc6a8d0554711f5f84c",
+"assets/NOTICES": "f51c2a72f060f25f5babfa149fd9b4df",
 "assets/packages/map_launcher/assets/icons/tencent.svg": "4e1babec6bbab0159bdc204932193a89",
 "assets/packages/map_launcher/assets/icons/amap.svg": "00409535b144c70322cd4600de82657c",
 "assets/packages/map_launcher/assets/icons/petal.svg": "76c9cfa1bfefb298416cfef6a13a70c5",
@@ -39,13 +39,13 @@ const RESOURCES = {
 "assets/packages/weather_icons/lib/fonts/weathericons-regular-webfont.ttf": "4618f0de2a818e7ad3fe880e0b74d04a",
 "assets/FontManifest.json": "b093338320911ca194290b85fbdbfb42",
 "assets/AssetManifest.json": "cb67a0997a8243e3af494799fe32864c",
-"index.html": "632f6112a92ca69f92c0e0a4ebbfd7c9",
-"/": "632f6112a92ca69f92c0e0a4ebbfd7c9",
+"index.html": "f068e1a3f790f23e2f2999ea68b45f77",
+"/": "f068e1a3f790f23e2f2999ea68b45f77",
 "favicon.png": "b0d744ab17e2391c03cb527550c7c3cd",
 "version.json": "3221a4dde7a0509cff8d3d6dd23964be",
 "icons/Icon-192.png": "8a6f3c8d32b4d612cc6ef48823a35a1a",
 "icons/Icon-512.png": "caba8d8c73e37df17c748783f50b0301",
-"main.dart.js": "df909d029fc674b0fc4f994a72bba2b2",
+"main.dart.js": "5e3733a32489a422488622ea82e4c521",
 "manifest.json": "9085e740e9610073ea24a519251e7d1b"
 };
 
