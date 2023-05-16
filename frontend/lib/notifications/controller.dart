@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,14 @@ class NotificationPayload {
     return {
       'type': 'done',
       'title': 'Upload Sync Done',
+    };
+  }
+
+  static Map<String, String?>? failed(RequestData? requestData) {
+    return {
+      'type': 'failed',
+      'title': 'Upload Sync Failed',
+      'requestData': (requestData != null) ? requestData.toString() : null,
     };
   }
 }

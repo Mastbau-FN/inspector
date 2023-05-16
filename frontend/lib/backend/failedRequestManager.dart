@@ -70,6 +70,20 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
         } else {
           success = false;
           //TODO: what todo here?
+          AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: 1,
+              channelKey: 'progress',
+              title: Emojis.symbols_cross_mark + ' ' + 'Upload Sync Failed',
+              body:
+                  'Offline Änderungen konnten NICHT(!) hochsynchronisiert werden.. probiers nochmal oder melde dich beim Support',
+              category: NotificationCategory.Progress,
+              notificationLayout: NotificationLayout.ProgressBar,
+              progress: (i / total * 100).round(),
+              payload: NotificationPayload.failed(rd),
+              // locked: false,
+            ),
+          );
           break;
         }
       } catch (e) {
@@ -78,7 +92,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       }
     }
   }
-  if (input.notificationsAllowed) {
+  if (input.notificationsAllowed && success) {
     //TODO: play sound
     AwesomeNotifications().createNotification(
       content: NotificationContent(
