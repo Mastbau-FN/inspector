@@ -21,7 +21,7 @@ import '../backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'data/checkcategory.dart';
 
-abstract class WithImgHashes {
+abstract mixin class WithImgHashes {
   @JsonKey(name: 'mainhash')
   String? mainhash;
   @JsonKey(name: 'images')

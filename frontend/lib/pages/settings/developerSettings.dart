@@ -26,9 +26,9 @@ class DeveloperSettings extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: NamedToggle(
                 name: name,
-                initiallyOn: v.item1(),
+                initiallyOn: v.$1(),
                 onChanged: (bool newValue) {
-                  v.item2(newValue);
+                  v.$2(newValue);
                 },
               ),
             );

@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
@@ -31,17 +30,17 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   DisplayUser? user = await API()
       .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
   if (user == null) {
-    input.progressSender.send(Tuple2<double, bool?>(1, false));
+    input.progressSender.send((1, false));
     return;
   }
   bool success = true;
   num total = failedReqs.length;
 
-  input.progressSender.send(Tuple2<double, bool?>(0, null));
+  input.progressSender.send((0, null));
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
-    input.progressSender.send(Tuple2<double, bool?>(i / total, null));
+    input.progressSender.send((i / total, null));
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -56,9 +55,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
             payload: NotificationPayload.progress(i, total)),
       );
     }
-    final reqd = failedReqs[i];
-    final docID = reqd.item1;
-    final rd = reqd.item2;
+    final (docID, rd) = failedReqs[i];
     if (rd != null) {
       try {
         debugPrint('retry request $i/$total: ${rd.route}');
@@ -108,7 +105,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       ),
     );
   }
-  input.progressSender.send(Tuple2<double, bool?>(1, success));
+  input.progressSender.send((1, success));
 }
 
 class _RetryFailedRequestsIsolateInput {
@@ -150,13 +147,11 @@ class FailedRequestmanager {
     );
 
     StreamSubscription ss = progressReceiver.listen((progress) {
-      if (progress is Tuple2<double, bool?>) {
-        if (progress.item2 != null) {
-          success = progress.item2!;
-          progressReceiver.close();
-        } else {
-          onProgress?.call(progress.item1);
-        }
+      if (progress.$2 != null) {
+        success = progress.$2!;
+        progressReceiver.close();
+      } else {
+        onProgress?.call(progress.$1);
       }
     });
 

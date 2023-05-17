@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:tuple/tuple.dart';
+
 import 'backend/offlineProvider.dart' as OP;
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 
@@ -26,29 +26,40 @@ class Options {
   var useSystemTheme = false;
 
   // @JsonKey(ignore: true)//is a getter anyway
-  Map<String, Tuple2<bool Function(), void Function(bool)>> setteableBools() =>
-      {
-        S.current!.option_canbeoffline:
-            Tuple2(() => canBeOffline, (bool value) => canBeOffline = value),
+  Map<String, (bool Function(), void Function(bool))> setteableBools() => {
+        S.current!.option_canbeoffline: (
+          () => canBeOffline,
+          (bool value) => canBeOffline = value
+        ),
         if (canBeOffline)
-          S.current!.option_forceOffline:
-              Tuple2(() => forceOffline, (bool value) => forceOffline = value),
-        S.current!.option_usemobilenetworkforupload:
-            Tuple2(() => useMobileNetworkForUpload, (bool value) {
-          useMobileNetworkForUpload = value;
-          if (value) useMobileNetworkForDownload = true;
-        }),
-        S.current!.option_usemobilenetworkfordownload:
-            Tuple2(() => useMobileNetworkForDownload, (bool value) {
-          useMobileNetworkForDownload = value;
-          if (!value) useMobileNetworkForUpload = false;
-        }),
-        S.current!.option_usesystemtheme: Tuple2(
-            () => useSystemTheme, (bool value) => useSystemTheme = value),
-        S.current!.option_compactDownload:
-            Tuple2(() => compactDownload, (bool value) {
-          compactDownload = value;
-        }),
+          S.current!.option_forceOffline: (
+            () => forceOffline,
+            (bool value) => forceOffline = value
+          ),
+        S.current!.option_usemobilenetworkforupload: (
+          () => useMobileNetworkForUpload,
+          (bool value) {
+            useMobileNetworkForUpload = value;
+            if (value) useMobileNetworkForDownload = true;
+          }
+        ),
+        S.current!.option_usemobilenetworkfordownload: (
+          () => useMobileNetworkForDownload,
+          (bool value) {
+            useMobileNetworkForDownload = value;
+            if (!value) useMobileNetworkForUpload = false;
+          }
+        ),
+        S.current!.option_usesystemtheme: (
+          () => useSystemTheme,
+          (bool value) => useSystemTheme = value
+        ),
+        S.current!.option_compactDownload: (
+          () => compactDownload,
+          (bool value) {
+            compactDownload = value;
+          }
+        ),
       };
 
   static final String _id = '__options__';

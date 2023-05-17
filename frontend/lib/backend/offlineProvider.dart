@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
-import 'package:tuple/tuple.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -169,7 +168,7 @@ Future<String> logFailedReq(RequestData rd) async {
 }
 
 ///returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a [http.Response] or an [http.MultipartRequest]
-Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
+Future<List<(String, RequestData?)>?> getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
       .get()); //TO-DO: das muss in-order sein, sonst könnte es probleme geben..
 
@@ -179,15 +178,15 @@ Future<List<Tuple2<String, RequestData?>>?> getAllFailedRequests() async {
   final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
     try {
       final parsedReq = RequestData.deserialize(e.value);
-      return Tuple2(e.key, parsedReq);
+      return (e.key, parsedReq);
     } catch (err) {
       debugPrint('failed parse of request hm, $err');
     }
-    return Tuple2(e.key, null);
+    return (e.key, null);
   });
   var reqs = (await Future.wait(docsWithTimeAsFutureTuples));
-  reqs.sort(((a, b) =>
-      int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
+  reqs.sort((a, b) =>
+      int.parse(a.$1, radix: 36).compareTo(int.parse(b.$1, radix: 36)));
   return reqs;
 }
 
