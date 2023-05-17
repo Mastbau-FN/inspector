@@ -146,14 +146,15 @@ class FailedRequestmanager {
       notificationsAllowed: notificationsAllowed,
     );
 
-    StreamSubscription ss = progressReceiver.listen((progress) {
-      if (progress.$2 != null) {
-        success = progress.$2!;
+    final ss = progressReceiver.listen((msg) {
+      final (progress, _success) = msg as (double, bool?);
+      if (_success != null) {
+        success = _success;
         progressReceiver.close();
       } else {
-        onProgress?.call(progress.$1);
+        onProgress?.call(progress);
       }
-    });
+    }) as StreamSubscription<(double, bool)>;
 
     // ss.
     if (!kIsWeb)
