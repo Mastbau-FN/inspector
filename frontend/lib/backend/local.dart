@@ -42,7 +42,7 @@ class LocalMirror {
       return (await OP.getAllChildrenFrom<ChildData>(_id))
           ?.whereType<ChildData>()
           .map(
-            (e) => injectImages(e),
+            (e) => injectImageFutures(e),
           )
           .toList();
     } catch (e) {
@@ -214,7 +214,7 @@ class LocalMirror {
       newLocalImageNames.removeAt(0);
     }
     data.imagehashes?.addAll(newLocalImageNames);
-    injectImages(data, preloadFull: true);
+    injectImageFutures(data, preloadFull: true);
     await storeData(data, forId: caller?.id ?? await API().rootID);
     // NewImages.addAllNulled(newLocalImageNames);
     return 'added files offline';

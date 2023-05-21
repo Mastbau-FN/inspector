@@ -339,8 +339,8 @@ class API {
       {bool compressed = false}) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
-      itPrefersCache:
-          false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
+      itPrefersCache: false &&
+          true, //! wir nehmen immer lieber lokale bilder, bandbreite und so //FIXME UHOH kp ob das true oder false sein sollte
       offline: () => local.getImageByHash(hash, compressed: compressed),
       online: () => remote.getImageByHash(hash, compressed: compressed),
       requestType: requestType,
@@ -443,7 +443,27 @@ class API {
   }
 }
 
-D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
+Future<D> injectImagesAwait<D extends WithImgHashes>(D data,
+    {bool preloadFull = false}) async {
+  data = injectImageFutures(data, preloadFull: preloadFull);
+
+  awaitImg(Future<ImageData?> _img) async {
+    final img = await _img;
+    if (img == null) return null;
+    if (preloadFull) await img.fullImage();
+    return img;
+  }
+
+  final images =
+      await Future.wait((data.imageFutures ?? []).map((f) => awaitImg(f)));
+  await awaitImg(data.mainImage);
+  await awaitImg(data.previewImage);
+  debugPrint('images loaded ${images.length}, first: ${images.first}');
+  return data;
+}
+
+D injectImageFutures<D extends WithImgHashes>(D data,
+    {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {
     if (preloadFull) API().getImageByHash(hash!, compressed: false);
     return API().getImageByHash(hash!, compressed: true).then((value) => value

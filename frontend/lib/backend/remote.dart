@@ -226,7 +226,11 @@ class Remote {
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      return injectImages(data, preloadFull: preloadFullImages);
+      if (preloadFullImages) {
+        return injectImagesAwait(data, preloadFull: true);
+      } else {
+        return injectImageFutures(data);
+      }
     };
   }
 
@@ -450,9 +454,11 @@ class Remote {
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]
-Future<List<T>> getListFromJson<T extends Data>(Map<String, dynamic> json,
-    FutureOr<T?> Function(Map<String, dynamic>) converter,
-    {String? objName}) async {
+Future<List<T>> getListFromJson<T extends Data>(
+  Map<String, dynamic> json,
+  FutureOr<T?> Function(Map<String, dynamic>) converter, {
+  String? objName,
+}) async {
   try {
     List<dynamic> str = (objName != null) ? json[objName] : json;
     return List<T>.from(
