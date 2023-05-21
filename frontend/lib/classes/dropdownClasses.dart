@@ -111,6 +111,10 @@ class DropDownModel<ChildData extends WithLangText,
     if (notify) notifyListeners();
   }
 
+  void refresh() {
+    notifyListeners();
+  }
+
   Stream<ChildData?> _getCurrentlyChosenChildData(
       // ignore: unused_element
       {int? remainingTries}) async* {

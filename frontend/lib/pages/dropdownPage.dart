@@ -196,8 +196,7 @@ class _DropDownBodyState<
                           .then((value) => value != null
                               ? () {
                                   (kDebugMode ? showToast(value) : (_) {});
-                                  ddmodel
-                                      .notifyListeners(); //refresh; quickfix for #336
+                                  ddmodel.refresh(); //quickfix for #336
                                 }()
                               : showToast(S.of(context).deleteUnseccessful)),
                       confirmName: data.title,

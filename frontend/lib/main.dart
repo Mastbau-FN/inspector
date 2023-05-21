@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/notifications/controller.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+// ignore: unused_shown_name
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginView.dart';

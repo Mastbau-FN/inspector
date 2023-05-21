@@ -1,7 +1,7 @@
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
-import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
+// import 'package:MBG_Inspektionen/fragments/RandomDogsScrollView.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -20,11 +20,11 @@ class MainDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var unlimiteddoggosTile = OpenNewViewTile(
-      title: S.of(context).seeSomeDoggos,
-      icon: Icons.child_care,
-      newView: RandomDogsScrollView(),
-    );
+    // var unlimiteddoggosTile = OpenNewViewTile(
+    //   title: S.of(context).seeSomeDoggos,
+    //   icon: Icons.child_care,
+    //   newView: RandomDogsScrollView(),
+    // );
 
     var settingsTile = OpenNewViewTile(
       title: S.of(context).settings,

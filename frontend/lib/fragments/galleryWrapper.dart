@@ -2,7 +2,6 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:provider/provider.dart';
 
 import 'loadingscreen/loadingView.dart';
 
