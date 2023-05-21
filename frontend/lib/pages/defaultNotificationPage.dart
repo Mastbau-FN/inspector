@@ -1,5 +1,8 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../backend/failedRequestManager.dart';
 
 class DefaultNotificationPage extends StatelessWidget {
   final ReceivedAction action;
@@ -27,6 +30,17 @@ class DefaultNotificationPage extends StatelessWidget {
                       LinearProgressIndicator(
                         value: int.tryParse(action.payload!['progress']!)! /
                             int.tryParse(action.payload!['max']!)!,
+                      ),
+                      FutureBuilder(
+                        future: SharedPreferences.getInstance(),
+                        builder: (context, snapshot) {
+                          final actualProgress =
+                              snapshot.data?.getDouble(sync_progress_str);
+                          return switch (actualProgress) {
+                            null => CircularProgressIndicator(),
+                            double p => LinearProgressIndicator(value: p),
+                          };
+                        },
                       ),
                     ]
                   : action.payload?['type'] == 'failed'

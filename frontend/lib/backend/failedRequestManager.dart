@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
@@ -20,10 +21,22 @@ import 'helpers.dart' as Helper;
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 
+final _prefs = SharedPreferences.getInstance();
+
+final sync_progress_str = 'sync progress';
+final sync_in_progress_str = 'sync in progress';
+
 void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   if (!kIsWeb) {
     // Register the background isolate with the root isolate.
     BG.initialize(input.rootIsolateToken);
+  }
+  final prefs = (await _prefs);
+  if (prefs.getBool(sync_in_progress_str) ?? true) {
+    //mutex taken
+    return;
+  } else {
+    (await _prefs).setBool(sync_in_progress_str, true); //take mutex
   }
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
@@ -37,10 +50,12 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   num total = failedReqs.length;
 
   input.progressSender.send((0.0, null));
+  prefs.setDouble(sync_progress_str, 0.0);
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(((i / total), null));
+    prefs.setDouble(sync_progress_str, i / total);
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -106,6 +121,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     );
   }
   input.progressSender.send((1.0, success));
+  prefs.setDouble(sync_progress_str, 1.0);
+  prefs.setBool(sync_in_progress_str, false); //release mutex
 }
 
 class _RetryFailedRequestsIsolateInput {

@@ -60,6 +60,7 @@ class UploadSyncTile extends StatefulWidget {
 }
 
 class _UploadSyncTileState extends State<UploadSyncTile> {
+  //TODO: read actual progress from sharedprefs
   bool loading = false;
   bool? success;
   double progress = 0;
