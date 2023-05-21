@@ -30,17 +30,17 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   DisplayUser? user = await API()
       .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
   if (user == null) {
-    input.progressSender.send((1, false));
+    input.progressSender.send((1.0, false));
     return;
   }
   bool success = true;
   num total = failedReqs.length;
 
-  input.progressSender.send((0, null));
+  input.progressSender.send((0.0, null));
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
-    input.progressSender.send((i / total, null));
+    input.progressSender.send(((i / total), null));
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -105,7 +105,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       ),
     );
   }
-  input.progressSender.send((1, success));
+  input.progressSender.send((1.0, success));
 }
 
 class _RetryFailedRequestsIsolateInput {
@@ -154,7 +154,7 @@ class FailedRequestmanager {
       } else {
         onProgress?.call(progress);
       }
-    }) as StreamSubscription<(double, bool)>;
+    }); // as StreamSubscription<(double, bool)>;
 
     // ss.
     if (!kIsWeb)
@@ -307,4 +307,16 @@ class FailedRequestmanager {
 //     debugPrint('loaded: $json');
 //     localImageToRemoteImage_ = json ?? {};
 //   }
+// }
+
+// abstract interface class ProgressReseivePort implements ReceivePort {
+//   ProgressReseivePort() : super();
+//   @override
+//   SendPort get sendPort => ProgressSendPort();
+// }
+
+// abstract interface class ProgressSendPort implements SendPort {
+//   ProgressSendPort() : super();
+
+//   void send((double, bool?) message) => super.send(message);
 // }
