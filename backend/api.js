@@ -21,9 +21,9 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
     const val = await statement();
     const jsonderulo = await jsonmaker(val);
     // console.log(res)
-    if (!res.headersSent)return res.status(200).json(jsonderulo);
+    if (!res.headersSent) return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(error,"caler")
+    console.warn(error, "caler")
     return next({ error: { errsafejson_captured: error.toString() } });
   }
 };
@@ -181,6 +181,25 @@ const getFileFromHash = async (req, res) => {
   }
 };
 
+/**
+ * retrieves the file given by a hash and returns it to the client
+ */
+const getFileFromHash_get = async (req, res) => {
+  try {
+    let img/*;
+    try {
+      img*/ = await imghasher.getFileFromHash(req.params.hash, true); //serve compressed images only
+    // } catch (e) {
+    //   img = await imghasher.getFileFromHash(req.params.hash, false); //fallback to non-compressed
+    // }
+    res.writeHead(200, { "Content-type": "image/jpg" });
+    res.end(img);
+  } catch (e) {
+    console.warn('failed to get image:',  e);
+    res.status(404).json({ reason: "image no longer available" });
+  }
+};
+
 const fileUpload = async (req, res) => {
   console.log("uploading files..");
   if (!(req.files || req.file)) {
@@ -199,6 +218,7 @@ module.exports = {
   getCheckPointDefects,
 
   getFileFromHash,
+  getFileFromHash_get,
   fileUpload,
 
   addNew,

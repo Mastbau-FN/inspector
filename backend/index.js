@@ -45,16 +45,9 @@ const app = express();
 const port = process.env.PORT || 443;
 
 var cors = require("cors");
-var cors_whitelist = ["https://mastbau-fn.github.io", "http://localhost", "http://localho.st"]
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (cors_whitelist.indexOf(origin) !== -1) {
-        callback(null, true)
-      } else {
-        callback(new Error('Not allowed by CORS'))
-      }
-    },
+    origin: [/localhost$/, /\.mastbau-fn\.github\.io$/],
     credentials: true,
   })
 );
@@ -130,6 +123,7 @@ app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
 app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
+app.get("/api/secure/get/compressed/:hash", api.getFileFromHash_get);
 
 app.get("/error", (req, res) => {
   throw Error("failed");

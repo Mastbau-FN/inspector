@@ -13,8 +13,11 @@ const api_wall = (req, res, next) => {
 };
 
 const login_wall = async (req, res, next) => {
-  const loginFreePaths = [""];
-  if (loginFreePaths.includes(req.path)) return next();
+  const loginFreePaths = [/get\/compressed/];
+  //if any regex in loginFreePath matches, skip
+  // console.log(req.path, /get\/compressed/.test(req.path))
+  if (loginFreePaths.some(regex => regex.test(req.path))) return next();
+
   try {
     let user = await db.getValidUser(req.body.user);
     //important s.t. we can use req.user in all api-calls that require a user to be logged in
