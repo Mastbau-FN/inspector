@@ -23,7 +23,7 @@ var cache = new NanoCache({
 const getFileFromHash = async (hash, compressed) => {
   console.log("gettin file from ", await getPathFromHash(hash))
   let compressed_path = homedir + "/compressed_images/" + hash
-  if (compressed && fs.existsSync(compressed_path + '/img.heic')) {
+  if (compressed && fs.existsSync(compressed_path + '/img.heic') && heic_supported) {
     let img = await fsp.readFile(compressed_path + '/img.heic')
     return img
   }
@@ -87,7 +87,7 @@ const getPathFromHash = (hash) => {
 
 const memorize = (rootpath, link, filename) => {
   // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
-  let key = (filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename + 'v1').digest('base64');
+  let key = ((filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename + 'v1').digest('base64')).replace(/\//g, '_');
 
   cache.set(key + "r", rootpath);
   cache.set(key + "l", link);
