@@ -45,9 +45,16 @@ const app = express();
 const port = process.env.PORT || 443;
 
 var cors = require("cors");
+var cors_whitelist = ["https://mastbau-fn.github.io", "http://localhost", "http://localho.st"]
 app.use(
   cors({
-    origin: ["https://mastbau-fn.github.io", "http://localhost", "http://localho.st"],
+    origin: function (origin, callback) {
+      if (cors_whitelist.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     credentials: true,
   })
 );
