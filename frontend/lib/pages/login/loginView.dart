@@ -187,7 +187,7 @@ class _LoginFieldState extends State<LoginField> {
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.tertiary,
+            color: Theme.of(context).colorScheme.primary,
             width: 2,
           ),
         ),
