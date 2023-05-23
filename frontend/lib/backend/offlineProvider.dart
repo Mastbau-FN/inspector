@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -17,8 +18,10 @@ import './helpers.dart' as Helper;
 
 // MARK: image stuff
 
-Future<String> get localPath async =>
-    (await getApplicationDocumentsDirectory()).path;
+Future<String> get localPath async {
+  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/"; //TODO
+  return (await getApplicationDocumentsDirectory()).path;
+}
 
 Future<File> localFile(String name) async =>
     File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
@@ -28,6 +31,9 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
   try {
     var file = await localFile(name);
+    // if (kIsWeb) {
+    //TODO: support storing images/file in indexedDb or something for web
+    // } else
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -46,6 +52,8 @@ String convertToCompressedHashName(String hash) => 'compressed/$hash';
 
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name, {int? cacheSize}) async {
+  //TODO: support reading images/file from indexedDb or something for web
+
   final file = (await localFile(name));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
@@ -63,6 +71,7 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
+  //TODO: support web
   final file = (await localFile(name));
   if (!file.existsSync()) throw Exception("file $file doesnt exist");
 

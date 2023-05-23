@@ -8,6 +8,7 @@ import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
 import 'package:MBG_Inspektionen/env.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -186,16 +187,25 @@ class Remote {
   //final _imageStreamController = BehaviorSubject<String>();
   RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
       {bool compressed = false}) {
-    final rd = RequestData(
-      _getImageFromHash_r,
-      json: {
-        'hash': hash,
-        'compressed': compressed,
-      },
-      returnsBinary: true,
-    );
+    final rd = switch (kIsWeb) {
+      true => RequestData('/login'),
+      false => RequestData(
+          _getImageFromHash_r,
+          json: {
+            'hash': hash,
+            'compressed': compressed,
+          },
+          returnsBinary: true,
+        )
+    };
 
     parser(http.BaseResponse _res) async {
+      if (kIsWeb)
+        return ImageData(
+            Image(
+                image: NetworkImage("$_baseurl/get/compressed/$hash",
+                    headers: {HttpHeaders.authorizationHeader: _api_key})),
+            id: hash);
       final res = _res.forceRes();
       if (res == null || res.statusCode ~/ 100 != 2)
         return null;
