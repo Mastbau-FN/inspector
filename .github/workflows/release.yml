@@ -59,7 +59,7 @@ jobs:
           path: ${{ env.working-directory}}/doc/api
 
   build-app:
-    # needs: test
+    needs: test
     name: Build Web + Android (apk+aab)
     runs-on: ubuntu-latest
     strategy:
