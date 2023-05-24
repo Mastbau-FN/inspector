@@ -37,7 +37,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     //mutex taken
     return;
   } else {
-    (await _prefs).setBool(sync_in_progress_str, true); //take mutex
+    //FIXME kack mutex nicht nur nicht atomic sondern sogar async uff
+    await (await _prefs).setBool(sync_in_progress_str, true); //take mutex
   }
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
@@ -45,18 +46,19 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
   if (user == null) {
     input.progressSender.send((1.0, false));
+    await prefs.setBool(sync_in_progress_str, false); //release mutex
     return;
   }
   bool success = true;
   num total = failedReqs.length;
 
   input.progressSender.send((0.0, null));
-  prefs.setDouble(sync_progress_str, 0.0);
+  await prefs.setDouble(sync_progress_str, 0.0);
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(((i / total), null));
-    prefs.setDouble(sync_progress_str, i / total);
+    await prefs.setDouble(sync_progress_str, i / total);
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -102,6 +104,7 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       } catch (e) {
         debugPrint('failed to retry request: $e');
         success = false;
+        // await prefs.setBool(sync_in_progress_str, false); //release mutex
       }
     }
   }
@@ -122,8 +125,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     );
   }
   input.progressSender.send((1.0, success));
-  prefs.setDouble(sync_progress_str, 1.0);
-  prefs.setBool(sync_in_progress_str, false); //release mutex
+  await prefs.setDouble(sync_progress_str, 1.0);
+  await prefs.setBool(sync_in_progress_str, false); //release mutex
 }
 
 class _RetryFailedRequestsIsolateInput {

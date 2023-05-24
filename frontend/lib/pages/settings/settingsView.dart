@@ -94,7 +94,7 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   }
 
   onPress(c) async {
-    if (loading) {
+    if (loading || (prefs?.getBool(sync_in_progress_str) ?? false)) {
       showToast("already in progress");
       return;
     }
