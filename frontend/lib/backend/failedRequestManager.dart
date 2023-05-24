@@ -32,7 +32,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     BG.initialize(input.rootIsolateToken);
   }
   final prefs = (await _prefs);
-  if (prefs.getBool(sync_in_progress_str) ?? true) {
+  final is_already_running = prefs.getBool(sync_in_progress_str);
+  if (is_already_running ?? false) {
     //mutex taken
     return;
   } else {
