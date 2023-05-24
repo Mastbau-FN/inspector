@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/.github/actions/setup@main
+      - uses: Mastbau-FN/inspector/.github/actions/setup@staging
       - name: run tests and report coverage
         run: flutter test --coverage
       - name: comment coverage
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/.github/actions/setup@main
+      - uses: Mastbau-FN/inspector/.github/actions/setup@staging
       - name: Build Documentation
         run: |
           flutter pub global activate dartdoc
@@ -68,7 +68,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: Mastbau-FN/inspector/.github/actions/setup@main
+      - uses: Mastbau-FN/inspector/.github/actions/setup@staging
 
       - name: create key.properties for signing
         run: |

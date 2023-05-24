@@ -5,8 +5,8 @@ part 'env.g.dart';
 @Envied(path: '.env')
 abstract class Env {
   @EnviedField(varName: 'API_KEY', obfuscate: true)
-  static final mbgKey = _Env.mbgKey;
+  static final String mbgKey = _Env.mbgKey;
 
   @EnviedField(varName: 'API_URL')
-  static const mbgUrl = _Env.mbgUrl;
+  static const String mbgUrl = _Env.mbgUrl;
 }
