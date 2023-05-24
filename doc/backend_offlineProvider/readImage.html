@@ -77,6 +77,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;Image?&gt; readImage(String name, {int? cacheSize}) async {
+  &#47;&#47;TODO: support reading images&#47;file from indexedDb or something for web
+
   final file = (await localFile(name));
   &#47;&#47; ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)

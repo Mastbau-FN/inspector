@@ -73,8 +73,10 @@
 
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;String&gt; get localPath async =&gt;
-    (await getApplicationDocumentsDirectory()).path;</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;String&gt; get localPath async {
+  if (kIsWeb) return &quot;okay_we_need_to_fake_it_for_web&#47;&quot;; &#47;&#47;TODO
+  return (await getApplicationDocumentsDirectory()).path;
+}</code></pre>
 </section>
 
 </section>

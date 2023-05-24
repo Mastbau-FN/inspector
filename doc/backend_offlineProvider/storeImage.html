@@ -80,6 +80,9 @@
   &#47;&#47; Write the file
   try {
     var file = await localFile(name);
+    &#47;&#47; if (kIsWeb) {
+    &#47;&#47;TODO: support storing images&#47;file in indexedDb or something for web
+    &#47;&#47; } else
     file = await file.writeAsBytes(imgBytes); &#47;&#47;u good?
     return file;
   } catch (e) {

@@ -59,7 +59,7 @@
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/tuple/2.0.1/tuple/Tuple2-class.html">Tuple2</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="../classes_requestData/RequestData-class.html">RequestData</a>?</span>&gt;</span></span>&gt;</span>?</span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter">(<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, </span><span class="field"><span class="type-annotation"><a href="../classes_requestData/RequestData-class.html">RequestData</a>?</span></span>)</span>&gt;</span>?</span>&gt;</span></span>
 <span class="name ">getAllFailedRequests</span>(<wbr>)
 
         
@@ -67,14 +67,14 @@
     </section>
     
 <section class="desc markdown">
-  <p>returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a <a href="https://pub.dev/documentation/http/0.13.5/http/Response-class.html">http.Response</a> or an <a href="https://pub.dev/documentation/http/0.13.5/http/MultipartRequest-class.html">http.MultipartRequest</a></p>
+  <p>returns a List of weird structures of the id of the failed request and a tuple where exactly one is null, either a <a href="https://pub.dev/documentation/http/0.13.6/http/Response-class.html">http.Response</a> or an <a href="https://pub.dev/documentation/http/0.13.6/http/MultipartRequest-class.html">http.MultipartRequest</a></p>
 </section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;Tuple2&lt;String, RequestData?&gt;&gt;?&gt; getAllFailedRequests() async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;(String, RequestData?)&gt;?&gt; getAllFailedRequests() async {
   final docs = (await failedReqLogCollection
       .get()); &#47;&#47;TO-DO: das muss in-order sein, sonst könnte es probleme geben..
 
@@ -84,15 +84,15 @@
   final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
     try {
       final parsedReq = RequestData.deserialize(e.value);
-      return Tuple2(e.key, parsedReq);
+      return (e.key, parsedReq);
     } catch (err) {
       debugPrint(&#39;failed parse of request hm, $err&#39;);
     }
-    return Tuple2(e.key, null);
+    return (e.key, null);
   });
   var reqs = (await Future.wait(docsWithTimeAsFutureTuples));
-  reqs.sort(((a, b) =&gt;
-      int.parse(a.item1, radix: 36).compareTo(int.parse(b.item1, radix: 36))));
+  reqs.sort((a, b) =&gt;
+      int.parse(a.$1, radix: 36).compareTo(int.parse(b.$1, radix: 36)));
   return reqs;
 }</code></pre>
 </section>

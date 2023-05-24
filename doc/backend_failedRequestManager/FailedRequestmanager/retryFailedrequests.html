@@ -99,16 +99,15 @@
     notificationsAllowed: notificationsAllowed,
   );
 
-  StreamSubscription ss = progressReceiver.listen((progress) {
-    if (progress is Tuple2&lt;double, bool?&gt;) {
-      if (progress.item2 != null) {
-        success = progress.item2!;
-        progressReceiver.close();
-      } else {
-        onProgress?.call(progress.item1);
-      }
+  final ss = progressReceiver.listen((msg) {
+    final (progress, _success) = msg as (double, bool?);
+    if (_success != null) {
+      success = _success;
+      progressReceiver.close();
+    } else {
+      onProgress?.call(progress);
     }
-  });
+  }); &#47;&#47; as StreamSubscription&lt;(double, bool)&gt;;
 
   &#47;&#47; ss.
   if (!kIsWeb)

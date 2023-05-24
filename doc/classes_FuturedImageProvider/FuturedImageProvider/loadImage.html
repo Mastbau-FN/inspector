@@ -66,13 +66,27 @@
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/painting/ImageStreamCompleter-class.html">ImageStreamCompleter</a></span>
 <span class="name ">loadImage</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="loadImage-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">key</span>, </span></li>
-<li><span class="parameter" id="loadImage-param-decode"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/ImageDecoderCallback.html">ImageDecoderCallback</a></span> <span class="parameter-name">decode</span></span></li>
+<li><span class="parameter" id="loadImage-param-decode"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/ImageDecoderCallback.html">ImageDecoderCallback</a></span> <span class="parameter-name">decode</span></span></li>
 </ol>)
 
-      
+      <div class="features"><span class="feature">override</span></div>
 
     </section>
     
+<section class="desc markdown">
+  <p>Converts a key into an <a href="https://api.flutter.dev/flutter/painting/ImageStreamCompleter-class.html">ImageStreamCompleter</a>, and begins fetching the
+image.</p>
+<p>For backwards-compatibility the default implementation of this method returns
+an object that will cause <a href="../../classes_FuturedImageProvider/FuturedImageProvider/resolveStreamForKey.html">resolveStreamForKey</a> to consult <a href="../../classes_FuturedImageProvider/FuturedImageProvider/loadBuffer.html">loadBuffer</a>.
+However, implementors of this interface should only override this method
+and not <a href="../../classes_FuturedImageProvider/FuturedImageProvider/loadBuffer.html">loadBuffer</a>, which is deprecated.</p>
+<p>The <code>decode</code> callback provides the logic to obtain the codec for the
+image.</p>
+<p>See also:</p>
+<ul>
+<li><a href="https://api.flutter.dev/flutter/painting/ResizeImage-class.html">ResizeImage</a>, for modifying the key to account for cache dimensions.</li>
+</ul>
+</section>
 
 
     

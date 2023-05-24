@@ -145,8 +145,9 @@
                                   .map(
                                     (e) async =&gt; XFile.fromData(
                                       Uint8List.fromList(
-                                        encodePng(
-                                          decodeImage(await e.readAsBytes())!,
+                                        imglib.encodePng(
+                                          imglib.decodeImage(
+                                              await e.readAsBytes())!,
                                         ),
                                       ),
                                       name:
