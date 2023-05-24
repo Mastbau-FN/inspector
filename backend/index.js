@@ -47,7 +47,7 @@ const port = process.env.PORT || 443;
 var cors = require("cors");
 app.use(
   cors({
-    origin: [/localhost$/, /\.mastbau-fn\.github\.io$/],
+    origin: [/localhost$/, /\.?mastbau-fn\.github\.io$/],
     credentials: true,
   })
 );
