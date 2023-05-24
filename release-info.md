@@ -1,3 +1,3 @@
 # changes
 
-- web version shows images
+- web version shows images now
