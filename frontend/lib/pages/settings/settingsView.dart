@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -9,6 +10,7 @@ import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/openNewViewTile.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
@@ -64,10 +66,42 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   bool loading = false;
   bool? success;
   double progress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((value) {
+      prefs = value;
+      slowrefresh();
+    });
+  }
+
+  SharedPreferences? prefs;
+
+  void slowrefresh() {
+    if (prefs == null) return;
+    if (prefs?.getBool(sync_in_progress_str) ?? loading) {
+      setState(() {
+        loading = true;
+        progress = prefs?.getDouble(sync_progress_str) ?? 0.0;
+      });
+      Future.delayed(Duration(milliseconds: 500), slowrefresh);
+    } else {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
   onPress(c) async {
+    if (loading) {
+      showToast("already in progress");
+      return;
+    }
     setState(() {
       loading = true;
     });
+    slowrefresh();
     bool s = await FailedRequestmanager().retryFailedrequests(
         context: context,
         onProgress: (p) => setState(() {
