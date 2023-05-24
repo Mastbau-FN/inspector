@@ -301,12 +301,12 @@ class _MapState extends State<_Map> {
                                 center: widget.locationdata.coords!,
                                 zoom: 8.0,
                               ),
-                              layers: [
-                                FM.TileLayerOptions(
+                              children: [
+                                FM.TileLayer(
                                     urlTemplate:
                                         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                                     subdomains: ['a', 'b', 'c']),
-                                FM.MarkerLayerOptions(
+                                FM.MarkerLayer(
                                   markers: [
                                     FM.Marker(
                                       width: 80.0,

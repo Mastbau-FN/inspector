@@ -1,6 +1,5 @@
 import 'dart:core';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
