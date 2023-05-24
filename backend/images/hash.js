@@ -43,6 +43,7 @@ const getFileFromHash = async (hash, compressed) => {
       // .heif({ quality: 1, effort: 0 }) //while apple and newer android devices support this, older ones dont, and in the feature we could switch to .avif, which is completely open
       // .heif({ quality: 1, effort: 0, compression: 'hevc' }) //hevc is further supported (but worse) then av1
       .webp({ quality: 1, effort: 4 }) // this is 100% supported by flutter, could be used as fallback
+      .withMetadata() // solves issue 249
       .toBuffer();
 
     //TODO: when heic/avif is supported swipswap
