@@ -40,7 +40,7 @@ dependencies:
   map_launcher: ^2.4.0
 
   # maps -> show inspection location
-  flutter_map: ^4.0.0
+  flutter_map: ^2.2.0
 
   # annotation for classes so i can stay DRY, alternatively this https://javiercbk.github.io/json_to_dart/ would also work
   json_serializable: ^6.7.0

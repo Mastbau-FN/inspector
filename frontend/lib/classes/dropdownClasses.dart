@@ -12,7 +12,7 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
-import 'package:image/image.dart';
+import 'package:image/image.dart' as imglib;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -330,8 +330,9 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                                   .map(
                                     (e) async => XFile.fromData(
                                       Uint8List.fromList(
-                                        encodePng(
-                                          decodeImage(await e.readAsBytes())!,
+                                        imglib.encodePng(
+                                          imglib.decodeImage(
+                                              await e.readAsBytes())!,
                                         ),
                                       ),
                                       name:
