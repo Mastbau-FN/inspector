@@ -1,3 +1,3 @@
 # changes
 
-- upgraded dependencies
+- 🚀 upgraded dependencies
