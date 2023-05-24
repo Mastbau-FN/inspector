@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
       - name: run tests and report coverage
         run: flutter test --coverage
@@ -45,7 +45,7 @@ jobs:
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
       - name: Build Documentation
         run: |
@@ -53,7 +53,7 @@ jobs:
           flutter pub global run dartdoc
 
       - name: upload doc artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: doc
           path: ${{ env.working-directory}}/doc/api
@@ -67,7 +67,7 @@ jobs:
         platform: [web, apkd, apkr, appbundle]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
 
       - name: create key.properties for signing
@@ -79,7 +79,7 @@ jobs:
           pwd
           
       - name: map build-type (platform) to path
-        uses: kanga333/variable-mapper@v0.2.2
+        uses: kanga333/variable-mapper@v0.3.0
         with:
           key: ${{matrix.platform}}
           map: |
@@ -105,7 +105,7 @@ jobs:
         run: ${{env.buildcmd}}
 
       - name: upload ${{matrix.platform}} artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{matrix.platform}}
           path: ${{env.working-directory}}/${{env.builtpath}}
@@ -116,15 +116,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v2 # no idea why but apperently this creates a folder structure (i dont need my repo to be checked out tho)
+      - uses: actions/checkout@v3 # no idea why but apperently this creates a folder structure (i dont need my repo to be checked out tho)
       - name: download web artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: web
           path: web
 
       - name: download doc artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: doc
           path: doc
@@ -151,7 +151,7 @@ jobs:
     name: Release to GH
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Read release notes
         id: release-info
         uses: juliangruber/read-file-action@v1
@@ -169,7 +169,7 @@ jobs:
           draft: false
           prerelease: false
       - name: download apk
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: apkr
       - name: upload apk
@@ -182,7 +182,7 @@ jobs:
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
       - name: download debug apk
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: apkd
       - name: upload debug apk
@@ -201,9 +201,9 @@ jobs:
     name: Release to the google playstore
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2 # need release notes
+      - uses: actions/checkout@v3 # need release notes
       - name: download aab
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: appbundle
       - name: create release notes #TODO make this actual notes
