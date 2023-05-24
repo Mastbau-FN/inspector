@@ -28,7 +28,7 @@ dependencies:
     git: https://github.com/Mastbau-FN/weather_icons.git
 
   # to display current app-version
-  package_info_plus: ^3.0.3
+  package_info_plus: ^4.0.1
 
   # storing json like stuff on-device (used for caching datapoints)
   localstore: null
@@ -40,16 +40,16 @@ dependencies:
   map_launcher: ^2.4.0
 
   # maps -> show inspection location
-  flutter_map: ^2.2.0
+  flutter_map: ^4.0.0
 
   # annotation for classes so i can stay DRY, alternatively this https://javiercbk.github.io/json_to_dart/ would also work
-  json_serializable: ^6.1.1
+  json_serializable: ^6.7.0
   # # using a special fork for (de)serialization of enums (used for weather)
   # json_serializable:
   #   git:
   #     url: https://github.com/Mastbau-FN/json_serializable.dart.git
   #     path: json_serializable
-  json_annotation: ^4.8.0
+  json_annotation: ^4.8.1
 
   # for editing descriptions 
   # flutter_quill: ^4.0.0
@@ -73,14 +73,14 @@ dependencies:
   path: ^1.8.2
 
   # check if a network is connected and what kind of network (mobile/wifi etc)
-  connectivity_plus: ^2.0.2
+  connectivity_plus: ^4.0.1
 
   # for sharing files via native dialogs
-  share_plus: ^6.3.0
-  image: ^3.0.2
+  share_plus: ^7.0.1
+  image: ^4.0.17
 
   # storing sensitive data like username and password
-  flutter_secure_storage: ^5.0.0-beta.5
+  flutter_secure_storage: ^8.0.0
 
   # insecure storage for key value pairs
   shared_preferences: ^2.0.6
@@ -113,7 +113,7 @@ dependencies:
   dynamic_color: ^1.5.4
 
   # to displays svg duh
-  flutter_svg: ^1.1.5
+  flutter_svg: ^2.0.6
   url_launcher: ^6.1.9
 
   # for automatically generating the option toggles from the option class
@@ -127,11 +127,11 @@ dev_dependencies:
 
   # for unit test mocking (see https://flutter.dev/docs/cookbook/testing/unit/mocking)
   mockito: ^5.0.0
-  build_runner: ^2.0.6
+  build_runner: ^2.4.1
   # intl_utils: ^2.0.0
 
   # generate icons for all platforms from a single png, run flutter pub run flutter_launcher_icons:main
-  flutter_launcher_icons: ^0.10.0
+  flutter_launcher_icons: ^0.13.1
   envied_generator: ^0.3.0
 
 flutter_icons:
