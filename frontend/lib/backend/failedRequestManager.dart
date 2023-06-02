@@ -184,9 +184,9 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
-      var children = await caller
+      var children = await (caller
           .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
-          .last;
+          .last);
       var didSucceed = await Future.wait(children.map(
         (child) async {
           if (depth == 0)
