@@ -450,7 +450,11 @@ Future<D> injectImagesAwait<D extends WithImgHashes>(D data,
   awaitImg(Future<ImageData?> _img) async {
     final img = await _img;
     if (img == null) return null;
-    if (preloadFull) await img.fullImage();
+    await Future.delayed(Duration(milliseconds: 100));
+    if (preloadFull) {
+      final fimg = await img.fullImage();
+      debugPrint('full image loaded: $fimg');
+    }
     return img;
   }
 
@@ -464,12 +468,13 @@ Future<D> injectImagesAwait<D extends WithImgHashes>(D data,
 
 D injectImageFutures<D extends WithImgHashes>(D data,
     {bool preloadFull = false}) {
-  Future<ImageData?> getImgDataFromHash(String? hash) {
+  Future<ImageData?> getImgDataFromHash(String? hash) async {
     if (preloadFull) API().getImageByHash(hash!, compressed: false);
-    return API().getImageByHash(hash!, compressed: true).then((value) => value
-      ?..fullImageGetter = () => API()
-          .getImageByHash(hash, compressed: false)
-          .then((value) => value?.thumbnail));
+    ImageData? imgdata = await API().getImageByHash(hash!, compressed: true);
+    imgdata?.fullImageGetter = () => API()
+        .getImageByHash(hash, compressed: false)
+        .then((value) => value?.thumbnail);
+    return imgdata;
   }
 
   if (data.mainhash != null &&
