@@ -119,7 +119,8 @@ class Adder extends StatelessWidget implements JsonExtractable {
     }
 
     for (var i = 0; i < textfieldList.length; i++) {
-      json[name]![textfieldList[i].varName] = _textfieldControllerList[i].text;
+      json[name]![textfieldList[i].varName] =
+          textfieldList[i].postProcess(_textfieldControllerList[i].text);
     }
     children.forEach((child) {
       json[name]![child.name] = child.json;
@@ -298,13 +299,26 @@ class InputData {
   /// a function on whether the current [text] is valid (correct set of characters etc)
   /// shall return null if correct and an error-string otherwise
   final String? Function(String? text) verify;
+
+  final String? Function(String? text) postProcess;
+
   InputData(this.varName,
-      {required this.hint, this.value, this.verify = defaultVerification});
+      {this.postProcess = noSpacesAtEndAndNoSlashes,
+      required this.hint,
+      this.value,
+      this.verify = defaultVerification});
 
   static const defaultVerification = nonempty;
 
   static String? nonempty(String? str) => (str != null && str.isNotEmpty)
       ? null
       : S.current!.addingDataEnterSomethingHere;
+
+  static String? noSpacesAtEnd(String? str) => (str?.trim());
+  static String? cutSlashinString(String? str) => (str?.replaceAll("/", ""));
+
+  static String? noSpacesAtEndAndNoSlashes(String? str) =>
+      noSpacesAtEnd(cutSlashinString(str));
+
   static String? alwaysCorrect(String? str) => null;
 }
