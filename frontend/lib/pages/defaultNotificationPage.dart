@@ -32,6 +32,7 @@ class DefaultNotificationPage extends StatelessWidget {
                             int.tryParse(action.payload!['max']!)!,
                       ),
                       FutureBuilder(
+                        //TODO: streambuilder with refreshing sync progress
                         future: SharedPreferences.getInstance(),
                         builder: (context, snapshot) {
                           final actualProgress =
