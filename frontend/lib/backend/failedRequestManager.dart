@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/notifications/controller.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../classes/dropdownClasses.dart';
 import '../classes/user.dart';
@@ -21,24 +21,24 @@ import 'helpers.dart' as Helper;
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 
-final _prefs = SharedPreferences.getInstance();
-
 final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
 
-void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
+void _retryFailedRequestsIsolate(
+  _RetryFailedRequestsIsolateInput input,
+) async {
   if (!kIsWeb) {
     // Register the background isolate with the root isolate.
     BG.initialize(input.rootIsolateToken);
   }
-  final prefs = (await _prefs);
-  final is_already_running = prefs.getBool(sync_in_progress_str);
-  if (is_already_running ?? false) {
+  final upsn = input.upsn;
+  await upsn.awaitInitDone();
+  final is_already_running = upsn.loading;
+  if (is_already_running) {
     //mutex taken
     return;
   } else {
-    //FIXME kack mutex nicht nur nicht atomic sondern sogar async uff
-    await (await _prefs).setBool(sync_in_progress_str, true); //take mutex
+    upsn.setLoading(true);
   }
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
@@ -46,19 +46,19 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
   if (user == null) {
     input.progressSender.send((1.0, false));
-    await prefs.setBool(sync_in_progress_str, false); //release mutex
+    upsn.setLoading(false);
     return;
   }
   bool success = true;
   num total = failedReqs.length;
 
   input.progressSender.send((0.0, null));
-  await prefs.setDouble(sync_progress_str, 0.0);
+  upsn.setProgress(0.0);
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(((i / total), null));
-    await prefs.setDouble(sync_progress_str, i / total);
+    upsn.setProgress(i / total);
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -125,8 +125,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     );
   }
   input.progressSender.send((1.0, success));
-  await prefs.setDouble(sync_progress_str, 1.0);
-  await prefs.setBool(sync_in_progress_str, false); //release mutex
+  upsn.setProgress(1.0);
+  upsn.setLoading(false); //release mutex
 }
 
 class _RetryFailedRequestsIsolateInput {
@@ -134,10 +134,12 @@ class _RetryFailedRequestsIsolateInput {
   final API api;
   final SendPort progressSender;
   final bool notificationsAllowed;
+  final UploadProgressStateNotifier upsn;
   const _RetryFailedRequestsIsolateInput({
     required this.rootIsolateToken,
     required this.api,
     required this.progressSender,
+    required this.upsn,
     this.notificationsAllowed = false,
   });
 }
@@ -146,6 +148,7 @@ class FailedRequestmanager {
   Future<bool> retryFailedrequests(
       {required BuildContext context,
       void Function(double)? onProgress}) async {
+    final progressManager = context.read<UploadProgressStateNotifier>();
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -165,6 +168,7 @@ class FailedRequestmanager {
       api: API(),
       progressSender: progressReceiver.sendPort,
       notificationsAllowed: notificationsAllowed,
+      upsn: progressManager,
     );
 
     final ss = progressReceiver.listen((msg) {
