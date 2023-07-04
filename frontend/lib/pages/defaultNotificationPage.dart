@@ -1,8 +1,7 @@
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../backend/failedRequestManager.dart';
+import 'package:provider/provider.dart';
 
 class DefaultNotificationPage extends StatelessWidget {
   final ReceivedAction action;
@@ -31,17 +30,19 @@ class DefaultNotificationPage extends StatelessWidget {
                         value: int.tryParse(action.payload!['progress']!)! /
                             int.tryParse(action.payload!['max']!)!,
                       ),
-                      FutureBuilder(
-                        //TODO: streambuilder with refreshing sync progress
-                        future: SharedPreferences.getInstance(),
-                        builder: (context, snapshot) {
-                          final actualProgress =
-                              snapshot.data?.getDouble(sync_progress_str);
-                          return switch (actualProgress) {
-                            null => CircularProgressIndicator(),
-                            double p => LinearProgressIndicator(value: p),
-                          };
-                        },
+                      Provider(
+                        create: (_) => UploadProgressStateNotifier(),
+                        child: Builder(
+                          builder: (context) {
+                            final actualProgress = context
+                                .watch<UploadProgressStateNotifier>()
+                                .progress;
+                            return switch (actualProgress) {
+                              null => CircularProgressIndicator(),
+                              double p => LinearProgressIndicator(value: p),
+                            };
+                          },
+                        ),
                       ),
                     ]
                   : action.payload?['type'] == 'failed'

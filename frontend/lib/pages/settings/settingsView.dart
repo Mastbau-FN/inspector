@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
@@ -10,7 +11,7 @@ import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../widgets/openNewViewTile.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
@@ -52,48 +53,38 @@ class SettingsView extends StatelessWidget {
   }
 }
 
-class UploadSyncTile extends StatefulWidget {
-  const UploadSyncTile({
+class UploadSyncTile extends StatelessWidget {
+  const UploadSyncTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Provider(
+        create: (_) => UploadProgressStateNotifier(), child: _UploadSyncTile());
+  }
+}
+
+class _UploadSyncTile extends StatefulWidget {
+  const _UploadSyncTile({
     Key? key,
   }) : super(key: key);
 
   @override
-  State<UploadSyncTile> createState() => _UploadSyncTileState();
+  State<_UploadSyncTile> createState() => _UploadSyncTileState();
 }
 
-class _UploadSyncTileState extends State<UploadSyncTile> {
-  //TODO: read actual progress from sharedprefs
-  bool loading = false;
-  bool? success;
-  double progress = 0;
-
+class _UploadSyncTileState extends State<_UploadSyncTile> {
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((value) {
-      prefs = value;
-      slowlyRefresh(value);
-    });
+    slowlyRefresh(context);
   }
 
-  SharedPreferences? prefs;
-
   Future<bool> get isLoading async =>
-      loading || ((await prefs)?.getBool(sync_in_progress_str) ?? false);
+      context.read<UploadProgressStateNotifier>().loading;
 
-  void slowlyRefresh(SharedPreferences prefs) {
-    // if (prefs == null) return;
-    if (prefs.getBool(sync_in_progress_str) ?? loading) {
-      setState(() {
-        loading = true;
-        progress = prefs.getDouble(sync_progress_str) ?? 0.0;
-      });
-    } else {
-      // setState(() {
-      //   loading = false;
-      // });
-    }
-    Future.delayed(Duration(milliseconds: 500), () => slowlyRefresh(prefs));
+  void slowlyRefresh(BuildContext context) {
+    context.read<UploadProgressStateNotifier>().refresh();
+    Future.delayed(Duration(milliseconds: 500), () => slowlyRefresh(context));
   }
 
   onPress(c) async {
@@ -101,16 +92,13 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
       showToast("already in progress");
       return;
     }
-    setState(() {
-      loading = true;
-    });
+
     // slowlyRefresh();
     bool s = await FailedRequestmanager().retryFailedrequests(
-        context: context,
-        onProgress: (p) => setState(() {
-              // print(p);
-              // progress = p;
-            }));
+      context: context,
+      onProgress: (p) =>
+          context.read<UploadProgressStateNotifier>().setProgress(p),
+    );
     if (s) {
       try {
         await deleteAll(); //remove all offline data (to save storage space)
@@ -120,47 +108,47 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
         // s = false;
       }
     }
-
-    setState(() {
-      progress = 0;
-      success = s;
-      loading = false;
-    });
   }
 
   @override
-  Widget build(BuildContext context) => MyCardListTile1(
-        icon: Icons.sync,
-        text: loading
-            ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
-            : S.of(context).uploadAndSyncData,
-        onTap: () => onPress(context),
-        child: loading
-            ? Container(
-                height: 25,
-                width: 25,
-                // color: Colors.red,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: LoadingView(),
-                    ),
-                    CircularProgressIndicator(
-                      color: Colors.green,
-                      value: progress,
-                    ),
-                  ],
-                ),
-              )
-            : (success != null
-                ? Icon(
-                    success! ? Icons.check : Icons.error,
-                    color: success! ? Colors.green : Colors.red,
-                  )
-                : null),
-      );
+  Widget build(BuildContext context) {
+    bool loading = context.watch<UploadProgressStateNotifier>().loading;
+    double progress =
+        context.watch<UploadProgressStateNotifier>().progress ?? 0.0;
+    bool? success = context.watch<UploadProgressStateNotifier>().success;
+    return MyCardListTile1(
+      icon: Icons.sync,
+      text: loading
+          ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
+          : S.of(context).uploadAndSyncData,
+      onTap: () => onPress(context),
+      child: loading
+          ? Container(
+              height: 25,
+              width: 25,
+              // color: Colors.red,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: LoadingView(),
+                  ),
+                  CircularProgressIndicator(
+                    color: Colors.green,
+                    value: progress,
+                  ),
+                ],
+              ),
+            )
+          : (success != null
+              ? Icon(
+                  success ? Icons.check : Icons.error,
+                  color: success ? Colors.green : Colors.red,
+                )
+              : null),
+    );
+  }
 }
 
 class DeleteCachedImages extends StatelessWidget {
