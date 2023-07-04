@@ -30,7 +30,7 @@ class DefaultNotificationPage extends StatelessWidget {
                         value: int.tryParse(action.payload!['progress']!)! /
                             int.tryParse(action.payload!['max']!)!,
                       ),
-                      Provider(
+                      ChangeNotifierProvider(
                         create: (_) => UploadProgressStateNotifier(),
                         child: Builder(
                           builder: (context) {

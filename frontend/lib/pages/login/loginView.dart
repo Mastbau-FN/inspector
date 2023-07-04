@@ -25,7 +25,7 @@ class GlobalProviders extends StatelessWidget {
         ChangeNotifierProvider(
           create: (c) => LoginModel(),
         ),
-        /*ChangeNotifierProvider(
+        /* ChangeNotifierProvider(
             create: (c) => CategoryModel(),
           ),*/
       ],
