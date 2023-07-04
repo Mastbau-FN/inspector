@@ -31,8 +31,10 @@ void _retryFailedRequestsIsolate(
     // Register the background isolate with the root isolate.
     BG.initialize(input.rootIsolateToken);
   }
+  debugPrint('retry failed requests isolate started');
   final upsn = input.upsn;
   await upsn.awaitInitDone();
+  debugPrint('retry failed requests isolate init done');
   final is_already_running = upsn.loading;
   if (is_already_running) {
     //mutex taken
@@ -54,11 +56,13 @@ void _retryFailedRequestsIsolate(
 
   input.progressSender.send((0.0, null));
   upsn.setProgress(0.0);
+  debugPrint('retry failed requests isolate start retrying');
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(((i / total), null));
     upsn.setProgress(i / total);
+    // debugPrint('retry request $i/$total');
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -148,6 +152,7 @@ class FailedRequestmanager {
   Future<bool> retryFailedrequests(
       {required BuildContext context,
       void Function(double)? onProgress}) async {
+    debugPrint('retry failed requests started');
     final progressManager = context.read<UploadProgressStateNotifier>();
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
@@ -181,8 +186,10 @@ class FailedRequestmanager {
       }
     }); // as StreamSubscription<(double, bool)>;
 
+    final runInIsolate = !kIsWeb && false;
+
     // ss.
-    if (!kIsWeb)
+    if (runInIsolate)
       await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
     else
       _retryFailedRequestsIsolate(isolateInputData);
