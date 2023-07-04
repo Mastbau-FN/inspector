@@ -88,12 +88,12 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
         loading = true;
         progress = prefs.getDouble(sync_progress_str) ?? 0.0;
       });
-      Future.delayed(Duration(milliseconds: 500), () => slowlyRefresh(prefs));
     } else {
-      setState(() {
-        loading = false;
-      });
+      // setState(() {
+      //   loading = false;
+      // });
     }
+    Future.delayed(Duration(milliseconds: 500), () => slowlyRefresh(prefs));
   }
 
   onPress(c) async {
