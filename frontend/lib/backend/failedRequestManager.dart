@@ -109,6 +109,7 @@ void _retryFailedRequestsIsolate(
         debugPrint('failed to retry request: $e');
         success = false;
         // await prefs.setBool(sync_in_progress_str, false); //release mutex
+        upsn.setLoading(false);
       }
     }
   }
@@ -129,6 +130,7 @@ void _retryFailedRequestsIsolate(
     );
   }
   input.progressSender.send((1.0, success));
+  upsn.setSuccess(success);
   upsn.setProgress(1.0);
   upsn.setLoading(false); //release mutex
 }
@@ -186,7 +188,8 @@ class FailedRequestmanager {
       }
     }); // as StreamSubscription<(double, bool)>;
 
-    final runInIsolate = !kIsWeb && false;
+    final runInIsolate =
+        !kIsWeb /*FIXME: fix running in isolates and then remove: */ && false;
 
     // ss.
     if (runInIsolate)
