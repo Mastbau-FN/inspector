@@ -72,20 +72,23 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
     super.initState();
     SharedPreferences.getInstance().then((value) {
       prefs = value;
-      slowrefresh();
+      slowlyRefresh(value);
     });
   }
 
   SharedPreferences? prefs;
 
-  void slowrefresh() {
-    if (prefs == null) return;
-    if (prefs?.getBool(sync_in_progress_str) ?? loading) {
+  Future<bool> get isLoading async =>
+      loading || ((await prefs)?.getBool(sync_in_progress_str) ?? false);
+
+  void slowlyRefresh(SharedPreferences prefs) {
+    // if (prefs == null) return;
+    if (prefs.getBool(sync_in_progress_str) ?? loading) {
       setState(() {
         loading = true;
-        progress = prefs?.getDouble(sync_progress_str) ?? 0.0;
+        progress = prefs.getDouble(sync_progress_str) ?? 0.0;
       });
-      Future.delayed(Duration(milliseconds: 500), slowrefresh);
+      Future.delayed(Duration(milliseconds: 500), () => slowlyRefresh(prefs));
     } else {
       setState(() {
         loading = false;
@@ -94,19 +97,19 @@ class _UploadSyncTileState extends State<UploadSyncTile> {
   }
 
   onPress(c) async {
-    if (loading || (prefs?.getBool(sync_in_progress_str) ?? false)) {
+    if (await isLoading) {
       showToast("already in progress");
       return;
     }
     setState(() {
       loading = true;
     });
-    slowrefresh();
+    // slowlyRefresh();
     bool s = await FailedRequestmanager().retryFailedrequests(
         context: context,
         onProgress: (p) => setState(() {
-              print(p);
-              progress = p;
+              // print(p);
+              // progress = p;
             }));
     if (s) {
       try {
