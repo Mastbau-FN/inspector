@@ -227,7 +227,7 @@ class Remote {
       DataT? data = jsoner(json);
       if (data == null) return null;
       if (preloadFullImages) {
-        return injectImagesAwait(data, preloadFull: true);
+        return await injectImagesAwait(data, preloadFull: true);
       } else {
         return injectImageFutures(data);
       }
