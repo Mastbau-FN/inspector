@@ -23,8 +23,9 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 
 final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
+final sync_success_str = 'sync success';
 
-void _retryFailedRequestsIsolate(
+_retryFailedRequestsIsolate(
   _RetryFailedRequestsIsolateInput input,
 ) async {
   if (!kIsWeb) {
@@ -32,7 +33,7 @@ void _retryFailedRequestsIsolate(
     BG.initialize(input.rootIsolateToken);
   }
   debugPrint('retry failed requests isolate started');
-  final upsn = input.upsn;
+  final upsn = UploadProgressWriter();
   await upsn.awaitInitDone();
   debugPrint('retry failed requests isolate init done');
   final is_already_running = upsn.loading;
@@ -62,7 +63,7 @@ void _retryFailedRequestsIsolate(
   for (var i = 0; i < total; i++) {
     input.progressSender.send(((i / total), null));
     upsn.setProgress(i / total);
-    // debugPrint('retry request $i/$total');
+    debugPrint('retry request $i/$total');
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -137,15 +138,11 @@ void _retryFailedRequestsIsolate(
 
 class _RetryFailedRequestsIsolateInput {
   final RootIsolateToken rootIsolateToken;
-  final API api;
   final SendPort progressSender;
   final bool notificationsAllowed;
-  final UploadProgressStateNotifier upsn;
   const _RetryFailedRequestsIsolateInput({
     required this.rootIsolateToken,
-    required this.api,
     required this.progressSender,
-    required this.upsn,
     this.notificationsAllowed = false,
   });
 }
@@ -155,7 +152,6 @@ class FailedRequestmanager {
       {required BuildContext context,
       void Function(double)? onProgress}) async {
     debugPrint('retry failed requests started');
-    final progressManager = context.read<UploadProgressStateNotifier>();
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -172,10 +168,8 @@ class FailedRequestmanager {
     ReceivePort progressReceiver = ReceivePort();
     var isolateInputData = _RetryFailedRequestsIsolateInput(
       rootIsolateToken: RootIsolateToken.instance!,
-      api: API(),
       progressSender: progressReceiver.sendPort,
       notificationsAllowed: notificationsAllowed,
-      upsn: progressManager,
     );
 
     final ss = progressReceiver.listen((msg) {
@@ -188,14 +182,15 @@ class FailedRequestmanager {
       }
     }); // as StreamSubscription<(double, bool)>;
 
-    final runInIsolate =
-        !kIsWeb /*FIXME: fix running in isolates and then remove: */ && false;
+    final runInIsolate = false &&
+        !kIsWeb /*FIXME: fix running in isolates and then remove: */ &&
+        false;
 
     // ss.
     if (runInIsolate)
       await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
     else
-      _retryFailedRequestsIsolate(isolateInputData);
+      await _retryFailedRequestsIsolate(isolateInputData);
 
     await ss.asFuture();
 

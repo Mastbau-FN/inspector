@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
@@ -11,6 +12,7 @@ import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/openNewViewTile.dart';
 
@@ -59,7 +61,7 @@ class UploadSyncTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (_) => UploadProgressStateNotifier(), child: _UploadSyncTile());
+        create: (_) => ProgressStateUpdater(), child: _UploadSyncTile());
   }
 }
 
@@ -76,16 +78,10 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   @override
   void initState() {
     super.initState();
-    slowlyRefresh(context);
   }
 
   Future<bool> get isLoading async =>
-      context.read<UploadProgressStateNotifier>().loading;
-
-  void slowlyRefresh(BuildContext context) {
-    context.read<UploadProgressStateNotifier>().refresh();
-    Future.delayed(Duration(milliseconds: 500), () => slowlyRefresh(context));
-  }
+      context.read<ProgressStateUpdater>().loading;
 
   onPress(c) async {
     if (await isLoading) {
@@ -93,29 +89,26 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       return;
     }
 
-    // slowlyRefresh();
+    // // slowlyRefresh();
     bool s = await FailedRequestmanager().retryFailedrequests(
       context: context,
-      onProgress: (p) =>
-          context.read<UploadProgressStateNotifier>().setProgress(p),
     );
-    if (s) {
-      try {
-        await deleteAll(); //remove all offline data (to save storage space)
-      } catch (e) {
-        // wenn er nicht löschen kann war er auch nicht erfolgreich
-        // eigtl schon, deshalb auskommentiert
-        // s = false;
-      }
-    }
+    // if (context.read<ProgressStateUpdater>().success ?? false) {
+    //   try {
+    //     await deleteAll(); //remove all offline data (to save storage space)
+    //   } catch (e) {
+    //     // wenn er nicht löschen kann war er auch nicht erfolgreich
+    //     // eigtl schon, deshalb auskommentiert
+    //     // s = false;
+    //   }
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    bool loading = context.watch<UploadProgressStateNotifier>().loading;
-    double progress =
-        context.watch<UploadProgressStateNotifier>().progress ?? 0.0;
-    bool? success = context.watch<UploadProgressStateNotifier>().success;
+    bool loading = context.watch<ProgressStateUpdater>().loading;
+    double progress = context.watch<ProgressStateUpdater>().progress ?? 0.0;
+    bool? success = context.watch<ProgressStateUpdater>().success;
     return MyCardListTile1(
       icon: Icons.sync,
       text: loading

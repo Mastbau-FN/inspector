@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,12 +32,11 @@ class DefaultNotificationPage extends StatelessWidget {
                             int.tryParse(action.payload!['max']!)!,
                       ),
                       ChangeNotifierProvider(
-                        create: (_) => UploadProgressStateNotifier(),
+                        create: (_) => ProgressStateUpdater(),
                         child: Builder(
                           builder: (context) {
-                            final actualProgress = context
-                                .watch<UploadProgressStateNotifier>()
-                                .progress;
+                            final actualProgress =
+                                context.watch<ProgressStateUpdater>().progress;
                             return switch (actualProgress) {
                               null => CircularProgressIndicator(),
                               double p => LinearProgressIndicator(value: p),

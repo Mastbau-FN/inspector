@@ -1,9 +1,13 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+import 'offlineProvider.dart';
 // import 'package:provider/provider.dart';
 
-class UploadProgressStateNotifier extends ChangeNotifier {
+@JsonSerializable()
+class UploadProgressWriter {
   double? _progress = null;
   bool _loading = false;
   bool? _success;
@@ -19,14 +23,16 @@ class UploadProgressStateNotifier extends ChangeNotifier {
   bool get loading => _loading;
   bool? get success => _success;
 
-  UploadProgressStateNotifier() {
+  UploadProgressWriter() {
     _init();
   }
 
   void _init() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final progress = prefs.getDouble(sync_progress_str);
+    //debugPrint("Shared Prefs Double" + progress.toString());
     final loading = prefs.getBool(sync_in_progress_str);
+    //debugPrint("Shared Prefs Double" + loading.toString());
     if (progress != null) setProgress(progress);
     if (loading != null) setLoading(loading);
     _initDone = true;
@@ -34,7 +40,6 @@ class UploadProgressStateNotifier extends ChangeNotifier {
 
   void setProgress(double progress) {
     _progress = progress;
-    notifyListeners();
     SharedPreferences.getInstance().then((value) {
       value.setDouble(sync_progress_str, progress);
     });
@@ -42,7 +47,6 @@ class UploadProgressStateNotifier extends ChangeNotifier {
 
   void setLoading(bool loading) {
     _loading = loading;
-    notifyListeners();
     SharedPreferences.getInstance().then((value) {
       value.setBool(sync_in_progress_str, loading);
     });
@@ -50,7 +54,18 @@ class UploadProgressStateNotifier extends ChangeNotifier {
 
   void setSuccess(bool? success) {
     _success = success;
-    notifyListeners();
+    SharedPreferences.getInstance().then((value) {
+      value.setInt(
+          sync_success_str,
+          switch (success) {
+            true => 1,
+            false => 0,
+            null => -1,
+          });
+    });
+    if (success ?? false) {
+      deleteAll();
+    }
   }
 
   void refresh() {
