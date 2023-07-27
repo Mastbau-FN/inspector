@@ -76,13 +76,14 @@ function throwExpression(errorMessage) {
 const getPathFromHash = (hash) => {
   // console.log(hash);
   // console.log(cache.stats());
-  const throwE = () => {
-    throw new Error("-cache miss- , we couldnt resolve where that image is supposed to live");
-  }
-  return {
-    rootpath: cache.get(hash + "r") ?? throwE(),
-    link: cache.get(hash + "l") ?? throwE(),
-    filename: cache.get(hash + "f") ?? throwE()
+  try{
+    return {
+      rootpath: cache.get(hash + "r") ,
+      link: cache.get(hash + "l") ,
+      filename: cache.get(hash + "f") 
+    }
+  }catch(err) {
+      print("Cache Miss!" + err)
   }
 };
 

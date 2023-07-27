@@ -159,10 +159,21 @@ const deleteImgByHash = (req, res, next) =>
 
 const setMainImgByHash = async (req, res, next) => {
   // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
-  const pathparts = imghasher.getPathFromHash(req.body.hash);
-  const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
-  // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
-  req.body.data.Link = newLink;
+
+  if(req.body.hash!=null){
+    const pathparts = imghasher.getPathFromHash(req.body.hash);
+    if(pathparts.link!=null && pathparts.filename!=null){
+      const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
+      // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
+      req.body.data.Link = newLink;
+    }else {
+      console.log("hash ungültig oder null")
+    } 
+  }else{
+    console.log("kein hash übergeben")
+  }
+
+
   // console.log("setmainimagehash api backend", req.body.hash, newLink);
   // res.status(200).json({ reason: 'kein 404 bitte'}) //FIX-ME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);

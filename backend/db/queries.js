@@ -370,8 +370,11 @@ const deleteImgByHash = async (hash) => {
   let p = imghasher.getPathFromHash(hash);
   //console.log(p)
   //TODO: errorhandling
-  const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
-  fsp.rm(oldpath)
+  if(p!=null && p.length>=1){
+    const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
+    fsp.rm(oldpath)
+  }
+
   // const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
   // try {
   //   await fsp.mkdir(newDir)
