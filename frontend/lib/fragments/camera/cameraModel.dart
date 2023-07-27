@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
@@ -17,12 +18,16 @@ class CameraModel extends ChangeNotifier {
   //   }
   // }
 
-  Future<CameraController> get newController async => CameraController(
-        // Get a specific camera from the list of available cameras.
-        await currentCamera,
-        // Define the resolution to use.
-        ResolutionPreset.max,
-      );
+  Future<CameraController?> get newController async =>
+      switch (await currentCamera) {
+        null => null,
+        CameraDescription cd => CameraController(
+            // Get a specific camera from the list of available cameras.
+            cd,
+            // Define the resolution to use.
+            ResolutionPreset.max,
+          )
+      };
 
   CameraController? controller;
 
@@ -51,9 +56,22 @@ class CameraModel extends ChangeNotifier {
     return latestPic!;
   }
 
-  Future<List<CameraDescription>> allCameras = availableCameras();
+  Future<List<CameraDescription>> get allCameras async {
+    try {
+      final cams = await availableCameras();
+      if (cams.isEmpty) {
+        throw Exception("no cameras available");
+      }
+      return cams;
+    } catch (e) {
+      showToast("Keine Kamera verfügbar");
+      debugPrint(e.toString());
+    }
+    return [];
+  }
 
-  Future<CameraDescription> get mainCamera async => (await allCameras).first;
+  Future<CameraDescription?> get mainCamera async =>
+      (await allCameras).firstOrNull;
 
   int _currentCameraIndex = 0;
   Future nextCamera() async {
@@ -72,7 +90,7 @@ class CameraModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<CameraDescription> get currentCamera async {
+  Future<CameraDescription?> get currentCamera async {
     try {
       return (await allCameras)[_currentCameraIndex];
     } catch (e) {}

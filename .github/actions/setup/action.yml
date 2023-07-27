@@ -13,7 +13,8 @@ runs:
   steps:
     - uses: actions/setup-java@v2
       with:
-        java-version: '12.x'
+        java-version: '20.x'
+        distribution: 'temurin'
     - uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.10.1'

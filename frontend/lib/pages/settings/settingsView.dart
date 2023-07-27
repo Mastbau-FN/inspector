@@ -1,5 +1,8 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -9,6 +12,8 @@ import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../widgets/openNewViewTile.dart';
 
 /// a page where the user can change settings. it currently support [Logout]
@@ -50,79 +55,93 @@ class SettingsView extends StatelessWidget {
   }
 }
 
-class UploadSyncTile extends StatefulWidget {
-  const UploadSyncTile({
+class UploadSyncTile extends StatelessWidget {
+  const UploadSyncTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+        create: (_) => ProgressStateUpdater(), child: _UploadSyncTile());
+  }
+}
+
+class _UploadSyncTile extends StatefulWidget {
+  const _UploadSyncTile({
     Key? key,
   }) : super(key: key);
 
   @override
-  State<UploadSyncTile> createState() => _UploadSyncTileState();
+  State<_UploadSyncTile> createState() => _UploadSyncTileState();
 }
 
-class _UploadSyncTileState extends State<UploadSyncTile> {
-  bool loading = false;
-  bool? success;
-  double progress = 0;
+class _UploadSyncTileState extends State<_UploadSyncTile> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<bool> get isLoading async =>
+      context.read<ProgressStateUpdater>().loading;
+
   onPress(c) async {
-    setState(() {
-      loading = true;
-    });
-    bool s = await FailedRequestmanager().retryFailedrequests(
-        context: context,
-        onProgress: (p) => setState(() {
-              print(p);
-              progress = p;
-            }));
-    if (s) {
-      try {
-        await deleteAll(); //remove all offline data (to save storage space)
-      } catch (e) {
-        // wenn er nicht löschen kann war er auch nicht erfolgreich
-        // eigtl schon, deshalb auskommentiert
-        // s = false;
-      }
+    if (await isLoading) {
+      showToast("already in progress");
+      return;
     }
 
-    setState(() {
-      progress = 0;
-      success = s;
-      loading = false;
-    });
+    // // slowlyRefresh();
+    bool s = await FailedRequestmanager().retryFailedrequests(
+      context: context,
+    );
+    // if (context.read<ProgressStateUpdater>().success ?? false) {
+    //   try {
+    //     await deleteAll(); //remove all offline data (to save storage space)
+    //   } catch (e) {
+    //     // wenn er nicht löschen kann war er auch nicht erfolgreich
+    //     // eigtl schon, deshalb auskommentiert
+    //     // s = false;
+    //   }
+    // }
   }
 
   @override
-  Widget build(BuildContext context) => MyCardListTile1(
-        icon: Icons.sync,
-        text: loading
-            ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
-            : S.of(context).uploadAndSyncData,
-        onTap: () => onPress(context),
-        child: loading
-            ? Container(
-                height: 25,
-                width: 25,
-                // color: Colors.red,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: LoadingView(),
-                    ),
-                    CircularProgressIndicator(
-                      color: Colors.green,
-                      value: progress,
-                    ),
-                  ],
-                ),
-              )
-            : (success != null
-                ? Icon(
-                    success! ? Icons.check : Icons.error,
-                    color: success! ? Colors.green : Colors.red,
-                  )
-                : null),
-      );
+  Widget build(BuildContext context) {
+    bool loading = context.watch<ProgressStateUpdater>().loading;
+    double progress = context.watch<ProgressStateUpdater>().progress ?? 0.0;
+    bool? success = context.watch<ProgressStateUpdater>().success;
+    return MyCardListTile1(
+      icon: Icons.sync,
+      text: loading
+          ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
+          : S.of(context).uploadAndSyncData,
+      onTap: () => onPress(context),
+      child: loading
+          ? Container(
+              height: 25,
+              width: 25,
+              // color: Colors.red,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: LoadingView(),
+                  ),
+                  CircularProgressIndicator(
+                    color: Colors.green,
+                    value: progress,
+                  ),
+                ],
+              ),
+            )
+          : (success != null
+              ? Icon(
+                  success ? Icons.check : Icons.error,
+                  color: success ? Colors.green : Colors.red,
+                )
+              : null),
+    );
+  }
 }
 
 class DeleteCachedImages extends StatelessWidget {

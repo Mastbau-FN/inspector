@@ -22,8 +22,8 @@ Future<String> get localPath async {
   return (await getApplicationDocumentsDirectory()).path;
 }
 
-Future<File> localFile(String name) async =>
-    File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
+Future<File> localFile(String name) async => File(
+    '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.webp');
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
 Future<File?> storeImage(Uint8List imgBytes, String name) async {

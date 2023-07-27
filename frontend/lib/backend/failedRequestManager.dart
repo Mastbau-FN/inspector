@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/notifications/controller.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
@@ -20,10 +21,27 @@ import 'helpers.dart' as Helper;
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 
-void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
+final sync_progress_str = 'sync progress';
+final sync_in_progress_str = 'sync in progress';
+final sync_success_str = 'sync success';
+
+_retryFailedRequestsIsolate(
+  _RetryFailedRequestsIsolateInput input,
+) async {
   if (!kIsWeb) {
     // Register the background isolate with the root isolate.
     BG.initialize(input.rootIsolateToken);
+  }
+  debugPrint('retry failed requests isolate started');
+  final upsn = UploadProgressWriter();
+  await upsn.awaitInitDone();
+  debugPrint('retry failed requests isolate init done');
+  final is_already_running = upsn.loading;
+  if (is_already_running) {
+    //mutex taken
+    return;
+  } else {
+    upsn.setLoading(true);
   }
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
@@ -31,16 +49,21 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
   if (user == null) {
     input.progressSender.send((1.0, false));
+    upsn.setLoading(false);
     return;
   }
   bool success = true;
   num total = failedReqs.length;
 
   input.progressSender.send((0.0, null));
+  upsn.setProgress(0.0);
+  debugPrint('retry failed requests isolate start retrying');
 
   final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
   for (var i = 0; i < total; i++) {
     input.progressSender.send(((i / total), null));
+    upsn.setProgress(i / total);
+    debugPrint('retry request $i/$total');
     if (DateTime.now().difference(lastStep).inSeconds >= 1) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -86,6 +109,8 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       } catch (e) {
         debugPrint('failed to retry request: $e');
         success = false;
+        // await prefs.setBool(sync_in_progress_str, false); //release mutex
+        upsn.setLoading(false);
       }
     }
   }
@@ -106,16 +131,17 @@ void _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     );
   }
   input.progressSender.send((1.0, success));
+  upsn.setSuccess(success);
+  upsn.setProgress(1.0);
+  upsn.setLoading(false); //release mutex
 }
 
 class _RetryFailedRequestsIsolateInput {
   final RootIsolateToken rootIsolateToken;
-  final API api;
   final SendPort progressSender;
   final bool notificationsAllowed;
   const _RetryFailedRequestsIsolateInput({
     required this.rootIsolateToken,
-    required this.api,
     required this.progressSender,
     this.notificationsAllowed = false,
   });
@@ -125,6 +151,7 @@ class FailedRequestmanager {
   Future<bool> retryFailedrequests(
       {required BuildContext context,
       void Function(double)? onProgress}) async {
+    debugPrint('retry failed requests started');
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -141,7 +168,6 @@ class FailedRequestmanager {
     ReceivePort progressReceiver = ReceivePort();
     var isolateInputData = _RetryFailedRequestsIsolateInput(
       rootIsolateToken: RootIsolateToken.instance!,
-      api: API(),
       progressSender: progressReceiver.sendPort,
       notificationsAllowed: notificationsAllowed,
     );
@@ -156,11 +182,15 @@ class FailedRequestmanager {
       }
     }); // as StreamSubscription<(double, bool)>;
 
+    final runInIsolate = false &&
+        !kIsWeb /*FIXME: fix running in isolates and then remove: */ &&
+        false;
+
     // ss.
-    if (!kIsWeb)
+    if (runInIsolate)
       await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
     else
-      _retryFailedRequestsIsolate(isolateInputData);
+      await _retryFailedRequestsIsolate(isolateInputData);
 
     await ss.asFuture();
 
