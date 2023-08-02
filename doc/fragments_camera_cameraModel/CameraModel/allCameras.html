@@ -51,85 +51,69 @@
 </header>
 <main>
 
-  <div id="dartdoc-main-content" class="main-content">
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="fragments_camera_cameraModel&#47;CameraModel-class-sidebar.html"
+      data-below-sidebar="">
       <div>
 <h1><span class="kind-property">allCameras</span> property 
 </h1></div>
 
-        <section class="multi-line-signature">
-          
-          <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera_platform_interface/2.5.1/camera_platform_interface/CameraDescription-class.html">CameraDescription</a></span>&gt;</span></span>&gt;</span>
-          <span class="name ">allCameras</span>
-          <div class="features"><span class="feature">read / write</span></div>
-
-        </section>
-        
 
         
+<section id="getter">
+
+<section class="multi-line-signature">
+  
+  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera_platform_interface/2.5.1/camera_platform_interface/CameraDescription-class.html">CameraDescription</a></span>&gt;</span></span>&gt;</span></span>
+  <span class="name ">allCameras</span>
+  
+
+</section>
+
+
+
+
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CameraDescription&gt;&gt; allCameras = availableCameras();</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CameraDescription&gt;&gt; get allCameras async {
+  try {
+    final cams = await availableCameras();
+    if (cams.isEmpty) {
+      throw Exception(&quot;no cameras available&quot;);
+    }
+    return cams;
+  } catch (e) {
+    showToast(&quot;Keine Kamera verfügbar&quot;);
+    debugPrint(e.toString());
+  }
+  return [];
+}</code></pre>
+</section>
+
 </section>
 
 
   </div> <!-- /.main-content -->
 
   <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
-    <header id="header-search-sidebar" class="hidden-l">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
   <form class="search-sidebar" role="search">
     <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
 </header>
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
-  <li><a href="../../index.html">MBG_Inspektionen</a></li>
-  <li><a href="../../fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">cameraModel</a></li>
-  <li><a href="../../fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-  <li class="self-crumb">allCameras property</li>
+    <li><a href="../../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../../fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">cameraModel</a></li>
+    <li><a href="../../fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
+    <li class="self-crumb">allCameras property</li>
 </ol>
 
 
     <h5>CameraModel class</h5>
-    <ol>
-
-        <li class="section-title"><a href="../../fragments_camera_cameraModel/CameraModel-class.html#constructors">Constructors</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/CameraModel.html">CameraModel</a></li>
-
-
-        <li class="section-title">
-          <a href="../../fragments_camera_cameraModel/CameraModel-class.html#instance-properties">Properties</a>
-        </li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/allCameras.html">allCameras</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/controller.html">controller</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/currentCamera.html">currentCamera</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/hasListeners.html">hasListeners</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/latestPic.html">latestPic</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/mainCamera.html">mainCamera</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/newController.html">newController</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
-
-        <li class="section-title"><a href="../../fragments_camera_cameraModel/CameraModel-class.html#instance-methods">Methods</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/discardPic.html">discardPic</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/dispose.html">dispose</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/nextCamera.html">nextCamera</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/notifyListeners.html">notifyListeners</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/prevCamera.html">prevCamera</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/removeListener.html">removeListener</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/shoot.html">shoot</a></li>
-          <li><a href="../../fragments_camera_cameraModel/CameraModel/start.html">start</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
-
-        <li class="section-title inherited"><a href="../../fragments_camera_cameraModel/CameraModel-class.html#operators">Operators</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
-
-
-
-
-</ol>
-
   </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

@@ -50,7 +50,11 @@
 </header>
 <main>
 
-  <div id="dartdoc-main-content" class="main-content">
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="fragments_adder&#47;fragments_adder-library-sidebar.html"
+      data-below-sidebar="fragments_adder&#47;InputData-class-sidebar.html">
       <div>
 <h1><span class="kind-class">InputData</span> class 
  
@@ -66,7 +70,7 @@
 
     <dl class="constructor-summary-list">
         <dt id="InputData" class="callable">
-          <span class="name"><a href="../fragments_adder/InputData/InputData.html">InputData</a></span><span class="signature">(<span class="parameter" id="-param-varName"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">varName</span>, </span><span class="parameter" id="-param-hint">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hint</span>, </span><span class="parameter" id="-param-value"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">value</span>, </span><span class="parameter" id="-param-verify"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">verify</span>(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>) = <span class="default-value">defaultVerification</span>}</span>)</span>
+          <span class="name"><a href="../fragments_adder/InputData/InputData.html">InputData</a></span><span class="signature">(<span class="parameter" id="-param-varName"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">varName</span>, </span><span class="parameter" id="-param-postProcess">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">postProcess</span>(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>) = <span class="default-value">noSpacesAtEndAndNoSlashes</span>, </span><span class="parameter" id="-param-hint"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hint</span>, </span><span class="parameter" id="-param-value"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">value</span>, </span><span class="parameter" id="-param-verify"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">verify</span>(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>) = <span class="default-value">defaultVerification</span>}</span>)</span>
         </dt>
         <dd>
           
@@ -96,6 +100,17 @@
 </dt>
 <dd>
   the hint the user gets to see
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="postProcess" class="property">
+  <span class="name"><a href="../fragments_adder/InputData/postProcess.html">postProcess</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>? Function<span class="signature">(<span class="parameter" id="param-text"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">text</span></span>)</span></span> 
+
+</dt>
+<dd>
+  
   <div class="features"><span class="feature">final</span></div>
 
 </dd>
@@ -221,8 +236,47 @@ shall return null if correct and an error-string otherwise
 
 </dd>
 
+        <dt id="cutSlashinString" class="callable">
+  <span class="name"><a href="../fragments_adder/InputData/cutSlashinString.html">cutSlashinString</a></span><span class="signature">(<wbr><span class="parameter" id="cutSlashinString-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
         <dt id="nonempty" class="callable">
   <span class="name"><a href="../fragments_adder/InputData/nonempty.html">nonempty</a></span><span class="signature">(<wbr><span class="parameter" id="nonempty-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="noSpacesAtEnd" class="callable">
+  <span class="name"><a href="../fragments_adder/InputData/noSpacesAtEnd.html">noSpacesAtEnd</a></span><span class="signature">(<wbr><span class="parameter" id="noSpacesAtEnd-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="noSpacesAtEndAndNoSlashes" class="callable">
+  <span class="name"><a href="../fragments_adder/InputData/noSpacesAtEndAndNoSlashes.html">noSpacesAtEndAndNoSlashes</a></span><span class="signature">(<wbr><span class="parameter" id="noSpacesAtEndAndNoSlashes-param-str"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">str</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>
   </span>
   
@@ -263,75 +317,25 @@ shall return null if correct and an error-string otherwise
   </div> <!-- /.main-content -->
 
   <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
-    <header id="header-search-sidebar" class="hidden-l">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
   <form class="search-sidebar" role="search">
     <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
 </header>
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
-  <li><a href="../index.html">MBG_Inspektionen</a></li>
-  <li><a href="../fragments_adder/fragments_adder-library.html">adder</a></li>
-  <li class="self-crumb">InputData class</li>
+    <li><a href="../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../fragments_adder/fragments_adder-library.html">adder</a></li>
+    <li class="self-crumb">InputData class</li>
 </ol>
 
 
-    <h5>adder library</h5>
-    <ol>
-      <li class="section-title"><a href="../fragments_adder/fragments_adder-library.html#classes">Classes</a></li>
-        <li><a href="../fragments_adder/Adder-class.html">Adder</a></li>
-        <li><a href="../fragments_adder/InputData-class.html">InputData</a></li>
-        <li><a href="../fragments_adder/PopUpActionbutton-class.html">PopUpActionbutton</a></li>
-
-      <li class="section-title"><a href="../fragments_adder/fragments_adder-library.html#extensions">Extensions</a></li>
-        <li><a href="../fragments_adder/Unique.html">Unique</a></li>
-
-      <li class="section-title"><a href="../fragments_adder/fragments_adder-library.html#mixins">Mixins</a></li>
-        <li><a href="../fragments_adder/JsonExtractable-mixin.html">JsonExtractable</a></li>
-
-
-
-
-
-
-</ol>
-
+    <!--<h5>adder library</h5>-->
+    <div id="dartdoc-sidebar-left-content"></div>
   </div>
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
-    <ol>
-
-        <li class="section-title"><a href="../fragments_adder/InputData-class.html#constructors">Constructors</a></li>
-          <li><a href="../fragments_adder/InputData/InputData.html">InputData</a></li>
-
-
-        <li class="section-title">
-          <a href="../fragments_adder/InputData-class.html#instance-properties">Properties</a>
-        </li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
-          <li><a href="../fragments_adder/InputData/hint.html">hint</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></li>
-          <li><a href="../fragments_adder/InputData/value.html">value</a></li>
-          <li><a href="../fragments_adder/InputData/varName.html">varName</a></li>
-          <li><a href="../fragments_adder/InputData/verify.html">verify</a></li>
-
-        <li class="section-title inherited"><a href="../fragments_adder/InputData-class.html#instance-methods">Methods</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
-
-        <li class="section-title inherited"><a href="../fragments_adder/InputData-class.html#operators">Operators</a></li>
-          <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
-
-
-
-        <li class="section-title"><a href="../fragments_adder/InputData-class.html#static-methods">Static methods</a></li>
-          <li><a href="../fragments_adder/InputData/alwaysCorrect.html">alwaysCorrect</a></li>
-          <li><a href="../fragments_adder/InputData/nonempty.html">nonempty</a></li>
-
-        <li class="section-title"><a href="../fragments_adder/InputData-class.html#constants">Constants</a></li>
-          <li><a href="../fragments_adder/InputData/defaultVerification-constant.html">defaultVerification</a></li>
-</ol>
-
   </div><!--/.sidebar-offcanvas-->
 
 </main>
