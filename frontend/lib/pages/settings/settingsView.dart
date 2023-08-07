@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:MBG_Inspektionen/pages/mostrecentrequest.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
@@ -35,6 +37,19 @@ class SettingsView extends StatelessWidget {
         // },
       );
 
+  Widget get openNextRequestTile => FutureBuilder(
+      future: API().local.getAllFailedRequests(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return Container();
+        return OpenNewViewTile(
+          icon: Icons.remove_from_queue,
+          title: 'next Request',
+          newView: MostRecentRequestPage(
+            request: (snapshot.data?.first),
+          ),
+        );
+      });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,6 +67,7 @@ class SettingsView extends StatelessWidget {
             Text(S.of(context).advancedSettingsHeadline),
             if (Options().canBeOffline) UploadSyncTile(),
             if (Options().canBeOffline) BackupTile(),
+            if (Options().canBeOffline) openNextRequestTile,
             developerOptions,
             // DeleteCachedImages(),
           ],
