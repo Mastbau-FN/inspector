@@ -1,4 +1,3 @@
 # changes
 
-- 🚀 #341, 346, 348, 358, 360 fixed
-- fix java version
+- delete latest request tile and backup tile
