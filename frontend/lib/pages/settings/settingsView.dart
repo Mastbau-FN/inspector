@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
@@ -7,11 +9,14 @@ import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
+import 'package:archive/archive_io.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/openNewViewTile.dart';
@@ -46,11 +51,104 @@ class SettingsView extends StatelessWidget {
             Divider(),
             Text(S.of(context).advancedSettingsHeadline),
             if (Options().canBeOffline) UploadSyncTile(),
+            if (Options().canBeOffline) BackupTile(),
             developerOptions,
             // DeleteCachedImages(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class BackupTile extends StatefulWidget {
+  const BackupTile({super.key});
+
+  @override
+  State<BackupTile> createState() => _BackupTileState();
+}
+
+class _BackupTileState extends State<BackupTile> {
+  var loading = false;
+  bool? success = null;
+  var progress = 0.0;
+
+  void onPress(BuildContext context) async {
+    setState(() {
+      loading = true;
+    });
+
+    Directory? appDocDirectory = await getExternalStorageDirectory();
+    if (appDocDirectory == null) {
+      setState(() {
+        success = false;
+        loading = false;
+      });
+      showToast('couldnt get directory');
+      return;
+    }
+    try {
+      var encoder = ZipFileEncoder();
+      encoder.create(appDocDirectory.path + "/" + 'backup.zip');
+      await encoder.addDirectory(Directory(appDocDirectory.path),
+          onProgress: (progress) {
+        setState(() {
+          this.progress = progress;
+        });
+      });
+      encoder.close();
+      setState(() {
+        success = true;
+        loading = false;
+      });
+      showToast('backup created');
+      Share.shareXFiles(
+        [XFile(appDocDirectory.path + "/" + 'backup.zip')],
+        text: 'Backup von MBG Inspektionen',
+        subject: 'Backup von MBG Inspektionen',
+      );
+    } catch (e) {
+      setState(() {
+        success = false;
+        loading = false;
+      });
+      showToast('couldnt create backup');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MyCardListTile1(
+      icon: Icons.folder_zip,
+      text: loading
+          ? '${(progress * 100).floor()}%  ' + S.of(context).plsWait
+          : 'Backup',
+      onTap: () => onPress(context),
+      child: loading
+          ? Container(
+              height: 25,
+              width: 25,
+              // color: Colors.red,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: LoadingView(),
+                  ),
+                  CircularProgressIndicator(
+                    color: Colors.green,
+                    value: progress,
+                  ),
+                ],
+              ),
+            )
+          : (success != null
+              ? Icon(
+                  success! ? Icons.check : Icons.error,
+                  color: success! ? Colors.green : Colors.red,
+                )
+              : null),
     );
   }
 }
