@@ -132,6 +132,8 @@ Widget build(BuildContext context) {
           Divider(),
           Text(S.of(context).advancedSettingsHeadline),
           if (Options().canBeOffline) UploadSyncTile(),
+          if (Options().canBeOffline) BackupTile(),
+          if (Options().canBeOffline) openNextRequestTile,
           developerOptions,
           &#47;&#47; DeleteCachedImages(),
         ],
