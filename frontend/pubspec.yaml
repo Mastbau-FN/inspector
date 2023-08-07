@@ -114,7 +114,11 @@ dependencies:
 
   # to displays svg duh
   flutter_svg: ^2.0.6
+
+  # autp-added by pub:
+  
   url_launcher: ^6.1.9
+  archive: ^3.3.7
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9
