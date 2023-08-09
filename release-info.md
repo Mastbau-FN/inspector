@@ -1,5 +1,3 @@
 # changes
 
-## v204 only
-
-- hotfixed image display broblem with backup for
+- delete latest request tile there
