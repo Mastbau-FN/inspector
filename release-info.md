@@ -1,3 +1,3 @@
 # changes
 
-- delete latest request tile and backup tile
+- delete latest request tile there
