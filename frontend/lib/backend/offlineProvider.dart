@@ -23,7 +23,7 @@ Future<String> get localPath async {
 }
 
 Future<File> localFile(String name) async => File(
-    '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.webp');
+    '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img'); //hotfix for v204
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
 Future<File?> storeImage(Uint8List imgBytes, String name) async {
