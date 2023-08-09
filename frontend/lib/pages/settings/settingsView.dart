@@ -40,7 +40,7 @@ class SettingsView extends StatelessWidget {
   Widget get openNextRequestTile => FutureBuilder(
       future: API().local.getAllFailedRequests(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return Container();
+        if (!snapshot.hasData) return Text('waiting to get failed requests...');
         return OpenNewViewTile(
           icon: Icons.remove_from_queue,
           title: 'next Request',
