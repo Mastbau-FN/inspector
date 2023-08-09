@@ -80,7 +80,7 @@
   <pre class="language-dart"><code class="language-dart">Widget get openNextRequestTile =&gt; FutureBuilder(
     future: API().local.getAllFailedRequests(),
     builder: (context, snapshot) {
-      if (!snapshot.hasData) return Container();
+      if (!snapshot.hasData) return Text(&#39;waiting to get failed requests...&#39;);
       return OpenNewViewTile(
         icon: Icons.remove_from_queue,
         title: &#39;next Request&#39;,
