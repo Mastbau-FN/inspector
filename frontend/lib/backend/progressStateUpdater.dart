@@ -47,5 +47,6 @@ class ProgressStateUpdater extends ChangeNotifier {
       1 => true,
       _ => null,
     };
+    return null;
   }
 }

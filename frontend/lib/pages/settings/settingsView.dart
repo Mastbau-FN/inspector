@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
-import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
-import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
@@ -19,7 +17,6 @@ import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/openNewViewTile.dart';
 
@@ -204,6 +201,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     }
 
     // // slowlyRefresh();
+    // ignore: unused_local_variable
     bool s = await FailedRequestmanager().retryFailedrequests(
       context: context,
     );
