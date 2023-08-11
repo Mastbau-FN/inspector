@@ -1,5 +1,4 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:json_annotation/json_annotation.dart';
 
