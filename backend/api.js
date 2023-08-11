@@ -215,10 +215,10 @@ const fileUpload = async (req, res) => {
   console.log("uploading files..");
   if (!(req.files || req.file)) {
     res.status(400).json({ reason: "no file uploaded" });
-    print("file failed")
+    console.log("file failed")
   } else {
     res.status(204).json();
-    print("file succeeded")
+    console.log("file succeeded")
   }
 };
 
