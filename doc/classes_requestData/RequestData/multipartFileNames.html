@@ -62,6 +62,11 @@
 
         <section class="multi-line-signature">
           
+  <div>
+    <ol class="annotation-list">
+        <li>@<a href="https://pub.dev/documentation/json_annotation/4.8.1/json_annotation/JsonKey-class.html">JsonKey</a>(name: &#39;multipartFiles&#39;)</li>
+    </ol>
+  </div>
           <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?
           <span class="name ">multipartFileNames</span>
           <div class="features"><span class="feature">read / write</span></div>
@@ -77,6 +82,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">&#47;&#47; @JsonKey(
 &#47;&#47;     toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)
+@JsonKey(name: &#39;multipartFiles&#39;)
 List&lt;String&gt;? multipartFileNames;</code></pre>
 </section>
 
