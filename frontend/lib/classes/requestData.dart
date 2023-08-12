@@ -48,7 +48,7 @@ class RequestData {
   List<Future<XFile>> get multipartFiles =>
       _multipartFiles?.map((e) => Future.value(e)).toList() ??
       multipartFileNames! //either names or files are set
-          .map((filename) async => XFile((await OP.localFile(filename)).path))
+          .map((filename) => OP.retrieveStoredXFile(filename))
           .toList();
 
   /// the timeout for the request
@@ -71,8 +71,17 @@ class RequestData {
     return _$RequestDataToJson(this);
   }
 
-  static RequestData deserialize(Map<String, dynamic> json) =>
-      _$RequestDataFromJson(json);
+  static RequestData deserialize(Map<String, dynamic> json) {
+    var rd = _$RequestDataFromJson(json);
+    rd.multipartFileNames?.forEach((element) {
+      // fix for failed uploads in pratiks latest incident (02)
+      if (element.contains('cache/')) {
+        //get only stuff behind 'cache/'
+        element = element.substring(element.indexOf('cache/') + 6);
+      }
+    });
+    return rd;
+  }
 }
 
 // List<String> multipartFilesToHashList(List<XFile> files) => files

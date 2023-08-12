@@ -16,6 +16,8 @@ import 'package:localstore/localstore.dart';
 
 import './helpers.dart' as Helper;
 
+const useOldImgEncoding = true;
+
 // MARK: image stuff
 
 Future<String> get localPath async {
@@ -28,7 +30,7 @@ Future<File> localFile(String name) async {
   if (await p0.exists()) return p0;
   final p1 =
       File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
-  if (await p1.exists()) return p1;
+  if (await p1.exists() || useOldImgEncoding) return p1;
   return File(
       '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.webp');
 }
@@ -257,6 +259,6 @@ Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
   return name;
 }
 
-Future<XFile> retrieveCachedXFile(String name) async {
+Future<XFile> retrieveStoredXFile(String name) async {
   return XFile((await localFile(name)).path);
 }
