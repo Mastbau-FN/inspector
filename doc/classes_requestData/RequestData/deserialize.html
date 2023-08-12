@@ -83,6 +83,9 @@
     if (element.contains(&#39;cache&#47;&#39;)) {
       &#47;&#47;get only stuff behind &#39;cache&#47;&#39;
       element = element.substring(element.indexOf(&#39;cache&#47;&#39;) + 6);
+    } else if (element.contains(&#39;cache_&#39;)) {
+      &#47;&#47;get only stuff behind &#39;temp&#47;&#39;
+      element = element.substring(element.indexOf(&#39;cache_&#39;) + 6);
     }
   });
   return rd;
