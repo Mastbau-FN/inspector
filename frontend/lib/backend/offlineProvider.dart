@@ -16,7 +16,7 @@ import 'package:localstore/localstore.dart';
 
 import './helpers.dart' as Helper;
 
-const useOldImgEncoding = false;
+const useOldImgEncoding = true;
 
 // MARK: image stuff
 
