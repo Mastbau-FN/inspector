@@ -1,3 +1,3 @@
 # changes
 
-- use webp encoding again
+- still incident related stuff

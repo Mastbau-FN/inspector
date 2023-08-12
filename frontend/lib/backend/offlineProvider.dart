@@ -16,7 +16,8 @@ import 'package:localstore/localstore.dart';
 
 import './helpers.dart' as Helper;
 
-const useOldImgEncoding = false;
+const useOldImgEncoding =
+    true; //TODO: reset after partiks incident was solved to false
 
 // MARK: image stuff
 
