@@ -141,13 +141,12 @@ class Remote {
             ..files.addAll(
               List<http.MultipartFile>.from((await Future.wait(
                 rd.multipartFiles.map(
-                  //TODO: untersuchen wann cachw warum .img nicht replaced, warum anderer path als im backup?
                   (fxfile) async {
                     final xfile = await fxfile;
                     final name = xfile.name;
                     final path = xfile.path;
-                    return http.MultipartFile.fromPath('package', xfile.path,
-                        filename: xfile.name);
+                    return http.MultipartFile.fromPath('package', path,
+                        filename: name);
                   },
                 ),
               ))

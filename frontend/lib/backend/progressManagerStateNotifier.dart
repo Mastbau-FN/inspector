@@ -1,6 +1,5 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:json_annotation/json_annotation.dart';
 
 import 'offlineProvider.dart';
 // import 'package:provider/provider.dart';

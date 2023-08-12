@@ -1,6 +1,4 @@
-import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
-import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
