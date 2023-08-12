@@ -76,8 +76,15 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;File&gt; localFile(String name) async =&gt; File(
-    &#39;${await localPath}&#47;${name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;)}.maybe.webp&#39;);</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;File&gt; localFile(String name) async {
+  final p0 = File(&#39;${await localPath}&#47;${name}&#39;);
+  if (await p0.exists()) return p0;
+  final p1 =
+      File(&#39;${await localPath}&#47;${name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;)}.img&#39;);
+  if (await p1.exists() || useOldImgEncoding) return p1;
+  return File(
+      &#39;${await localPath}&#47;${name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;)}.maybe.webp&#39;);
+}</code></pre>
 </section>
 
 

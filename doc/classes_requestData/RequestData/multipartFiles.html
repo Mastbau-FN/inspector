@@ -60,29 +60,36 @@
 <h1><span class="kind-property">multipartFiles</span> property 
 </h1></div>
 
-        <section class="multi-line-signature">
-          
+
+        
+<section id="getter">
+
+<section class="multi-line-signature">
+  
   <div>
     <ol class="annotation-list">
-        <li>@<a href="https://pub.dev/documentation/json_annotation/4.8.1/json_annotation/JsonKey-class.html">JsonKey</a>(toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)</li>
+        <li>@<a href="https://pub.dev/documentation/json_annotation/4.8.1/json_annotation/JsonKey-class.html">JsonKey</a>(includeFromJson: false, includeToJson: false)</li>
     </ol>
   </div>
-          <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a></span>&gt;</span>
-          <span class="name ">multipartFiles</span>
-          <div class="features"><span class="feature">read / write</span></div>
+  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span>&gt;</span></span>
+  <span class="name ">multipartFiles</span>
+  
 
-        </section>
-        
-<section class="desc markdown">
-  <p>the files to send</p>
 </section>
 
-        
+
+
+
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@JsonKey(
-    toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)
-List&lt;XFile&gt; multipartFiles;</code></pre>
+  <pre class="language-dart"><code class="language-dart">@JsonKey(includeFromJson: false, includeToJson: false)
+List&lt;Future&lt;XFile&gt;&gt; get multipartFiles =&gt;
+    _multipartFiles?.map((e) =&gt; Future.value(e)).toList() ??
+    multipartFileNames! &#47;&#47;either names or files are set
+        .map((filename) =&gt; OP.retrieveStoredXFile(filename))
+        .toList();</code></pre>
+</section>
+
 </section>
 
 

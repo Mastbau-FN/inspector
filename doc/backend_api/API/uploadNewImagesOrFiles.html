@@ -75,7 +75,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>upload a bunch of images</p>
+  <p>upload / add a bunch of images</p>
 </section>
 
 
@@ -109,15 +109,16 @@
           onlineRes.toString());
       var rd = rap.rd;
       &#47;&#47;biscchen ugly
-      rd.multipartFiles = rd.multipartFiles.map((e) {
-        &#47;&#47; e.name = newName;
-        var newName = LOCALLY_ADDED_PREFIX + e.name;
-        var newPath =
-            e.path.substring(0, e.path.length - e.name.length) + newName;
-        e.saveTo(newPath);
-        e = XFile(newPath);
-        return e;
-      }).toList();
+      &#47;&#47; rd.multipartFiles = rd.multipartFiles.map((_e) async {
+      &#47;&#47;   var e = await _e;
+      &#47;&#47;   &#47;&#47; e.name = newName;
+      &#47;&#47;   var newName = LOCALLY_ADDED_PREFIX + e.name;
+      &#47;&#47;   var newPath =
+      &#47;&#47;       e.path.substring(0, e.path.length - e.name.length) + newName;
+      &#47;&#47;   e.saveTo(newPath);
+      &#47;&#47;   e = XFile(newPath);
+      &#47;&#47;   return e;
+      &#47;&#47; }).toList();
       local.logFailedReq(rd);
     },
     requestType: requestType,

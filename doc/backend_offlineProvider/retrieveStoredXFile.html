@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the logFailedReq function from the offlineProvider library, for the Dart programming language.">
-  <title>logFailedReq function - offlineProvider library - Dart API</title>
+  <meta name="description" content="API docs for the retrieveStoredXFile function from the offlineProvider library, for the Dart programming language.">
+  <title>retrieveStoredXFile function - offlineProvider library - Dart API</title>
 
 
   
@@ -30,9 +30,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-    <li class="self-crumb">logFailedReq function</li>
+    <li class="self-crumb">retrieveStoredXFile function</li>
   </ol>
-  <div class="self-name">logFailedReq</div>
+  <div class="self-name">retrieveStoredXFile</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -56,15 +56,15 @@
       data-above-sidebar="backend_offlineProvider&#47;backend_offlineProvider-library-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-function">logFailedReq</span> function 
+<h1><span class="kind-function">retrieveStoredXFile</span> function 
  
 </h1></div>
 
     <section class="multi-line-signature">
         
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span></span>
-<span class="name ">logFailedReq</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="logFailedReq-param-rd"><span class="type-annotation"><a href="../classes_requestData/RequestData-class.html">RequestData</a></span> <span class="parameter-name">rd</span></span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span>
+<span class="name ">retrieveStoredXFile</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="retrieveStoredXFile-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">name</span></span></li>
 </ol>)
 
         
@@ -76,13 +76,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;String&gt; logFailedReq(RequestData rd) async {
-  final doc = failedReqLogCollection
-      .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
-
-  &#47;&#47;TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
-  await doc.set(await rd.serialized);
-  return doc.id;
+  <pre class="language-dart"><code class="language-dart">Future&lt;XFile&gt; retrieveStoredXFile(String name) async {
+  return XFile((await localFile(name)).path);
 }</code></pre>
 </section>
 
@@ -100,7 +95,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-    <li class="self-crumb">logFailedReq function</li>
+    <li class="self-crumb">retrieveStoredXFile function</li>
 </ol>
 
 

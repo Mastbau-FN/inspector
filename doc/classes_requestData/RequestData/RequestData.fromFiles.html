@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the serialized property from the RequestData class, for the Dart programming language.">
-  <title>serialized property - RequestData class - requestData library - Dart API</title>
+  <meta name="description" content="API docs for the RequestData.fromFiles constructor from Class RequestData from the requestData library, for the Dart programming language.">
+  <title>RequestData.fromFiles constructor - RequestData - requestData library - Dart API</title>
 
 
   
@@ -31,9 +31,9 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../classes_requestData/classes_requestData-library.html">requestData</a></li>
     <li><a href="../../classes_requestData/RequestData-class.html">RequestData</a></li>
-    <li class="self-crumb">serialized property</li>
+    <li class="self-crumb">RequestData.fromFiles constructor</li>
   </ol>
-  <div class="self-name">serialized</div>
+  <div class="self-name">RequestData.fromFiles</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -57,39 +57,34 @@
       data-above-sidebar="classes_requestData&#47;RequestData-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-property">serialized</span> property 
+<h1><span class="kind-constructor">RequestData.fromFiles</span> constructor 
 </h1></div>
 
+    <section class="multi-line-signature">
+      
+      <span class="name ">RequestData.fromFiles</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="fromFiles-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span></li>
+<li><span class="parameter" id="fromFiles-param-json">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span>?</span> <span class="parameter-name">json</span>, </span></li>
+<li><span class="parameter" id="fromFiles-param-multipartFiles"><span class="type-annotation">dynamic</span> <span class="parameter-name">multipartFiles</span> = <span class="default-value">const &lt;XFile&gt;[]</span>, </span></li>
+<li><span class="parameter" id="fromFiles-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>, </span></li>
+<li><span class="parameter" id="fromFiles-param-returnsBinary"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">returnsBinary</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="fromFiles-param-logIfFailed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">logIfFailed</span>}</span></li>
+</ol>)
+    </section>
 
-        
-<section id="getter">
-
-<section class="multi-line-signature">
-  
-  <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span>&gt;</span></span>
-  <span class="name ">serialized</span>
-  
-
-</section>
-
-
-<section class="desc markdown">
-  <p>only gets called when the request failed and has to be tried again later</p>
-</section>
+    
 
 
+    
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;Map&lt;String, dynamic&gt;&gt; get serialized async {
-  &#47;&#47;when storing files we have to make sure they are permanently stored, not only in cache
-  this.multipartFileNames ??= await Future.wait(
-      _multipartFiles! &#47;&#47;either names or files are set
-          .map((file) async =&gt; await OP.permaStoreCachedXFile(
-              file, LOCALLY_ADDED_PREFIX + file.name)));
-  return _$RequestDataToJson(this);
-}</code></pre>
-</section>
-
+  <pre class="language-dart"><code class="language-dart">RequestData.fromFiles(
+  this.route, {
+  this.json,
+  multipartFiles = const &lt;XFile&gt;[],
+  this.timeout,
+  this.returnsBinary = false,
+  this.logIfFailed,
+}) : _multipartFiles = multipartFiles;</code></pre>
 </section>
 
 
@@ -107,12 +102,12 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../classes_requestData/classes_requestData-library.html">requestData</a></li>
     <li><a href="../../classes_requestData/RequestData-class.html">RequestData</a></li>
-    <li class="self-crumb">serialized property</li>
+    <li class="self-crumb">RequestData.fromFiles constructor</li>
 </ol>
 
 
     <h5>RequestData class</h5>
-  </div><!--/.sidebar-offcanvas-->
+  </div><!--/.sidebar-offcanvas-left-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
   </div><!--/.sidebar-offcanvas-->

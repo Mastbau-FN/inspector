@@ -87,7 +87,7 @@
 ) {
   debugPrint(&#39;uploading images ${files.map((e) =&gt; e.name)}&#39;);
   var jsonData = data.toJson();
-  final rd = RequestData(
+  final rd = RequestData.fromFiles(
     _uploadImage_r,
     json: {
       &#39;type&#39;: Helper.getIdentifierFromData(data),

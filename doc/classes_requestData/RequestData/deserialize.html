@@ -76,8 +76,17 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static RequestData deserialize(Map&lt;String, dynamic&gt; json) =&gt;
-    _$RequestDataFromJson(json);</code></pre>
+  <pre class="language-dart"><code class="language-dart">static RequestData deserialize(Map&lt;String, dynamic&gt; json) {
+  var rd = _$RequestDataFromJson(json);
+  rd.multipartFileNames?.forEach((element) {
+    &#47;&#47; fix for failed uploads in pratiks latest incident (02)
+    if (element.contains(&#39;cache&#47;&#39;)) {
+      &#47;&#47;get only stuff behind &#39;cache&#47;&#39;
+      element = element.substring(element.indexOf(&#39;cache&#47;&#39;) + 6);
+    }
+  });
+  return rd;
+}</code></pre>
 </section>
 
 

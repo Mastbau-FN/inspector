@@ -92,8 +92,14 @@
           ..files.addAll(
             List&lt;http.MultipartFile&gt;.from((await Future.wait(
               rd.multipartFiles.map(
-                (xfile) =&gt; http.MultipartFile.fromPath(&#39;package&#39;, xfile.path,
-                    filename: xfile.name),
+                &#47;&#47;TODO: untersuchen wann cachw warum .img nicht replaced, warum anderer path als im backup?
+                (fxfile) async {
+                  final xfile = await fxfile;
+                  final name = xfile.name;
+                  final path = xfile.path;
+                  return http.MultipartFile.fromPath(&#39;package&#39;, xfile.path,
+                      filename: xfile.name);
+                },
               ),
             ))
                 .whereType&lt;http.MultipartFile&gt;()),

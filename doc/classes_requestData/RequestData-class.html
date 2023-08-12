@@ -64,7 +64,7 @@
 <section class="desc markdown">
   <p>wraps all the data required for an api request
 for simpler reuse
-this gets stored if a request fails (in offline mode)
+this gets stored if a request fails (in offline mode) it is therefor offline only
 and retried when the app is online</p>
 </section>
 
@@ -96,7 +96,13 @@ and retried when the app is online</p>
 
     <dl class="constructor-summary-list">
         <dt id="RequestData" class="callable">
-          <span class="name"><a href="../classes_requestData/RequestData/RequestData.html">RequestData</a></span><span class="signature">(<span class="parameter" id="-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="-param-json">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span>?</span> <span class="parameter-name">json</span>, </span><span class="parameter" id="-param-multipartFiles"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span> <span class="parameter-name">multipartFiles</span> = <span class="default-value">const []</span>, </span><span class="parameter" id="-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>, </span><span class="parameter" id="-param-returnsBinary"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">returnsBinary</span> = <span class="default-value">false</span>, </span><span class="parameter" id="-param-logIfFailed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">logIfFailed</span>}</span>)</span>
+          <span class="name"><a href="../classes_requestData/RequestData/RequestData.html">RequestData</a></span><span class="signature">(<span class="parameter" id="-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="-param-json">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span>?</span> <span class="parameter-name">json</span>, </span><span class="parameter" id="-param-multipartFileNames"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> <span class="parameter-name">multipartFileNames</span> = <span class="default-value">const []</span>, </span><span class="parameter" id="-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>, </span><span class="parameter" id="-param-returnsBinary"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">returnsBinary</span> = <span class="default-value">false</span>, </span><span class="parameter" id="-param-logIfFailed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">logIfFailed</span>}</span>)</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="RequestData.fromFiles" class="callable">
+          <span class="name"><a href="../classes_requestData/RequestData/RequestData.fromFiles.html">RequestData.fromFiles</a></span><span class="signature">(<span class="parameter" id="fromFiles-param-route"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">route</span>, </span><span class="parameter" id="fromFiles-param-json">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span>?</span> <span class="parameter-name">json</span>, </span><span class="parameter" id="fromFiles-param-multipartFiles"><span class="type-annotation">dynamic</span> <span class="parameter-name">multipartFiles</span> = <span class="default-value">const &lt;XFile&gt;[]</span>, </span><span class="parameter" id="fromFiles-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span> <span class="parameter-name">timeout</span>, </span><span class="parameter" id="fromFiles-param-returnsBinary"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">returnsBinary</span> = <span class="default-value">false</span>, </span><span class="parameter" id="fromFiles-param-logIfFailed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">logIfFailed</span>}</span>)</span>
         </dt>
         <dd>
           
@@ -141,14 +147,25 @@ and retried when the app is online</p>
 
 </dd>
 
-        <dt id="multipartFiles" class="property">
-  <span class="name"><a href="../classes_requestData/RequestData/multipartFiles.html">multipartFiles</a></span>
-  <span class="signature">&#8596; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span> 
+        <dt id="multipartFileNames" class="property">
+  <span class="name"><a href="../classes_requestData/RequestData/multipartFileNames.html">multipartFileNames</a></span>
+  <span class="signature">&#8596; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> 
 
 </dt>
 <dd>
   the files to send
   <div class="features"><span class="feature">read / write</span></div>
+
+</dd>
+
+        <dt id="multipartFiles" class="property">
+  <span class="name"><a href="../classes_requestData/RequestData/multipartFiles.html">multipartFiles</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span>&gt;</span></span> 
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">read-only</span></div>
 
 </dd>
 
@@ -187,11 +204,11 @@ and retried when the app is online</p>
 
         <dt id="serialized" class="property">
   <span class="name"><a href="../classes_requestData/RequestData/serialized.html">serialized</a></span>
-  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span> 
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span>&gt;</span></span> 
 
 </dt>
 <dd>
-  
+  only gets called when the request failed and has to be tried again later
   <div class="features"><span class="feature">read-only</span></div>
 
 </dd>
