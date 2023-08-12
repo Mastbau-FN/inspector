@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:localstore/localstore.dart';
@@ -178,7 +179,7 @@ Future<String> logFailedReq(RequestData rd) async {
       .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
   //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
-  await doc.set(rd.serialized);
+  await doc.set(await rd.serialized);
   return doc.id;
 }
 
@@ -248,4 +249,14 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 
   // static http.MultipartRequest fromJson(Map<String, dynamic> json) =>
   //     requestFromJson(json) as http.MultipartRequest;
+}
+
+Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
+  final name = _name ?? file.name;
+  await file.saveTo((await localFile(file.name)).path);
+  return name;
+}
+
+Future<XFile> retrieveCachedXFile(String name) async {
+  return XFile((await localFile(name)).path);
 }

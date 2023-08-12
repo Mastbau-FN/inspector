@@ -399,7 +399,7 @@ class API {
     ).last;
   }
 
-  /// upload a bunch of images
+  /// upload / add a bunch of images
   Future<String?> uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
     List<XFile> files, {
@@ -427,15 +427,16 @@ class API {
             onlineRes.toString());
         var rd = rap.rd;
         //biscchen ugly
-        rd.multipartFiles = rd.multipartFiles.map((e) {
-          // e.name = newName;
-          var newName = LOCALLY_ADDED_PREFIX + e.name;
-          var newPath =
-              e.path.substring(0, e.path.length - e.name.length) + newName;
-          e.saveTo(newPath);
-          e = XFile(newPath);
-          return e;
-        }).toList();
+        // rd.multipartFiles = rd.multipartFiles.map((_e) async {
+        //   var e = await _e;
+        //   // e.name = newName;
+        //   var newName = LOCALLY_ADDED_PREFIX + e.name;
+        //   var newPath =
+        //       e.path.substring(0, e.path.length - e.name.length) + newName;
+        //   e.saveTo(newPath);
+        //   e = XFile(newPath);
+        //   return e;
+        // }).toList();
         local.logFailedReq(rd);
       },
       requestType: requestType,

@@ -1,22 +1,35 @@
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/local.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
 
 part 'requestData.g.dart';
 
 /// wraps all the data required for an api request
 /// for simpler reuse
-/// this gets stored if a request fails (in offline mode)
+/// this gets stored if a request fails (in offline mode) it is therefor offline only
 /// and retried when the app is online
 @JsonSerializable()
 class RequestData {
   RequestData(
     this.route, {
     this.json,
-    this.multipartFiles = const [],
+    this.multipartFileNames = const [],
     this.timeout,
     this.returnsBinary = false,
     this.logIfFailed,
   });
+
+  RequestData.fromFiles(
+    this.route, {
+    this.json,
+    multipartFiles = const <XFile>[],
+    this.timeout,
+    this.returnsBinary = false,
+    this.logIfFailed,
+  }) : _multipartFiles = multipartFiles;
 
   /// the route to the api
   String route;
@@ -25,9 +38,18 @@ class RequestData {
   Map<String, dynamic>? json;
 
   /// the files to send
-  @JsonKey(
-      toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)
-  List<XFile> multipartFiles;
+  // @JsonKey(
+  //     toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)
+  List<String>? multipartFileNames;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<XFile>? _multipartFiles;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<Future<XFile>> get multipartFiles =>
+      _multipartFiles?.map((e) => Future.value(e)).toList() ??
+      multipartFileNames! //either names or files are set
+          .map((filename) async => XFile((await OP.localFile(filename)).path))
+          .toList();
 
   /// the timeout for the request
   Duration? timeout;
@@ -39,17 +61,28 @@ class RequestData {
   @JsonKey(includeToJson: false)
   bool? logIfFailed;
 
-  Map<String, dynamic> get serialized => _$RequestDataToJson(this);
+  /// only gets called when the request failed and has to be tried again later
+  Future<Map<String, dynamic>> get serialized async {
+    //when storing files we have to make sure they are permanently stored, not only in cache
+    this.multipartFileNames ??= await Future.wait(
+        _multipartFiles! //either names or files are set
+            .map((file) async => await OP.permaStoreCachedXFile(
+                file, LOCALLY_ADDED_PREFIX + file.name)));
+    return _$RequestDataToJson(this);
+  }
+
   static RequestData deserialize(Map<String, dynamic> json) =>
       _$RequestDataFromJson(json);
 }
 
-List<String> multipartFilesToHashList(List<XFile> files) => files
-    .map((file) =>
-        file.path) //XXX: path usage is discouraged as it wont work in web
-    .toList();
+// List<String> multipartFilesToHashList(List<XFile> files) => files
+//     .map((file) =>
+//         file.name) //XXX: path usage is discouraged as it wont work in web
+//     .toList();
 
-List<XFile> multipartFilesFromHashList(List<dynamic> files) => files
-    .map((file) => XFile(file
-        .toString())) //XXX: path usage is discouraged as it wont work in web
-    .toList();
+// List<XFile> multipartFilesFromHashList(List<dynamic> files) async =>
+//     files
+//         .map((filename) async => XFile(
+//             (await API().local.getLocalFilePathFromName(filename))
+//                 .path)) //XXX: path usage is discouraged as it wont work in web
+//         .toList();

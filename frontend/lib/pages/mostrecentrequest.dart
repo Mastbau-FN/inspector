@@ -40,22 +40,29 @@ class MostRecentRequestPage extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    for (var file in data.multipartFiles)
-                      Column(
-                        children: [
-                          Text('File: ${file.name}'),
-                          FutureBuilder(
-                            future: file.readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Image.memory(snapshot.data!);
-                              } else {
-                                return CircularProgressIndicator();
-                              }
-                            },
-                          )
-                        ],
-                      ),
+                    for (var ffile in data.multipartFiles)
+                      FutureBuilder(
+                          future: ffile,
+                          builder: (context, snap) {
+                            if (!snap.hasData)
+                              return CircularProgressIndicator();
+                            final file = snap.data!;
+                            return Column(
+                              children: [
+                                Text('File: ${file.name}'),
+                                FutureBuilder(
+                                  future: file.readAsBytes(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      return Image.memory(snapshot.data!);
+                                    } else {
+                                      return CircularProgressIndicator();
+                                    }
+                                  },
+                                )
+                              ],
+                            );
+                          }),
                   ],
                 ),
               ),

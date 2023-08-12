@@ -5,7 +5,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'offlineProvider.dart';
 // import 'package:provider/provider.dart';
 
-@JsonSerializable()
 class UploadProgressWriter {
   double? _progress = null;
   bool _loading = false;

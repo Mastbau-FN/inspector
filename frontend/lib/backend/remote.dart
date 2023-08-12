@@ -142,8 +142,13 @@ class Remote {
               List<http.MultipartFile>.from((await Future.wait(
                 rd.multipartFiles.map(
                   //TODO: untersuchen wann cachw warum .img nicht replaced, warum anderer path als im backup?
-                  (xfile) => http.MultipartFile.fromPath('package', xfile.path,
-                      filename: xfile.name),
+                  (fxfile) async {
+                    final xfile = await fxfile;
+                    final name = xfile.name;
+                    final path = xfile.path;
+                    return http.MultipartFile.fromPath('package', xfile.path,
+                        filename: xfile.name);
+                  },
                 ),
               ))
                   .whereType<http.MultipartFile>()),
@@ -436,7 +441,7 @@ class Remote {
   ) {
     debugPrint('uploading images ${files.map((e) => e.name)}');
     var jsonData = data.toJson();
-    final rd = RequestData(
+    final rd = RequestData.fromFiles(
       _uploadImage_r,
       json: {
         'type': Helper.getIdentifierFromData(data),
