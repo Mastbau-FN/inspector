@@ -1,3 +1,3 @@
 # changes
 
-- hopefully fixed incident..
+- use webp encoding again
