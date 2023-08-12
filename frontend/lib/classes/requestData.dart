@@ -72,16 +72,17 @@ class RequestData {
 
   static RequestData deserialize(Map<String, dynamic> json) {
     var rd = _$RequestDataFromJson(json);
-    rd.multipartFileNames?.forEach((element) {
+    rd.multipartFileNames = rd.multipartFileNames?.map((element) {
       // fix for failed uploads in pratiks latest incident (02)
       if (element.contains('cache/')) {
         //get only stuff behind 'cache/'
         element = element.substring(element.indexOf('cache/') + 6);
       } else if (element.contains('cache_')) {
-        //get only stuff behind 'temp/'
+        //shouldnt be necessary but just in case
         element = element.substring(element.indexOf('cache_') + 6);
       }
-    });
+      return element;
+    }).toList();
     return rd;
   }
 }
