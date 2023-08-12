@@ -38,6 +38,7 @@ class RequestData {
   /// the files to send
   // @JsonKey(
   //     toJson: multipartFilesToHashList, fromJson: multipartFilesFromHashList)
+  @JsonKey(name: 'multipartFiles')
   List<String>? multipartFileNames;
 
   @JsonKey(includeFromJson: false, includeToJson: false)

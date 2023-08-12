@@ -9,7 +9,7 @@ part of 'requestData.dart';
 RequestData _$RequestDataFromJson(Map<String, dynamic> json) => RequestData(
       json['route'] as String,
       json: json['json'] as Map<String, dynamic>?,
-      multipartFileNames: (json['multipartFileNames'] as List<dynamic>?)
+      multipartFileNames: (json['multipartFiles'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
