@@ -77,6 +77,9 @@ class RequestData {
       if (element.contains('cache/')) {
         //get only stuff behind 'cache/'
         element = element.substring(element.indexOf('cache/') + 6);
+      } else if (element.contains('cache_')) {
+        //get only stuff behind 'temp/'
+        element = element.substring(element.indexOf('cache_') + 6);
       }
     });
     return rd;
