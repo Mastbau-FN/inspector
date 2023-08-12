@@ -23,7 +23,7 @@ class RequestData {
   RequestData.fromFiles(
     this.route, {
     this.json,
-    multipartFiles = const <XFile>[],
+    List<XFile>? multipartFiles,
     this.timeout,
     this.returnsBinary = false,
     this.logIfFailed,
