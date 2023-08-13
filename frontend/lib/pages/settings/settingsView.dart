@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/openNewViewTile.dart';
 
@@ -47,6 +48,15 @@ class SettingsView extends StatelessWidget {
         );
       });
 
+  Widget get unsetIsRunningTile => MyCardListTile1(
+        icon: Icons.remove_circle_outline,
+        text: 'unset isRunning',
+        onTap: () async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setBool(sync_in_progress_str, false);
+        },
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +75,7 @@ class SettingsView extends StatelessWidget {
             if (Options().canBeOffline) UploadSyncTile(),
             if (Options().canBeOffline) BackupTile(),
             if (Options().canBeOffline) openNextRequestTile,
+            if (Options().canBeOffline) unsetIsRunningTile,
             developerOptions,
             // DeleteCachedImages(),
           ],
