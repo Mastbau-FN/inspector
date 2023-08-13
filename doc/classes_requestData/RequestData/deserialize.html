@@ -86,6 +86,9 @@
     } else if (element.contains(&#39;cache_&#39;)) {
       &#47;&#47;shouldnt be necessary but just in case
       element = element.substring(element.indexOf(&#39;cache_&#39;) + 6);
+    } else if (element.contains(LOCALLY_ADDED_PREFIX)) {
+      &#47;&#47;shouldnt be necessary but just in case
+      element = element.substring(element.indexOf(LOCALLY_ADDED_PREFIX));
     }
     return element;
   }).toList();
