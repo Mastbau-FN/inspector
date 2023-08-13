@@ -14,6 +14,7 @@ env:
   working-directory: ./frontend
   API_KEY: ${{secrets.API_KEY}}
   API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
+  releasePS: false
 
 defaults:
   run:
@@ -64,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [web, apkd, apkr, appbundle]
+        platform: [web, apkd, apkr] #[web, apkd, apkr, appbundle] #TODO: if releasePS == true add appbundle
 
     steps:
       - uses: actions/checkout@v3
@@ -196,7 +197,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   release-playstore:
-    if: false #github.ref_name == 'release'
+    if:  false # ${{env.releasePS == 'true'}} #&& github.ref_name == 'release'
     needs: [build-app,test]
     name: Release to the google playstore
     runs-on: ubuntu-latest
