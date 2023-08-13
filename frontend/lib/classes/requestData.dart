@@ -74,13 +74,7 @@ class RequestData {
     var rd = _$RequestDataFromJson(json);
     rd.multipartFileNames = rd.multipartFileNames?.map((element) {
       // fix for failed uploads in pratiks latest incident (02)
-      if (element.contains('cache/')) {
-        //get only stuff behind 'cache/'
-        element = element.substring(element.indexOf('cache/') + 6);
-      } else if (element.contains('cache_')) {
-        //shouldnt be necessary but just in case
-        element = element.substring(element.indexOf('cache_') + 6);
-      } else if (element.contains(LOCALLY_ADDED_PREFIX)) {
+      if (element.contains(LOCALLY_ADDED_PREFIX)) {
         //shouldnt be necessary but just in case
         element = element.substring(element.indexOf(LOCALLY_ADDED_PREFIX));
       }
