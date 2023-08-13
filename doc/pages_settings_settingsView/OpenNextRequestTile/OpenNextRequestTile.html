@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the openNextRequestTile property from the SettingsView class, for the Dart programming language.">
-  <title>openNextRequestTile property - SettingsView class - settingsView library - Dart API</title>
+  <meta name="description" content="API docs for the OpenNextRequestTile constructor from Class OpenNextRequestTile from the settingsView library, for the Dart programming language.">
+  <title>OpenNextRequestTile constructor - OpenNextRequestTile - settingsView library - Dart API</title>
 
 
   
@@ -30,10 +30,10 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../pages_settings_settingsView/pages_settings_settingsView-library.html">settingsView</a></li>
-    <li><a href="../../pages_settings_settingsView/SettingsView-class.html">SettingsView</a></li>
-    <li class="self-crumb">openNextRequestTile property</li>
+    <li><a href="../../pages_settings_settingsView/OpenNextRequestTile-class.html">OpenNextRequestTile</a></li>
+    <li class="self-crumb">OpenNextRequestTile const constructor</li>
   </ol>
-  <div class="self-name">openNextRequestTile</div>
+  <div class="self-name">OpenNextRequestTile</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -54,43 +54,27 @@
   <div
       id="dartdoc-main-content"
       class="main-content"
-      data-above-sidebar="pages_settings_settingsView&#47;SettingsView-class-sidebar.html"
+      data-above-sidebar="pages_settings_settingsView&#47;OpenNextRequestTile-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-property">openNextRequestTile</span> property 
+<h1><span class="kind-constructor">OpenNextRequestTile</span> constructor 
 </h1></div>
 
+    <section class="multi-line-signature">
+      const
+      <span class="name ">OpenNextRequestTile</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-key">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>}</span></li>
+</ol>)
+    </section>
 
-        
-<section id="getter">
-
-<section class="multi-line-signature">
-  
-  <span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>
-  <span class="name ">openNextRequestTile</span>
-  
-
-</section>
+    
 
 
-
-
+    
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Widget get openNextRequestTile =&gt; FutureBuilder(
-    future: API().local.getAllFailedRequests(),
-    builder: (context, snapshot) {
-      if (!snapshot.hasData) return Text(&#39;waiting to get failed requests...&#39;);
-      return OpenNewViewTile(
-        icon: Icons.remove_from_queue,
-        title: &#39;next Request&#39;,
-        newView: MostRecentRequestPage(
-          request: (snapshot.data?.first),
-        ),
-      );
-    });</code></pre>
-</section>
-
+  <pre class="language-dart"><code class="language-dart">const OpenNextRequestTile({
+  super.key,
+});</code></pre>
 </section>
 
 
@@ -107,13 +91,13 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../pages_settings_settingsView/pages_settings_settingsView-library.html">settingsView</a></li>
-    <li><a href="../../pages_settings_settingsView/SettingsView-class.html">SettingsView</a></li>
-    <li class="self-crumb">openNextRequestTile property</li>
+    <li><a href="../../pages_settings_settingsView/OpenNextRequestTile-class.html">OpenNextRequestTile</a></li>
+    <li class="self-crumb">OpenNextRequestTile const constructor</li>
 </ol>
 
 
-    <h5>SettingsView class</h5>
-  </div><!--/.sidebar-offcanvas-->
+    <h5>OpenNextRequestTile class</h5>
+  </div><!--/.sidebar-offcanvas-left-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
   </div><!--/.sidebar-offcanvas-->

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the build method from the DefaultNotificationPage class, for the Dart programming language.">
-  <title>build method - DefaultNotificationPage class - defaultNotificationPage library - Dart API</title>
+  <meta name="description" content="API docs for the build method from the OpenNextRequestTile class, for the Dart programming language.">
+  <title>build method - OpenNextRequestTile class - settingsView library - Dart API</title>
 
 
   
@@ -29,8 +29,8 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../pages_defaultNotificationPage/pages_defaultNotificationPage-library.html">defaultNotificationPage</a></li>
-    <li><a href="../../pages_defaultNotificationPage/DefaultNotificationPage-class.html">DefaultNotificationPage</a></li>
+    <li><a href="../../pages_settings_settingsView/pages_settings_settingsView-library.html">settingsView</a></li>
+    <li><a href="../../pages_settings_settingsView/OpenNextRequestTile-class.html">OpenNextRequestTile</a></li>
     <li class="self-crumb">build method</li>
   </ol>
   <div class="self-name">build</div>
@@ -54,7 +54,7 @@
   <div
       id="dartdoc-main-content"
       class="main-content"
-      data-above-sidebar="pages_defaultNotificationPage&#47;DefaultNotificationPage-class-sidebar.html"
+      data-above-sidebar="pages_settings_settingsView&#47;OpenNextRequestTile-class-sidebar.html"
       data-below-sidebar="">
       <div>
 <h1><span class="kind-method">build</span> method 
@@ -104,7 +104,7 @@ and</li>
 <li>any ambient state obtained from the <code>context</code> using
 <a href="https://api.flutter.dev/flutter/widgets/BuildContext/dependOnInheritedWidgetOfExactType.html">BuildContext.dependOnInheritedWidgetOfExactType</a>.</li>
 </ul>
-<p>If a widget's <a href="../../pages_defaultNotificationPage/DefaultNotificationPage/build.html">build</a> method is to depend on anything else, use a
+<p>If a widget's <a href="../../pages_settings_settingsView/OpenNextRequestTile/build.html">build</a> method is to depend on anything else, use a
 <a href="https://api.flutter.dev/flutter/widgets/StatefulWidget-class.html">StatefulWidget</a> instead.</p>
 <p>See also:</p>
 <ul>
@@ -117,64 +117,18 @@ and</li>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(action.payload?[&#39;title&#39;] ?? &#39;Nothing to See Here&#39;),
-    ),
-    body: Center(
-      child: Column(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: action.payload?[&#39;type&#39;] == &#39;done&#39;
-                ? [
-                    Text(&#39;Upload Sync Done&#39;),
-                    Icon(Icons.check, size: 50),
-                  ]
-                : action.payload?[&#39;type&#39;] == &#39;progress&#39;
-                    ? [
-                        Text(&#39;Upload Sync in Progress&#39;),
-                        Text(
-                            &#39;${action.payload![&#39;progress&#39;]} &#47; ${action.payload![&#39;max&#39;]}&#39;),
-                        LinearProgressIndicator(
-                          value: int.tryParse(action.payload![&#39;progress&#39;]!)! &#47;
-                              int.tryParse(action.payload![&#39;max&#39;]!)!,
-                        ),
-                        SizedBox(height: 20),
-                        ChangeNotifierProvider(
-                          create: (_) =&gt; ProgressStateUpdater(),
-                          child: Builder(
-                            builder: (context) {
-                              final actualProgress = context
-                                  .watch&lt;ProgressStateUpdater&gt;()
-                                  .progress;
-                              return switch (actualProgress) {
-                                null =&gt; CircularProgressIndicator(),
-                                double p =&gt; LinearProgressIndicator(value: p),
-                              };
-                            },
-                          ),
-                        ),
-                      ]
-                    : action.payload?[&#39;type&#39;] == &#39;failed&#39;
-                        ? [
-                            Text(&#39;Upload Sync Failed&#39;),
-                            Text(
-                                &#39;Request Data: ${action.payload![&#39;requestData&#39;]}&#39;),
-                            Icon(Icons.error, size: 50),
-                          ]
-                        : [
-                            Text(&#39;Default Notification Page&#39;),
-                            Text(&#39;Payload: ${action.payload}&#39;),
-                          ],
-          ),
-          OpenNextRequestTile(),
-        ],
-      ),
-    ),
-  );
-}</code></pre>
+Widget build(BuildContext context) =&gt; FutureBuilder(
+    future: API().local.getAllFailedRequests(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) return Text(&#39;waiting to get failed requests...&#39;);
+      return OpenNewViewTile(
+        icon: Icons.remove_from_queue,
+        title: &#39;next Request&#39;,
+        newView: MostRecentRequestPage(
+          request: (snapshot.data?.first),
+        ),
+      );
+    });</code></pre>
 </section>
 
 
@@ -190,13 +144,13 @@ Widget build(BuildContext context) {
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../pages_defaultNotificationPage/pages_defaultNotificationPage-library.html">defaultNotificationPage</a></li>
-    <li><a href="../../pages_defaultNotificationPage/DefaultNotificationPage-class.html">DefaultNotificationPage</a></li>
+    <li><a href="../../pages_settings_settingsView/pages_settings_settingsView-library.html">settingsView</a></li>
+    <li><a href="../../pages_settings_settingsView/OpenNextRequestTile-class.html">OpenNextRequestTile</a></li>
     <li class="self-crumb">build method</li>
 </ol>
 
 
-    <h5>DefaultNotificationPage class</h5>
+    <h5>OpenNextRequestTile class</h5>
   </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
