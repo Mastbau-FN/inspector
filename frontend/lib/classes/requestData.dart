@@ -80,6 +80,9 @@ class RequestData {
       } else if (element.contains('cache_')) {
         //shouldnt be necessary but just in case
         element = element.substring(element.indexOf('cache_') + 6);
+      } else if (element.contains(LOCALLY_ADDED_PREFIX)) {
+        //shouldnt be necessary but just in case
+        element = element.substring(element.indexOf(LOCALLY_ADDED_PREFIX));
       }
       return element;
     }).toList();
