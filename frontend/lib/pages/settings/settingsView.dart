@@ -35,19 +35,6 @@ class SettingsView extends StatelessWidget {
         // },
       );
 
-  Widget get openNextRequestTile => FutureBuilder(
-      future: API().local.getAllFailedRequests(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return Text('waiting to get failed requests...');
-        return OpenNewViewTile(
-          icon: Icons.remove_from_queue,
-          title: 'next Request',
-          newView: MostRecentRequestPage(
-            request: (snapshot.data?.first),
-          ),
-        );
-      });
-
   Widget get unsetIsRunningTile => MyCardListTile1(
         icon: Icons.remove_circle_outline,
         text: 'unset isRunning',
@@ -74,7 +61,7 @@ class SettingsView extends StatelessWidget {
             Text(S.of(context).advancedSettingsHeadline),
             if (Options().canBeOffline) UploadSyncTile(),
             if (Options().canBeOffline) BackupTile(),
-            if (Options().canBeOffline) openNextRequestTile,
+            if (Options().canBeOffline) OpenNextRequestTile(),
             if (Options().canBeOffline) unsetIsRunningTile,
             developerOptions,
             // DeleteCachedImages(),
@@ -83,6 +70,26 @@ class SettingsView extends StatelessWidget {
       ),
     );
   }
+}
+
+class OpenNextRequestTile extends StatelessWidget {
+  const OpenNextRequestTile({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder(
+      future: API().local.getAllFailedRequests(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return Text('waiting to get failed requests...');
+        return OpenNewViewTile(
+          icon: Icons.remove_from_queue,
+          title: 'next Request',
+          newView: MostRecentRequestPage(
+            request: (snapshot.data?.first),
+          ),
+        );
+      });
 }
 
 class BackupTile extends StatefulWidget {
