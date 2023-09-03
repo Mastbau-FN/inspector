@@ -29,6 +29,7 @@ Future<String> get localPath async {
 Future<File> localFile(String name) async {
   final p0 = File('${await localPath}/${name}');
   if (await p0.exists()) return p0;
+
   final p1 =
       File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.jpg');
   if (await p1.exists() || useOldImgEncoding) return p1;
