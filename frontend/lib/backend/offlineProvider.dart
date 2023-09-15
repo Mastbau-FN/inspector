@@ -17,7 +17,7 @@ import 'package:localstore/localstore.dart';
 import './helpers.dart' as Helper;
 
 const useOldImgEncoding =
-    true; //TODO: reset after partiks incident was solved to false
+    false; //TO-DO: reset after partiks incident was solved to false
 
 // MARK: image stuff
 
@@ -30,10 +30,10 @@ Future<File> localFile(String name) async {
   final p0 = File('${await localPath}/${name}');
   if (await p0.exists()) return p0;
   final p1 =
-      File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.jpg');
+      File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
   if (await p1.exists() || useOldImgEncoding) return p1;
   return File(
-      '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.webp');
+      '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.jpg');
 }
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
