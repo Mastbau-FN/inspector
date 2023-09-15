@@ -260,7 +260,8 @@ void _maybeShowToast(String? message) {
 // ignore: non_constant_identifier_names
 Widget standard_statefulImageView<ChildData extends WithLangText,
             DDModel extends DropDownModel<ChildData, WithOffline?>>(
-        DDModel model, ChildData? data) =>
+        DDModel model, ChildData? data,
+        {bool addImgIntent = false}) =>
     ChangeNotifierProvider<DDModel>.value(
         value: model,
         // child: ChangeNotifierProvider<ChildData>.value(
@@ -278,6 +279,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                   return Stack(
                     children: [
                       ImagesPage.futured(
+                        intendsToAddPicture: addImgIntent,
                         hasMainImage: hasMain,
                         futureImages: [
                           if (hasMain) snapshot.data!.mainImage,
