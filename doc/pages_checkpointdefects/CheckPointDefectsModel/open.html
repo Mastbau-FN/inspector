@@ -71,7 +71,8 @@
 <span class="returntype">void</span>
 <span class="name ">open</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="open-param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, </span></li>
 <li><span class="parameter" id="open-param-data"><span class="type-annotation"><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span> <span class="parameter-name">data</span>, </span></li>
-<li><span class="parameter" id="open-param-tiledata"><span class="type-annotation"><a href="../../classes_listTileData/MyListTileData-class.html">MyListTileData</a></span> <span class="parameter-name">tiledata</span></span></li>
+<li><span class="parameter" id="open-param-tiledata"><span class="type-annotation"><a href="../../classes_listTileData/MyListTileData-class.html">MyListTileData</a></span> <span class="parameter-name">tiledata</span>, </span></li>
+<li><span class="parameter" id="open-param-addImgIntend">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">addImgIntend</span> = <span class="default-value">false</span>}</span></li>
 </ol>)
 
       <div class="features"><span class="feature">override</span></div>
@@ -90,14 +91,16 @@
 void open(
   BuildContext context,
   CheckPointDefect data,
-  MyListTileData tiledata,
-) {
+  MyListTileData tiledata, {
+  bool addImgIntend = false,
+}) {
   currentlyChosenChildData = Future.value(data);
   Navigator.of(context).push(
     MaterialPageRoute(builder: (newcontext) {
       switch (tiledata.title) {
         case &#39;Fotos&#39;:
-          return standard_statefulImageView(this, data);
+          return standard_statefulImageView(this, data,
+              addImgIntent: addImgIntend);
 
         default:
           return Builder(builder: (context) {

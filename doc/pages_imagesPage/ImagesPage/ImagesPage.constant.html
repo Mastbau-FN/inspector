@@ -77,7 +77,8 @@
 <li><span class="parameter" id="constant-param-onShare"><span class="type-annotation">dynamic</span> <span class="parameter-name">onShare</span>(<ol class="parameter-list"><li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>
 ) = <span class="default-value">_default</span>, </span></li>
-<li><span class="parameter" id="constant-param-hasMainImage"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">hasMainImage</span> = <span class="default-value">false</span>}</span></li>
+<li><span class="parameter" id="constant-param-hasMainImage"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">hasMainImage</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="constant-param-intendsToAddPicture"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">intendsToAddPicture</span> = <span class="default-value">false</span>}</span></li>
 </ol>)
     </section>
 
@@ -96,6 +97,7 @@
   this.onStar = _default,
   this.onShare = _default,
   this.hasMainImage = false,
+  this.intendsToAddPicture = false,
 }) : super(key: key) {
   this._images =
       images?.whereNotNull().map((e) =&gt; Stream.value(e)).toList() ?? [];

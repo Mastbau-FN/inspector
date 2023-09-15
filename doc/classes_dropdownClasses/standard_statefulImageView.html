@@ -65,7 +65,8 @@
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>
 <span class="name ">standard_statefulImageView</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">WithOffline?</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"><li><span class="parameter" id="standard_statefulImageView-param-model"><span class="type-annotation">DDModel</span> <span class="parameter-name">model</span>, </span></li>
-<li><span class="parameter" id="standard_statefulImageView-param-data"><span class="type-annotation">ChildData?</span> <span class="parameter-name">data</span></span></li>
+<li><span class="parameter" id="standard_statefulImageView-param-data"><span class="type-annotation">ChildData?</span> <span class="parameter-name">data</span>, </span></li>
+<li><span class="parameter" id="standard_statefulImageView-param-addImgIntent">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">addImgIntent</span> = <span class="default-value">false</span>}</span></li>
 </ol>)
 
         
@@ -79,7 +80,8 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget standard_statefulImageView&lt;ChildData extends WithLangText,
             DDModel extends DropDownModel&lt;ChildData, WithOffline?&gt;&gt;(
-        DDModel model, ChildData? data) =&gt;
+        DDModel model, ChildData? data,
+        {bool addImgIntent = false}) =&gt;
     ChangeNotifierProvider&lt;DDModel&gt;.value(
         value: model,
         &#47;&#47; child: ChangeNotifierProvider&lt;ChildData&gt;.value(
@@ -97,6 +99,7 @@
                   return Stack(
                     children: [
                       ImagesPage.futured(
+                        intendsToAddPicture: addImgIntent,
                         hasMainImage: hasMain,
                         futureImages: [
                           if (hasMain) snapshot.data!.mainImage,

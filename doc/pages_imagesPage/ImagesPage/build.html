@@ -136,7 +136,11 @@ Widget build(BuildContext context) {
       ChangeNotifierProvider(
         create: (ocontext) =&gt; CameraModel(),
         child: Builder(builder: (context) {
-          return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+          return ImageAddButton(
+            picker: _picker,
+            onNewImages: onNewImages,
+            intended: intendsToAddPicture,
+          );
         }),
       ),
     ],
