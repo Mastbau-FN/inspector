@@ -1,3 +1,3 @@
 # changes
 
-- still incident related stuff ..
+- fixed two minor issues
