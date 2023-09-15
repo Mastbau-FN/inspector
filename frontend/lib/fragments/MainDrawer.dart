@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/env.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
@@ -68,10 +69,15 @@ class VersionInfo extends StatelessWidget {
     return FutureBuilder<PackageInfo>(
         future: PackageInfo.fromPlatform(),
         builder: (context, snapshot) {
-          return Text(
-            (snapshot.data?.appName ?? 'MBG Inspektionen') +
-                ' ' +
-                (snapshot.data?.buildNumber ?? '...'),
+          return Column(
+            children: [
+              Text(
+                (snapshot.data?.appName ?? 'MBG Inspektionen') +
+                    ' ' +
+                    (snapshot.data?.buildNumber ?? '...'),
+              ),
+              Text(Env.version),
+            ],
           );
         });
   }
