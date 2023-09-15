@@ -82,6 +82,7 @@ class CheckPointDefect extends Data
   @override
   List<Widget> extras({BuildContext? context}) => [
         chipd(ereArt)?.toChip ?? Container(),
+        Spacer(),
         editButton(context: context),
       ];
 
