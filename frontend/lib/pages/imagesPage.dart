@@ -22,6 +22,8 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final int columnCount;
   final bool hasMainImage;
 
+  final bool intendsToAddPicture;
+
   static Future<String?> _defaultAdd(List<XFile> list) async {
     showToast(S.current!.notAvailable);
     return "";
@@ -51,6 +53,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
+    this.intendsToAddPicture = false,
   }) : super(key: key) {
     this._images =
         images?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
@@ -65,6 +68,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
+    this.intendsToAddPicture = false,
   }) : super(key: key) {
     this._images =
         futureImages?.map((e) => Stream.fromFuture(e)).toList() ?? [];
@@ -79,6 +83,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onStar = _default,
     this.onShare = _default,
     this.hasMainImage = false,
+    this.intendsToAddPicture = false,
   }) : super(key: key) {
     this._images = imageStreams ?? [];
   }
@@ -105,7 +110,11 @@ class ImagesPage<T extends Object> extends StatelessWidget {
         ChangeNotifierProvider(
           create: (ocontext) => CameraModel(),
           child: Builder(builder: (context) {
-            return ImageAddButton(picker: _picker, onNewImages: onNewImages);
+            return ImageAddButton(
+              picker: _picker,
+              onNewImages: onNewImages,
+              intended: intendsToAddPicture,
+            );
           }),
         ),
       ],
@@ -114,10 +123,13 @@ class ImagesPage<T extends Object> extends StatelessWidget {
 }
 
 class ImageAddButton extends StatefulWidget {
+  final bool intended;
+
   const ImageAddButton({
     Key? key,
     required ImagePicker picker,
     required this.onNewImages,
+    this.intended = false,
   })  : _picker = picker,
         super(key: key);
 
@@ -145,6 +157,8 @@ class _ImageAddButtonState extends State<ImageAddButton>
           // The state that has changed here is the animation object’s value.
         });
       });
+
+    if (widget.intended) expand();
   }
 
   void expand() {

@@ -6,6 +6,8 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:provider/provider.dart';
 
+import '../listTileData.dart';
+
 part 'checkpointdefect.g.dart';
 
 @JsonSerializable()
@@ -83,6 +85,7 @@ class CheckPointDefect extends Data
   List<Widget> extras({BuildContext? context}) => [
         chipd(ereArt)?.toChip ?? Container(),
         Spacer(),
+        newImgButton(context: context),
         editButton(context: context),
       ];
 
@@ -116,6 +119,22 @@ class CheckPointDefect extends Data
               );
             },
           );
+        },
+      );
+
+  Widget newImgButton({BuildContext? context}) => IconButton(
+        // padding: EdgeInsets.zero,
+        icon: Icon(Icons.add_a_photo),
+        onPressed: () async {
+          if (context == null) {
+            debugPrint("no context from wich we could alert");
+            return;
+          }
+          //get model from context
+          var model =
+              Provider.of<CheckPointDefectsModel>(context, listen: false);
+          model.open(context, this, MyListTileData(title: 'Fotos'),
+              addImgIntend: true);
         },
       );
 

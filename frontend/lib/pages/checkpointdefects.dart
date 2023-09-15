@@ -40,14 +40,16 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   void open(
     BuildContext context,
     CheckPointDefect data,
-    MyListTileData tiledata,
-  ) {
+    MyListTileData tiledata, {
+    bool addImgIntend = false,
+  }) {
     currentlyChosenChildData = Future.value(data);
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
         switch (tiledata.title) {
           case 'Fotos':
-            return standard_statefulImageView(this, data);
+            return standard_statefulImageView(this, data,
+                addImgIntent: addImgIntend);
 
           default:
             return Builder(builder: (context) {
