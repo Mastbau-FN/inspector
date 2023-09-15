@@ -83,6 +83,33 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 ExpansionPanelRadio make(BuildContext context) {
+  lochildren(isExpanded) =&gt; [
+        &#47;&#47; if (lowDensity) Text(&#39;ld&#39;),&#47;&#47;was only debug test
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title + (isExpanded ? &#39;:&#39; : &#39;&#39;),
+                style: isExpanded
+                    ? Theme.of(context).textTheme.headlineSmall
+                    &#47;&#47; ?.apply(
+                    &#47;&#47;       color: Theme.of(context).colorScheme.primary,
+                    &#47;&#47;     )
+                    : Theme.of(context).textTheme.bodyLarge,
+                overflow:
+                    isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                maxLines: isExpanded ? 10 : 1,
+              ),
+              if (subtitle != null)
+                Text(subtitle ?? &quot;&quot;,
+                    style: Theme.of(context).textTheme.bodyMedium),
+            ],
+          ),
+        ),
+        if (extra != null) extra!,
+      ];
   return ExpansionPanelRadio(
     backgroundColor:
         color, &#47;&#47; Theme.of(context).colorScheme.secondary.withOpacity(0.1),
@@ -112,40 +139,20 @@ ExpansionPanelRadio make(BuildContext context) {
         ),
       ),
       &#47;&#47; trailing: extra,
-      title: Row(
-        &#47;&#47; direction: Axis.horizontal,
-        &#47;&#47; alignment: WrapAlignment.spaceBetween,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Column(
+      title: lowDensity
+          ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title + (isExpanded ? &#39;:&#39; : &#39;&#39;),
-                  style: isExpanded
-                      ? Theme.of(context).textTheme.headlineSmall
-                      &#47;&#47; ?.apply(
-                      &#47;&#47;       color: Theme.of(context).colorScheme.primary,
-                      &#47;&#47;     )
-                      : Theme.of(context).textTheme.bodyLarge,
-                  overflow: isExpanded
-                      ? TextOverflow.visible
-                      : TextOverflow.ellipsis,
-                  maxLines: isExpanded ? 10 : 1,
-                ),
-                if (subtitle != null)
-                  Text(subtitle ?? &quot;&quot;,
-                      style: Theme.of(context).textTheme.bodyMedium),
-              ],
+              children: lochildren(isExpanded).reversed.toList(),
+            )
+          : Row(
+              &#47;&#47; direction: Axis.horizontal,
+              &#47;&#47; alignment: WrapAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: lochildren(isExpanded),
             ),
-          ),
-          if (extra != null) extra!,
-        ],
-      ),
       &#47;&#47; subtitle: (subtitle != null) ? Text(subtitle ?? &quot;&quot;) : null,
     ),
     body: Container(

@@ -121,10 +121,15 @@ Widget build(BuildContext context) {
   return FutureBuilder&lt;PackageInfo&gt;(
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
-        return Text(
-          (snapshot.data?.appName ?? &#39;MBG Inspektionen&#39;) +
-              &#39; &#39; +
-              (snapshot.data?.buildNumber ?? &#39;...&#39;),
+        return Column(
+          children: [
+            Text(
+              (snapshot.data?.appName ?? &#39;MBG Inspektionen&#39;) +
+                  &#39; &#39; +
+                  (snapshot.data?.buildNumber ?? &#39;...&#39;),
+            ),
+            Text(Env.version),
+          ],
         );
       });
 }</code></pre>
