@@ -9,4 +9,7 @@ abstract class Env {
 
   @EnviedField(varName: 'API_URL')
   static const String mbgUrl = _Env.mbgUrl;
+
+  @EnviedField(varName: 'VERSION')
+  static const String version = _Env.version;
 }

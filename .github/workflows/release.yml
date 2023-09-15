@@ -70,6 +70,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
+        with:
+          version: v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || ' ' }} ${GITHUB_SHA::8}-${{matrix.platform}}
 
       - name: create key.properties for signing
         run: |

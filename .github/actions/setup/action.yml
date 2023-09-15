@@ -8,6 +8,12 @@ on:
 #     shell: bash
 #     working-directory: ./frontend
 
+inputs:
+  version:
+    description: 'current version to be added to env (and shown in app)'
+    required: false
+    default: 'noversion'
+
 runs:
   using: "composite"
   steps:
@@ -25,6 +31,7 @@ runs:
         touch .env
         echo "API_KEY=$API_KEY" >> .env
         echo "API_URL=$API_URL" >> .env
+        echo "VERSION=${{ inputs.version}}" >> .env
       shell: bash
     - name: install dependencies and run code gen
       run: |
