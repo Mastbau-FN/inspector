@@ -1,3 +1,3 @@
 # changes
 
-- fixed two minor issues
+- solved #368
