@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -173,6 +174,8 @@ class _DropDownBodyState<
   ExpandableCard2 dropDown_element(
       ChildData data, BuildContext context, DDModel ddmodel) {
     return ExpandableCard2(
+        //if typof data is Defect: display in low density format
+        lowDensity: typeOf<ChildData>() == typeOf<CheckPointDefect>(),
         color: Theme.of(context).colorScheme.background,
         previewImg: data.previewImage,
         title: data.title,

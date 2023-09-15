@@ -21,8 +21,10 @@ class ExpandableCard2 extends ExpandablesRadio {
   final List<Widget> children;
   final Key key;
   final double opacity;
+  final bool lowDensity;
 
   ExpandableCard2({
+    this.lowDensity = false,
     required this.title,
     this.subtitle,
     this.extra,
@@ -34,6 +36,7 @@ class ExpandableCard2 extends ExpandablesRadio {
         this.opacity = 1;
 
   ExpandableCard2._({
+    this.lowDensity = false,
     required this.opacity,
     required this.title,
     this.subtitle,
@@ -60,6 +63,33 @@ class ExpandableCard2 extends ExpandablesRadio {
 
   @override
   ExpansionPanelRadio make(BuildContext context) {
+    lochildren(isExpanded) => [
+          // if (lowDensity) Text('ld'),//was only debug test
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title + (isExpanded ? ':' : ''),
+                  style: isExpanded
+                      ? Theme.of(context).textTheme.headlineSmall
+                      // ?.apply(
+                      //       color: Theme.of(context).colorScheme.primary,
+                      //     )
+                      : Theme.of(context).textTheme.bodyLarge,
+                  overflow:
+                      isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                  maxLines: isExpanded ? 10 : 1,
+                ),
+                if (subtitle != null)
+                  Text(subtitle ?? "",
+                      style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+          if (extra != null) extra!,
+        ];
     return ExpansionPanelRadio(
       backgroundColor:
           color, // Theme.of(context).colorScheme.secondary.withOpacity(0.1),
@@ -89,40 +119,20 @@ class ExpandableCard2 extends ExpandablesRadio {
           ),
         ),
         // trailing: extra,
-        title: Row(
-          // direction: Axis.horizontal,
-          // alignment: WrapAlignment.spaceBetween,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Column(
+        title: lowDensity
+            ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title + (isExpanded ? ':' : ''),
-                    style: isExpanded
-                        ? Theme.of(context).textTheme.headlineSmall
-                        // ?.apply(
-                        //       color: Theme.of(context).colorScheme.primary,
-                        //     )
-                        : Theme.of(context).textTheme.bodyLarge,
-                    overflow: isExpanded
-                        ? TextOverflow.visible
-                        : TextOverflow.ellipsis,
-                    maxLines: isExpanded ? 10 : 1,
-                  ),
-                  if (subtitle != null)
-                    Text(subtitle ?? "",
-                        style: Theme.of(context).textTheme.bodyMedium),
-                ],
+                children: lochildren(isExpanded).reversed.toList(),
+              )
+            : Row(
+                // direction: Axis.horizontal,
+                // alignment: WrapAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: lochildren(isExpanded),
               ),
-            ),
-            if (extra != null) extra!,
-          ],
-        ),
         // subtitle: (subtitle != null) ? Text(subtitle ?? "") : null,
       ),
       body: Container(
