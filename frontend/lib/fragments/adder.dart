@@ -315,7 +315,17 @@ class InputData {
       : S.current!.addingDataEnterSomethingHere;
 
   static String? noSpacesAtEnd(String? str) => (str?.trim());
-  static String? cutSlashinString(String? str) => (str?.replaceAll("/", ""));
+  static String? cutSlashinString(String? str) => (str
+      ?.replaceAll("/", "")
+      .replaceAll("\\", "")
+      .replaceAll(":", "")
+      .replaceAll("*", "")
+      .replaceAll("?", "")
+      .replaceAll("\"", "")
+      .replaceAll("", "")
+      .replaceAll("<", "")
+      .replaceAll(">", "")
+      .replaceAll("|", ""));
 
   static String? noSpacesAtEndAndNoSlashes(String? str) =>
       noSpacesAtEnd(cutSlashinString(str));
