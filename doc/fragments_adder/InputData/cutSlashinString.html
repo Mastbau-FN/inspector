@@ -76,7 +76,17 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static String? cutSlashinString(String? str) =&gt; (str?.replaceAll(&quot;&#47;&quot;, &quot;&quot;));</code></pre>
+  <pre class="language-dart"><code class="language-dart">static String? cutSlashinString(String? str) =&gt; (str
+    ?.replaceAll(&quot;&#47;&quot;, &quot;&quot;)
+    .replaceAll(&quot;\\&quot;, &quot;&quot;)
+    .replaceAll(&quot;:&quot;, &quot;&quot;)
+    .replaceAll(&quot;*&quot;, &quot;&quot;)
+    .replaceAll(&quot;?&quot;, &quot;&quot;)
+    .replaceAll(&quot;\&quot;&quot;, &quot;&quot;)
+    .replaceAll(&quot;&quot;, &quot;&quot;)
+    .replaceAll(&quot;&lt;&quot;, &quot;&quot;)
+    .replaceAll(&quot;&gt;&quot;, &quot;&quot;)
+    .replaceAll(&quot;|&quot;, &quot;&quot;));</code></pre>
 </section>
 
 
