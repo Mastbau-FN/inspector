@@ -70,19 +70,39 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   @override
   Widget? get floatingActionButton {
-    return PopUpActionbutton(
-      expandedChild: (onCancel) => adder(
-        parent: currentData,
-        onCancel: onCancel,
-        onDone: (defect) async {
-          await API().setNew(defect, caller: currentData);
-          notifyListeners();
-        },
+    return Transform.translate(
+      offset: Offset(18, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          FloatingActionButton.extended(
+            label: const Text('ohne Mangel'),
+            onPressed: () => adder(
+                withoutdefect: true,
+                parent: currentData,
+                onCancel: () {},
+                onDone: (defect) async {
+                  await API().setNew(defect, caller: currentData);
+                  notifyListeners();
+                }),
+          ),
+          PopUpActionbutton(
+            expandedChild: (onCancel) => adder(
+                withoutdefect: false,
+                parent: currentData,
+                onCancel: onCancel,
+                onDone: (defect) async {
+                  await API().setNew(defect, caller: currentData);
+                  notifyListeners();
+                }),
+          ),
+        ],
       ),
     );
   }
 
   static Adder adder({
+    required bool withoutdefect,
     required CheckPoint parent,
     required onCancel(),
     required onDone(CheckPointDefect defect),
@@ -104,23 +124,27 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           defect[CheckPointDefect.E2_key] = parent.index;
           defect[CheckPointDefect.E3_key] = -1;
         }
-
-        defect[CheckPointDefect.kurzText_key] = parent.title +
-                "  " +
-                ((defect[oufnessChooser.name].toString() ==
-                        OufnessChooser.default_none.toString())
-                    ? "ohne Mangel"
-                    : ("Mangel " +
-                        (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                                ?.label ??
-                            ""))) //ahhh so thats why we learn functional programming
-            // +
-            // "Mangel "
-            //  +
-            // " #" +
-            // json.hashCode.toRadixString(36)
-            ;
-
+        if (withoutdefect) {
+          defect[CheckPointDefect.kurzText_key] =
+              parent.title + "  ohne Mangel";
+          defect[CheckPointDefect.ereArt_key] = OufnessChooser.default_none;
+        } else {
+          defect[CheckPointDefect.kurzText_key] = parent.title +
+                  "  " +
+                  ((defect[oufnessChooser.name].toString() ==
+                          OufnessChooser.default_none.toString())
+                      ? "ohne Mangel"
+                      : ("Mangel " +
+                          (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                                  ?.label ??
+                              ""))) //ahhh so thats why we learn functional programming
+              // +
+              // "Mangel "
+              //  +
+              // " #" +
+              // json.hashCode.toRadixString(36)
+              ;
+        }
         onDone(CheckPointDefect.fromJson(defect)!);
       },
       onCancel: onCancel,
