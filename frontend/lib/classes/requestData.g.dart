@@ -24,7 +24,7 @@ Map<String, dynamic> _$RequestDataToJson(RequestData instance) =>
     <String, dynamic>{
       'route': instance.route,
       'json': instance.json,
-      'multipartFileNames': instance.multipartFileNames,
+      'multipartFiles': instance.multipartFileNames,
       'timeout': instance.timeout?.inMicroseconds,
       'returnsBinary': instance.returnsBinary,
     };
