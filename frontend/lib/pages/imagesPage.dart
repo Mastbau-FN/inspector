@@ -8,6 +8,7 @@ import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
@@ -232,16 +233,11 @@ class _ImageAddButtonState extends State<ImageAddButton>
                           child: Consumer<CameraModel>(
                             builder: (context, model, child) =>
                                 model.latestPic == null
-                                    ? CameraPreviewOnly(
-                                        children: [
-                                          // Text('he, hier !!'),
-                                          IconButton(
-                                              onPressed: model.nextCamera,
-                                              icon: Icon(
-                                                Icons.switch_camera,
-                                                color: Colors.white,
-                                              )),
-                                        ],
+                                    ? ChangeNotifierProvider.value(
+                                        value: model.zoomM,
+                                        child: Builder(builder: (context) {
+                                          return cameraWithControls(model);
+                                        }),
                                       )
                                     : Image.file(
                                         File(model.latestPic!.path),
@@ -288,6 +284,27 @@ class _ImageAddButtonState extends State<ImageAddButton>
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  CameraPreviewOnly cameraWithControls(CameraModel model) {
+    var switchCameraButton = IconButton(
+        onPressed: model.nextCamera,
+        icon: Icon(
+          Icons.switch_camera,
+          color: Colors.white,
+        ));
+    var flashButton = FlashControlButton(model: model);
+    var zoomSlider = ZoomSlider(
+      model: model,
+    );
+    return CameraPreviewOnly(
+      children: [
+        // Text('he, hier !!'),
+        switchCameraButton,
+        flashButton,
+        zoomSlider,
       ],
     );
   }
@@ -402,4 +419,72 @@ class _ImageAddButtonState extends State<ImageAddButton>
           child: Icon(Icons.add_photo_alternate),
           onPressed: () => addLatestToQueue(context),
         );
+}
+
+class FlashControlButton extends StatefulWidget {
+  final CameraModel model;
+  const FlashControlButton({
+    super.key,
+    required this.model,
+  });
+
+  @override
+  State<FlashControlButton> createState() => _FlashControlButtonState();
+}
+
+class _FlashControlButtonState extends State<FlashControlButton> {
+  var flash = false;
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+        onPressed: () {
+          flash
+              ? widget.model.controller!.setFlashMode(FlashMode.torch)
+              : widget.model.controller!.setFlashMode(FlashMode.off);
+          setState(() => flash ^= true);
+        },
+        icon: Icon(
+          !flash ? Icons.lightbulb : Icons.flash_off,
+          color: Colors.white,
+        ));
+  }
+}
+
+class ZoomSlider extends StatelessWidget {
+  final CameraModel model;
+  const ZoomSlider({
+    super.key,
+    required this.model,
+  });
+
+  // double zoom = 1;
+  zoomChanged(double newZoom) {
+    // setState(() => zoom = newZoom);
+    model.setZoom(newZoom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<(double, double)>(
+        future: model.zoomRange,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return Container();
+          return SizedBox(
+            height: 200,
+            width: 50,
+            child: RotatedBox(
+              quarterTurns: 1,
+              child: Consumer<ZoomModel>(builder:
+                  (BuildContext context, ZoomModel value, Widget? child) {
+                return Slider(
+                  value: value.zoom,
+                  min: snapshot.data!.$1,
+                  max: snapshot.data!.$2,
+                  onChanged: zoomChanged,
+                );
+              }),
+            ),
+          );
+        });
+  }
 }
