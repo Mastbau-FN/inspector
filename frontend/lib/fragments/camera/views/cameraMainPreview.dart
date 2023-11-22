@@ -11,22 +11,26 @@ class CameraPreviewOnly extends StatelessWidget {
   const CameraPreviewOnly({this.children = const [], Key? key})
       : super(key: key);
 
-  Widget _previewWithChildren(CameraController cc) => children.isEmpty
-      ? CameraPreview(cc)
-      : Stack(
-          alignment: Alignment.topRight,
-          children: [
-            CameraPreview(cc),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: children,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              // direction: Axis.horizontal,
-              // alignment: WrapAlignment.end,
-              // crossAxisAlignment: WrapCrossAlignment.end,
-            ),
-          ],
-        );
+  Widget _previewWithChildren(CameraController cc, CameraModel model) =>
+      children.isEmpty
+          ? CameraPreview(cc)
+          : Stack(
+              alignment: Alignment.topRight,
+              children: [
+                ZoomDetect(
+                  model: model,
+                  cc: cc,
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  // direction: Axis.horizontal,
+                  // alignment: WrapAlignment.end,
+                  // crossAxisAlignment: WrapCrossAlignment.end,
+                ),
+              ],
+            );
 
   @override
   Widget build(BuildContext context) => Material(
@@ -39,7 +43,7 @@ class CameraPreviewOnly extends StatelessWidget {
                   // LoadingView(),
                   switch ((snapshot.connectionState, snapshot.data)) {
                 (ConnectionState.done, CameraController cc) =>
-                  _previewWithChildren(cc),
+                  _previewWithChildren(cc, model),
                 (ConnectionState.done, null) => ErrorText("no camera"),
                 (ConnectionState.waiting, _) => LoadingView(),
                 (ConnectionState.active, _) => LoadingView(),
@@ -49,4 +53,43 @@ class CameraPreviewOnly extends StatelessWidget {
           },
         ),
       );
+}
+
+class ZoomDetect extends StatelessWidget {
+  final CameraModel model;
+  final CameraController cc;
+  ZoomDetect({
+    super.key,
+    required this.model,
+    required this.cc,
+  });
+
+  var startZoom = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ZoomModel>(
+      builder: (context, zoomModel, child) => GestureDetector(
+        onScaleStart: (zoomDelta) {
+          startZoom = zoomModel.zoom;
+        },
+        onScaleUpdate: (zoomDelta) {
+          // debugPrint(zoomDelta.toString());
+          try {
+            var newZoom = startZoom * zoomDelta.scale;
+            if (newZoom < zoomModel.zoomRange.$1 ||
+                newZoom > zoomModel.zoomRange.$2) {
+              throw Exception("zoom out of bounds");
+            }
+            // debugPrint(
+            //     "newZoom: $newZoom = zoomDelta: ${zoomDelta.scale} + oldZoom: ${zoomModel.zoom}");
+            model.setZoom(newZoom);
+          } catch (e) {}
+        },
+        onDoubleTap: model.nextCamera,
+        child: child,
+      ),
+      child: CameraPreview(cc),
+    );
+  }
 }

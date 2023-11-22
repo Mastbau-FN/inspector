@@ -98,12 +98,15 @@ class CameraModel extends ChangeNotifier {
     controller = await start();
     final maxZoom = await controller!.getMaxZoomLevel();
     final minZoom = await controller!.getMinZoomLevel();
+    zoomM.zoomRange = (minZoom, maxZoom);
     return (minZoom, maxZoom);
   }
 
-  // var zoom = 1.0;
+  final zoomM = ZoomModel();
+  double get zoom => zoomM.zoom;
+
   Future<void> setZoom(newVal) async {
-    // zoom = newVal;
+    zoomM.zoom = newVal;
     controller ??= await start();
     controller!.setZoomLevel(newVal);
     // notifyListeners();
@@ -115,6 +118,18 @@ class CameraModel extends ChangeNotifier {
     } catch (e) {}
 
     return await mainCamera; //XXX (related to #202) use other lenses
+  }
+}
+
+class ZoomModel extends ChangeNotifier {
+  (double, double) zoomRange = (1.0, 2.0);
+  double _zoom = 1.0;
+  double get zoom => _zoom;
+  set zoom(newVal) {
+    _zoom = newVal;
+    debugPrint("zoom: $newVal");
+    notifyListeners();
+    // Future.delayed(Duration(milliseconds: 100), () => notifyListeners());
   }
 }
 

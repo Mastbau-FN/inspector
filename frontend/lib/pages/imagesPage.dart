@@ -232,19 +232,24 @@ class _ImageAddButtonState extends State<ImageAddButton>
                           child: Consumer<CameraModel>(
                             builder: (context, model, child) =>
                                 model.latestPic == null
-                                    ? CameraPreviewOnly(
-                                        children: [
-                                          // Text('he, hier !!'),
-                                          IconButton(
-                                              onPressed: model.nextCamera,
-                                              icon: Icon(
-                                                Icons.switch_camera,
-                                                color: Colors.white,
-                                              )),
-                                          ZoomSlider(
-                                            model: model,
-                                          ),
-                                        ],
+                                    ? ChangeNotifierProvider.value(
+                                        value: model.zoomM,
+                                        child: Builder(builder: (context) {
+                                          return CameraPreviewOnly(
+                                            children: [
+                                              // Text('he, hier !!'),
+                                              IconButton(
+                                                  onPressed: model.nextCamera,
+                                                  icon: Icon(
+                                                    Icons.switch_camera,
+                                                    color: Colors.white,
+                                                  )),
+                                              ZoomSlider(
+                                                model: model,
+                                              ),
+                                            ],
+                                          );
+                                        }),
                                       )
                                     : Image.file(
                                         File(model.latestPic!.path),
@@ -407,29 +412,23 @@ class _ImageAddButtonState extends State<ImageAddButton>
         );
 }
 
-class ZoomSlider extends StatefulWidget {
+class ZoomSlider extends StatelessWidget {
   final CameraModel model;
   const ZoomSlider({
     super.key,
     required this.model,
   });
 
-  @override
-  State<ZoomSlider> createState() => _ZoomSliderState();
-}
-
-class _ZoomSliderState extends State<ZoomSlider> {
-  double zoom = 1;
-
+  // double zoom = 1;
   zoomChanged(double newZoom) {
-    setState(() => zoom = newZoom);
-    widget.model.setZoom(newZoom);
+    // setState(() => zoom = newZoom);
+    model.setZoom(newZoom);
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<(double, double)>(
-        future: widget.model.zoomRange,
+        future: model.zoomRange,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return Container();
           return SizedBox(
@@ -437,12 +436,15 @@ class _ZoomSliderState extends State<ZoomSlider> {
             width: 50,
             child: RotatedBox(
               quarterTurns: 1,
-              child: Slider(
-                value: zoom,
-                min: snapshot.data!.$1,
-                max: snapshot.data!.$2,
-                onChanged: zoomChanged,
-              ),
+              child: Consumer<ZoomModel>(builder:
+                  (BuildContext context, ZoomModel value, Widget? child) {
+                return Slider(
+                  value: value.zoom,
+                  min: snapshot.data!.$1,
+                  max: snapshot.data!.$2,
+                  onChanged: zoomChanged,
+                );
+              }),
             ),
           );
         });
