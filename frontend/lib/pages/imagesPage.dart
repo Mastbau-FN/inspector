@@ -280,7 +280,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
                             ),
                           ),
                         ),
-                      add,
+                      addImgButton(context),
                     ],
                   ),
                 ],
@@ -325,9 +325,21 @@ class _ImageAddButtonState extends State<ImageAddButton>
     collapse();
   }
 
-  FloatingActionButton get add => FloatingActionButton(
+  FloatingActionButton addImgButton(BuildContext context) =>
+      FloatingActionButton(
         child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
-        onPressed: expanded ? collapse : expand,
+        onPressed: expanded
+            ? () {
+                if (queue.isEmpty) {
+                  Provider.of<CameraModel>(context, listen: false).discardPic();
+                  collapse();
+                  return;
+                }
+                Provider.of<CameraModel>(context, listen: false).latestPic =
+                    queue.last;
+                queue.removeLast();
+              }
+            : expand,
       );
 
   Widget takeImage(BuildContext context, CameraModel model) =>
