@@ -112,6 +112,12 @@ class CameraModel extends ChangeNotifier {
     // notifyListeners();
   }
 
+  Future<void> focus(Offset focusPoint) async {
+    controller ??= await start();
+    controller!.setFocusPoint(focusPoint);
+    controller!.setExposurePoint(focusPoint);
+  }
+
   Future<CameraDescription?> get currentCamera async {
     try {
       return (await allCameras)[_currentCameraIndex];

@@ -55,7 +55,7 @@ class CameraPreviewOnly extends StatelessWidget {
       );
 }
 
-class ZoomDetect extends StatelessWidget {
+class ZoomDetect extends StatefulWidget {
   final CameraModel model;
   final CameraController cc;
   ZoomDetect({
@@ -64,7 +64,14 @@ class ZoomDetect extends StatelessWidget {
     required this.cc,
   });
 
+  @override
+  State<ZoomDetect> createState() => _ZoomDetectState();
+}
+
+class _ZoomDetectState extends State<ZoomDetect> {
   var startZoom = 1.0;
+
+  Offset? focusPoint;
 
   @override
   Widget build(BuildContext context) {
@@ -83,13 +90,53 @@ class ZoomDetect extends StatelessWidget {
             }
             // debugPrint(
             //     "newZoom: $newZoom = zoomDelta: ${zoomDelta.scale} + oldZoom: ${zoomModel.zoom}");
-            model.setZoom(newZoom);
+            widget.model.setZoom(newZoom);
           } catch (e) {}
         },
-        onDoubleTap: model.nextCamera,
+        onTapDown: (details) {
+          // debugPrint(details.localPosition.toString());
+          setState(() {
+            this.focusPoint = details.localPosition;
+          });
+          RenderBox box = context.findRenderObject()! as RenderBox;
+          final Offset focusPoint = Offset(
+            details.localPosition.dx / box.size.width,
+            details.localPosition.dy / box.size.height,
+          );
+          widget.model.focus(focusPoint);
+        },
+        onTapUp: (details) {
+          Future.delayed(Duration(milliseconds: 500)).then((value) {
+            setState(() {
+              this.focusPoint = null;
+            });
+          });
+        },
+        onDoubleTap: widget.model.nextCamera,
         child: child,
       ),
-      child: CameraPreview(cc),
+      child: Stack(
+        children: [
+          CameraPreview(widget.cc),
+          if (focusPoint != null)
+            Positioned(
+              left: focusPoint!.dx,
+              top: focusPoint!.dy,
+              child: // focus border square
+                  Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
