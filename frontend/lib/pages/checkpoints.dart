@@ -62,7 +62,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
   }
 
   @override
-  Widget? get floatingActionButton {
+  Widget? floatingActionButton(BuildContext context) {
     return PopUpActionbutton(
       expandedChild: (onCancel) => adder(
         parent: currentData,

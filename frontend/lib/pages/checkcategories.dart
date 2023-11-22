@@ -63,7 +63,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
   }
 
   @override
-  Widget? get floatingActionButton {
+  Widget? floatingActionButton(BuildContext context) {
     return PopUpActionbutton(
       expandedChild: (onCancel) => adder(
         parent: currentData,

@@ -8,6 +8,8 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
+import '../widgets/mySimpleAlertBox.dart';
+
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     implements KnowsNext<CheckPointDefect> {
   CheckPointDefectsModel(CheckPoint data) : super(data);
@@ -69,7 +71,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   }
 
   @override
-  Widget? get floatingActionButton {
+  Widget? floatingActionButton(BuildContext context) {
     return Transform.translate(
       offset: Offset(18, 0),
       child: Row(
@@ -77,14 +79,48 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
         children: <Widget>[
           FloatingActionButton.extended(
             label: const Text('ohne Mangel'),
-            onPressed: () => adder(
-                withoutdefect: true,
-                parent: currentData,
-                onCancel: () {},
-                onDone: (defect) async {
-                  await API().setNew(defect, caller: currentData);
-                  notifyListeners();
-                }),
+            onPressed: () async {
+              if ((await all().last).isEmpty) {
+                await API().setNew(
+                  CheckPointDefect(
+                    pjNr: currentData.pjNr,
+                    category_index: currentData.category_index,
+                    check_index: currentData.index,
+                    index: -1,
+                    ereArt: OufnessChooser.default_none,
+                    kurzText: currentData.title + "  ohne Mangel",
+                    langText: "ohne Mangel",
+                  )
+                    ..id = "-1"
+                    ..height = "ohne Mangel",
+                  caller: currentData,
+                );
+                notifyListeners();
+                return;
+              } else {
+                showDialog(
+                  barrierColor: Colors.black54,
+                  context: context,
+                  builder: (BuildContext context) {
+                    return MySimpleAlertBox(
+                      actions: <Widget>[
+                        Center(
+                          child: TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(S.current!.cancel)),
+                        ),
+                      ],
+                      title: 'Sicher?',
+                      bodyLines: [
+                        S.of(context).areYouSure,
+                      ],
+                    );
+                  },
+                );
+              }
+            },
           ),
           PopUpActionbutton(
             expandedChild: (onCancel) => adder(
