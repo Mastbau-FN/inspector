@@ -17,13 +17,20 @@ class CameraPreviewOnly extends StatelessWidget {
           alignment: Alignment.topRight,
           children: [
             CameraPreview(cc),
-            Wrap(children: children),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: children,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              // direction: Axis.horizontal,
+              // alignment: WrapAlignment.end,
+              // crossAxisAlignment: WrapCrossAlignment.end,
+            ),
           ],
         );
 
   @override
   Widget build(BuildContext context) => Material(
-        //why the hell would i need a Material, it should be an ancestor already..
+        //FIXME: why the hell would i need a Material, it should be an ancestor already..
         child: Consumer<CameraModel>(
           builder: (context, model, child) {
             return FutureBuilder(

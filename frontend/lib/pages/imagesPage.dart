@@ -241,6 +241,9 @@ class _ImageAddButtonState extends State<ImageAddButton>
                                                 Icons.switch_camera,
                                                 color: Colors.white,
                                               )),
+                                          ZoomSlider(
+                                            model: model,
+                                          ),
                                         ],
                                       )
                                     : Image.file(
@@ -402,4 +405,46 @@ class _ImageAddButtonState extends State<ImageAddButton>
           child: Icon(Icons.add_photo_alternate),
           onPressed: () => addLatestToQueue(context),
         );
+}
+
+class ZoomSlider extends StatefulWidget {
+  final CameraModel model;
+  const ZoomSlider({
+    super.key,
+    required this.model,
+  });
+
+  @override
+  State<ZoomSlider> createState() => _ZoomSliderState();
+}
+
+class _ZoomSliderState extends State<ZoomSlider> {
+  double zoom = 1;
+
+  zoomChanged(double newZoom) {
+    setState(() => zoom = newZoom);
+    widget.model.setZoom(newZoom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<(double, double)>(
+        future: widget.model.zoomRange,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return Container();
+          return SizedBox(
+            height: 200,
+            width: 50,
+            child: RotatedBox(
+              quarterTurns: 1,
+              child: Slider(
+                value: zoom,
+                min: snapshot.data!.$1,
+                max: snapshot.data!.$2,
+                onChanged: zoomChanged,
+              ),
+            ),
+          );
+        });
+  }
 }

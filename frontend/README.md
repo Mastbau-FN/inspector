@@ -25,6 +25,15 @@ samples, guidance on mobile development, and a full API reference.
 
 create a .env file in the frontend dir containing a field `API_KEY=xxx`
 
+and for signing a key.properties file in the android dir containing
+
+```properties
+storePassword=TODO
+keyPassword=TODO
+keyAlias=key0
+storeFile=../keystore-mbg.jks
+```
+
 ### Build
 
 - `flutter pub run build_runner build --delete-conflicting-outputs` to run code gen (probably optional)

@@ -32,6 +32,9 @@ class CameraModel extends ChangeNotifier {
   CameraController? controller;
 
   Future<CameraController> start({bool reuse = true}) async {
+    if (reuse && controller != null && controller!.value.isInitialized) {
+      return controller!;
+    }
     controller = await newController;
     await controller!.initialize();
     return controller!;
@@ -90,6 +93,22 @@ class CameraModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<(double, double)> get zoomRange async {
+    // return (1.0, 2.0);
+    controller = await start();
+    final maxZoom = await controller!.getMaxZoomLevel();
+    final minZoom = await controller!.getMinZoomLevel();
+    return (minZoom, maxZoom);
+  }
+
+  // var zoom = 1.0;
+  Future<void> setZoom(newVal) async {
+    // zoom = newVal;
+    controller ??= await start();
+    controller!.setZoomLevel(newVal);
+    // notifyListeners();
+  }
+
   Future<CameraDescription?> get currentCamera async {
     try {
       return (await allCameras)[_currentCameraIndex];
@@ -97,4 +116,8 @@ class CameraModel extends ChangeNotifier {
 
     return await mainCamera; //XXX (related to #202) use other lenses
   }
+}
+
+extension ToRangeValues on (double, double) {
+  RangeValues toRangeValues() => RangeValues(this.$1, this.$2);
 }
