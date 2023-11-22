@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
@@ -23,14 +24,16 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
       title: _nextViewTitle,
       icon: Icons.checklist,
     ),
-    MyListTileData(
-      title: S.current!.imagesButton,
-      icon: Icons.photo_library,
-    ),
-    MyListTileData(
-      title: S.current!.commentsOrDetailsButton,
-      icon: Icons.text_snippet,
-    ),
+    if (!omitDetailsInLevel2and3)
+      MyListTileData(
+        title: S.current!.imagesButton,
+        icon: Icons.photo_library,
+      ),
+    if (!omitDetailsInLevel2and3)
+      MyListTileData(
+        title: S.current!.commentsOrDetailsButton,
+        icon: Icons.text_snippet,
+      ),
   ];
 
   @override

@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
@@ -22,14 +23,16 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
       title: _nextViewTitle,
       icon: Icons.report_problem,
     ),
-    MyListTileData(
-      title: "Fotos",
-      icon: Icons.photo_library,
-    ),
-    MyListTileData(
-      title: "Kommentar",
-      icon: Icons.text_snippet,
-    ),
+    if (!omitDetailsInLevel2and3)
+      MyListTileData(
+        title: "Fotos",
+        icon: Icons.photo_library,
+      ),
+    if (!omitDetailsInLevel2and3)
+      MyListTileData(
+        title: "Kommentar",
+        icon: Icons.text_snippet,
+      ),
   ];
 
   @override
