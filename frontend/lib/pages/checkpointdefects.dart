@@ -217,7 +217,7 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
   // ignore: non_constant_identifier_names
   static final int default_none = 5204;
 
-  final List<int> choices = [default_none, 5201, 5202, 5203];
+  final List<int> choices = [5201, 5202, 5203];
 
   int get _selected => this._state.select;
 

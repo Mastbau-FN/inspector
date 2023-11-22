@@ -14,7 +14,7 @@
   "@allowNotifications": {},
   "anUnknownErrorOccured": "unbekannter Fehler",
   "@anUnknownErrorOccured": {},
-  "areYouSure":"Es sind noch Mangel vorhanden. Bitte löschen Sie vorher alle anderen Mängel",
+  "areYouSure":"Es sind noch Mangel vorhanden. Bitte zuerst alle Mängel löschen",
   "@areYouSure": {},
   "cancel": "abbrechen",
   "@cancel": {},
