@@ -4,6 +4,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:MBG_Inspektionen/pages/dropDownPageB.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -197,6 +198,7 @@ class DropDownModel<ChildData extends WithLangText,
       );
 
   /// a [List] which all the actions that could be made for a specific DropDown
+  /// IMPORTANT: the first element marks the main/default action
   List<MyListTileData> get actions {
     //must be implemented by subclasses
     throw UnimplementedError();
@@ -248,7 +250,7 @@ Widget nextModel<
         DDModel extends DropDownModel<ChildData, ParentData>>(DDModel child) =>
     ChangeNotifierProvider<DDModel>(
       create: (context) => child,
-      child: DropDownPage<ChildData, ParentData, DDModel>(),
+      child: DropDownPageB<ChildData, ParentData, DDModel>(),
     );
 
 void _maybeShowToast(String? message) {

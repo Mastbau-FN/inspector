@@ -28,15 +28,17 @@ class MyCardListTile1 extends StatelessWidget {
                   Container(
                     child: Text(
                       text,
+                      maxLines: 2,
                       //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  Spacer(),
+                  // Spacer(),
                   child ?? Container(),
                 ],
               )
             : Text(
                 text,
+                maxLines: 2,
                 //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
         subtitle: (subtext != null) ? Text(subtext ?? "") : null,
