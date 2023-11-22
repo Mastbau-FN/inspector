@@ -42,6 +42,12 @@ class CameraModel extends ChangeNotifier {
 
   XFile? _latestPic;
 
+  /// only use on weird edge cases, this normally gets set by [shoot]
+  set latestPic(XFile? value) {
+    _latestPic = value;
+    notifyListeners();
+  }
+
   XFile? get latestPic => _latestPic;
   void discardPic() {
     debugPrint("discarded picture");
