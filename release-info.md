@@ -1,4 +1,3 @@
 # changes
 
-- solved #369
-- iwas mit sonderzeichen
+- v2 alpha 1
