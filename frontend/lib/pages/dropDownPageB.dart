@@ -168,7 +168,7 @@ class DropDownPageB<
                 typeOf<InspectionLocation>(), //we are in the top level
             // children: ddmodel.drawerchildren,
           ),
-          floatingActionButton: ddmodel.floatingActionButton,
+          floatingActionButton: ddmodel.floatingActionButton(context),
         );
       },
     );
