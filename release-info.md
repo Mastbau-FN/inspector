@@ -1,3 +1,3 @@
 # changes
 
-- v2 alpha 1
+- v2 alpha 2
