@@ -29,7 +29,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">cameraModel</a></li>
+    <li><a href="../fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">fragments&#47;camera&#47;cameraModel.dart</a></li>
     <li class="self-crumb">CameraModel class</li>
   </ol>
   <div class="self-name">CameraModel</div>
@@ -111,7 +111,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">read-only</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -122,7 +122,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">read / write</span></div>
+  <div class="features"><span class="feature">getter/setter pair</span></div>
 
 </dd>
 
@@ -133,7 +133,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">read-only</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -144,7 +144,7 @@
 </dt>
 <dd class="inherited">
   The hash code for this object.
-  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
 
 </dd>
 
@@ -155,18 +155,18 @@
 </dt>
 <dd class="inherited">
   Whether any listeners are currently registered.
-  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
 
 </dd>
 
         <dt id="latestPic" class="property">
   <span class="name"><a href="../fragments_camera_cameraModel/CameraModel/latestPic.html">latestPic</a></span>
-  <span class="signature">&#8594; <a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a>?</span> 
+  <span class="signature">&#8596; <a href="https://pub.dev/documentation/cross_file/0.3.3+4/cross_file/XFile-class.html">XFile</a>?</span> 
 
 </dt>
 <dd>
-  
-  <div class="features"><span class="feature">read-only</span></div>
+  only use on weird edge cases, this normally gets set by <a href="../fragments_camera_cameraModel/CameraModel/shoot.html">shoot</a>
+  <div class="features"><span class="feature">getter/setter pair</span></div>
 
 </dd>
 
@@ -177,7 +177,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">read-only</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -188,7 +188,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">read-only</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -199,7 +199,40 @@
 </dt>
 <dd class="inherited">
   A representation of the runtime type of the object.
-  <div class="features"><span class="feature">read-only</span><span class="feature">inherited</span></div>
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="zoom" class="property">
+  <span class="name"><a href="../fragments_camera_cameraModel/CameraModel/zoom.html">zoom</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> 
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="zoomM" class="property">
+  <span class="name"><a href="../fragments_camera_cameraModel/CameraModel/zoomM.html">zoomM</a></span>
+  <span class="signature">&#8594; <a href="../fragments_camera_cameraModel/ZoomModel-class.html">ZoomModel</a></span> 
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="zoomRange" class="property">
+  <span class="name"><a href="../fragments_camera_cameraModel/CameraModel/zoomRange.html">zoomRange</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">(<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>, </span><span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span></span>)</span>&gt;</span></span> 
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -250,6 +283,19 @@
 object is not in a usable state and should be discarded (calls to
 <a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a> will throw after the object is disposed).
   <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="focus" class="callable">
+  <span class="name"><a href="../fragments_camera_cameraModel/CameraModel/focus.html">focus</a></span><span class="signature">(<wbr><span class="parameter" id="focus-param-focusPoint"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/Offset-class.html">Offset</a></span> <span class="parameter-name">focusPoint</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 
@@ -316,6 +362,19 @@ object is not in a usable state and should be discarded (calls to
   Remove a previously registered closure from the list of closures that are
 notified when the object changes.
   <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="setZoom" class="callable">
+  <span class="name"><a href="../fragments_camera_cameraModel/CameraModel/setZoom.html">setZoom</a></span><span class="signature">(<wbr><span class="parameter" id="setZoom-param-newVal"><span class="type-annotation">dynamic</span> <span class="parameter-name">newVal</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 
@@ -403,7 +462,7 @@ notified when the object changes.
 </ol>
 
 
-    <!--<h5>cameraModel library</h5>-->
+    <h5>cameraModel library</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div>
 

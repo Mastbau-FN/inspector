@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="generator" content="made with love by dartdoc 6.3.0">
+  <meta name="generator" content="made with love by dartdoc 8.0.0">
   <meta name="description" content="MBG_Inspektionen API docs, for the Dart programming language.">
   <title>MBG_Inspektionen - Dart API docs</title>
 
@@ -69,6 +69,12 @@
 samples, guidance on mobile development, and a full API reference.</p>
 <h3 id="environment">Environment</h3>
 <p>create a .env file in the frontend dir containing a field <code>API_KEY=xxx</code></p>
+<p>and for signing a key.properties file in the android dir containing</p>
+<pre class="language-properties"><code class="language-properties">storePassword=TODO
+keyPassword=TODO
+keyAlias=key0
+storeFile=../keystore-mbg.jks
+</code></pre>
 <h3 id="build">Build</h3>
 <ul>
 <li><code>flutter pub run build_runner build --delete-conflicting-outputs</code> to run code gen (probably optional)</li>
@@ -88,161 +94,168 @@ storeFile=../keystore-mbg.jks
           <h2>Libraries</h2>
         <dl>
           <dt id="adder">
-  <span class="name"><a href="fragments_adder/fragments_adder-library.html">adder</a></span> 
+  <span class="name"><a href="fragments_adder/fragments_adder-library.html">fragments/adder</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="api">
-  <span class="name"><a href="backend_api/backend_api-library.html">api</a></span> 
+  <span class="name"><a href="backend_api/backend_api-library.html">backend/api</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="backButton">
-  <span class="name"><a href="widgets_backButton/widgets_backButton-library.html">backButton</a></span> 
+  <span class="name"><a href="widgets_backButton/widgets_backButton-library.html">widgets/backButton</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="background">
-  <span class="name"><a href="helpers_background/helpers_background-library.html">background</a></span> 
+  <span class="name"><a href="helpers_background/helpers_background-library.html">helpers/background</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="background_main">
-  <span class="name"><a href="helpers_background_background_main/helpers_background_background_main-library.html">background_main</a></span> 
+  <span class="name"><a href="helpers_background_background_main/helpers_background_background_main-library.html">helpers/background/background_main</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="background_web">
-  <span class="name"><a href="helpers_background_background_web/helpers_background_background_web-library.html">background_web</a></span> 
+  <span class="name"><a href="helpers_background_background_web/helpers_background_background_web-library.html">helpers/background/background_web</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="cameraMainPreview">
-  <span class="name"><a href="fragments_camera_views_cameraMainPreview/fragments_camera_views_cameraMainPreview-library.html">cameraMainPreview</a></span> 
+  <span class="name"><a href="fragments_camera_views_cameraMainPreview/fragments_camera_views_cameraMainPreview-library.html">fragments/camera/views/cameraMainPreview</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="cameraModel">
-  <span class="name"><a href="fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">cameraModel</a></span> 
+  <span class="name"><a href="fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">fragments/camera/cameraModel</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="checkcategories">
-  <span class="name"><a href="pages_checkcategories/pages_checkcategories-library.html">checkcategories</a></span> 
+  <span class="name"><a href="pages_checkcategories/pages_checkcategories-library.html">pages/checkcategories</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="checkcategory">
-  <span class="name"><a href="classes_data_checkcategory/classes_data_checkcategory-library.html">checkcategory</a></span> 
+  <span class="name"><a href="classes_data_checkcategory/classes_data_checkcategory-library.html">classes/data/checkcategory</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="checkpoint">
-  <span class="name"><a href="classes_data_checkpoint/classes_data_checkpoint-library.html">checkpoint</a></span> 
+  <span class="name"><a href="classes_data_checkpoint/classes_data_checkpoint-library.html">classes/data/checkpoint</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="checkpointdefect">
-  <span class="name"><a href="classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></span> 
+  <span class="name"><a href="classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">classes/data/checkpointdefect</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="checkpointdefects">
-  <span class="name"><a href="pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></span> 
+  <span class="name"><a href="pages_checkpointdefects/pages_checkpointdefects-library.html">pages/checkpointdefects</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="checkpoints">
-  <span class="name"><a href="pages_checkpoints/pages_checkpoints-library.html">checkpoints</a></span> 
+  <span class="name"><a href="pages_checkpoints/pages_checkpoints-library.html">pages/checkpoints</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="controller">
-  <span class="name"><a href="notifications_controller/notifications_controller-library.html">controller</a></span> 
+  <span class="name"><a href="notifications_controller/notifications_controller-library.html">notifications/controller</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="createEditor">
-  <span class="name"><a href="helpers_createEditor/helpers_createEditor-library.html">createEditor</a></span> 
+  <span class="name"><a href="helpers_createEditor/helpers_createEditor-library.html">helpers/createEditor</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="defaultNotificationPage">
-  <span class="name"><a href="pages_defaultNotificationPage/pages_defaultNotificationPage-library.html">defaultNotificationPage</a></span> 
+  <span class="name"><a href="pages_defaultNotificationPage/pages_defaultNotificationPage-library.html">pages/defaultNotificationPage</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="detailsPage">
-  <span class="name"><a href="pages_detailsPage/pages_detailsPage-library.html">detailsPage</a></span> 
+  <span class="name"><a href="pages_detailsPage/pages_detailsPage-library.html">pages/detailsPage</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="developerSettings">
-  <span class="name"><a href="pages_settings_developerSettings/pages_settings_developerSettings-library.html">developerSettings</a></span> 
+  <span class="name"><a href="pages_settings_developerSettings/pages_settings_developerSettings-library.html">pages/settings/developerSettings</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="dropDownBuilder">
-  <span class="name"><a href="widgets_dropDownBuilder/widgets_dropDownBuilder-library.html">dropDownBuilder</a></span> 
+  <span class="name"><a href="widgets_dropDownBuilder/widgets_dropDownBuilder-library.html">widgets/dropDownBuilder</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="dropdownClasses">
-  <span class="name"><a href="classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></span> 
+  <span class="name"><a href="classes_dropdownClasses/classes_dropdownClasses-library.html">classes/dropdownClasses</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="dropdownPage">
-  <span class="name"><a href="pages_dropdownPage/pages_dropdownPage-library.html">dropdownPage</a></span> 
+  <span class="name"><a href="pages_dropdownPage/pages_dropdownPage-library.html">pages/dropdownPage</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="dropDownPageB">
+  <span class="name"><a href="pages_dropDownPageB/pages_dropDownPageB-library.html">pages/dropDownPageB</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="editableWeatherView">
-  <span class="name"><a href="fragments_weather_editableWeatherView/fragments_weather_editableWeatherView-library.html">editableWeatherView</a></span> 
+  <span class="name"><a href="fragments_weather_editableWeatherView/fragments_weather_editableWeatherView-library.html">fragments/weather/editableWeatherView</a></span> 
 
 </dt>
 <dd>
@@ -256,161 +269,161 @@ storeFile=../keystore-mbg.jks
 </dd>
 
           <dt id="error">
-  <span class="name"><a href="widgets_error/widgets_error-library.html">error</a></span> 
+  <span class="name"><a href="widgets_error/widgets_error-library.html">widgets/error</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="ErrorView">
-  <span class="name"><a href="fragments_ErrorView/fragments_ErrorView-library.html">ErrorView</a></span> 
+  <span class="name"><a href="fragments_ErrorView/fragments_ErrorView-library.html">fragments/ErrorView</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="exceptions">
-  <span class="name"><a href="classes_exceptions/classes_exceptions-library.html">exceptions</a></span> 
+  <span class="name"><a href="classes_exceptions/classes_exceptions-library.html">classes/exceptions</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="failedRequestManager">
-  <span class="name"><a href="backend_failedRequestManager/backend_failedRequestManager-library.html">failedRequestManager</a></span> 
+  <span class="name"><a href="backend_failedRequestManager/backend_failedRequestManager-library.html">backend/failedRequestManager</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="future">
-  <span class="name"><a href="extension_future/extension_future-library.html">future</a></span> 
+  <span class="name"><a href="extension_future/extension_future-library.html">extension/future</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="FuturedImageProvider">
-  <span class="name"><a href="classes_FuturedImageProvider/classes_FuturedImageProvider-library.html">FuturedImageProvider</a></span> 
+  <span class="name"><a href="classes_FuturedImageProvider/classes_FuturedImageProvider-library.html">classes/FuturedImageProvider</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="galleryWrapper">
-  <span class="name"><a href="fragments_galleryWrapper/fragments_galleryWrapper-library.html">galleryWrapper</a></span> 
+  <span class="name"><a href="fragments_galleryWrapper/fragments_galleryWrapper-library.html">fragments/galleryWrapper</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="generalDropDown">
-  <span class="name"><a href="widgets_whack_or_depricated_generalDropDown/widgets_whack_or_depricated_generalDropDown-library.html">generalDropDown</a></span> 
+  <span class="name"><a href="widgets_whack_or_depricated_generalDropDown/widgets_whack_or_depricated_generalDropDown-library.html">widgets/whack_or_depricated/generalDropDown</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="helpers">
-  <span class="name"><a href="fragments_weather_helpers/fragments_weather_helpers-library.html">helpers</a></span> 
+  <span class="name"><a href="backend_helpers/backend_helpers-library.html">backend/helpers</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="helpers">
-  <span class="name"><a href="backend_helpers/backend_helpers-library.html">helpers</a></span> 
+  <span class="name"><a href="fragments_weather_helpers/fragments_weather_helpers-library.html">fragments/weather/helpers</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="homeView">
-  <span class="name"><a href="pages_homeView/pages_homeView-library.html">homeView</a></span> 
+  <span class="name"><a href="pages_homeView/pages_homeView-library.html">pages/homeView</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="image">
-  <span class="name"><a href="extension_image/extension_image-library.html">image</a></span> 
+  <span class="name"><a href="extension_image/extension_image-library.html">extension/image</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="imageData">
-  <span class="name"><a href="classes_imageData/classes_imageData-library.html">imageData</a></span> 
+  <span class="name"><a href="classes_imageData/classes_imageData-library.html">classes/imageData</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="imagesPage">
-  <span class="name"><a href="pages_imagesPage/pages_imagesPage-library.html">imagesPage</a></span> 
+  <span class="name"><a href="pages_imagesPage/pages_imagesPage-library.html">pages/imagesPage</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="imageWrap">
-  <span class="name"><a href="fragments_imageWrap/fragments_imageWrap-library.html">imageWrap</a></span> 
+  <span class="name"><a href="fragments_imageWrap/fragments_imageWrap-library.html">fragments/imageWrap</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="inspection_location">
-  <span class="name"><a href="classes_data_inspection_location/classes_data_inspection_location-library.html">inspection_location</a></span> 
+  <span class="name"><a href="classes_data_inspection_location/classes_data_inspection_location-library.html">classes/data/inspection_location</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="listTileData">
-  <span class="name"><a href="classes_listTileData/classes_listTileData-library.html">listTileData</a></span> 
+  <span class="name"><a href="classes_listTileData/classes_listTileData-library.html">classes/listTileData</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="loadingView">
-  <span class="name"><a href="fragments_loadingscreen_loadingView/fragments_loadingscreen_loadingView-library.html">loadingView</a></span> 
+  <span class="name"><a href="fragments_loadingscreen_loadingView/fragments_loadingscreen_loadingView-library.html">fragments/loadingscreen/loadingView</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="local">
-  <span class="name"><a href="backend_local/backend_local-library.html">local</a></span> 
+  <span class="name"><a href="backend_local/backend_local-library.html">backend/local</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="locales">
-  <span class="name"><a href="l10n_locales/l10n_locales-library.html">locales</a></span> 
+  <span class="name"><a href="l10n_locales/l10n_locales-library.html">l10n/locales</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="location">
-  <span class="name"><a href="pages_location/pages_location-library.html">location</a></span> 
+  <span class="name"><a href="pages_location/pages_location-library.html">pages/location</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="loginModel">
-  <span class="name"><a href="pages_login_loginModel/pages_login_loginModel-library.html">loginModel</a></span> 
+  <span class="name"><a href="pages_login_loginModel/pages_login_loginModel-library.html">pages/login/loginModel</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="loginView">
-  <span class="name"><a href="pages_login_loginView/pages_login_loginView-library.html">loginView</a></span> 
+  <span class="name"><a href="pages_login_loginView/pages_login_loginView-library.html">pages/login/loginView</a></span> 
 
 </dt>
 <dd>
@@ -424,84 +437,84 @@ storeFile=../keystore-mbg.jks
 </dd>
 
           <dt id="MainDrawer">
-  <span class="name"><a href="fragments_MainDrawer/fragments_MainDrawer-library.html">MainDrawer</a></span> 
+  <span class="name"><a href="fragments_MainDrawer/fragments_MainDrawer-library.html">fragments/MainDrawer</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="map">
-  <span class="name"><a href="extension_map/extension_map-library.html">map</a></span> 
+  <span class="name"><a href="extension_map/extension_map-library.html">extension/map</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="mostrecentrequest">
-  <span class="name"><a href="pages_mostrecentrequest/pages_mostrecentrequest-library.html">mostrecentrequest</a></span> 
+  <span class="name"><a href="pages_mostrecentrequest/pages_mostrecentrequest-library.html">pages/mostrecentrequest</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="myExpandablelList">
-  <span class="name"><a href="widgets_myExpandablelList/widgets_myExpandablelList-library.html">myExpandablelList</a></span> 
+  <span class="name"><a href="widgets_myExpandablelList/widgets_myExpandablelList-library.html">widgets/myExpandablelList</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="myExpansionPanelList">
-  <span class="name"><a href="widgets_whack_or_depricated_myExpansionPanelList/widgets_whack_or_depricated_myExpansionPanelList-library.html">myExpansionPanelList</a></span> 
+  <span class="name"><a href="widgets_whack_or_depricated_myExpansionPanelList/widgets_whack_or_depricated_myExpansionPanelList-library.html">widgets/whack_or_depricated/myExpansionPanelList</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="MyListTile1">
-  <span class="name"><a href="widgets_MyListTile1/widgets_MyListTile1-library.html">MyListTile1</a></span> 
+  <span class="name"><a href="widgets_MyListTile1/widgets_MyListTile1-library.html">widgets/MyListTile1</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="mySimpleAlertBox">
-  <span class="name"><a href="widgets_mySimpleAlertBox/widgets_mySimpleAlertBox-library.html">mySimpleAlertBox</a></span> 
+  <span class="name"><a href="widgets_mySimpleAlertBox/widgets_mySimpleAlertBox-library.html">widgets/mySimpleAlertBox</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="namedToggle">
-  <span class="name"><a href="widgets_namedToggle/widgets_namedToggle-library.html">namedToggle</a></span> 
+  <span class="name"><a href="widgets_namedToggle/widgets_namedToggle-library.html">widgets/namedToggle</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="network">
-  <span class="name"><a href="backend_network/backend_network-library.html">network</a></span> 
+  <span class="name"><a href="backend_network/backend_network-library.html">backend/network</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="nulleableToggle">
-  <span class="name"><a href="widgets_nulleableToggle/widgets_nulleableToggle-library.html">nulleableToggle</a></span> 
+  <span class="name"><a href="widgets_nulleableToggle/widgets_nulleableToggle-library.html">widgets/nulleableToggle</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="offlineProvider">
-  <span class="name"><a href="backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></span> 
+  <span class="name"><a href="backend_offlineProvider/backend_offlineProvider-library.html">backend/offlineProvider</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="openNewViewTile">
-  <span class="name"><a href="widgets_openNewViewTile/widgets_openNewViewTile-library.html">openNewViewTile</a></span> 
+  <span class="name"><a href="widgets_openNewViewTile/widgets_openNewViewTile-library.html">widgets/openNewViewTile</a></span> 
 
 </dt>
 <dd>
@@ -515,56 +528,56 @@ storeFile=../keystore-mbg.jks
 </dd>
 
           <dt id="passwordField">
-  <span class="name"><a href="widgets_passwordField/widgets_passwordField-library.html">passwordField</a></span> 
+  <span class="name"><a href="widgets_passwordField/widgets_passwordField-library.html">widgets/passwordField</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="progressManagerStateNotifier">
-  <span class="name"><a href="backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">progressManagerStateNotifier</a></span> 
+  <span class="name"><a href="backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">backend/progressManagerStateNotifier</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="progressStateUpdater">
-  <span class="name"><a href="backend_progressStateUpdater/backend_progressStateUpdater-library.html">progressStateUpdater</a></span> 
+  <span class="name"><a href="backend_progressStateUpdater/backend_progressStateUpdater-library.html">backend/progressStateUpdater</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="RandomDogsScrollView">
-  <span class="name"><a href="fragments_RandomDogsScrollView/fragments_RandomDogsScrollView-library.html">RandomDogsScrollView</a></span> 
+  <span class="name"><a href="fragments_RandomDogsScrollView/fragments_RandomDogsScrollView-library.html">fragments/RandomDogsScrollView</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="remote">
-  <span class="name"><a href="backend_remote/backend_remote-library.html">remote</a></span> 
+  <span class="name"><a href="backend_remote/backend_remote-library.html">backend/remote</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="requestData">
-  <span class="name"><a href="classes_requestData/classes_requestData-library.html">requestData</a></span> 
+  <span class="name"><a href="classes_requestData/classes_requestData-library.html">classes/requestData</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="rotating">
-  <span class="name"><a href="widgets_rotating/widgets_rotating-library.html">rotating</a></span> 
+  <span class="name"><a href="widgets_rotating/widgets_rotating-library.html">widgets/rotating</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="settingsView">
-  <span class="name"><a href="pages_settings_settingsView/pages_settings_settingsView-library.html">settingsView</a></span> 
+  <span class="name"><a href="pages_settings_settingsView/pages_settings_settingsView-library.html">pages/settings/settingsView</a></span> 
 
 </dt>
 <dd>
@@ -578,28 +591,28 @@ storeFile=../keystore-mbg.jks
 </dd>
 
           <dt id="toast">
-  <span class="name"><a href="helpers_toast/helpers_toast-library.html">toast</a></span> 
+  <span class="name"><a href="helpers_toast/helpers_toast-library.html">helpers/toast</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="trashbutton">
-  <span class="name"><a href="widgets_trashbutton/widgets_trashbutton-library.html">trashbutton</a></span> 
+  <span class="name"><a href="widgets_trashbutton/widgets_trashbutton-library.html">widgets/trashbutton</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="user">
-  <span class="name"><a href="classes_user/classes_user-library.html">user</a></span> 
+  <span class="name"><a href="classes_user/classes_user-library.html">classes/user</a></span> 
 
 </dt>
 <dd>
 </dd>
 
           <dt id="weather">
-  <span class="name"><a href="classes_data_weather/classes_data_weather-library.html">weather</a></span> 
+  <span class="name"><a href="classes_data_weather/classes_data_weather-library.html">classes/data/weather</a></span> 
 
 </dt>
 <dd>
@@ -626,80 +639,81 @@ storeFile=../keystore-mbg.jks
     <h5 class="hidden-xs"><span class="package-name">MBG_Inspektionen</span> <span class="package-kind">package</span></h5>
     <ol>
       <li class="section-title">Libraries</li>
-      <li><a href="fragments_adder/fragments_adder-library.html">adder</a></li>
-      <li><a href="backend_api/backend_api-library.html">api</a></li>
-      <li><a href="widgets_backButton/widgets_backButton-library.html">backButton</a></li>
-      <li><a href="helpers_background/helpers_background-library.html">background</a></li>
-      <li><a href="helpers_background_background_main/helpers_background_background_main-library.html">background_main</a></li>
-      <li><a href="helpers_background_background_web/helpers_background_background_web-library.html">background_web</a></li>
-      <li><a href="fragments_camera_views_cameraMainPreview/fragments_camera_views_cameraMainPreview-library.html">cameraMainPreview</a></li>
-      <li><a href="fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">cameraModel</a></li>
-      <li><a href="pages_checkcategories/pages_checkcategories-library.html">checkcategories</a></li>
-      <li><a href="classes_data_checkcategory/classes_data_checkcategory-library.html">checkcategory</a></li>
-      <li><a href="classes_data_checkpoint/classes_data_checkpoint-library.html">checkpoint</a></li>
-      <li><a href="classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></li>
-      <li><a href="pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
-      <li><a href="pages_checkpoints/pages_checkpoints-library.html">checkpoints</a></li>
-      <li><a href="notifications_controller/notifications_controller-library.html">controller</a></li>
-      <li><a href="helpers_createEditor/helpers_createEditor-library.html">createEditor</a></li>
-      <li><a href="pages_defaultNotificationPage/pages_defaultNotificationPage-library.html">defaultNotificationPage</a></li>
-      <li><a href="pages_detailsPage/pages_detailsPage-library.html">detailsPage</a></li>
-      <li><a href="pages_settings_developerSettings/pages_settings_developerSettings-library.html">developerSettings</a></li>
-      <li><a href="widgets_dropDownBuilder/widgets_dropDownBuilder-library.html">dropDownBuilder</a></li>
-      <li><a href="classes_dropdownClasses/classes_dropdownClasses-library.html">dropdownClasses</a></li>
-      <li><a href="pages_dropdownPage/pages_dropdownPage-library.html">dropdownPage</a></li>
-      <li><a href="fragments_weather_editableWeatherView/fragments_weather_editableWeatherView-library.html">editableWeatherView</a></li>
+      <li><a href="fragments_adder/fragments_adder-library.html">fragments/adder</a></li>
+      <li><a href="backend_api/backend_api-library.html">backend/api</a></li>
+      <li><a href="widgets_backButton/widgets_backButton-library.html">widgets/backButton</a></li>
+      <li><a href="helpers_background/helpers_background-library.html">helpers/background</a></li>
+      <li><a href="helpers_background_background_main/helpers_background_background_main-library.html">helpers/background/background_main</a></li>
+      <li><a href="helpers_background_background_web/helpers_background_background_web-library.html">helpers/background/background_web</a></li>
+      <li><a href="fragments_camera_views_cameraMainPreview/fragments_camera_views_cameraMainPreview-library.html">fragments/camera/views/cameraMainPreview</a></li>
+      <li><a href="fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">fragments/camera/cameraModel</a></li>
+      <li><a href="pages_checkcategories/pages_checkcategories-library.html">pages/checkcategories</a></li>
+      <li><a href="classes_data_checkcategory/classes_data_checkcategory-library.html">classes/data/checkcategory</a></li>
+      <li><a href="classes_data_checkpoint/classes_data_checkpoint-library.html">classes/data/checkpoint</a></li>
+      <li><a href="classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">classes/data/checkpointdefect</a></li>
+      <li><a href="pages_checkpointdefects/pages_checkpointdefects-library.html">pages/checkpointdefects</a></li>
+      <li><a href="pages_checkpoints/pages_checkpoints-library.html">pages/checkpoints</a></li>
+      <li><a href="notifications_controller/notifications_controller-library.html">notifications/controller</a></li>
+      <li><a href="helpers_createEditor/helpers_createEditor-library.html">helpers/createEditor</a></li>
+      <li><a href="pages_defaultNotificationPage/pages_defaultNotificationPage-library.html">pages/defaultNotificationPage</a></li>
+      <li><a href="pages_detailsPage/pages_detailsPage-library.html">pages/detailsPage</a></li>
+      <li><a href="pages_settings_developerSettings/pages_settings_developerSettings-library.html">pages/settings/developerSettings</a></li>
+      <li><a href="widgets_dropDownBuilder/widgets_dropDownBuilder-library.html">widgets/dropDownBuilder</a></li>
+      <li><a href="classes_dropdownClasses/classes_dropdownClasses-library.html">classes/dropdownClasses</a></li>
+      <li><a href="pages_dropdownPage/pages_dropdownPage-library.html">pages/dropdownPage</a></li>
+      <li><a href="pages_dropDownPageB/pages_dropDownPageB-library.html">pages/dropDownPageB</a></li>
+      <li><a href="fragments_weather_editableWeatherView/fragments_weather_editableWeatherView-library.html">fragments/weather/editableWeatherView</a></li>
       <li><a href="env/env-library.html">env</a></li>
-      <li><a href="widgets_error/widgets_error-library.html">error</a></li>
-      <li><a href="fragments_ErrorView/fragments_ErrorView-library.html">ErrorView</a></li>
-      <li><a href="classes_exceptions/classes_exceptions-library.html">exceptions</a></li>
-      <li><a href="backend_failedRequestManager/backend_failedRequestManager-library.html">failedRequestManager</a></li>
-      <li><a href="extension_future/extension_future-library.html">future</a></li>
-      <li><a href="classes_FuturedImageProvider/classes_FuturedImageProvider-library.html">FuturedImageProvider</a></li>
-      <li><a href="fragments_galleryWrapper/fragments_galleryWrapper-library.html">galleryWrapper</a></li>
-      <li><a href="widgets_whack_or_depricated_generalDropDown/widgets_whack_or_depricated_generalDropDown-library.html">generalDropDown</a></li>
-      <li><a href="fragments_weather_helpers/fragments_weather_helpers-library.html">helpers</a></li>
-      <li><a href="backend_helpers/backend_helpers-library.html">helpers</a></li>
-      <li><a href="pages_homeView/pages_homeView-library.html">homeView</a></li>
-      <li><a href="extension_image/extension_image-library.html">image</a></li>
-      <li><a href="classes_imageData/classes_imageData-library.html">imageData</a></li>
-      <li><a href="pages_imagesPage/pages_imagesPage-library.html">imagesPage</a></li>
-      <li><a href="fragments_imageWrap/fragments_imageWrap-library.html">imageWrap</a></li>
-      <li><a href="classes_data_inspection_location/classes_data_inspection_location-library.html">inspection_location</a></li>
-      <li><a href="classes_listTileData/classes_listTileData-library.html">listTileData</a></li>
-      <li><a href="fragments_loadingscreen_loadingView/fragments_loadingscreen_loadingView-library.html">loadingView</a></li>
-      <li><a href="backend_local/backend_local-library.html">local</a></li>
-      <li><a href="l10n_locales/l10n_locales-library.html">locales</a></li>
-      <li><a href="pages_location/pages_location-library.html">location</a></li>
-      <li><a href="pages_login_loginModel/pages_login_loginModel-library.html">loginModel</a></li>
-      <li><a href="pages_login_loginView/pages_login_loginView-library.html">loginView</a></li>
+      <li><a href="widgets_error/widgets_error-library.html">widgets/error</a></li>
+      <li><a href="fragments_ErrorView/fragments_ErrorView-library.html">fragments/ErrorView</a></li>
+      <li><a href="classes_exceptions/classes_exceptions-library.html">classes/exceptions</a></li>
+      <li><a href="backend_failedRequestManager/backend_failedRequestManager-library.html">backend/failedRequestManager</a></li>
+      <li><a href="extension_future/extension_future-library.html">extension/future</a></li>
+      <li><a href="classes_FuturedImageProvider/classes_FuturedImageProvider-library.html">classes/FuturedImageProvider</a></li>
+      <li><a href="fragments_galleryWrapper/fragments_galleryWrapper-library.html">fragments/galleryWrapper</a></li>
+      <li><a href="widgets_whack_or_depricated_generalDropDown/widgets_whack_or_depricated_generalDropDown-library.html">widgets/whack_or_depricated/generalDropDown</a></li>
+      <li><a href="backend_helpers/backend_helpers-library.html">backend/helpers</a></li>
+      <li><a href="fragments_weather_helpers/fragments_weather_helpers-library.html">fragments/weather/helpers</a></li>
+      <li><a href="pages_homeView/pages_homeView-library.html">pages/homeView</a></li>
+      <li><a href="extension_image/extension_image-library.html">extension/image</a></li>
+      <li><a href="classes_imageData/classes_imageData-library.html">classes/imageData</a></li>
+      <li><a href="pages_imagesPage/pages_imagesPage-library.html">pages/imagesPage</a></li>
+      <li><a href="fragments_imageWrap/fragments_imageWrap-library.html">fragments/imageWrap</a></li>
+      <li><a href="classes_data_inspection_location/classes_data_inspection_location-library.html">classes/data/inspection_location</a></li>
+      <li><a href="classes_listTileData/classes_listTileData-library.html">classes/listTileData</a></li>
+      <li><a href="fragments_loadingscreen_loadingView/fragments_loadingscreen_loadingView-library.html">fragments/loadingscreen/loadingView</a></li>
+      <li><a href="backend_local/backend_local-library.html">backend/local</a></li>
+      <li><a href="l10n_locales/l10n_locales-library.html">l10n/locales</a></li>
+      <li><a href="pages_location/pages_location-library.html">pages/location</a></li>
+      <li><a href="pages_login_loginModel/pages_login_loginModel-library.html">pages/login/loginModel</a></li>
+      <li><a href="pages_login_loginView/pages_login_loginView-library.html">pages/login/loginView</a></li>
       <li><a href="main/main-library.html">main</a></li>
-      <li><a href="fragments_MainDrawer/fragments_MainDrawer-library.html">MainDrawer</a></li>
-      <li><a href="extension_map/extension_map-library.html">map</a></li>
-      <li><a href="pages_mostrecentrequest/pages_mostrecentrequest-library.html">mostrecentrequest</a></li>
-      <li><a href="widgets_myExpandablelList/widgets_myExpandablelList-library.html">myExpandablelList</a></li>
-      <li><a href="widgets_whack_or_depricated_myExpansionPanelList/widgets_whack_or_depricated_myExpansionPanelList-library.html">myExpansionPanelList</a></li>
-      <li><a href="widgets_MyListTile1/widgets_MyListTile1-library.html">MyListTile1</a></li>
-      <li><a href="widgets_mySimpleAlertBox/widgets_mySimpleAlertBox-library.html">mySimpleAlertBox</a></li>
-      <li><a href="widgets_namedToggle/widgets_namedToggle-library.html">namedToggle</a></li>
-      <li><a href="backend_network/backend_network-library.html">network</a></li>
-      <li><a href="widgets_nulleableToggle/widgets_nulleableToggle-library.html">nulleableToggle</a></li>
-      <li><a href="backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-      <li><a href="widgets_openNewViewTile/widgets_openNewViewTile-library.html">openNewViewTile</a></li>
+      <li><a href="fragments_MainDrawer/fragments_MainDrawer-library.html">fragments/MainDrawer</a></li>
+      <li><a href="extension_map/extension_map-library.html">extension/map</a></li>
+      <li><a href="pages_mostrecentrequest/pages_mostrecentrequest-library.html">pages/mostrecentrequest</a></li>
+      <li><a href="widgets_myExpandablelList/widgets_myExpandablelList-library.html">widgets/myExpandablelList</a></li>
+      <li><a href="widgets_whack_or_depricated_myExpansionPanelList/widgets_whack_or_depricated_myExpansionPanelList-library.html">widgets/whack_or_depricated/myExpansionPanelList</a></li>
+      <li><a href="widgets_MyListTile1/widgets_MyListTile1-library.html">widgets/MyListTile1</a></li>
+      <li><a href="widgets_mySimpleAlertBox/widgets_mySimpleAlertBox-library.html">widgets/mySimpleAlertBox</a></li>
+      <li><a href="widgets_namedToggle/widgets_namedToggle-library.html">widgets/namedToggle</a></li>
+      <li><a href="backend_network/backend_network-library.html">backend/network</a></li>
+      <li><a href="widgets_nulleableToggle/widgets_nulleableToggle-library.html">widgets/nulleableToggle</a></li>
+      <li><a href="backend_offlineProvider/backend_offlineProvider-library.html">backend/offlineProvider</a></li>
+      <li><a href="widgets_openNewViewTile/widgets_openNewViewTile-library.html">widgets/openNewViewTile</a></li>
       <li><a href="options/options-library.html">options</a></li>
-      <li><a href="widgets_passwordField/widgets_passwordField-library.html">passwordField</a></li>
-      <li><a href="backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">progressManagerStateNotifier</a></li>
-      <li><a href="backend_progressStateUpdater/backend_progressStateUpdater-library.html">progressStateUpdater</a></li>
-      <li><a href="fragments_RandomDogsScrollView/fragments_RandomDogsScrollView-library.html">RandomDogsScrollView</a></li>
-      <li><a href="backend_remote/backend_remote-library.html">remote</a></li>
-      <li><a href="classes_requestData/classes_requestData-library.html">requestData</a></li>
-      <li><a href="widgets_rotating/widgets_rotating-library.html">rotating</a></li>
-      <li><a href="pages_settings_settingsView/pages_settings_settingsView-library.html">settingsView</a></li>
+      <li><a href="widgets_passwordField/widgets_passwordField-library.html">widgets/passwordField</a></li>
+      <li><a href="backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">backend/progressManagerStateNotifier</a></li>
+      <li><a href="backend_progressStateUpdater/backend_progressStateUpdater-library.html">backend/progressStateUpdater</a></li>
+      <li><a href="fragments_RandomDogsScrollView/fragments_RandomDogsScrollView-library.html">fragments/RandomDogsScrollView</a></li>
+      <li><a href="backend_remote/backend_remote-library.html">backend/remote</a></li>
+      <li><a href="classes_requestData/classes_requestData-library.html">classes/requestData</a></li>
+      <li><a href="widgets_rotating/widgets_rotating-library.html">widgets/rotating</a></li>
+      <li><a href="pages_settings_settingsView/pages_settings_settingsView-library.html">pages/settings/settingsView</a></li>
       <li><a href="theme/theme-library.html">theme</a></li>
-      <li><a href="helpers_toast/helpers_toast-library.html">toast</a></li>
-      <li><a href="widgets_trashbutton/widgets_trashbutton-library.html">trashbutton</a></li>
-      <li><a href="classes_user/classes_user-library.html">user</a></li>
-      <li><a href="classes_data_weather/classes_data_weather-library.html">weather</a></li>
+      <li><a href="helpers_toast/helpers_toast-library.html">helpers/toast</a></li>
+      <li><a href="widgets_trashbutton/widgets_trashbutton-library.html">widgets/trashbutton</a></li>
+      <li><a href="classes_user/classes_user-library.html">classes/user</a></li>
+      <li><a href="classes_data_weather/classes_data_weather-library.html">classes/data/weather</a></li>
 </ol>
 
   </div>

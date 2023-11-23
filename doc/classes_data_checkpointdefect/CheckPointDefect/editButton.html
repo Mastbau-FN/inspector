@@ -29,7 +29,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></li>
+    <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">classes&#47;data&#47;checkpointdefect.dart</a></li>
     <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
     <li class="self-crumb">editButton method</li>
   </ol>
@@ -93,6 +93,7 @@
             return AlertDialog(
               title: Text(&#39;Mangel bearbeiten&#39;),
               content: CheckPointDefectsModel.adder(
+                  withoutdefect: false,
                   parent: Provider.of&lt;CheckPointDefectsModel&gt;(context)
                       .currentData,
                   currentDefect: this,
@@ -130,6 +131,7 @@
 
 
     <h5>CheckPointDefect class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

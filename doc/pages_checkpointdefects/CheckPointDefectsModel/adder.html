@@ -29,7 +29,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
+    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">pages&#47;checkpointdefects.dart</a></li>
     <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
     <li class="self-crumb">adder static method</li>
   </ol>
@@ -64,7 +64,8 @@
       
 
 <span class="returntype"><a href="../../fragments_adder/Adder-class.html">Adder</a></span>
-<span class="name ">adder</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="adder-param-parent">{<span>required</span> <span class="type-annotation"><a href="../../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span> <span class="parameter-name">parent</span>, </span></li>
+<span class="name ">adder</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="adder-param-withoutdefect">{<span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">withoutdefect</span>, </span></li>
+<li><span class="parameter" id="adder-param-parent"><span>required</span> <span class="type-annotation"><a href="../../classes_data_checkpoint/CheckPoint-class.html">CheckPoint</a></span> <span class="parameter-name">parent</span>, </span></li>
 <li><span class="parameter" id="adder-param-onCancel"><span>required</span> <span class="type-annotation">dynamic</span> <span class="parameter-name">onCancel</span>(<ol class="parameter-list"></ol>
 ), </span></li>
 <li><span class="parameter" id="adder-param-onDone"><span>required</span> <span class="type-annotation">dynamic</span> <span class="parameter-name">onDone</span>(<ol class="parameter-list"><li><span class="parameter" id="onDone-param-defect"><span class="type-annotation"><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span> <span class="parameter-name">defect</span></span></li>
@@ -83,6 +84,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">static Adder adder({
+  required bool withoutdefect,
   required CheckPoint parent,
   required onCancel(),
   required onDone(CheckPointDefect defect),
@@ -104,23 +106,27 @@
         defect[CheckPointDefect.E2_key] = parent.index;
         defect[CheckPointDefect.E3_key] = -1;
       }
-
-      defect[CheckPointDefect.kurzText_key] = parent.title +
-              &quot;  &quot; +
-              ((defect[oufnessChooser.name].toString() ==
-                      OufnessChooser.default_none.toString())
-                  ? &quot;ohne Mangel&quot;
-                  : (&quot;Mangel &quot; +
-                      (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                              ?.label ??
-                          &quot;&quot;))) &#47;&#47;ahhh so thats why we learn functional programming
-          &#47;&#47; +
-          &#47;&#47; &quot;Mangel &quot;
-          &#47;&#47;  +
-          &#47;&#47; &quot; #&quot; +
-          &#47;&#47; json.hashCode.toRadixString(36)
-          ;
-
+      if (withoutdefect) {
+        defect[CheckPointDefect.kurzText_key] =
+            parent.title + &quot;  ohne Mangel&quot;;
+        defect[CheckPointDefect.ereArt_key] = OufnessChooser.default_none;
+      } else {
+        defect[CheckPointDefect.kurzText_key] = parent.title +
+                &quot;  &quot; +
+                ((defect[oufnessChooser.name].toString() ==
+                        OufnessChooser.default_none.toString())
+                    ? &quot;ohne Mangel&quot;
+                    : (&quot;Mangel &quot; +
+                        (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                                ?.label ??
+                            &quot;&quot;))) &#47;&#47;ahhh so thats why we learn functional programming
+            &#47;&#47; +
+            &#47;&#47; &quot;Mangel &quot;
+            &#47;&#47;  +
+            &#47;&#47; &quot; #&quot; +
+            &#47;&#47; json.hashCode.toRadixString(36)
+            ;
+      }
       onDone(CheckPointDefect.fromJson(defect)!);
     },
     onCancel: onCancel,
@@ -166,6 +172,7 @@
 
 
     <h5>CheckPointDefectsModel class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the floatingActionButton property from the CheckPointDefectsModel class, for the Dart programming language.">
-  <title>floatingActionButton property - CheckPointDefectsModel class - checkpointdefects library - Dart API</title>
+  <meta name="description" content="API docs for the floatingActionButton method from the CheckPointDefectsModel class, for the Dart programming language.">
+  <title>floatingActionButton method - CheckPointDefectsModel class - checkpointdefects library - Dart API</title>
 
 
   
@@ -29,9 +29,9 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
+    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">pages&#47;checkpointdefects.dart</a></li>
     <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
-    <li class="self-crumb">floatingActionButton property</li>
+    <li class="self-crumb">floatingActionButton method</li>
   </ol>
   <div class="self-name">floatingActionButton</div>
   <form class="search navbar-right" role="search">
@@ -57,77 +57,102 @@
       data-above-sidebar="pages_checkpointdefects&#47;CheckPointDefectsModel-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-property">floatingActionButton</span> property 
+<h1><span class="kind-method">floatingActionButton</span> method 
 </h1></div>
 
-
-        
-<section id="getter">
-
-<section class="multi-line-signature">
-  
+    <section class="multi-line-signature">
+      
   <div>
     <ol class="annotation-list">
         <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
     </ol>
   </div>
-  <span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span>
-  <span class="name ">floatingActionButton</span>
-  <div class="features"><span class="feature">override</span></div>
 
-</section>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span>
+<span class="name ">floatingActionButton</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="floatingActionButton-param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span></span></li>
+</ol>)
 
+      <div class="features"><span class="feature">override</span></div>
 
+    </section>
+    
 <section class="desc markdown">
   <p>/adding a new <code>DataT</code>, if this is not null the DropDown will create a new floatingactionbutton
 for adding new <code>DataT</code> to this level (or other additional functionality)</p>
 </section>
 
 
+    
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget? get floatingActionButton {
-  return PopUpActionbutton(
-    expandedChild: (onCancel) =&gt; adder(
-      parent: currentData,
-      onCancel: onCancel,
-      onDone: (defect) async {
-        await API().setNew(defect, caller: currentData);
-        notifyListeners();
-      },
+Widget? floatingActionButton(BuildContext context) {
+  return Transform.translate(
+    offset: Offset(18, 0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: &lt;Widget&gt;[
+        FloatingActionButton.extended(
+          label: const Text(&#39;ohne Mangel&#39;),
+          onPressed: () async {
+            if ((await all().last).isEmpty) {
+              await API().setNew(
+                CheckPointDefect(
+                  pjNr: currentData.pjNr,
+                  category_index: currentData.category_index,
+                  check_index: currentData.index,
+                  index: -1,
+                  ereArt: OufnessChooser.default_none,
+                  kurzText: currentData.title + &quot;  ohne Mangel&quot;,
+                  langText: &quot;ohne Mangel&quot;,
+                )
+                  ..id = &quot;-1&quot;
+                  ..height = &quot;ohne Mangel&quot;,
+                caller: currentData,
+              );
+              notifyListeners();
+              return;
+            } else {
+              showDialog(
+                barrierColor: Colors.black54,
+                context: context,
+                builder: (BuildContext context) {
+                  return MySimpleAlertBox(
+                    actions: &lt;Widget&gt;[
+                      Center(
+                        child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(S.current!.cancel)),
+                      ),
+                    ],
+                    title: &#39;Sicher?&#39;,
+                    bodyLines: [
+                      S.of(context).areYouSure,
+                    ],
+                  );
+                },
+              );
+            }
+          },
+        ),
+        PopUpActionbutton(
+          expandedChild: (onCancel) =&gt; adder(
+              withoutdefect: false,
+              parent: currentData,
+              onCancel: onCancel,
+              onDone: (defect) async {
+                await API().setNew(defect, caller: currentData);
+                notifyListeners();
+              }),
+        ),
+      ],
     ),
   );
 }</code></pre>
 </section>
 
-</section>
-
-
-        
-<section id="setter">
-
-<section class="multi-line-signature">
-  
-  <span class="returntype">void</span>
-  <span class="name ">floatingActionButton=</span><span class="signature">(<wbr><span class="parameter" id="floatingActionButton=-param-_floatingActionButton"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span> <span class="parameter-name">_floatingActionButton</span></span>)</span>
-  <div class="features"><span class="feature">inherited</span></div>
-
-</section>
-
-
-<section class="desc markdown">
-  <p>/adding a new <code>DataT</code>, if this is not null the DropDown will create a new floatingactionbutton
-for adding new <code>DataT</code> to this level (or other additional functionality)</p>
-</section>
-
-
-<section class="summary source-code" id="source">
-  <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Widget? floatingActionButton;</code></pre>
-</section>
-
-</section>
 
   </div> <!-- /.main-content -->
 
@@ -143,11 +168,12 @@ for adding new <code>DataT</code> to this level (or other additional functionali
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
     <li><a href="../../pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
-    <li class="self-crumb">floatingActionButton property</li>
+    <li class="self-crumb">floatingActionButton method</li>
 </ol>
 
 
     <h5>CheckPointDefectsModel class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

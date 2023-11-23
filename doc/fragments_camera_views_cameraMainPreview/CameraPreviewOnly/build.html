@@ -29,7 +29,7 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../fragments_camera_views_cameraMainPreview/fragments_camera_views_cameraMainPreview-library.html">cameraMainPreview</a></li>
+    <li><a href="../../fragments_camera_views_cameraMainPreview/fragments_camera_views_cameraMainPreview-library.html">fragments&#47;camera&#47;views&#47;cameraMainPreview.dart</a></li>
     <li><a href="../../fragments_camera_views_cameraMainPreview/CameraPreviewOnly-class.html">CameraPreviewOnly</a></li>
     <li class="self-crumb">build method</li>
   </ol>
@@ -118,7 +118,7 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) =&gt; Material(
-      &#47;&#47;why the hell would i need a Material, it should be an ancestor already..
+      &#47;&#47;FIXME: why the hell would i need a Material, it should be an ancestor already..
       child: Consumer&lt;CameraModel&gt;(
         builder: (context, model, child) {
           return FutureBuilder(
@@ -127,7 +127,7 @@ Widget build(BuildContext context) =&gt; Material(
                 &#47;&#47; LoadingView(),
                 switch ((snapshot.connectionState, snapshot.data)) {
               (ConnectionState.done, CameraController cc) =&gt;
-                _previewWithChildren(cc),
+                _previewWithChildren(cc, model),
               (ConnectionState.done, null) =&gt; ErrorText(&quot;no camera&quot;),
               (ConnectionState.waiting, _) =&gt; LoadingView(),
               (ConnectionState.active, _) =&gt; LoadingView(),
@@ -159,6 +159,7 @@ Widget build(BuildContext context) =&gt; Material(
 
 
     <h5>CameraPreviewOnly class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
 
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
