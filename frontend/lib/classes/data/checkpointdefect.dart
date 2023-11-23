@@ -106,6 +106,7 @@ class CheckPointDefect extends Data
               return AlertDialog(
                 title: Text('Mangel bearbeiten'),
                 content: CheckPointDefectsModel.adder(
+                    withoutdefect: false,
                     parent: Provider.of<CheckPointDefectsModel>(context)
                         .currentData,
                     currentDefect: this,

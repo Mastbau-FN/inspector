@@ -231,7 +231,9 @@ class DropDownModel<ChildData extends WithLangText,
 
   ////adding a new [DataT], if this is not null the DropDown will create a new floatingactionbutton
   /// for adding new [DataT] to this level (or other additional functionality)
-  Widget? floatingActionButton;
+  Widget? floatingActionButton(BuildContext context) {
+    return null;
+  }
 
   @override
   DropDownModel<WithLangText, WithOffline> generateNextModel(ChildData data) {
