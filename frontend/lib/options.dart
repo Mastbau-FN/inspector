@@ -8,6 +8,8 @@ part 'options.g.dart';
 
 String other = 'other';
 
+const omitDetailsInLevel2and3 = true;
+
 @JsonSerializable()
 class Options {
   //

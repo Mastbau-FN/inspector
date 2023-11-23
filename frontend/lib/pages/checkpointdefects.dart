@@ -8,6 +8,8 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
+import '../widgets/mySimpleAlertBox.dart';
+
 class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     implements KnowsNext<CheckPointDefect> {
   CheckPointDefectsModel(CheckPoint data) : super(data);
@@ -69,20 +71,74 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   }
 
   @override
-  Widget? get floatingActionButton {
-    return PopUpActionbutton(
-      expandedChild: (onCancel) => adder(
-        parent: currentData,
-        onCancel: onCancel,
-        onDone: (defect) async {
-          await API().setNew(defect, caller: currentData);
-          notifyListeners();
-        },
+  Widget? floatingActionButton(BuildContext context) {
+    return Transform.translate(
+      offset: Offset(18, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          FloatingActionButton.extended(
+            label: const Text('ohne Mangel'),
+            onPressed: () async {
+              if ((await all().last).isEmpty) {
+                await API().setNew(
+                  CheckPointDefect(
+                    pjNr: currentData.pjNr,
+                    category_index: currentData.category_index,
+                    check_index: currentData.index,
+                    index: -1,
+                    ereArt: OufnessChooser.default_none,
+                    kurzText: currentData.title + "  ohne Mangel",
+                    langText: "ohne Mangel",
+                  )
+                    ..id = "-1"
+                    ..height = "ohne Mangel",
+                  caller: currentData,
+                );
+                notifyListeners();
+                return;
+              } else {
+                showDialog(
+                  barrierColor: Colors.black54,
+                  context: context,
+                  builder: (BuildContext context) {
+                    return MySimpleAlertBox(
+                      actions: <Widget>[
+                        Center(
+                          child: TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(S.current!.cancel)),
+                        ),
+                      ],
+                      title: 'Sicher?',
+                      bodyLines: [
+                        S.of(context).areYouSure,
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+          ),
+          PopUpActionbutton(
+            expandedChild: (onCancel) => adder(
+                withoutdefect: false,
+                parent: currentData,
+                onCancel: onCancel,
+                onDone: (defect) async {
+                  await API().setNew(defect, caller: currentData);
+                  notifyListeners();
+                }),
+          ),
+        ],
       ),
     );
   }
 
   static Adder adder({
+    required bool withoutdefect,
     required CheckPoint parent,
     required onCancel(),
     required onDone(CheckPointDefect defect),
@@ -104,23 +160,27 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           defect[CheckPointDefect.E2_key] = parent.index;
           defect[CheckPointDefect.E3_key] = -1;
         }
-
-        defect[CheckPointDefect.kurzText_key] = parent.title +
-                "  " +
-                ((defect[oufnessChooser.name].toString() ==
-                        OufnessChooser.default_none.toString())
-                    ? "ohne Mangel"
-                    : ("Mangel " +
-                        (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                                ?.label ??
-                            ""))) //ahhh so thats why we learn functional programming
-            // +
-            // "Mangel "
-            //  +
-            // " #" +
-            // json.hashCode.toRadixString(36)
-            ;
-
+        if (withoutdefect) {
+          defect[CheckPointDefect.kurzText_key] =
+              parent.title + "  ohne Mangel";
+          defect[CheckPointDefect.ereArt_key] = OufnessChooser.default_none;
+        } else {
+          defect[CheckPointDefect.kurzText_key] = parent.title +
+                  "  " +
+                  ((defect[oufnessChooser.name].toString() ==
+                          OufnessChooser.default_none.toString())
+                      ? "ohne Mangel"
+                      : ("Mangel " +
+                          (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                                  ?.label ??
+                              ""))) //ahhh so thats why we learn functional programming
+              // +
+              // "Mangel "
+              //  +
+              // " #" +
+              // json.hashCode.toRadixString(36)
+              ;
+        }
         onDone(CheckPointDefect.fromJson(defect)!);
       },
       onCancel: onCancel,
@@ -157,7 +217,7 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
   // ignore: non_constant_identifier_names
   static final int default_none = 5204;
 
-  final List<int> choices = [default_none, 5201, 5202, 5203];
+  final List<int> choices = [5201, 5202, 5203];
 
   int get _selected => this._state.select;
 

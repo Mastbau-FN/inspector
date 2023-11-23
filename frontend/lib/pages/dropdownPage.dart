@@ -53,7 +53,7 @@ class DropDownPage<
         body: _DropDownBody<ChildData, ParentData, DDModel>(
           ddmodel: ddmodel,
         ),
-        floatingActionButton: ddmodel.floatingActionButton,
+        floatingActionButton: ddmodel.floatingActionButton!(context),
       ),
     );
   }

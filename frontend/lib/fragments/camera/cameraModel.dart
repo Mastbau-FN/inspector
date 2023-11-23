@@ -32,12 +32,21 @@ class CameraModel extends ChangeNotifier {
   CameraController? controller;
 
   Future<CameraController> start({bool reuse = true}) async {
+    if (reuse && controller != null && controller!.value.isInitialized) {
+      return controller!;
+    }
     controller = await newController;
     await controller!.initialize();
     return controller!;
   }
 
   XFile? _latestPic;
+
+  /// only use on weird edge cases, this normally gets set by [shoot]
+  set latestPic(XFile? value) {
+    _latestPic = value;
+    notifyListeners();
+  }
 
   XFile? get latestPic => _latestPic;
   void discardPic() {
@@ -90,6 +99,31 @@ class CameraModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<(double, double)> get zoomRange async {
+    // return (1.0, 2.0);
+    controller = await start();
+    final maxZoom = await controller!.getMaxZoomLevel();
+    final minZoom = await controller!.getMinZoomLevel();
+    zoomM.zoomRange = (minZoom, maxZoom);
+    return (minZoom, maxZoom);
+  }
+
+  final zoomM = ZoomModel();
+  double get zoom => zoomM.zoom;
+
+  Future<void> setZoom(newVal) async {
+    zoomM.zoom = newVal;
+    controller ??= await start();
+    controller!.setZoomLevel(newVal);
+    // notifyListeners();
+  }
+
+  Future<void> focus(Offset focusPoint) async {
+    controller ??= await start();
+    controller!.setFocusPoint(focusPoint);
+    controller!.setExposurePoint(focusPoint);
+  }
+
   Future<CameraDescription?> get currentCamera async {
     try {
       return (await allCameras)[_currentCameraIndex];
@@ -97,4 +131,20 @@ class CameraModel extends ChangeNotifier {
 
     return await mainCamera; //XXX (related to #202) use other lenses
   }
+}
+
+class ZoomModel extends ChangeNotifier {
+  (double, double) zoomRange = (1.0, 2.0);
+  double _zoom = 1.0;
+  double get zoom => _zoom;
+  set zoom(newVal) {
+    _zoom = newVal;
+    debugPrint("zoom: $newVal");
+    notifyListeners();
+    // Future.delayed(Duration(milliseconds: 100), () => notifyListeners());
+  }
+}
+
+extension ToRangeValues on (double, double) {
+  RangeValues toRangeValues() => RangeValues(this.$1, this.$2);
 }
