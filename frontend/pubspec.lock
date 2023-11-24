@@ -987,6 +987,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  sliver_app_bar_builder:
+    dependency: "direct main"
+    description:
+      name: sliver_app_bar_builder
+      sha256: "6fcf3d2948db8d50978f3921dfc34cf0aa14c791f8bc02bf8a7ea12fcae771b1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   source_gen:
     dependency: transitive
     description:

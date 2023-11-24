@@ -10,6 +10,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sliver_app_bar_builder/sliver_app_bar_builder.dart';
+
+extension Add on double? {
+  double? operator +(double other) => this != null ? this! + other : null;
+}
 
 class DropDownPageB<
         ChildData extends WithLangText,
@@ -22,95 +27,148 @@ class DropDownPageB<
   Widget build(BuildContext context) {
     return Consumer<DDModel>(
       builder: (context, ddmodel, child) {
-        var sliverAppBar = SliverAppBar(
+        var sliverAppBar = SliverAppBarBuilder(
+          barHeight: Theme.of(context).appBarTheme.toolbarHeight ?? 50 + 20,
+          initialContentHeight: 60,
+          backgroundColorAll: Theme.of(context).colorScheme.surface,
+          initialBarHeight: 60,
           // forceMaterialTransparency: true,
-          primary: true,
-          leading: (ModalRoute.of(context)?.canPop ?? false)
-              ? BackButton(
-                  onPressed: Navigator.of(context).pop,
-                )
-              : null,
-          // floating: true,
-          centerTitle: true,
+          // primary: true,
+          leadingActions: [
+            (context, expandRatio, barHeight, overlapsContent) =>
+                (ModalRoute.of(context)?.canPop ?? false)
+                    ? BackButton(
+                        onPressed: Navigator.of(context).pop,
+                      )
+                    : Container(),
+          ],
+          trailingActions: [
+            (context, expandRatio, barHeight, overlapsContent) =>
+                //Open drawer
+                IconButton(
+                  icon: Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openEndDrawer();
+                  },
+                ),
+          ],
+          // // floating: true,
+          // centerTitle: true,
           pinned: true,
           // snap: true,
-          expandedHeight: 200.0,
-          flexibleSpace: FlexibleSpaceBar(
-            // stretchModes: [],
-            expandedTitleScale: 1.1,
-            titlePadding: EdgeInsets.fromLTRB(30, 35, 30, 10),
-            centerTitle: true,
-            title: FutureBuilder(
+          // expandedHeight: 200.0,
+          contentBuilder:
+              (context, expandRatio, contentHeight, overlapsContent, isPinned) {
+            return FutureBuilder(
               future: ddmodel.currentData?.previewImage,
               builder: (context, snapshot) {
                 final img = snapshot.data?.thumbnail.image;
-                return Flexible(
+                return Padding(
+                  padding: const EdgeInsets.all(18.0),
                   child: Container(
+                    // color: Colors.green,
+                    // alignment: Alignment.bottomCenter,
                     padding: EdgeInsets.all(10),
+                    height: 60,
+                    transform: Matrix4.translationValues(
+                        0 /*10 + (1 - expandRatio) * 40*/, 0, 0),
                     child: Text(
                       ddmodel.title,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        overflow: TextOverflow.ellipsis,
+                        fontSize: 22 + expandRatio * 10,
+                        // color: Colors.white,
+                        // fontWeight: FontWeight.bold,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 5,
-                      softWrap: true,
-                      textAlign: TextAlign.center,
-                      textHeightBehavior: const TextHeightBehavior(
-                          applyHeightToFirstAscent: false,
-                          applyHeightToLastDescent: true,
-                          leadingDistribution:
-                              TextLeadingDistribution.proportional),
                     ),
-                    // clipBehavior: Clip.none,
-                    // color: Theme.of(context).colorScheme.surface,
-                    // padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: img == null
-                          ? Colors.transparent
-                          : Theme.of(context).colorScheme.background,
+                      color: Colors.green,
+                      // img == null
+                      // ? Colors.transparent
+                      // : Theme.of(context).colorScheme.background,
                     ),
                   ),
                 );
               },
-            ),
-            background: FutureBuilder<Image?>(
-                future: ddmodel.currentData?.mainImage
-                    .then((value) => value?.fullImage()),
-                builder: (context, snapshot) {
-                  final img = snapshot.data?.image;
-                  return ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      bottom: Radius.circular(20),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: img != null
-                            ? DecorationImage(
-                                image: img,
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                        // gradient: LinearGradient(
-                        //   colors: [
-                        //     Theme.of(context).colorScheme.surfaceTint,
-                        //     Theme.of(context).colorScheme.surfaceVariant,
-                        //   ],
-                        //   begin: Alignment.topLeft,
-                        //   end: Alignment.bottomRight,
-                        // ),
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
-                  );
-                }),
-          ),
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-          ),
+            );
+          },
+          // flexibleSpace: FlexibleSpaceBar(
+          //   // stretchModes: [],
+          //   expandedTitleScale: 1.1,
+          //   titlePadding: EdgeInsets.fromLTRB(30, 35, 30, 10),
+          //   centerTitle: true,
+          //   title: FutureBuilder(
+          //     future: ddmodel.currentData?.previewImage,
+          //     builder: (context, snapshot) {
+          //       final img = snapshot.data?.thumbnail.image;
+          //       return Flexible(
+          //         child: Container(
+          //           padding: EdgeInsets.all(10),
+          //           child: Text(
+          //             ddmodel.title,
+          //             style: TextStyle(
+          //               color: Theme.of(context).colorScheme.onSurface,
+          //               overflow: TextOverflow.ellipsis,
+          //               height: 0.9,
+          //             ),
+          //             overflow: TextOverflow.ellipsis,
+          //             maxLines: 5,
+          //             softWrap: true,
+          //             textAlign: TextAlign.center,
+          //             textHeightBehavior: const TextHeightBehavior(
+          //                 applyHeightToFirstAscent: false,
+          //                 applyHeightToLastDescent: true,
+          //                 leadingDistribution:
+          //                     TextLeadingDistribution.proportional),
+          //           ),
+          //           // clipBehavior: Clip.none,
+          //           // color: Theme.of(context).colorScheme.surface,
+          //           // padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          //           decoration: BoxDecoration(
+          //             borderRadius: BorderRadius.circular(10),
+          //             color: img == null
+          //                 ? Colors.transparent
+          //                 : Theme.of(context).colorScheme.background,
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //   ),
+          //   background: FutureBuilder<Image?>(
+          //       future: ddmodel.currentData?.mainImage
+          //           .then((value) => value?.fullImage()),
+          //       builder: (context, snapshot) {
+          //         final img = snapshot.data?.image;
+          //         return ClipRRect(
+          //           borderRadius: BorderRadius.vertical(
+          //             bottom: Radius.circular(20),
+          //           ),
+          //           child: Container(
+          //             decoration: BoxDecoration(
+          //               image: img != null
+          //                   ? DecorationImage(
+          //                       image: img,
+          //                       fit: BoxFit.cover,
+          //                     )
+          //                   : null,
+          //               // gradient: LinearGradient(
+          //               //   colors: [
+          //               //     Theme.of(context).colorScheme.surfaceTint,
+          //               //     Theme.of(context).colorScheme.surfaceVariant,
+          //               //   ],
+          //               //   begin: Alignment.topLeft,
+          //               //   end: Alignment.bottomRight,
+          //               // ),
+          //               color: Theme.of(context).colorScheme.surface,
+          //             ),
+          //           ),
+          //         );
+          //       }),
+          // ),
+          // systemOverlayStyle: SystemUiOverlayStyle(
+          //   statusBarColor: Colors.transparent,
+          //   statusBarIconBrightness: Brightness.dark,
+          // ),
         );
         return Scaffold(
           body: RefreshIndicator(
