@@ -120,6 +120,7 @@ dependencies:
   url_launcher: ^6.1.9
   archive: ^3.3.7
   sliver_app_bar_builder: ^1.1.0
+  blur: ^3.1.0
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9

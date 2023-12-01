@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
@@ -12,6 +14,7 @@ import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
+import 'package:blur/blur.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +33,9 @@ class DropDownPageB<
     extends StatelessWidget {
   const DropDownPageB({Key? key}) : super(key: key);
 
-  static const _appbarHeightSmall = 60.0;
-  static const _appbarHeightBig = 160.0;
+  static const _appbarHeightSmall = 70.0;
+  static const _appbarBarHeight = 70.0;
+  static const _appbarHeightBig = 260.0;
   static const _appbarExpansionSwitchValue = 0.9;
 
   @override
@@ -41,20 +45,36 @@ class DropDownPageB<
         var sliverAppBar = SliverAppBarBuilder(
           barHeight:
               // Theme.of(context).appBarTheme.toolbarHeight ??
-              _appbarHeightSmall,
-          initialBarHeight: _appbarHeightSmall,
+              _appbarBarHeight,
+          initialBarHeight: _appbarBarHeight,
           initialContentHeight: _appbarHeightBig,
           backgroundColorAll: Theme.of(context).colorScheme.surface,
+          contentBelowBar: false,
           // forceMaterialTransparency: true,
           // primary: true,
           leadingActions: [
             (context, expandRatio, barHeight, overlapsContent) => Container(
                   height: barHeight,
-                  child: (ModalRoute.of(context)?.canPop ?? false)
-                      ? BackButton(
-                          onPressed: Navigator.of(context).pop,
-                        )
-                      : Container(),
+                  alignment: Alignment.centerLeft,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
+                    ),
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.5),
+                      height: barHeight - 20,
+                      child: (ModalRoute.of(context)?.canPop ?? false)
+                          ? BackButton(
+                              onPressed: Navigator.of(context).pop,
+                            )
+                          : Container(),
+                    ),
+                  ),
                 ),
           ],
           trailingActions: [
@@ -62,11 +82,26 @@ class DropDownPageB<
                 //Open drawer
                 Container(
                   height: barHeight,
-                  child: IconButton(
-                    icon: Icon(Icons.menu),
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    },
+                  alignment: Alignment.centerLeft,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      bottomLeft: Radius.circular(25),
+                    ),
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.5),
+                      height: barHeight - 20,
+                      child: IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () {
+                          Scaffold.of(context).openEndDrawer();
+                        },
+                      ),
+                    ),
                   ),
                 ),
           ],
@@ -82,48 +117,124 @@ class DropDownPageB<
               builder: (context, snapshot) {
                 final img = snapshot.data?.thumbnail
                     .image; //todo show as bg (and switch to fullsize when loaded)
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
+                return Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      if (img != null)
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                          offset: Offset(0, 5),
+                        ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(25 * expandRatio),
+                      bottomRight: Radius.circular(25 * expandRatio),
+                    ),
+                    child: Stack(
                       alignment: Alignment.center,
-                      height: contentHeight,
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 10 + (1 - expandRatio) * 40,
-                          vertical: 10),
-                      child: AnimatedContainer(
-                        height: expandRatio > _appbarExpansionSwitchValue
-                            ? _appbarHeightBig
-                            : _appbarHeightSmall,
-                        // color: Colors.amber,
-                        alignment: Alignment.center,
-                        curve: Curves.fastOutSlowIn,
-                        duration: const Duration(milliseconds: 200),
-                        child: Hero(
-                          tag: ddmodel.title +
-                              ".title.text" +
-                              ddmodel.currentData.runtimeType.toString(),
-                          child: Text(
-                            ddmodel.title,
-                            overflow: expandRatio > _appbarExpansionSwitchValue
-                                ? null
-                                : TextOverflow.ellipsis,
-                            softWrap: true,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium
-                                      ?.fontSize +
-                                  expandRatio * 10,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
+                      children: [
+                        if (img != null)
+                          Positioned.fill(
+                            child: Blur(
+                              blurColor: Colors.transparent,
+                              child: Positioned.fill(
+                                child: Hero(
+                                  tag: ddmodel.title +
+                                      ".image" +
+                                      ddmodel.currentData.runtimeType
+                                          .toString(),
+                                  child: Image(
+                                    image: img,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        // if (img != null)
+                        //   Positioned.fill(
+                        //     child: Container(
+                        //       color: Theme.of(context)
+                        //           .colorScheme
+                        //           .surface
+                        //           .withOpacity(0.5),
+                        //     ),
+                        //   ),
+                        Container(
+                          alignment: Alignment.center,
+                          height: contentHeight,
+                          padding: EdgeInsets.only(
+                            left: 10 + (1 - expandRatio) * 40,
+                            right: 10 + (1 - expandRatio) * 40,
+                            bottom: 10,
+                            top: 10 + (expandRatio) * _appbarBarHeight,
+                          ),
+                          child: SafeArea(
+                            child: AnimatedContainer(
+                              // padding: EdgeInsets.only(top: _appbarBarHeight),
+                              height: expandRatio > _appbarExpansionSwitchValue
+                                  ? _appbarHeightBig
+                                  : _appbarHeightSmall,
+                              // color: Colors.amber,
+                              alignment: Alignment.center,
+                              curve: Curves.fastOutSlowIn,
+                              duration: const Duration(milliseconds: 200),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Container(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surface
+                                        .withOpacity(0.5),
+                                    // alignment: Alignment.center,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 25,
+                                      vertical: 10 * expandRatio,
+                                    ),
+
+                                    child: Hero(
+                                      tag: ddmodel.title +
+                                          ".title.text" +
+                                          ddmodel.currentData.runtimeType
+                                              .toString() +
+                                          'disabled', //FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
+                                      child: Text(
+                                        ddmodel.title,
+                                        overflow: expandRatio >
+                                                _appbarExpansionSwitchValue
+                                            ? null
+                                            : TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: Theme.of(context)
+                                                  .textTheme
+                                                  .headlineMedium
+                                                  ?.fontSize +
+                                              expandRatio * 10,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 );
               },
             );
