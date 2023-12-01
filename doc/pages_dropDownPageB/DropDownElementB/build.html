@@ -152,17 +152,40 @@ Widget build(BuildContext context) {
                       previewImage: cd.previewImage,
                     ),
                   ),
-                  SizedBox(width: 10),
+                  offlineIndicator(cd),
                   Expanded(
-                    child: Text(
-                      cd.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    child: Hero(
+                      tag: cd.title +
+                          &quot;.title.text&quot; +
+                          cd.runtimeType.toString(),
+                      child: Text(
+                        cd.title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                   ...cd.extras(context: context),
-                  &#47;&#47; Spacer(),
+                  FutureBuilder(
+                    future: API().user,
+                    builder: (BuildContext context,
+                        AsyncSnapshot&lt;DisplayUser?&gt; snapshot2) {
+                      &#47;&#47;assert(data.runtimeType==DataT);
+                      try {
+                        if (cd.runtimeType ==
+                                CheckPointDefect &#47;&#47;alle mängel dürfen gelöscht werden (#380)
+                            ||
+                            (snapshot2.hasData &amp;&amp;
+                                cd.toJson()[&#39;Autor&#39;] == snapshot2.data?.name))
+                          return TrashButton(
+                            delete: onDelete,
+                            confirmName: cd.title,
+                          );
+                      } catch (e) {}
+                      return Container();
+                    },
+                  ), &#47;&#47; Spacer(),
                   Transform.translate(
                     offset: Offset(4, 0),
                     child: Icon(actions.first.icon, size: 10),

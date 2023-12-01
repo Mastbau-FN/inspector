@@ -87,68 +87,15 @@ for adding new <code>DataT</code> to this level (or other additional functionali
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget? floatingActionButton(BuildContext context) {
-  return Transform.translate(
-    offset: Offset(18, 0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: &lt;Widget&gt;[
-        FloatingActionButton.extended(
-          label: const Text(&#39;ohne Mangel&#39;),
-          onPressed: () async {
-            if ((await all().last).isEmpty) {
-              await API().setNew(
-                CheckPointDefect(
-                  pjNr: currentData.pjNr,
-                  category_index: currentData.category_index,
-                  check_index: currentData.index,
-                  index: -1,
-                  ereArt: OufnessChooser.default_none,
-                  kurzText: currentData.title + &quot;  ohne Mangel&quot;,
-                  langText: &quot;ohne Mangel&quot;,
-                )
-                  ..id = &quot;-1&quot;
-                  ..height = &quot;ohne Mangel&quot;,
-                caller: currentData,
-              );
-              notifyListeners();
-              return;
-            } else {
-              showDialog(
-                barrierColor: Colors.black54,
-                context: context,
-                builder: (BuildContext context) {
-                  return MySimpleAlertBox(
-                    actions: &lt;Widget&gt;[
-                      Center(
-                        child: TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(S.current!.cancel)),
-                      ),
-                    ],
-                    title: &#39;Sicher?&#39;,
-                    bodyLines: [
-                      S.of(context).areYouSure,
-                    ],
-                  );
-                },
-              );
-            }
-          },
-        ),
-        PopUpActionbutton(
-          expandedChild: (onCancel) =&gt; adder(
-              withoutdefect: false,
-              parent: currentData,
-              onCancel: onCancel,
-              onDone: (defect) async {
-                await API().setNew(defect, caller: currentData);
-                notifyListeners();
-              }),
-        ),
-      ],
-    ),
+  return PopUpActionbutton(
+    expandedChild: (onCancel) =&gt; adder(
+        &#47;&#47; withoutdefect: false,
+        parent: currentData,
+        onCancel: onCancel,
+        onDone: (defect) async {
+          await API().setNew(defect, caller: currentData);
+          notifyListeners();
+        }),
   );
 }</code></pre>
 </section>
