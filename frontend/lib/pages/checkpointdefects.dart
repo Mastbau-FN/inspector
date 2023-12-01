@@ -101,7 +101,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           ..id = "-1"
           ..height = "ohne Mangel",
         caller: currentData,
-      ); //TODO: does not work in online mode
+      ); //TODO: does not work in online mode #387
       notifyListeners();
       return;
     } else {
