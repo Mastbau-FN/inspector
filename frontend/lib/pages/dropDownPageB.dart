@@ -1,15 +1,32 @@
+import 'dart:math';
+import 'dart:ui';
+
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
+import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
+import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
+import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
+import 'package:blur/blur.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sliver_app_bar_builder/sliver_app_bar_builder.dart';
+
+extension Add on double? {
+  double? operator +(double other) => this != null ? this! + other : null;
+}
 
 class DropDownPageB<
         ChildData extends WithLangText,
@@ -18,99 +35,230 @@ class DropDownPageB<
     extends StatelessWidget {
   const DropDownPageB({Key? key}) : super(key: key);
 
+  static const _appbarHeightSmall = 70.0;
+  static const _appbarBarHeight = 70.0;
+  static const _appbarHeightBig = 260.0;
+  static const _appbarExpansionSwitchValue = 0.9;
+
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(
       builder: (context, ddmodel, child) {
-        var sliverAppBar = SliverAppBar(
+        final maengelDoneButton = ddmodel.runtimeType == CheckPointDefectsModel
+            ? Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: (ddmodel as CheckPointDefectsModel)
+                    .ohneMaengelButton(context),
+              )
+            : Container();
+
+        final sliverAppBar = SliverAppBarBuilder(
+          barHeight:
+              // Theme.of(context).appBarTheme.toolbarHeight ??
+              _appbarBarHeight,
+          initialBarHeight: _appbarBarHeight,
+          initialContentHeight: _appbarHeightBig,
+          backgroundColorAll: Theme.of(context).colorScheme.surface,
+          contentBelowBar: false,
           // forceMaterialTransparency: true,
-          primary: true,
-          leading: (ModalRoute.of(context)?.canPop ?? false)
-              ? BackButton(
-                  onPressed: Navigator.of(context).pop,
-                )
-              : null,
-          // floating: true,
-          centerTitle: true,
+          // primary: true,
+          leadingActions: [
+            (context, expandRatio, barHeight, overlapsContent) => Container(
+                  height: barHeight,
+                  alignment: Alignment.centerLeft,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
+                    ),
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.5),
+                      height: barHeight - 20,
+                      child: (ModalRoute.of(context)?.canPop ?? false)
+                          ? BackButton(
+                              onPressed: Navigator.of(context).pop,
+                            )
+                          : Container(),
+                    ),
+                  ),
+                ),
+          ],
+          trailingActions: [
+            (context, expandRatio, barHeight, overlapsContent) =>
+                //Open drawer
+                Container(
+                  height: barHeight,
+                  alignment: Alignment.centerLeft,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      bottomLeft: Radius.circular(25),
+                    ),
+                    child: Container(
+                      alignment: Alignment.centerLeft,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.5),
+                      height: barHeight - 20,
+                      child: IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () {
+                          Scaffold.of(context).openEndDrawer();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+          ],
+          // // floating: true,
+          // centerTitle: true,
           pinned: true,
           // snap: true,
-          expandedHeight: 200.0,
-          flexibleSpace: FlexibleSpaceBar(
-            // stretchModes: [],
-            expandedTitleScale: 1.1,
-            titlePadding: EdgeInsets.fromLTRB(30, 35, 30, 10),
-            centerTitle: true,
-            title: FutureBuilder(
+          // expandedHeight: _appbarHeightBig,
+          contentBuilder:
+              (context, expandRatio, contentHeight, overlapsContent, isPinned) {
+            return FutureBuilder(
               future: ddmodel.currentData?.previewImage,
               builder: (context, snapshot) {
-                final img = snapshot.data?.thumbnail.image;
-                return Flexible(
-                  child: Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      ddmodel.title,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 5,
-                      softWrap: true,
-                      textAlign: TextAlign.center,
-                      textHeightBehavior: const TextHeightBehavior(
-                          applyHeightToFirstAscent: false,
-                          applyHeightToLastDescent: true,
-                          leadingDistribution:
-                              TextLeadingDistribution.proportional),
+                final img = snapshot.data?.thumbnail
+                    .image; //todo show as bg (and switch to fullsize when loaded)
+                return Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      if (img != null)
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                          offset: Offset(0, 5),
+                        ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(25 * expandRatio),
+                      bottomRight: Radius.circular(25 * expandRatio),
                     ),
-                    // clipBehavior: Clip.none,
-                    // color: Theme.of(context).colorScheme.surface,
-                    // padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: img == null
-                          ? Colors.transparent
-                          : Theme.of(context).colorScheme.background,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (img != null)
+                          Positioned.fill(
+                            child: Blur(
+                              blurColor: Colors.transparent,
+                              child: Positioned.fill(
+                                child: Hero(
+                                  tag: ddmodel.title +
+                                      ".image" +
+                                      ddmodel.currentData.runtimeType
+                                          .toString(),
+                                  child: Image(
+                                    image: img,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        // if (img != null)
+                        //   Positioned.fill(
+                        //     child: Container(
+                        //       color: Theme.of(context)
+                        //           .colorScheme
+                        //           .surface
+                        //           .withOpacity(0.5),
+                        //     ),
+                        //   ),
+                        Container(
+                          alignment: Alignment.center,
+                          height: contentHeight,
+                          padding: EdgeInsets.only(
+                            left: 10 + (1 - expandRatio) * 40,
+                            right: 10 + (1 - expandRatio) * 40,
+                            bottom: 10,
+                            top: 10 + (expandRatio) * _appbarBarHeight,
+                          ),
+                          child: SafeArea(
+                            child: AnimatedContainer(
+                              // padding: EdgeInsets.only(top: _appbarBarHeight),
+                              height: expandRatio > _appbarExpansionSwitchValue
+                                  ? _appbarHeightBig
+                                  : _appbarHeightSmall,
+                              // color: Colors.amber,
+                              alignment: Alignment.center,
+                              curve: Curves.fastOutSlowIn,
+                              duration: const Duration(milliseconds: 200),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Container(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surface
+                                        .withOpacity(0.5),
+                                    // alignment: Alignment.center,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 25,
+                                      vertical: 10 * expandRatio,
+                                    ),
+
+                                    child: Hero(
+                                      tag: ddmodel.title +
+                                          ".title.text" +
+                                          ddmodel.currentData.runtimeType
+                                              .toString() +
+                                          'disabled', //FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
+                                      child: Text(
+                                        ddmodel.title,
+                                        overflow: expandRatio >
+                                                _appbarExpansionSwitchValue
+                                            ? null
+                                            : TextOverflow.ellipsis,
+                                        softWrap: true,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: Theme.of(context)
+                                                  .textTheme
+                                                  .headlineMedium
+                                                  ?.fontSize +
+                                              expandRatio * 10,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top *
+                              (4 * expandRatio - 3),
+                          height: _appbarBarHeight,
+                          child: Opacity(
+                            opacity: max(expandRatio * 2 - 1, 0),
+                            child: Align(child: maengelDoneButton),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
               },
-            ),
-            background: FutureBuilder<Image?>(
-                future: ddmodel.currentData?.mainImage
-                    .then((value) => value?.fullImage()),
-                builder: (context, snapshot) {
-                  final img = snapshot.data?.image;
-                  return ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      bottom: Radius.circular(20),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        image: img != null
-                            ? DecorationImage(
-                                image: img,
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                        // gradient: LinearGradient(
-                        //   colors: [
-                        //     Theme.of(context).colorScheme.surfaceTint,
-                        //     Theme.of(context).colorScheme.surfaceVariant,
-                        //   ],
-                        //   begin: Alignment.topLeft,
-                        //   end: Alignment.bottomRight,
-                        // ),
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
-                  );
-                }),
-          ),
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.dark,
-          ),
+            );
+          },
         );
         return Scaffold(
           body: RefreshIndicator(
@@ -152,6 +300,16 @@ class DropDownPageB<
                           onAction: (actionTileData) {
                             ddmodel.open(context, cd, actionTileData);
                           },
+                          onDelete: () => API()
+                              .delete<ChildData>(cd,
+                                  caller: ddmodel.currentData)
+                              .then((value) => value != null
+                                  ? () {
+                                      (kDebugMode ? showToast(value) : (_) {});
+                                      ddmodel.refresh(); //quickfix for #336
+                                    }()
+                                  : showToast(
+                                      S.of(context).deleteUnseccessful)),
                         );
                       }).toList(),
                     );
@@ -179,12 +337,16 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
   final ChildData cd;
   final List<MyListTileData> actions;
   final Function(MyListTileData actionTileData) onAction;
+  final Future Function() onDelete;
+
+  static Future _onDelete() async {}
 
   const DropDownElementB({
     super.key,
     required this.cd,
     required this.actions,
     required this.onAction,
+    this.onDelete = _onDelete,
   });
 
   @override
@@ -223,17 +385,40 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                         previewImage: cd.previewImage,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    offlineIndicator(cd),
                     Expanded(
-                      child: Text(
-                        cd.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      child: Hero(
+                        tag: cd.title +
+                            ".title.text" +
+                            cd.runtimeType.toString(),
+                        child: Text(
+                          cd.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     ...cd.extras(context: context),
-                    // Spacer(),
+                    FutureBuilder(
+                      future: API().user,
+                      builder: (BuildContext context,
+                          AsyncSnapshot<DisplayUser?> snapshot2) {
+                        //assert(data.runtimeType==DataT);
+                        try {
+                          if (cd.runtimeType ==
+                                  CheckPointDefect //alle mängel dürfen gelöscht werden (#380)
+                              ||
+                              (snapshot2.hasData &&
+                                  cd.toJson()['Autor'] == snapshot2.data?.name))
+                            return TrashButton(
+                              delete: onDelete,
+                              confirmName: cd.title,
+                            );
+                        } catch (e) {}
+                        return Container();
+                      },
+                    ), // Spacer(),
                     Transform.translate(
                       offset: Offset(4, 0),
                       child: Icon(actions.first.icon, size: 10),
