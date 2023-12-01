@@ -158,18 +158,6 @@ class _DropDownBodyState<
     );
   }
 
-  Widget offlineIndicator(ChildData data) {
-    try {
-      if ((data as WithOffline).forceOffline)
-        return Icon(
-          Icons.cloud_off,
-          color: Colors.green,
-          size: 20,
-        );
-    } catch (e) {}
-    return Container();
-  }
-
   // ignore: non_constant_identifier_names
   ExpandableCard2 dropDown_element(
       ChildData data, BuildContext context, DDModel ddmodel) {
@@ -219,4 +207,21 @@ class _DropDownBodyState<
                 ))
             .toList());
   }
+}
+
+Widget offlineIndicator<ChildData extends WithLangText>(ChildData data) {
+  try {
+    if ((data as WithOffline).forceOffline)
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Icon(
+          Icons.cloud_off,
+          color: Colors.green,
+          size: 20,
+        ),
+      );
+  } catch (e) {}
+  return SizedBox(
+    width: 8,
+  );
 }
