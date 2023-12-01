@@ -63,65 +63,8 @@ class DropDownPageB<
           contentBelowBar: false,
           // forceMaterialTransparency: true,
           // primary: true,
-          leadingActions: [
-            (context, expandRatio, barHeight, overlapsContent) => Container(
-                  height: barHeight,
-                  alignment: Alignment.centerLeft,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(25),
-                      bottomRight: Radius.circular(25),
-                    ),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withOpacity(0.5),
-                        height: barHeight - 20,
-                        child: (ModalRoute.of(context)?.canPop ?? false)
-                            ? BackButton(
-                                onPressed: Navigator.of(context).pop,
-                              )
-                            : Container(),
-                      ),
-                    ),
-                  ),
-                ),
-          ],
-          trailingActions: [
-            (context, expandRatio, barHeight, overlapsContent) =>
-                //Open drawer
-                Container(
-                  height: barHeight,
-                  alignment: Alignment.centerLeft,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(25),
-                      bottomLeft: Radius.circular(25),
-                    ),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withOpacity(0.5),
-                        height: barHeight - 20,
-                        child: IconButton(
-                          icon: Icon(Icons.menu),
-                          onPressed: () {
-                            Scaffold.of(context).openEndDrawer();
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-          ],
+          leadingActions: [backButtonW],
+          trailingActions: [drawerButtonW],
           // // floating: true,
           // centerTitle: true,
           pinned: true,
@@ -324,6 +267,10 @@ class DropDownPageB<
                       );
                     }
                     final childrenData = snapshot.data as List<ChildData>;
+                    if (ddmodel.runtimeType == CheckPointDefectsModel) {
+                      return generateCheckPointDefectsSliverList(
+                          context, childrenData as List<CheckPointDefect>);
+                    }
                     return SliverList.list(
                       children: childrenData.map((cd) {
                         return DropDownElementB(
@@ -363,6 +310,58 @@ class DropDownPageB<
       },
     );
   }
+
+  Widget drawerButtonW(context, expandRatio, barHeight, overlapsContent) =>
+      //Open drawer
+      Container(
+        height: barHeight,
+        alignment: Alignment.centerLeft,
+        child: ClipRRect(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(25),
+            bottomLeft: Radius.circular(25),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              alignment: Alignment.centerLeft,
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              height: barHeight - 20,
+              child: IconButton(
+                icon: Icon(Icons.menu),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget backButtonW(context, expandRatio, barHeight, overlapsContent) =>
+      Container(
+        height: barHeight,
+        alignment: Alignment.centerLeft,
+        child: ClipRRect(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(25),
+            bottomRight: Radius.circular(25),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              alignment: Alignment.centerLeft,
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              height: barHeight - 20,
+              child: (ModalRoute.of(context)?.canPop ?? false)
+                  ? BackButton(
+                      onPressed: Navigator.of(context).pop,
+                    )
+                  : Container(),
+            ),
+          ),
+        ),
+      );
 }
 
 class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
@@ -529,9 +528,11 @@ class MyCardListTileB extends StatelessWidget {
 }
 
 class PreviewImageCircle extends StatelessWidget {
+  final IconData fallbackIcon;
   const PreviewImageCircle({
     super.key,
     required this.previewImage,
+    this.fallbackIcon = Icons.construction,
   });
 
   final Future<ImageData?> previewImage;
@@ -550,7 +551,7 @@ class PreviewImageCircle extends StatelessWidget {
                       ? Image(image: imagep, fit: BoxFit.fill)
                       : null) ??
                   Icon(
-                    Icons.construction,
+                    fallbackIcon,
                   );
             }),
       ),

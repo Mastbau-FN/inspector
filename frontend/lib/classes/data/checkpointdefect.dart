@@ -84,7 +84,7 @@ class CheckPointDefect extends Data
   @override
   List<Widget> extras({BuildContext? context}) => [
         chipd(ereArt)?.toChip ?? Container(),
-        Spacer(),
+        // Spacer(),
         newImgButton(context: context),
         editButton(context: context),
       ];
@@ -139,32 +139,39 @@ class CheckPointDefect extends Data
         },
       );
 
-  static ChipData? chipd(int? oufness) {
-    switch (oufness) {
-      case null:
-        return null;
+  static MaterialColor ereArtToColor(int? ereArt) {
+    switch (ereArt) {
       case 5201:
-        return ChipData(
-          label: "leicht",
-          backgroundColor: Colors.green,
-        );
+        return Colors.green;
       case 5202:
-        return ChipData(
-          label: "mittel",
-          backgroundColor: Colors.orange,
-        );
+        return Colors.orange;
       case 5203:
-        return ChipData(
-          label: "schwer",
-          backgroundColor: Colors.red,
-        );
+        return Colors.red;
       case 5204:
       default:
-        return ChipData(
-          label: "ohne",
-          backgroundColor: Colors.grey,
-        );
+        return Colors.grey;
     }
+  }
+
+  static String ereArtToString(int? ereArt) {
+    switch (ereArt) {
+      case 5201:
+        return "leicht";
+      case 5202:
+        return "mittel";
+      case 5203:
+        return "schwer";
+      case 5204:
+      default:
+        return "ohne";
+    }
+  }
+
+  static ChipData? chipd(int? oufness) {
+    return ChipData(
+      label: ereArtToString(oufness),
+      backgroundColor: ereArtToColor(oufness),
+    );
   }
 
   static CheckPointDefect? fromJson(Map<String, dynamic> json) {

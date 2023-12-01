@@ -198,5 +198,18 @@
   "wontFetchAnythingSinceNoOneIsLoggedIn": "Niemand eingelogt",
   "@wontFetchAnythingSinceNoOneIsLoggedIn": {},
   "ohneMaengel": "ohne Mängel",
-  "uhoh": "Uuups"
+  "uhoh": "Uuups",
+  "defectLocation" : "Ort: {location}",
+  "@defectLocation" : {
+    "placeHolders": {
+      "location": {}
+    }
+  },
+  "defectInfo" : "Info: {info}",
+  "@defectInfo" : {
+    "placeHolders": {
+      "info": {}
+    }
+  },
+  "unknown": "unbekannt"
 }
