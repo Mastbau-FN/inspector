@@ -1,7 +1,7 @@
-import 'dart:ui';
-
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
+import 'package:MBG_Inspektionen/pages/dropDownPageB.dart';
+import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
@@ -9,6 +9,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/mySimpleAlertBox.dart';
 
@@ -88,6 +89,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   ohneMaengelAction(context) async {
     if ((await all().last).isEmpty) {
+      // final x = currentData;
       await API().setNew<CheckPointDefect>(
         CheckPointDefect(
           pjNr: currentData.pjNr,
@@ -97,9 +99,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           ereArt: OufnessChooser.none,
           kurzText: currentData.title + "  ohne Mangel",
           langText: "ohne Mangel",
-        )
-          ..id = "-1"
-          ..height = "ohne Mangel",
+        )..id = "0",
+        // ..height = "----",
         caller: currentData,
       ); //TODO: does not work in online mode #387
       notifyListeners();
@@ -305,4 +306,238 @@ class _OufnessChooserState extends State<OufnessChooser> {
           },
         ),
       );
+}
+
+Widget generateCheckPointDefectsSliverList(
+    BuildContext context, List<CheckPointDefect> childrenData) {
+  return SliverList.list(
+    children: childrenData.map((cd) {
+      return DefectWidgetAuto(data: cd);
+    }).toList(),
+  );
+}
+
+class DefectWidgetAuto extends StatefulWidget {
+  final CheckPointDefect data;
+  const DefectWidgetAuto({super.key, required this.data});
+
+  @override
+  State<DefectWidgetAuto> createState() => _DefectWidgetStateAuto();
+}
+
+class _DefectWidgetStateAuto extends State<DefectWidgetAuto> {
+  bool isExpanded = false;
+  @override
+  Widget build(BuildContext context) {
+    return DefectWidget(
+      onExpansionChanged: (newVal) => setState(() {
+        isExpanded = newVal;
+      }),
+      isExpanded: isExpanded,
+      data: widget.data,
+    );
+  }
+}
+
+// - Das bisherige Aufklappen der Mängel wird geändert: Unterpunkte "Details" und "Fotos" werden nicht mehr benötigt.
+// - Obere Textzeile enthält in Zukunft den Text von "Höhe/Position/Ort" => "Ort: xxxxxx"
+// - Die 2. Textzeile enthält die "Beschreibung"   => "Info: xxxxxx"
+// - Die bisherige 1. Textzeile entfällt.
+
+// - Texte werden maximal 2-zeilig dargestellt.
+// - Durch Klicken auf Mangel-Typ oder einer der Texte vergrößern sich die Textboxen und der gesamte Text wird dargestellt. Maximal so, dass ein Folge- Mangel noch im sichtbaren Bereich ist. ( Oder Maximal 10 Zeilen.)
+
+// - ist Text länger als maximal darstellbar,kann durch Wischen der Rest hergescrollt werden.
+
+// - Die alte 1. Textzeile wird nicht mehr visuell benötigt. Diese wird nirgends mehr in GUI dargestellt. Im Hintergrund soll es aber diesen Text noch geben. Dabei ist die Nennung von "Prüfpunkt" nicht mehr wichtig und auch nicht mehr möglich . Hier verbleibt also nur noch der Text  Z.B. "Mangel leicht"
+
+// -  Durch Klicken auf das Foto-Icon wird der Foto-Ordner-Dialog aufgerufen
+// -  Für ältere Herren gibt es zum Öffnen des Foto-Ordners ein extra "Ordner"-Icon neben "KameraPlus"-Icon und "Stift"-Icon. Galerie-Icon
+
+class DefectWidget extends StatelessWidget {
+  final CheckPointDefect data;
+  final bool isExpanded;
+  final void Function(bool) onExpansionChanged;
+
+  const DefectWidget(
+      {super.key,
+      required this.onExpansionChanged,
+      this.isExpanded = false,
+      required this.data});
+
+  static const _maxLines = 2;
+  static const _maxLinesExpanded = 10;
+  static const _padding = 10.0;
+  static const _iconSize = 15.0;
+
+  @override
+  Widget build(BuildContext context) {
+    // [1, 2, 3].indexed.any((element) => element.$1 == 2);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(_padding, _padding, _padding, 0),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          // iconColor: Theme.of(context).colorScheme.onSurface,
+          foregroundColor:
+              CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(1),
+          // primary: Theme.of(context).colorScheme.onSurface,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 10,
+          //     CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.4),
+          shadowColor:
+              CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          // side: BorderSide(
+          //   color: CheckPointDefect.ereArtToColor(data.ereArt),
+          //   width: 1,
+          // ),
+          padding: EdgeInsets.all(0),
+        ).copyWith(
+          foregroundColor:
+              MaterialStatePropertyAll(Theme.of(context).colorScheme.onSurface),
+        ),
+        onPressed: () => onExpansionChanged(!isExpanded),
+        child: IntrinsicHeight(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    bottomLeft: Radius.circular(15),
+                  ),
+                  color: CheckPointDefect.ereArtToColor(data.ereArt)
+                      .withOpacity(1),
+                ),
+                width: 40,
+                child: Center(
+                    child: RotatedBox(
+                        quarterTurns: 3,
+                        child: Text(
+                          CheckPointDefect.ereArtToString(data.ereArt),
+                          style: TextStyle(color: Colors.white),
+                        ))),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        child: TextButton(
+                          style: (Theme.of(context).textButtonTheme.style ??
+                                  ButtonStyle())
+                              .copyWith(
+                            padding: MaterialStateProperty.all(EdgeInsets.zero),
+                            iconColor: MaterialStateProperty.all(
+                                Theme.of(context).colorScheme.onSurface),
+                          ),
+                          onPressed: () {
+                            var model = Provider.of<CheckPointDefectsModel>(
+                                context,
+                                listen: false);
+                            model.open(
+                                context, data, MyListTileData(title: 'Fotos'),
+                                addImgIntend: false);
+                          },
+                          child: PreviewImageCircle(
+                            previewImage: data.previewImage,
+                            fallbackIcon: Icons.photo_library,
+                          ),
+                        ),
+                        height: 50,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            0, _padding, _padding, _padding),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.location_on, size: _iconSize),
+                                SizedBox(width: 5),
+                                Text(S.of(context).defectLocation(
+                                    data.height ?? S.of(context).unknown)),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.info, size: _iconSize),
+                                SizedBox(width: 5),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width -
+                                      50 - //image width
+                                      _padding * 2 - //inner padding
+                                      _padding * 2 - //outer padding
+                                      5 - //icon spacer
+                                      // 8 - // card padding
+                                      4 - // textButoon stuff idk
+                                      40 - //right banner
+                                      _iconSize //icon size
+                                  ,
+                                  child: Text(
+                                    S
+                                        .of(context)
+                                        .defectInfo(data.langText ?? ""),
+                                    maxLines: isExpanded
+                                        ? _maxLinesExpanded
+                                        : _maxLines,
+                                    softWrap: true,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 50,
+                    width: MediaQuery.of(context).size.width -
+                        // _padding * 2 - //inner padding
+                        _padding * 2 - //outer padding
+                        // 8 - // card padding
+                        4 - // textButoon stuff idk
+                        40 //right banner
+                    ,
+                    child: Row(
+                      children: [
+                        Spacer(),
+                        ...data
+                            .extras(context: context)
+                            .indexed
+                            .map<Widget>((a) {
+                          final (int i, Widget action) = a;
+                          if (i == 0) return SizedBox();
+                          return action;
+                        }).toList(),
+                        TrashButton(delete: () async {
+                          final model = Provider.of<CheckPointDefectsModel>(
+                              context,
+                              listen: false);
+
+                          await API().delete<CheckPointDefect>(data,
+                              caller: model.currentData);
+                          model.notifyListeners();
+                        }),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
