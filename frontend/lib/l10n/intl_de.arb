@@ -196,5 +196,7 @@
   "weCanSendYouANotificationAboutTheSyncProgress": "Wir wurden dich gerne über den Synchronisationsfortschritt informieren",
   "@weCanSendYouANotificationAboutTheSyncProgress": {},
   "wontFetchAnythingSinceNoOneIsLoggedIn": "Niemand eingelogt",
-  "@wontFetchAnythingSinceNoOneIsLoggedIn": {}
+  "@wontFetchAnythingSinceNoOneIsLoggedIn": {},
+  "ohneMaengel": "ohne Mängel",
+  "uhoh": "Uuups"
 }

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:flutter/material.dart';
@@ -72,73 +74,101 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   @override
   Widget? floatingActionButton(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(18, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          FloatingActionButton.extended(
-            label: const Text('ohne Mangel'),
-            onPressed: () async {
-              if ((await all().last).isEmpty) {
-                await API().setNew(
-                  CheckPointDefect(
-                    pjNr: currentData.pjNr,
-                    category_index: currentData.category_index,
-                    check_index: currentData.index,
-                    index: -1,
-                    ereArt: OufnessChooser.default_none,
-                    kurzText: currentData.title + "  ohne Mangel",
-                    langText: "ohne Mangel",
-                  )
-                    ..id = "-1"
-                    ..height = "ohne Mangel",
-                  caller: currentData,
-                );
-                notifyListeners();
-                return;
-              } else {
-                showDialog(
-                  barrierColor: Colors.black54,
-                  context: context,
-                  builder: (BuildContext context) {
-                    return MySimpleAlertBox(
-                      actions: <Widget>[
-                        Center(
-                          child: TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text(S.current!.cancel)),
-                        ),
-                      ],
-                      title: 'Sicher?',
-                      bodyLines: [
-                        S.of(context).areYouSure,
-                      ],
-                    );
-                  },
-                );
-              }
-            },
-          ),
-          PopUpActionbutton(
-            expandedChild: (onCancel) => adder(
-                withoutdefect: false,
-                parent: currentData,
-                onCancel: onCancel,
-                onDone: (defect) async {
-                  await API().setNew(defect, caller: currentData);
-                  notifyListeners();
-                }),
-          ),
-        ],
-      ),
+    return PopUpActionbutton(
+      expandedChild: (onCancel) => adder(
+          // withoutdefect: false,
+          parent: currentData,
+          onCancel: onCancel,
+          onDone: (defect) async {
+            await API().setNew(defect, caller: currentData);
+            notifyListeners();
+          }),
     );
   }
 
+  ohneMaengelAction(context) async {
+    if ((await all().last).isEmpty) {
+      await API().setNew<CheckPointDefect>(
+        CheckPointDefect(
+          pjNr: currentData.pjNr,
+          category_index: currentData.category_index,
+          check_index: currentData.index,
+          index: -1,
+          ereArt: OufnessChooser.none,
+          kurzText: currentData.title + "  ohne Mangel",
+          langText: "ohne Mangel",
+        )
+          ..id = "-1"
+          ..height = "ohne Mangel",
+        caller: currentData,
+      ); //TODO: does not work in online mode
+      notifyListeners();
+      return;
+    } else {
+      showDialog(
+        barrierColor: Colors.black54,
+        context: context,
+        builder: (BuildContext context) {
+          return MySimpleAlertBox(
+            actions: <Widget>[
+              Center(
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(S.current!.cancel)),
+              ),
+            ],
+            title: S.of(context).uhoh,
+            bodyLines: [
+              S.of(context).areYouSure,
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Widget ohneMaengelButton(BuildContext context) {
+    return FutureBuilder(
+        future: all().last,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Container();
+          }
+          return TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor:
+                    Theme.of(context).colorScheme.onPrimaryContainer,
+                // iconColor: Theme.of(context)
+                //     .colorScheme
+                //     .onPrimaryContainer,
+                backgroundColor: snapshot.data!.isNotEmpty
+                    ? Colors.grey.shade400
+                    : Theme.of(context).colorScheme.primaryContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                padding: EdgeInsets.all(0),
+              ),
+              onPressed: () => ohneMaengelAction(context),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check,
+                    ),
+                    SizedBox(width: 5),
+                    Text(S.of(context).ohneMaengel),
+                  ],
+                ),
+              ));
+        });
+  }
+
   static Adder adder({
-    required bool withoutdefect,
+    // required bool withoutdefect,
     required CheckPoint parent,
     required onCancel(),
     required onDone(CheckPointDefect defect),
@@ -160,27 +190,27 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           defect[CheckPointDefect.E2_key] = parent.index;
           defect[CheckPointDefect.E3_key] = -1;
         }
-        if (withoutdefect) {
-          defect[CheckPointDefect.kurzText_key] =
-              parent.title + "  ohne Mangel";
-          defect[CheckPointDefect.ereArt_key] = OufnessChooser.default_none;
-        } else {
-          defect[CheckPointDefect.kurzText_key] = parent.title +
-                  "  " +
-                  ((defect[oufnessChooser.name].toString() ==
-                          OufnessChooser.default_none.toString())
-                      ? "ohne Mangel"
-                      : ("Mangel " +
-                          (CheckPointDefect.chipd(defect[oufnessChooser.name])
-                                  ?.label ??
-                              ""))) //ahhh so thats why we learn functional programming
-              // +
-              // "Mangel "
-              //  +
-              // " #" +
-              // json.hashCode.toRadixString(36)
-              ;
-        }
+        // if (withoutdefect) {
+        //   defect[CheckPointDefect.kurzText_key] =
+        //       parent.title + "  ohne Mangel";
+        //   defect[CheckPointDefect.ereArt_key] = OufnessChooser.none;
+        // } else {
+        defect[CheckPointDefect.kurzText_key] = parent.title +
+                "  " +
+                ((defect[oufnessChooser.name].toString() ==
+                        OufnessChooser.none.toString())
+                    ? "ohne Mangel"
+                    : ("Mangel " +
+                        (CheckPointDefect.chipd(defect[oufnessChooser.name])
+                                ?.label ??
+                            ""))) //ahhh so thats why we learn functional programming
+            // +
+            // "Mangel "
+            //  +
+            // " #" +
+            // json.hashCode.toRadixString(36)
+            ;
+        // }
         onDone(CheckPointDefect.fromJson(defect)!);
       },
       onCancel: onCancel,
@@ -215,7 +245,8 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
   OufnessChooser({super.key, this.preSelected});
 
   // ignore: non_constant_identifier_names
-  static final int default_none = 5204;
+  static final int none = 5204;
+  static final int default_val = 5201;
 
   final List<int> choices = [5201, 5202, 5203];
 
@@ -229,7 +260,7 @@ class OufnessChooser extends StatefulWidget implements JsonExtractable {
 }
 
 class _OufnessChooserState extends State<OufnessChooser> {
-  int select = OufnessChooser.default_none;
+  int select = OufnessChooser.default_val;
 
   @override
   void initState() {
@@ -256,12 +287,12 @@ class _OufnessChooserState extends State<OufnessChooser> {
           selectedShadowColor: cd?.backgroundColor,
           selectedColor: cd?.backgroundColor,
           backgroundColor: cd?.backgroundColor?.withAlpha(70),
-          avatar: widget._selected == index
-              ? Icon(
-                  Icons.check,
-                  color: Theme.of(context).colorScheme.surface,
-                )
-              : null,
+          // avatar: widget._selected == index
+          //     ? Icon(
+          //         Icons.check,
+          //         color: Theme.of(context).colorScheme.surface,
+          //       )
+          //     : null,
           label: Text(
             cd?.label ?? "none",
           ),
@@ -269,7 +300,7 @@ class _OufnessChooserState extends State<OufnessChooser> {
           selected: widget._selected == index,
           onSelected: (bool selected) {
             setState(() {
-              select = selected ? index : OufnessChooser.default_none;
+              select = index; //selected ? index : OufnessChooser.default_val;
             });
           },
         ),

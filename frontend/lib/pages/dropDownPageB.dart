@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -10,6 +11,7 @@ import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
@@ -42,7 +44,16 @@ class DropDownPageB<
   Widget build(BuildContext context) {
     return Consumer<DDModel>(
       builder: (context, ddmodel, child) {
-        var sliverAppBar = SliverAppBarBuilder(
+        final maengelDoneButton = ddmodel.runtimeType == CheckPointDefectsModel
+            ? Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: (ddmodel as CheckPointDefectsModel)
+                    .ohneMaengelButton(context),
+              )
+            : Container();
+
+        final sliverAppBar = SliverAppBarBuilder(
           barHeight:
               // Theme.of(context).appBarTheme.toolbarHeight ??
               _appbarBarHeight,
@@ -230,6 +241,15 @@ class DropDownPageB<
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top *
+                              (4 * expandRatio - 3),
+                          height: _appbarBarHeight,
+                          child: Opacity(
+                            opacity: max(expandRatio * 2 - 1, 0),
+                            child: Align(child: maengelDoneButton),
                           ),
                         ),
                       ],
