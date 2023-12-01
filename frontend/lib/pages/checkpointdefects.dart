@@ -196,8 +196,9 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
         //       parent.title + "  ohne Mangel";
         //   defect[CheckPointDefect.ereArt_key] = OufnessChooser.none;
         // } else {
-        defect[CheckPointDefect.kurzText_key] = parent.title +
-                "  " +
+        defect[CheckPointDefect.kurzText_key] =
+                //parent.title +
+                //"  " +
                 ((defect[oufnessChooser.name].toString() ==
                         OufnessChooser.none.toString())
                     ? "ohne Mangel"
