@@ -1,3 +1,3 @@
 # changes
 
-- v2 alpha 3 : new design
+- v2 alpha 4 : new design 2
