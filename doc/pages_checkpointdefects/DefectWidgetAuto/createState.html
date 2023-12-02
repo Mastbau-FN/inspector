@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the extras method from the CheckPointDefect class, for the Dart programming language.">
-  <title>extras method - CheckPointDefect class - checkpointdefect library - Dart API</title>
+  <meta name="description" content="API docs for the createState method from the DefectWidgetAuto class, for the Dart programming language.">
+  <title>createState method - DefectWidgetAuto class - checkpointdefects library - Dart API</title>
 
 
   
@@ -29,11 +29,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">classes&#47;data&#47;checkpointdefect.dart</a></li>
-    <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
-    <li class="self-crumb">extras method</li>
+    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">pages&#47;checkpointdefects.dart</a></li>
+    <li><a href="../../pages_checkpointdefects/DefectWidgetAuto-class.html">DefectWidgetAuto</a></li>
+    <li class="self-crumb">createState method</li>
   </ol>
-  <div class="self-name">extras</div>
+  <div class="self-name">createState</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -54,10 +54,10 @@
   <div
       id="dartdoc-main-content"
       class="main-content"
-      data-above-sidebar="classes_data_checkpointdefect&#47;CheckPointDefect-class-sidebar.html"
+      data-above-sidebar="pages_checkpointdefects&#47;DefectWidgetAuto-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-method">extras</span> method 
+<h1><span class="kind-method">createState</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
@@ -68,16 +68,27 @@
     </ol>
   </div>
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>&gt;</span></span>
-<span class="name ">extras</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="extras-param-context">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a>?</span> <span class="parameter-name">context</span>}</span></li>
-</ol>)
+<span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../pages_checkpointdefects/DefectWidgetAuto-class.html">DefectWidgetAuto</a></span>&gt;</span></span>
+<span class="name ">createState</span>(<wbr>)
 
       <div class="features"><span class="feature">override</span></div>
 
     </section>
     
 <section class="desc markdown">
-  <p>an optional extra Widget, to display extra data (currently only used by <a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a> to show the urgency)</p>
+  <p>Creates the mutable state for this widget at a given location in the tree.</p>
+<p>Subclasses should override this method to return a newly created
+instance of their associated <a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> subclass:</p>
+<pre class="language-dart"><code class="language-dart">@override
+State&lt;SomeWidget&gt; createState() =&gt; _SomeWidgetState();
+</code></pre>
+<p>The framework can call this method multiple times over the lifetime of
+a <code>StatefulWidget</code>. For example, if the widget is inserted into the tree
+in multiple locations, the framework will create a separate <a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> object
+for each location. Similarly, if the widget is removed from the tree and
+later inserted into the tree again, the framework will call <a href="../../pages_checkpointdefects/DefectWidgetAuto/createState.html">createState</a>
+again to create a fresh <a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> object, simplifying the lifecycle of
+<a href="https://api.flutter.dev/flutter/widgets/State-class.html">State</a> objects.</p>
 </section>
 
 
@@ -85,12 +96,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-List&lt;Widget&gt; extras({BuildContext? context}) =&gt; [
-      chipd(ereArt)?.toChip ?? Container(),
-      &#47;&#47; Spacer(),
-      newImgButton(context: context),
-      editButton(context: context),
-    ];</code></pre>
+State&lt;DefectWidgetAuto&gt; createState() =&gt; _DefectWidgetStateAuto();</code></pre>
 </section>
 
 
@@ -106,13 +112,13 @@ List&lt;Widget&gt; extras({BuildContext? context}) =&gt; [
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></li>
-    <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
-    <li class="self-crumb">extras method</li>
+    <li><a href="../../pages_checkpointdefects/pages_checkpointdefects-library.html">checkpointdefects</a></li>
+    <li><a href="../../pages_checkpointdefects/DefectWidgetAuto-class.html">DefectWidgetAuto</a></li>
+    <li class="self-crumb">createState method</li>
 </ol>
 
 
-    <h5>CheckPointDefect class</h5>
+    <h5>DefectWidgetAuto class</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
 

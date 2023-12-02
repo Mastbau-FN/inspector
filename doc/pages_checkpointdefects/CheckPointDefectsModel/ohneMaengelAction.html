@@ -78,6 +78,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">ohneMaengelAction(context) async {
   if ((await all().last).isEmpty) {
+    &#47;&#47; final x = currentData;
     await API().setNew&lt;CheckPointDefect&gt;(
       CheckPointDefect(
         pjNr: currentData.pjNr,
@@ -87,11 +88,10 @@
         ereArt: OufnessChooser.none,
         kurzText: currentData.title + &quot;  ohne Mangel&quot;,
         langText: &quot;ohne Mangel&quot;,
-      )
-        ..id = &quot;-1&quot;
-        ..height = &quot;ohne Mangel&quot;,
+      )..id = &quot;0&quot;, &#47;&#47;TODO: test
+      &#47;&#47; ..height = &quot;----&quot;,
       caller: currentData,
-    ); &#47;&#47;TODO: does not work in online mode #387
+    ); &#47;&#47;TO-DO: does not work in online mode #387
     notifyListeners();
     return;
   } else {

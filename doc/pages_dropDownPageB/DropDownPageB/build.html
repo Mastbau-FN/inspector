@@ -139,59 +139,8 @@ Widget build(BuildContext context) {
         contentBelowBar: false,
         &#47;&#47; forceMaterialTransparency: true,
         &#47;&#47; primary: true,
-        leadingActions: [
-          (context, expandRatio, barHeight, overlapsContent) =&gt; Container(
-                height: barHeight,
-                alignment: Alignment.centerLeft,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surface
-                        .withOpacity(0.5),
-                    height: barHeight - 20,
-                    child: (ModalRoute.of(context)?.canPop ?? false)
-                        ? BackButton(
-                            onPressed: Navigator.of(context).pop,
-                          )
-                        : Container(),
-                  ),
-                ),
-              ),
-        ],
-        trailingActions: [
-          (context, expandRatio, barHeight, overlapsContent) =&gt;
-              &#47;&#47;Open drawer
-              Container(
-                height: barHeight,
-                alignment: Alignment.centerLeft,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    bottomLeft: Radius.circular(25),
-                  ),
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surface
-                        .withOpacity(0.5),
-                    height: barHeight - 20,
-                    child: IconButton(
-                      icon: Icon(Icons.menu),
-                      onPressed: () {
-                        Scaffold.of(context).openEndDrawer();
-                      },
-                    ),
-                  ),
-                ),
-              ),
-        ],
+        leadingActions: [backButtonW],
+        trailingActions: [drawerButtonW],
         &#47;&#47; &#47;&#47; floating: true,
         &#47;&#47; centerTitle: true,
         pinned: true,
@@ -204,134 +153,160 @@ Widget build(BuildContext context) {
             builder: (context, snapshot) {
               final img = snapshot.data?.thumbnail
                   .image; &#47;&#47;todo show as bg (and switch to fullsize when loaded)
-              return Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    if (img != null)
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                        offset: Offset(0, 5),
-                      ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(25 * expandRatio),
-                    bottomRight: Radius.circular(25 * expandRatio),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (img != null)
-                        Positioned.fill(
-                          child: Blur(
-                            blurColor: Colors.transparent,
-                            child: Positioned.fill(
-                              child: Hero(
-                                tag: ddmodel.title +
-                                    &quot;.image&quot; +
-                                    ddmodel.currentData.runtimeType
-                                        .toString(),
-                                child: Image(
-                                  image: img,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+              return FutureBuilder(
+                  future: snapshot.data?.fullImageGetter?.call(),
+                  builder: (context, fullImageSnapshot) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          if (img != null)
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                              offset: Offset(0, 5),
                             ),
-                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(25 * expandRatio),
+                          bottomRight: Radius.circular(25 * expandRatio),
                         ),
-                      &#47;&#47; if (img != null)
-                      &#47;&#47;   Positioned.fill(
-                      &#47;&#47;     child: Container(
-                      &#47;&#47;       color: Theme.of(context)
-                      &#47;&#47;           .colorScheme
-                      &#47;&#47;           .surface
-                      &#47;&#47;           .withOpacity(0.5),
-                      &#47;&#47;     ),
-                      &#47;&#47;   ),
-                      Container(
-                        alignment: Alignment.center,
-                        height: contentHeight,
-                        padding: EdgeInsets.only(
-                          left: 10 + (1 - expandRatio) * 40,
-                          right: 10 + (1 - expandRatio) * 40,
-                          bottom: 10,
-                          top: 10 + (expandRatio) * _appbarBarHeight,
-                        ),
-                        child: SafeArea(
-                          child: AnimatedContainer(
-                            &#47;&#47; padding: EdgeInsets.only(top: _appbarBarHeight),
-                            height: expandRatio &gt; _appbarExpansionSwitchValue
-                                ? _appbarHeightBig
-                                : _appbarHeightSmall,
-                            &#47;&#47; color: Colors.amber,
-                            alignment: Alignment.center,
-                            curve: Curves.fastOutSlowIn,
-                            duration: const Duration(milliseconds: 200),
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(25),
-                                child: Container(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surface
-                                      .withOpacity(0.5),
-                                  &#47;&#47; alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 25,
-                                    vertical: 10 * expandRatio,
-                                  ),
-
-                                  child: Hero(
-                                    tag: ddmodel.title +
-                                        &quot;.title.text&quot; +
-                                        ddmodel.currentData.runtimeType
-                                            .toString() +
-                                        &#39;disabled&#39;, &#47;&#47;FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
-                                    child: Text(
-                                      ddmodel.title,
-                                      overflow: expandRatio &gt;
-                                              _appbarExpansionSwitchValue
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            &#47;&#47;background image
+                            if (img != null)
+                              Positioned.fill(
+                                child: fullImageSnapshot.data != null
+                                    ? Image(
+                                        image: fullImageSnapshot.data!.image,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Blur(
+                                        blurColor: Colors.transparent,
+                                        child: Positioned.fill(
+                                          child: Hero(
+                                            tag: ddmodel.title +
+                                                &quot;.image&quot; +
+                                                ddmodel
+                                                    .currentData.runtimeType
+                                                    .toString(),
+                                            child: Image(
+                                              image: img,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                            &#47;&#47;title
+                            Container(
+                              alignment: Alignment.center,
+                              height: contentHeight,
+                              padding: EdgeInsets.only(
+                                left: 10 + (1 - expandRatio) * 40,
+                                right: 10 + (1 - expandRatio) * 40,
+                                bottom: 10,
+                                top: 10 + (expandRatio) * _appbarBarHeight,
+                              ),
+                              child: SafeArea(
+                                child: AnimatedContainer(
+                                  &#47;&#47; padding: EdgeInsets.only(top: _appbarBarHeight),
+                                  height: expandRatio &gt;
+                                          _appbarExpansionSwitchValue
+                                      ? _appbarHeightBig
+                                      : _appbarHeightSmall,
+                                  &#47;&#47; color: Colors.amber,
+                                  alignment: Alignment.center,
+                                  curve: Curves.fastOutSlowIn,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Container(
+                                      decoration: img == null
                                           ? null
-                                          : TextOverflow.ellipsis,
-                                      softWrap: true,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: Theme.of(context)
-                                                .textTheme
-                                                .headlineMedium
-                                                ?.fontSize +
-                                            expandRatio * 10,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                        fontWeight: FontWeight.bold,
+                                          : BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(27),
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 2,
+                                              ),
+                                            ),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(25),
+                                        child: Container(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                              .withOpacity(0.5),
+                                          &#47;&#47; alignment: Alignment.center,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 25,
+                                            vertical: 10 * expandRatio,
+                                          ),
+                                          &#47;&#47;blur background
+
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(
+                                              sigmaX: 5,
+                                              sigmaY: 5,
+                                            ),
+                                            child: Hero(
+                                              tag: ddmodel.title +
+                                                  &quot;.title.text&quot; +
+                                                  ddmodel
+                                                      .currentData.runtimeType
+                                                      .toString() +
+                                                  &#39;disabled&#39;, &#47;&#47;FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
+                                              child: Text(
+                                                ddmodel.title,
+                                                overflow: expandRatio &gt;
+                                                        _appbarExpansionSwitchValue
+                                                    ? null
+                                                    : TextOverflow.ellipsis,
+                                                softWrap: true,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: Theme.of(context)
+                                                          .textTheme
+                                                          .headlineMedium
+                                                          ?.fontSize +
+                                                      expandRatio * 5,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                            &#47;&#47;maengelbutton
+                            Positioned(
+                              top: MediaQuery.of(context).padding.top *
+                                  (4 * expandRatio - 3),
+                              height: _appbarBarHeight,
+                              child: Opacity(
+                                opacity: max(expandRatio * 2 - 1, 0),
+                                child: Align(child: maengelDoneButton),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Positioned(
-                        top: MediaQuery.of(context).padding.top *
-                            (4 * expandRatio - 3),
-                        height: _appbarBarHeight,
-                        child: Opacity(
-                          opacity: max(expandRatio * 2 - 1, 0),
-                          child: Align(child: maengelDoneButton),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
+                    );
+                  });
             },
           );
         },
@@ -368,6 +343,10 @@ Widget build(BuildContext context) {
                     );
                   }
                   final childrenData = snapshot.data as List&lt;ChildData&gt;;
+                  if (ddmodel.runtimeType == CheckPointDefectsModel) {
+                    return generateCheckPointDefectsSliverList(
+                        context, childrenData as List&lt;CheckPointDefect&gt;);
+                  }
                   return SliverList.list(
                     children: childrenData.map((cd) {
                       return DropDownElementB(

@@ -110,8 +110,9 @@
       &#47;&#47;       parent.title + &quot;  ohne Mangel&quot;;
       &#47;&#47;   defect[CheckPointDefect.ereArt_key] = OufnessChooser.none;
       &#47;&#47; } else {
-      defect[CheckPointDefect.kurzText_key] = parent.title +
-              &quot;  &quot; +
+      defect[CheckPointDefect.kurzText_key] =
+              &#47;&#47;parent.title +
+              &#47;&#47;&quot;  &quot; +
               ((defect[oufnessChooser.name].toString() ==
                       OufnessChooser.none.toString())
                   ? &quot;ohne Mangel&quot;

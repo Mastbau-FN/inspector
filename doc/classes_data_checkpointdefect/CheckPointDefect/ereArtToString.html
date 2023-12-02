@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the extras method from the CheckPointDefect class, for the Dart programming language.">
-  <title>extras method - CheckPointDefect class - checkpointdefect library - Dart API</title>
+  <meta name="description" content="API docs for the ereArtToString method from the CheckPointDefect class, for the Dart programming language.">
+  <title>ereArtToString method - CheckPointDefect class - checkpointdefect library - Dart API</title>
 
 
   
@@ -31,9 +31,9 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">classes&#47;data&#47;checkpointdefect.dart</a></li>
     <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
-    <li class="self-crumb">extras method</li>
+    <li class="self-crumb">ereArtToString static method</li>
   </ol>
-  <div class="self-name">extras</div>
+  <div class="self-name">ereArtToString</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -57,40 +57,38 @@
       data-above-sidebar="classes_data_checkpointdefect&#47;CheckPointDefect-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-method">extras</span> method 
+<h1><span class="kind-method">ereArtToString</span> static method 
 </h1></div>
 
     <section class="multi-line-signature">
       
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
-    </ol>
-  </div>
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>&gt;</span></span>
-<span class="name ">extras</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="extras-param-context">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a>?</span> <span class="parameter-name">context</span>}</span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+<span class="name ">ereArtToString</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="ereArtToString-param-ereArt"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">ereArt</span></span></li>
 </ol>)
 
-      <div class="features"><span class="feature">override</span></div>
+      
 
     </section>
     
-<section class="desc markdown">
-  <p>an optional extra Widget, to display extra data (currently only used by <a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a> to show the urgency)</p>
-</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@override
-List&lt;Widget&gt; extras({BuildContext? context}) =&gt; [
-      chipd(ereArt)?.toChip ?? Container(),
-      &#47;&#47; Spacer(),
-      newImgButton(context: context),
-      editButton(context: context),
-    ];</code></pre>
+  <pre class="language-dart"><code class="language-dart">static String ereArtToString(int? ereArt) {
+  switch (ereArt) {
+    case 5201:
+      return &quot;leicht&quot;;
+    case 5202:
+      return &quot;mittel&quot;;
+    case 5203:
+      return &quot;schwer&quot;;
+    case 5204:
+    default:
+      return &quot;ohne&quot;;
+  }
+}</code></pre>
 </section>
 
 
@@ -108,7 +106,7 @@ List&lt;Widget&gt; extras({BuildContext? context}) =&gt; [
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../classes_data_checkpointdefect/classes_data_checkpointdefect-library.html">checkpointdefect</a></li>
     <li><a href="../../classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></li>
-    <li class="self-crumb">extras method</li>
+    <li class="self-crumb">ereArtToString static method</li>
 </ol>
 
 

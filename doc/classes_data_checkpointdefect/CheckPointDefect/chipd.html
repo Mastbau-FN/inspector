@@ -77,31 +77,10 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">static ChipData? chipd(int? oufness) {
-  switch (oufness) {
-    case null:
-      return null;
-    case 5201:
-      return ChipData(
-        label: &quot;leicht&quot;,
-        backgroundColor: Colors.green,
-      );
-    case 5202:
-      return ChipData(
-        label: &quot;mittel&quot;,
-        backgroundColor: Colors.orange,
-      );
-    case 5203:
-      return ChipData(
-        label: &quot;schwer&quot;,
-        backgroundColor: Colors.red,
-      );
-    case 5204:
-    default:
-      return ChipData(
-        label: &quot;ohne&quot;,
-        backgroundColor: Colors.grey,
-      );
-  }
+  return ChipData(
+    label: ereArtToString(oufness),
+    backgroundColor: ereArtToColor(oufness),
+  );
 }</code></pre>
 </section>
 
