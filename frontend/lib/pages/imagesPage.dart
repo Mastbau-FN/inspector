@@ -364,6 +364,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
           ? FloatingActionButton(
               child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
               onPressed: withCamera ? () => shoot(context) : openCam,
+              //TODO: on long press or similar start video
             )
           : Column(
               mainAxisSize: MainAxisSize.min,
@@ -388,10 +389,13 @@ class _ImageAddButtonState extends State<ImageAddButton>
               child: SizedBox(
                 height: 50,
                 width: 50,
-                child: Image.file(
-                  File(file.path),
-                  fit: BoxFit.fitWidth,
-                ),
+                child:
+                    ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(file.mimeType)
+                        ? Container() //TODO: video preview
+                        : Image.file(
+                            File(file.path),
+                            fit: BoxFit.fitWidth,
+                          ),
               ),
             ),
           );
