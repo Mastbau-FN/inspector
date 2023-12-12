@@ -506,7 +506,7 @@ class MyCardListTileB extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         alignment: Alignment.centerLeft,
-        padding: EdgeInsets.all(15),
+        padding: EdgeInsets.all(8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -519,8 +519,11 @@ class MyCardListTileB extends StatelessWidget {
           SizedBox(width: 10),
           Text(text),
           Spacer(),
-          Icon(Icons.chevron_right,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+          Icon(
+            Icons.chevron_right,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            // size: 10,
+          ),
         ],
       ),
     );

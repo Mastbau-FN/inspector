@@ -38,6 +38,12 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       icon: Icons.photo_library,
     ),
 
+    ///see #389
+    MyListTileData(
+      title: "Dateien",
+      icon: Icons.file_present,
+    ),
+
     ///see #24
     MyListTileData(
       title: "Infos",
@@ -67,6 +73,8 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
                 generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
+          case 'Dateien':
+            return standard_statefulFileView(this, data);
           default:
             return LocationDetailPage(
               locationdata: data,

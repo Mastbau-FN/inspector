@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
@@ -240,7 +241,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
                                         }),
                                       )
                                     : Image.file(
-                                        File(model.latestPic!.path),
+                                        model.latestPic!.toFile(),
                                         fit: BoxFit.fitWidth,
                                       ),
                           ),
@@ -389,7 +390,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
                 height: 50,
                 width: 50,
                 child: Image.file(
-                  File(file.path),
+                  file.toFile(),
                   fit: BoxFit.fitWidth,
                 ),
               ),

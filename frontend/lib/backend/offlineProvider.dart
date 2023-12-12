@@ -261,5 +261,13 @@ Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
 }
 
 Future<XFile> retrieveStoredXFile(String name) async {
-  return XFile((await localFile(name)).path);
+  return (await localFile(name)).toXFile();
+}
+
+extension ToXFile on File {
+  XFile toXFile() => XFile(this.path);
+}
+
+extension ToFile on XFile {
+  File toFile() => File(this.path);
 }

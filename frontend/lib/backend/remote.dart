@@ -23,6 +23,8 @@ import 'api.dart';
 String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
 
+const _getFileFromHash_r = '/file/get'; //TODO: implement in remote
+
 const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
 
@@ -243,6 +245,35 @@ class Remote {
       if (data == null) return null;
       return injectImages(data, preloadFull: preloadFullImages);
     };
+  }
+
+  RequestAndParser<http.BaseResponse, XFile?> getFileByHash(String hash) {
+    final rd = switch (kIsWeb) {
+      true => RequestData('/login'),
+      false => RequestData(
+          _getFileFromHash_r,
+          json: {
+            'hash': hash,
+          },
+          returnsBinary: true,
+        )
+    };
+
+    parser(http.BaseResponse _res) async {
+      final res = _res.forceRes();
+      if (res == null || res.statusCode ~/ 100 != 2)
+        return null;
+      else {
+        try {
+          await API().local.storeFile(res.bodyBytes, hash);
+          return await API().local.getFileByHash(hash);
+        } catch (e) {
+          debugPrint("failed to load file from network: " + e.toString());
+        }
+      }
+    }
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 
   // Future<String> get rootID async => _user!.name;

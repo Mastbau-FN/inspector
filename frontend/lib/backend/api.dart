@@ -347,6 +347,18 @@ class API {
     ).last;
   }
 
+  /// gets file specified by its hash
+  Future<XFile?> getFileByHash(String hash) async {
+    final requestType = Helper.SimulatedRequestType.GET;
+    return _run(
+      itPrefersCache:
+          false, //! wir nehmen immer lieber lokale files, bandbreite und so
+      offline: () => local.getFileByHash(hash),
+      online: () => remote.getFileByHash(hash),
+      requestType: requestType,
+    ).last;
+  }
+
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash<DataT extends Data>(
     DataT? data,
@@ -472,6 +484,17 @@ D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
       data.previewImage = data.imageFutures!.first;
     }
   }
+
+  return data;
+}
+
+D injectFiles<D extends WithFiles>(D data, {bool preloadFull = false}) {
+  Future<XFile?> getFileFromHash(String? hash) async {
+    return await API().getFileByHash(hash!);
+  }
+
+  data.fileFutures =
+      data.fileHashes?.map((hash) => getFileFromHash(hash)).toList();
 
   return data;
 }
