@@ -20,8 +20,14 @@ const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
 	let frontendname = file.originalname;
-	file.originalname = file.fieldname+".jpg";
-	file.fieldname = frontendname;
+	if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX)){
+		file.originalname = file.fieldname+file.originalname;
+		file.fieldname = frontendname;
+	}else{
+		file.originalname = LOCALLY_ADDED_PREFIX+file.fieldname+file.originalname;
+		file.fieldname = frontendname;
+	}
+	
     console.info("file uploaded");
     //shouldnt be neccessary, since upload route used fieldparser as middleware
     try {
