@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:fs/io.dart' if (dart.library.html) 'package:fs/html.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
@@ -144,8 +144,13 @@ class Remote {
                   (fxfile) async {
                     final xfile = await fxfile;
                     final name = xfile.name;
+                    final creation = FileStat.statSync(xfile.path)
+                        .changed
+                        .toUtc()
+                        .millisecondsSinceEpoch;
                     final path = xfile.path;
-                    return http.MultipartFile.fromPath('package', path,
+                    return http.MultipartFile.fromPath(
+                        creation.toString(), path,
                         filename: name);
                   },
                 ),
