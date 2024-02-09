@@ -19,6 +19,9 @@ const {ftb_ftb_id, update_hash_map } = require("../misc/frontend_wrapper_middlew
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
+	let frontendname = file.originalname;
+	file.originalname = file.fieldname+".jpg";
+	file.fieldname = frontendname;
     console.info("file uploaded");
     //shouldnt be neccessary, since upload route used fieldparser as middleware
     try {
