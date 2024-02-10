@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -410,12 +412,15 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: 50,
-                      child: PreviewImageCircle(
-                        previewImage: cd.previewImage,
-                      ),
-                    ),
+                    (cd.runtimeType == CheckPoint ||
+                            cd.runtimeType == CheckCategory)
+                        ? Container()
+                        : SizedBox(
+                            width: 50,
+                            child: PreviewImageCircle(
+                              previewImage: cd.previewImage,
+                            ),
+                          ),
                     offlineIndicator(cd),
                     Expanded(
                       child: Hero(
