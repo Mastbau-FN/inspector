@@ -408,85 +408,88 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                child: Row(
-                  children: [
-                    (cd.runtimeType == CheckPoint ||
-                            cd.runtimeType == CheckCategory)
-                        ? Container()
-                        : SizedBox(
-                            width: 50,
-                            child: PreviewImageCircle(
-                              previewImage: cd.previewImage,
+              ExpansionTile(
+                title: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                  child: Row(
+                    children: [
+                      (cd.runtimeType == CheckPoint ||
+                              cd.runtimeType == CheckCategory)
+                          ? Container()
+                          : SizedBox(
+                              width: 50,
+                              child: PreviewImageCircle(
+                                previewImage: cd.previewImage,
+                              ),
                             ),
+                      offlineIndicator(cd),
+                      Expanded(
+                        child: Hero(
+                          tag: cd.title +
+                              ".title.text" +
+                              cd.runtimeType.toString(),
+                          child: Text(
+                            cd.title,
+                            style: Theme.of(context).textTheme.titleMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                    offlineIndicator(cd),
-                    Expanded(
-                      child: Hero(
-                        tag: cd.title +
-                            ".title.text" +
-                            cd.runtimeType.toString(),
-                        child: Text(
-                          cd.title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                    ...cd.extras(context: context),
-                    FutureBuilder(
-                      future: API().user,
-                      builder: (BuildContext context,
-                          AsyncSnapshot<DisplayUser?> snapshot2) {
-                        //assert(data.runtimeType==DataT);
-                        try {
-                          if (cd.runtimeType ==
-                                  CheckPointDefect //alle mängel dürfen gelöscht werden (#380)
-                              ||
-                              (snapshot2.hasData &&
-                                  cd.toJson()['Autor'] == snapshot2.data?.name))
-                            return TrashButton(
-                              delete: onDelete,
-                              confirmName: cd.title,
-                            );
-                        } catch (e) {}
-                        return Container();
-                      },
-                    ), // Spacer(),
-                    // Transform.translate(
-                    //   offset: Offset(4, 0),
-                    //   child: Icon(actions.first.icon, size: 10),
-                    // ),
-                    Icon(Icons.expand_more_rounded),
-                  ],
+                      ...cd.extras(context: context),
+                      FutureBuilder(
+                        future: API().user,
+                        builder: (BuildContext context,
+                            AsyncSnapshot<DisplayUser?> snapshot2) {
+                          //assert(data.runtimeType==DataT);
+                          try {
+                            if (cd.runtimeType ==
+                                    CheckPointDefect //alle mängel dürfen gelöscht werden (#380)
+                                ||
+                                (snapshot2.hasData &&
+                                    cd.toJson()['Autor'] ==
+                                        snapshot2.data?.name))
+                              return TrashButton(
+                                delete: onDelete,
+                                confirmName: cd.title,
+                              );
+                          } catch (e) {}
+                          return Container();
+                        },
+                      ), // Spacer(),
+                      // Transform.translate(
+                      //   offset: Offset(4, 0),
+                      //   child: Icon(actions.first.icon, size: 10),
+                      // ),
+                    ],
+                  ),
                 ),
+                children: [
+                  if (actions.length > 1)
+                    Row(
+                      children: actions.indexed.map<Widget>((a) {
+                        final (int i, MyListTileData actionTileData) = a;
+                        if (i == 0) return Container();
+                        return Expanded(
+                          // width: 100,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 5),
+                            child: MyCardListTileB(
+                              text: actionTileData.title,
+                              icon: actionTileData.icon,
+                              onTap: () => onAction(actionTileData),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    )
+                  else
+                    SizedBox(height: 5),
+                ],
               ),
               // SizedBox(height: 10),
               //secondRow
-
-              if (actions.length > 1)
-                Row(
-                  children: actions.indexed.map<Widget>((a) {
-                    final (int i, MyListTileData actionTileData) = a;
-                    if (i == 0) return Container();
-                    return Expanded(
-                      // width: 100,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 5),
-                        child: MyCardListTileB(
-                          text: actionTileData.title,
-                          icon: actionTileData.icon,
-                          onTap: () => onAction(actionTileData),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                )
-              else
-                SizedBox(height: 5),
             ],
           ),
         ),
