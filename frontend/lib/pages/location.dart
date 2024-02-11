@@ -35,13 +35,14 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     ),
     MyListTileData(
       title: "Fotos",
-      icon: Icons.photo_library,
     ),
 
     ///see #24
     MyListTileData(
       title: "Infos",
-      icon: Icons.text_snippet,
+    ),
+    MyListTileData(
+      title: _nextViewTitle,
     ),
   ];
 
