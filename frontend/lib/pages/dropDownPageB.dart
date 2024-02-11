@@ -455,15 +455,17 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                         return Container();
                       },
                     ), // Spacer(),
-                    Transform.translate(
-                      offset: Offset(4, 0),
-                      child: Icon(actions.first.icon, size: 10),
-                    ),
-                    Icon(Icons.chevron_right),
+                    // Transform.translate(
+                    //   offset: Offset(4, 0),
+                    //   child: Icon(actions.first.icon, size: 10),
+                    // ),
+                    Icon(Icons.expand_more_rounded),
                   ],
                 ),
               ),
               // SizedBox(height: 10),
+              //secondRow
+
               if (actions.length > 1)
                 Row(
                   children: actions.indexed.map<Widget>((a) {
@@ -473,7 +475,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                       // width: 100,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 10),
+                            vertical: 10, horizontal: 5),
                         child: MyCardListTileB(
                           text: actionTileData.title,
                           icon: actionTileData.icon,
@@ -510,8 +512,8 @@ class MyCardListTileB extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        alignment: Alignment.centerLeft,
-        padding: EdgeInsets.all(15),
+        alignment: Alignment.center,
+        padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -520,12 +522,12 @@ class MyCardListTileB extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon),
-          SizedBox(width: 10),
+          //Icon(icon),
+          //SizedBox(width: 10),
           Text(text),
-          Spacer(),
-          Icon(Icons.chevron_right,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+          //Spacer(), Issue #385
+          //Icon(Icons.chevron_right,
+          //color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
         ],
       ),
     );
