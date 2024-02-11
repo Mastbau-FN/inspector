@@ -1,3 +1,3 @@
 # changes
 
-- v2 alpha 4 : new design 2
+- fixed issue 370,385,400
