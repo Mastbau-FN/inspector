@@ -145,7 +145,7 @@ class Remote {
                     final xfile = await fxfile;
                     final name = xfile.name;
                     var creation = 0;
-                    if (kIsWeb) {
+                    if (!kIsWeb) {
                       creation = FileStat.statSync(xfile.path)
                           .changed
                           .toUtc()
