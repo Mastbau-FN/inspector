@@ -95,8 +95,14 @@
                 (fxfile) async {
                   final xfile = await fxfile;
                   final name = xfile.name;
+                  var creation = 0;
+                  creation = FileStat.statSync(xfile.path)
+                      .changed
+                      .toUtc()
+                      .millisecondsSinceEpoch;
                   final path = xfile.path;
-                  return http.MultipartFile.fromPath(&#39;package&#39;, path,
+                  return http.MultipartFile.fromPath(
+                      creation.toString(), path,
                       filename: name);
                 },
               ),

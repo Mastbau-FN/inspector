@@ -142,80 +142,88 @@ Widget build(BuildContext context) {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 50,
-                    child: PreviewImageCircle(
-                      previewImage: cd.previewImage,
-                    ),
-                  ),
-                  offlineIndicator(cd),
-                  Expanded(
-                    child: Hero(
-                      tag: cd.title +
-                          &quot;.title.text&quot; +
-                          cd.runtimeType.toString(),
-                      child: Text(
-                        cd.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+            ExpansionTile(
+              title: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                child: Row(
+                  children: [
+                    (cd.runtimeType == CheckPoint ||
+                            cd.runtimeType == CheckCategory)
+                        ? Container()
+                        : SizedBox(
+                            width: 50,
+                            child: PreviewImageCircle(
+                              previewImage: cd.previewImage,
+                            ),
+                          ),
+                    offlineIndicator(cd),
+                    Expanded(
+                      child: Hero(
+                        tag: cd.title +
+                            &quot;.title.text&quot; +
+                            cd.runtimeType.toString(),
+                        child: Text(
+                          cd.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
-                  ),
-                  ...cd.extras(context: context),
-                  FutureBuilder(
-                    future: API().user,
-                    builder: (BuildContext context,
-                        AsyncSnapshot&lt;DisplayUser?&gt; snapshot2) {
-                      &#47;&#47;assert(data.runtimeType==DataT);
-                      try {
-                        if (cd.runtimeType ==
-                                CheckPointDefect &#47;&#47;alle mängel dürfen gelöscht werden (#380)
-                            ||
-                            (snapshot2.hasData &amp;&amp;
-                                cd.toJson()[&#39;Autor&#39;] == snapshot2.data?.name))
-                          return TrashButton(
-                            delete: onDelete,
-                            confirmName: cd.title,
-                          );
-                      } catch (e) {}
-                      return Container();
-                    },
-                  ), &#47;&#47; Spacer(),
-                  Transform.translate(
-                    offset: Offset(4, 0),
-                    child: Icon(actions.first.icon, size: 10),
-                  ),
-                  Icon(Icons.chevron_right),
-                ],
+                    ...cd.extras(context: context),
+                    FutureBuilder(
+                      future: API().user,
+                      builder: (BuildContext context,
+                          AsyncSnapshot&lt;DisplayUser?&gt; snapshot2) {
+                        &#47;&#47;assert(data.runtimeType==DataT);
+                        try {
+                          if (cd.runtimeType ==
+                                  CheckPointDefect &#47;&#47;alle mängel dürfen gelöscht werden (#380)
+                              ||
+                              (snapshot2.hasData &amp;&amp;
+                                  cd.toJson()[&#39;Autor&#39;] ==
+                                      snapshot2.data?.name))
+                            return TrashButton(
+                              delete: onDelete,
+                              confirmName: cd.title,
+                            );
+                        } catch (e) {}
+                        return Container();
+                      },
+                    ), &#47;&#47; Spacer(),
+                    &#47;&#47; Transform.translate(
+                    &#47;&#47;   offset: Offset(4, 0),
+                    &#47;&#47;   child: Icon(actions.first.icon, size: 10),
+                    &#47;&#47; ),
+                  ],
+                ),
               ),
+              children: [
+                if (actions.length &gt; 1)
+                  Row(
+                    children: actions.indexed.map&lt;Widget&gt;((a) {
+                      final (int i, MyListTileData actionTileData) = a;
+                      if (i == 0) return Container();
+                      return Expanded(
+                        &#47;&#47; width: 100,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 5),
+                          child: MyCardListTileB(
+                            text: actionTileData.title,
+                            icon: actionTileData.icon,
+                            onTap: () =&gt; onAction(actionTileData),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  )
+                else
+                  SizedBox(height: 5),
+              ],
             ),
             &#47;&#47; SizedBox(height: 10),
-            if (actions.length &gt; 1)
-              Row(
-                children: actions.indexed.map&lt;Widget&gt;((a) {
-                  final (int i, MyListTileData actionTileData) = a;
-                  if (i == 0) return Container();
-                  return Expanded(
-                    &#47;&#47; width: 100,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 10),
-                      child: MyCardListTileB(
-                        text: actionTileData.title,
-                        icon: actionTileData.icon,
-                        onTap: () =&gt; onAction(actionTileData),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              )
-            else
-              SizedBox(height: 5),
+            &#47;&#47;secondRow
           ],
         ),
       ),
