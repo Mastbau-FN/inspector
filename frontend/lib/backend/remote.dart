@@ -144,10 +144,14 @@ class Remote {
                   (fxfile) async {
                     final xfile = await fxfile;
                     final name = xfile.name;
-                    final creation = FileStat.statSync(xfile.path)
-                        .changed
-                        .toUtc()
-                        .millisecondsSinceEpoch;
+                    var creation = 0;
+                    if (kIsWeb) {
+                      creation = FileStat.statSync(xfile.path)
+                          .changed
+                          .toUtc()
+                          .millisecondsSinceEpoch;
+                    }
+
                     final path = xfile.path;
                     return http.MultipartFile.fromPath(
                         creation.toString(), path,
