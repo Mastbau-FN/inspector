@@ -55,6 +55,7 @@ class Remote {
   // MARK: internals
 
   static final Remote _instance = Remote._internal();
+
   factory Remote() => _instance;
 
   Remote._internal() {
@@ -147,6 +148,10 @@ class Remote {
                     var creation = 0;
                     if (!kIsWeb) {
                       try {
+                        if (FileStat == null) {
+                          var FileStat;
+                        }
+
                         creation = FileStat.statSync(xfile.path)
                             .changed
                             .toUtc()
