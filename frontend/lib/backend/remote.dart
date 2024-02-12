@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:fs/io.dart' if (dart.library.html) 'package:fs/html.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
@@ -146,21 +145,10 @@ class Remote {
                     final xfile = await fxfile;
                     final name = xfile.name;
                     var creation = 0;
-                    if (!kIsWeb) {
-                      try {
-                        if (FileStat == null) {
-                          var FileStat;
-                        }
-
-                        creation = FileStat.statSync(xfile.path)
-                            .changed
-                            .toUtc()
-                            .millisecondsSinceEpoch;
-                      } catch (e) {
-                        debugPrint("could not get creation date of file: $e");
-                      }
-                    }
-
+                    creation = FileStat.statSync(xfile.path)
+                        .changed
+                        .toUtc()
+                        .millisecondsSinceEpoch;
                     final path = xfile.path;
                     return http.MultipartFile.fromPath(
                         creation.toString(), path,
