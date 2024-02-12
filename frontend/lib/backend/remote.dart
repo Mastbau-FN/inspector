@@ -146,10 +146,14 @@ class Remote {
                     final name = xfile.name;
                     var creation = 0;
                     if (!kIsWeb) {
-                      creation = FileStat.statSync(xfile.path)
-                          .changed
-                          .toUtc()
-                          .millisecondsSinceEpoch;
+                      try {
+                        creation = FileStat.statSync(xfile.path)
+                            .changed
+                            .toUtc()
+                            .millisecondsSinceEpoch;
+                      } catch (e) {
+                        debugPrint("could not get creation date of file: $e");
+                      }
                     }
 
                     final path = xfile.path;
