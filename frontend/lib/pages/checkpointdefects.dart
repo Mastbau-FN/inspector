@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/fragments/prephotoadder.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:MBG_Inspektionen/pages/dropDownPageB.dart';
@@ -75,15 +76,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   @override
   Widget? floatingActionButton(BuildContext context) {
-    return PopUpActionbutton(
-      expandedChild: (onCancel) => adder(
-          // withoutdefect: false,
-          parent: currentData,
-          onCancel: onCancel,
-          onDone: (defect) async {
-            await API().setNew(defect, caller: currentData);
-            notifyListeners();
-          }),
+    return PrePhotoAdder(
+      parent: currentData,
+      model: this,
+      onDone: () async {
+        notifyListeners();
+      },
     );
   }
 
