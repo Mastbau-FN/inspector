@@ -92,34 +92,30 @@ class CheckPointDefect extends Data
   Widget editButton({BuildContext? context}) => IconButton(
         // padding: EdgeInsets.zero,
         icon: Icon(Icons.edit),
-        onPressed: () async {
-          if (context == null) {
-            debugPrint("no context from wich we could alert");
-            return;
-          }
-          return showDialog(
-            barrierColor: Colors.black54,
-            context: context,
-            // barrierDismissible: false, // user must tap button!
-            barrierDismissible: true,
-            builder: (BuildContext innerContext) {
-              return AlertDialog(
-                title: Text('Mangel bearbeiten'),
-                content: CheckPointDefectsModel.adder(
-                    // withoutdefect: false,
-                    parent: Provider.of<CheckPointDefectsModel>(context)
-                        .currentData,
-                    currentDefect: this,
-                    onCancel: () => Navigator.of(context).pop(),
-                    onDone: (data) {
-                      Provider.of<CheckPointDefectsModel>(context,
-                              listen: false)
-                          .update(data);
-                      // Navigator.of(context).pop();
-                    }),
-              );
-            },
-          );
+        onPressed: () {
+          (context == null)
+              ? Text("data")
+              : showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (BuildContext innerContext) {
+                    return Scaffold(
+                        body: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: CheckPointDefectsModel.adder(
+                          // withoutdefect: false,
+                          parent: Provider.of<CheckPointDefectsModel>(context)
+                              .currentData,
+                          currentDefect: this,
+                          onCancel: () => Navigator.of(context).pop(),
+                          onDone: (data) {
+                            Provider.of<CheckPointDefectsModel>(context,
+                                    listen: false)
+                                .update(data);
+                            // Navigator.of(context).pop();
+                          }),
+                    ));
+                  });
         },
       );
 
