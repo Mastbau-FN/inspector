@@ -189,12 +189,12 @@ class Adder extends StatelessWidget implements JsonExtractable {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           _PaddedButton(
-            icon: Icons.cancel,
+            icon: Icons.cancel_outlined,
             onPressed: onCancel,
           ),
           //if (textfield_list.isNotEmpty) _mainField(set),
           _PaddedButton(
-            icon: Icons.check_circle,
+            icon: Icons.check_circle_outline,
             onPressed: () {
               if (set(context)) onCancel?.call(); //as requested by #118
             },
@@ -217,8 +217,10 @@ class _PaddedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(5.0),
+        padding: const EdgeInsets.all(7.0),
         child: IconButton(
+          color: Color(0xFF616161),
+          iconSize: 60,
           //backgroundColor: Theme.of(context).canvasColor,
           onPressed: () {
             onPressed?.call();
