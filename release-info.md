@@ -1,3 +1,3 @@
 # changes
 
-- fixed issue 385 
+- fixed issue 383, 388
