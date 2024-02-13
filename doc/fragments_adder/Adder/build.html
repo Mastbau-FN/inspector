@@ -171,12 +171,12 @@ Widget build(BuildContext context) {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: &lt;Widget&gt;[
         _PaddedButton(
-          icon: Icons.cancel,
+          icon: Icons.cancel_outlined,
           onPressed: onCancel,
         ),
         &#47;&#47;if (textfield_list.isNotEmpty) _mainField(set),
         _PaddedButton(
-          icon: Icons.check_circle,
+          icon: Icons.check_circle_outline,
           onPressed: () {
             if (set(context)) onCancel?.call(); &#47;&#47;as requested by #118
           },
