@@ -136,17 +136,18 @@
     ],
     textfieldList: [
       &#47;&#47; InputData(&quot;KurzText&quot;, hint: &quot;Name&quot;), &#47;&#47;removed according to #48
-      InputData(
-        CheckPointDefect.langText_key,
-        hint: S.current!.langTextHint,
-        value: currentDefect?.langText,
-      ),
+
       InputData(CheckPointDefect.height_json_key,
           hint: S.current!.positionHeightHint,
           value: currentDefect?.height,
           verify: (val) =&gt; (val == null || val.length &lt; 1)
               ? S.current!.heightNotOptional
-              : null), &#47;&#47;added according to #49
+              : null),
+      InputData(
+        CheckPointDefect.langText_key,
+        hint: S.current!.langTextHint,
+        value: currentDefect?.langText,
+      ), &#47;&#47;added according to #49
     ],
   );
 }</code></pre>

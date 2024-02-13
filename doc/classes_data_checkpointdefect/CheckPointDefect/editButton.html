@@ -79,34 +79,30 @@
   <pre class="language-dart"><code class="language-dart">Widget editButton({BuildContext? context}) =&gt; IconButton(
       &#47;&#47; padding: EdgeInsets.zero,
       icon: Icon(Icons.edit),
-      onPressed: () async {
-        if (context == null) {
-          debugPrint(&quot;no context from wich we could alert&quot;);
-          return;
-        }
-        return showDialog(
-          barrierColor: Colors.black54,
-          context: context,
-          &#47;&#47; barrierDismissible: false, &#47;&#47; user must tap button!
-          barrierDismissible: true,
-          builder: (BuildContext innerContext) {
-            return AlertDialog(
-              title: Text(&#39;Mangel bearbeiten&#39;),
-              content: CheckPointDefectsModel.adder(
-                  &#47;&#47; withoutdefect: false,
-                  parent: Provider.of&lt;CheckPointDefectsModel&gt;(context)
-                      .currentData,
-                  currentDefect: this,
-                  onCancel: () =&gt; Navigator.of(context).pop(),
-                  onDone: (data) {
-                    Provider.of&lt;CheckPointDefectsModel&gt;(context,
-                            listen: false)
-                        .update(data);
-                    &#47;&#47; Navigator.of(context).pop();
-                  }),
-            );
-          },
-        );
+      onPressed: () {
+        (context == null)
+            ? Text(&quot;data&quot;)
+            : showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (BuildContext innerContext) {
+                  return Scaffold(
+                      body: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: CheckPointDefectsModel.adder(
+                        &#47;&#47; withoutdefect: false,
+                        parent: Provider.of&lt;CheckPointDefectsModel&gt;(context)
+                            .currentData,
+                        currentDefect: this,
+                        onCancel: () =&gt; Navigator.of(context).pop(),
+                        onDone: (data) {
+                          Provider.of&lt;CheckPointDefectsModel&gt;(context,
+                                  listen: false)
+                              .update(data);
+                          &#47;&#47; Navigator.of(context).pop();
+                        }),
+                  ));
+                });
       },
     );</code></pre>
 </section>

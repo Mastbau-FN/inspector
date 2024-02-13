@@ -87,15 +87,12 @@ for adding new <code>DataT</code> to this level (or other additional functionali
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget? floatingActionButton(BuildContext context) {
-  return PopUpActionbutton(
-    expandedChild: (onCancel) =&gt; adder(
-        &#47;&#47; withoutdefect: false,
-        parent: currentData,
-        onCancel: onCancel,
-        onDone: (defect) async {
-          await API().setNew(defect, caller: currentData);
-          notifyListeners();
-        }),
+  return PrePhotoAdder(
+    parent: currentData,
+    model: this,
+    onDone: () async {
+      notifyListeners();
+    },
   );
 }</code></pre>
 </section>
