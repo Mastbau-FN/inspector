@@ -229,6 +229,7 @@ class LocalMirror {
   final failedRequestWasSuccessful = OP.failedRequestWasSuccessful;
   final logFailedReq = OP.logFailedReq;
   final storeImage = OP.storeImage;
+  final storeFile = OP.storeFile;
   final readImage = OP.readImage;
 }
 
