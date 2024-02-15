@@ -121,48 +121,43 @@ Widget build(BuildContext context) {
   return Scaffold(
     body: Align(
       alignment: Alignment.bottomCenter,
-      child: SafeArea(
-        top: true,
-        child: Expanded(
-          child: SingleChildScrollView(
-            reverse: true,
-            child: Form(
-              key: _formKey,
+      child: SingleChildScrollView(
+        reverse: true,
+        child: Form(
+          key: _formKey,
 
-              &#47;&#47; autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: &lt;Widget&gt;[
-                  &#47;&#47; Spacer(),
-                  ...children,
-                  ...List.generate(textfieldList.length, (i) {
-                    _textfieldControllerList[i].value = TextEditingValue(
-                      text: textfieldList[i].value ?? &quot;&quot;,
-                    );
-                    return _Input(
-                      &#47;&#47; initialValue: textfieldList[i].value,
-                      hint: textfieldList[i].hint,
-                      isFirst: i == 0,
-                      isLast: i == textfieldList.length - 1,
-                      &#47;&#47; onDone: (name) {
-                      &#47;&#47;   try {
-                      &#47;&#47;     &#47;&#47;TextInputAction.next;
-                      &#47;&#47;     FocusScope.of(context)
-                      &#47;&#47;         .requestFocus(_textfield_focusnode_list[i + 1]);
-                      &#47;&#47;   } catch (e) {
-                      &#47;&#47;     FocusScope.of(context)
-                      &#47;&#47;         .requestFocus(_textfield_focusnode_list[0]);
-                      &#47;&#47;   }
-                      &#47;&#47; },
-                      &#47;&#47; fn: _textfield_focusnode_list[i],
-                      c: _textfieldControllerList[i],
-                      validator: textfieldList[i].verify,
-                    );
-                  }),
-                ],
-              ),
-            ),
+          &#47;&#47; autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: &lt;Widget&gt;[
+              &#47;&#47; Spacer(),
+              ...children,
+              ...List.generate(textfieldList.length, (i) {
+                _textfieldControllerList[i].value = TextEditingValue(
+                  text: textfieldList[i].value ?? &quot;&quot;,
+                );
+                return _Input(
+                  &#47;&#47; initialValue: textfieldList[i].value,
+                  hint: textfieldList[i].hint,
+                  isFirst: i == 0,
+                  isLast: i == textfieldList.length - 1,
+                  &#47;&#47; onDone: (name) {
+                  &#47;&#47;   try {
+                  &#47;&#47;     &#47;&#47;TextInputAction.next;
+                  &#47;&#47;     FocusScope.of(context)
+                  &#47;&#47;         .requestFocus(_textfield_focusnode_list[i + 1]);
+                  &#47;&#47;   } catch (e) {
+                  &#47;&#47;     FocusScope.of(context)
+                  &#47;&#47;         .requestFocus(_textfield_focusnode_list[0]);
+                  &#47;&#47;   }
+                  &#47;&#47; },
+                  &#47;&#47; fn: _textfield_focusnode_list[i],
+                  c: _textfieldControllerList[i],
+                  validator: textfieldList[i].verify,
+                );
+              }),
+            ],
           ),
         ),
       ),
