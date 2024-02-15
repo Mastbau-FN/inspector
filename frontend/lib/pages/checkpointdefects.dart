@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/fragments/prephotoadder.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:MBG_Inspektionen/pages/dropDownPageB.dart';
@@ -75,15 +76,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
 
   @override
   Widget? floatingActionButton(BuildContext context) {
-    return PopUpActionbutton(
-      expandedChild: (onCancel) => adder(
-          // withoutdefect: false,
-          parent: currentData,
-          onCancel: onCancel,
-          onDone: (defect) async {
-            await API().setNew(defect, caller: currentData);
-            notifyListeners();
-          }),
+    return PrePhotoAdder(
+      parent: currentData,
+      model: this,
+      onDone: () async {
+        notifyListeners();
+      },
     );
   }
 
@@ -222,17 +220,18 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
       ],
       textfieldList: [
         // InputData("KurzText", hint: "Name"), //removed according to #48
-        InputData(
-          CheckPointDefect.langText_key,
-          hint: S.current!.langTextHint,
-          value: currentDefect?.langText,
-        ),
+
         InputData(CheckPointDefect.height_json_key,
             hint: S.current!.positionHeightHint,
             value: currentDefect?.height,
             verify: (val) => (val == null || val.length < 1)
                 ? S.current!.heightNotOptional
-                : null), //added according to #49
+                : null),
+        InputData(
+          CheckPointDefect.langText_key,
+          hint: S.current!.langTextHint,
+          value: currentDefect?.langText,
+        ), //added according to #49
       ],
     );
   }
@@ -462,8 +461,27 @@ class DefectWidget extends StatelessWidget {
                               children: [
                                 Icon(Icons.location_on, size: _iconSize),
                                 SizedBox(width: 5),
-                                Text(S.of(context).defectLocation(
-                                    data.height ?? S.of(context).unknown)),
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width -
+                                      50 - //image width
+                                      _padding * 2 - //inner padding
+                                      _padding * 2 - //outer padding
+                                      5 - //icon spacer
+                                      // 8 - // card padding
+                                      4 - // textButoon stuff idk
+                                      40 - //right banner
+                                      _iconSize //icon size
+                                  ,
+                                  child: Text(
+                                    S.of(context).defectLocation(
+                                        data.height ?? S.of(context).unknown),
+                                    maxLines: isExpanded
+                                        ? _maxLinesExpanded
+                                        : _maxLines,
+                                    softWrap: true,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                             Row(

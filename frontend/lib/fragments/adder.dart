@@ -136,59 +136,65 @@ class Adder extends StatelessWidget implements JsonExtractable {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Form(
-        key: _formKey,
+    return Scaffold(
+      body: Align(
+        alignment: Alignment.bottomCenter,
+        child: SingleChildScrollView(
+          reverse: true,
+          child: Form(
+            key: _formKey,
 
-        // autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            // Spacer(),
-            ...children,
-            ...List.generate(textfieldList.length, (i) {
-              _textfieldControllerList[i].value = TextEditingValue(
-                text: textfieldList[i].value ?? "",
-              );
-              return _Input(
-                // initialValue: textfieldList[i].value,
-                hint: textfieldList[i].hint,
-                isFirst: i == 0,
-                isLast: i == textfieldList.length - 1,
-                // onDone: (name) {
-                //   try {
-                //     //TextInputAction.next;
-                //     FocusScope.of(context)
-                //         .requestFocus(_textfield_focusnode_list[i + 1]);
-                //   } catch (e) {
-                //     FocusScope.of(context)
-                //         .requestFocus(_textfield_focusnode_list[0]);
-                //   }
-                // },
-                // fn: _textfield_focusnode_list[i],
-                c: _textfieldControllerList[i],
-                validator: textfieldList[i].verify,
-              );
-            }),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                _PaddedButton(
-                  icon: Icons.cancel,
-                  onPressed: onCancel,
-                ),
-                //if (textfield_list.isNotEmpty) _mainField(set),
-                _PaddedButton(
-                  icon: Icons.check_circle,
-                  onPressed: () {
-                    if (set(context)) onCancel?.call(); //as requested by #118
-                  },
-                ),
+                // Spacer(),
+                ...children,
+                ...List.generate(textfieldList.length, (i) {
+                  _textfieldControllerList[i].value = TextEditingValue(
+                    text: textfieldList[i].value ?? "",
+                  );
+                  return _Input(
+                    // initialValue: textfieldList[i].value,
+                    hint: textfieldList[i].hint,
+                    isFirst: i == 0,
+                    isLast: i == textfieldList.length - 1,
+                    // onDone: (name) {
+                    //   try {
+                    //     //TextInputAction.next;
+                    //     FocusScope.of(context)
+                    //         .requestFocus(_textfield_focusnode_list[i + 1]);
+                    //   } catch (e) {
+                    //     FocusScope.of(context)
+                    //         .requestFocus(_textfield_focusnode_list[0]);
+                    //   }
+                    // },
+                    // fn: _textfield_focusnode_list[i],
+                    c: _textfieldControllerList[i],
+                    validator: textfieldList[i].verify,
+                  );
+                }),
               ],
             ),
-          ],
+          ),
         ),
+      ),
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          _PaddedButton(
+            icon: Icons.cancel_outlined,
+            onPressed: onCancel,
+          ),
+          //if (textfield_list.isNotEmpty) _mainField(set),
+          _PaddedButton(
+            icon: Icons.check_circle_outline,
+            onPressed: () {
+              if (set(context)) onCancel?.call(); //as requested by #118
+            },
+          ),
+        ],
       ),
     );
   }
@@ -206,8 +212,10 @@ class _PaddedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(5.0),
+        padding: const EdgeInsets.all(7.0),
         child: IconButton(
+          color: Color(0xFF616161),
+          iconSize: 60,
           //backgroundColor: Theme.of(context).canvasColor,
           onPressed: () {
             onPressed?.call();
@@ -254,6 +262,7 @@ class _Input extends StatelessWidget {
         // onSaved: (value) {
         //   this.value = value;
         // },
+        //expands: true,
         textCapitalization: TextCapitalization.sentences,
         // decoration: InputDecoration(
         //   enabledBorder: UnderlineInputBorder(
@@ -273,6 +282,8 @@ class _Input extends StatelessWidget {
         // ),
         // textAlign: TextAlign.center,
         controller: c,
+        minLines: 1,
+        maxLines: 15,
         validator: validator,
         autofocus: isFirst,
         decoration: InputDecoration(

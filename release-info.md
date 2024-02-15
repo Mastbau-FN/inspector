@@ -1,3 +1,3 @@
 # changes
 
-- v2 alpha 4 : new design 2
+- fixed Bearbeiten und Hizufügen von Mängeln

@@ -3,7 +3,7 @@ description: Inspections-APP für die Mastbau FN GmBH
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -22,9 +22,8 @@ environment:
   flutter: ">=3.1.0"
 
 dependencies:
-
   # special weather icons, like sunny etc
-  weather_icons: 
+  weather_icons:
     git: https://github.com/Mastbau-FN/weather_icons.git
 
   # to display current app-version
@@ -51,7 +50,7 @@ dependencies:
   #     path: json_serializable
   json_annotation: ^4.8.1
 
-  # for editing descriptions 
+  # for editing descriptions
   # flutter_quill: ^4.0.0
 
   # to flatten json for multipart requests (uploading images)
@@ -64,7 +63,7 @@ dependencies:
   image_picker: ^0.8.4
 
   # Provides tools to work with the cameras on the device
-  camera: ^0.10.0  
+  camera: ^0.10.0
 
   # Finds the correct paths to store images
   path_provider: ^2.0.12
@@ -76,7 +75,7 @@ dependencies:
   connectivity_plus: ^4.0.1
 
   # for sharing files via native dialogs
-  share_plus: ^7.0.1
+  share_plus: ^7.2.2
   image: ^4.0.17
 
   # storing sensitive data like username and password
@@ -92,9 +91,9 @@ dependencies:
   http: ^0.13.3
 
   # show push notifications (progress on retryfailedrequests)
-  awesome_notifications: ">=0.7.1"
+  awesome_notifications:
+    ^0.7.1
     # git: https://github.com/HannesGitH/awesome_notifications.git #intl 0.18.0
-
 
   flutter:
     sdk: flutter
@@ -121,6 +120,7 @@ dependencies:
   archive: ^3.3.7
   sliver_app_bar_builder: ^1.1.0
   blur: ^3.1.0
+  fs: ^2.0.0
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9
@@ -152,7 +152,6 @@ flutter_icons:
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -188,7 +187,6 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
   generate: true
-
 
 flutter_intl:
   enabled: true

@@ -367,14 +367,19 @@ class _ImageAddButtonState extends State<ImageAddButton>
               onPressed: withCamera ? () => shoot(context) : openCam,
             )
           : Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
+              verticalDirection: VerticalDirection.up,
               children: [
-                ...queueButtonStuff,
-                SizedBox(height: 5),
                 photoDone,
                 SizedBox(height: 5),
                 discardPhoto,
+                SizedBox(height: 5),
+                addToQueue,
+                Container(
+                  height: 300,
+                  child: Column(
+                      verticalDirection: VerticalDirection.up,
+                      children: [...queueButtonStuff]),
+                ),
               ],
             );
 
@@ -383,7 +388,7 @@ class _ImageAddButtonState extends State<ImageAddButton>
           int idx = entry.key;
           XFile file = entry.value;
           return Transform.translate(
-            offset: Offset(0, queue.length * 30 - 30.0 * idx),
+            offset: Offset(0, -(-25 + 30 * queue.length - (80.0) * idx)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: SizedBox(
@@ -398,7 +403,6 @@ class _ImageAddButtonState extends State<ImageAddButton>
           );
         }),
         // SizedBox(height: 15),
-        addToQueue,
       ];
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
