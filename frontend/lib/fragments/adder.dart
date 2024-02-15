@@ -139,48 +139,43 @@ class Adder extends StatelessWidget implements JsonExtractable {
     return Scaffold(
       body: Align(
         alignment: Alignment.bottomCenter,
-        child: SafeArea(
-          top: true,
-          child: Expanded(
-            child: SingleChildScrollView(
-              reverse: true,
-              child: Form(
-                key: _formKey,
+        child: SingleChildScrollView(
+          reverse: true,
+          child: Form(
+            key: _formKey,
 
-                // autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    // Spacer(),
-                    ...children,
-                    ...List.generate(textfieldList.length, (i) {
-                      _textfieldControllerList[i].value = TextEditingValue(
-                        text: textfieldList[i].value ?? "",
-                      );
-                      return _Input(
-                        // initialValue: textfieldList[i].value,
-                        hint: textfieldList[i].hint,
-                        isFirst: i == 0,
-                        isLast: i == textfieldList.length - 1,
-                        // onDone: (name) {
-                        //   try {
-                        //     //TextInputAction.next;
-                        //     FocusScope.of(context)
-                        //         .requestFocus(_textfield_focusnode_list[i + 1]);
-                        //   } catch (e) {
-                        //     FocusScope.of(context)
-                        //         .requestFocus(_textfield_focusnode_list[0]);
-                        //   }
-                        // },
-                        // fn: _textfield_focusnode_list[i],
-                        c: _textfieldControllerList[i],
-                        validator: textfieldList[i].verify,
-                      );
-                    }),
-                  ],
-                ),
-              ),
+            // autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                // Spacer(),
+                ...children,
+                ...List.generate(textfieldList.length, (i) {
+                  _textfieldControllerList[i].value = TextEditingValue(
+                    text: textfieldList[i].value ?? "",
+                  );
+                  return _Input(
+                    // initialValue: textfieldList[i].value,
+                    hint: textfieldList[i].hint,
+                    isFirst: i == 0,
+                    isLast: i == textfieldList.length - 1,
+                    // onDone: (name) {
+                    //   try {
+                    //     //TextInputAction.next;
+                    //     FocusScope.of(context)
+                    //         .requestFocus(_textfield_focusnode_list[i + 1]);
+                    //   } catch (e) {
+                    //     FocusScope.of(context)
+                    //         .requestFocus(_textfield_focusnode_list[0]);
+                    //   }
+                    // },
+                    // fn: _textfield_focusnode_list[i],
+                    c: _textfieldControllerList[i],
+                    validator: textfieldList[i].verify,
+                  );
+                }),
+              ],
             ),
           ),
         ),

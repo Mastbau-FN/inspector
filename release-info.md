@@ -1,3 +1,3 @@
 # changes
 
-- fixed issue 383, 388 
+- fixed Bearbeiten und Hizufügen von Mängeln
