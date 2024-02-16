@@ -88,7 +88,13 @@
         ereArt: OufnessChooser.none,
         kurzText: currentData.title + &quot;  ohne Mangel&quot;,
         langText: &quot;ohne Mangel&quot;,
-      )..id = &quot;0&quot;, &#47;&#47;TODO: test
+      )..id = CheckPointDefect.pjNr_key +
+          &quot;-&quot; +
+          CheckPointDefect.E1_key +
+          &quot;-&quot; +
+          CheckPointDefect.E2_key +
+          &quot;-&quot; +
+          &quot;0&quot;, &#47;&#47;TODO: test
       &#47;&#47; ..height = &quot;----&quot;,
       caller: currentData,
     ); &#47;&#47;TO-DO: does not work in online mode #387
