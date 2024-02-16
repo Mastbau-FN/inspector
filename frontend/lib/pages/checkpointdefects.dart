@@ -97,7 +97,13 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           ereArt: OufnessChooser.none,
           kurzText: currentData.title + "  ohne Mangel",
           langText: "ohne Mangel",
-        )..id = "0", //TODO: test
+        )..id = CheckPointDefect.pjNr_key +
+            "-" +
+            CheckPointDefect.E1_key +
+            "-" +
+            CheckPointDefect.E2_key +
+            "-" +
+            "0", //TODO: test
         // ..height = "----",
         caller: currentData,
       ); //TO-DO: does not work in online mode #387
