@@ -37,18 +37,18 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       title: "Fotos",
     ),
 
-    ///see #389
-    MyListTileData(
-      title: "Dateien",
-      icon: Icons.file_present,
-    ),
-
     ///see #24
     MyListTileData(
       title: "Infos",
     ),
     MyListTileData(
       title: _nextViewTitle,
+    ),
+
+    ///see #389
+    MyListTileData(
+      title: "Dateien",
+      icon: Icons.file_present,
     ),
   ];
 
