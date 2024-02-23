@@ -122,8 +122,8 @@ Widget build(BuildContext context) {
     onPressed: () {
       showDialog(
         context: context,
-        builder: (context) =&gt; Dialog(
-          child: Container(
+        builder: (context) =&gt; Scaffold(
+          body: Container(
             padding: padding,
             child: expandedChild(() =&gt; Navigator.of(context).pop()),
           ),
