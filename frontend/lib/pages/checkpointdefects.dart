@@ -111,6 +111,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
       return;
     } else {
       showDialog(
+        barrierDismissible: true,
         barrierColor: Colors.black54,
         context: context,
         builder: (BuildContext context) {

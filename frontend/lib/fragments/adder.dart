@@ -25,8 +25,8 @@ class PopUpActionbutton extends StatelessWidget {
       onPressed: () {
         showDialog(
           context: context,
-          builder: (context) => Dialog(
-            child: Container(
+          builder: (context) => Scaffold(
+            body: Container(
               padding: padding,
               child: expandedChild(() => Navigator.of(context).pop()),
             ),
