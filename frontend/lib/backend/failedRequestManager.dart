@@ -208,7 +208,7 @@ class FailedRequestmanager {
     String? parentID,
   }) async {
     // base-case: CheckPointDefects have no children
-    if (depth == 0) return true;
+    //if (depth == 0) return true;
     depth--;
     try {
       //fail early if no connection
