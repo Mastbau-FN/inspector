@@ -1,3 +1,3 @@
 # changes
 
-- fix for 383 and make adder dismissable
+- fix for 412
