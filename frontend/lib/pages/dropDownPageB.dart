@@ -445,6 +445,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                             children: actions.indexed.map<Widget>((a) {
                               final (int i, MyListTileData actionTileData) = a;
                               if (i == 0) return Container();
+
                               return Expanded(
                                 // width: 100,
                                 child: Padding(
@@ -540,28 +541,51 @@ class MyCardListTileB extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        alignment: Alignment.center,
-        padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      onPressed: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          //Icon(icon),
-          //SizedBox(width: 10),
-          Text(text),
-          //Spacer(), Issue #385
-          //Icon(Icons.chevron_right,
-          //color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-        ],
-      ),
-    );
+    return (text == "Dateien")
+        ? // <-- Your height
+        ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              alignment: Alignment.center,
+              padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: onTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(width: 10, child: Icon(icon)),
+                //SizedBox(width: 10),
+                //(text == "Dateien") ? Container() : Text(text),
+                //Spacer(), Issue #385
+                //Icon(Icons.chevron_right,
+                //color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+              ],
+            ),
+          )
+        : ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              alignment: Alignment.center,
+              padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: onTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                //Icon(icon) : Container(),
+                //SizedBox(width: 10),
+                (text == "Dateien") ? Container() : Text(text),
+                //Spacer(), Issue #385
+                //Icon(Icons.chevron_right,
+                //color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+              ],
+            ));
   }
 }
 

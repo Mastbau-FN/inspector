@@ -25,8 +25,10 @@ import 'data/checkcategory.dart';
 abstract mixin class WithImgHashes {
   @JsonKey(name: 'mainhash')
   String? mainhash;
+
+  ///should not be used directly, use [imageFutures] instead
   @JsonKey(name: 'images')
-  List<String>? imagehashes; //should not be used
+  List<String>? imagehashes;
   @JsonKey(includeToJson: false, includeFromJson: false)
   Future<ImageData?> mainImage = Future.value(null);
   @JsonKey(includeToJson: false, includeFromJson: false)
@@ -95,6 +97,16 @@ mixin WithOffline on Data {
   set forceOffline(bool? next) {
     forceOffline_nullable = next ?? false;
   }
+}
+
+mixin WithFiles on Data {
+  ///should not be used directly, use [fileFutures] instead
+  @JsonKey(name: 'files')
+  List<String>? fileHashes;
+
+  ///the actual files (as futures) resolves to null if file is not available or corrupted etc
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<Future<XFile?>>? fileFutures;
 }
 
 /// this class must be implemented by all models for the main pages like e.g. [LocationModel]
@@ -350,6 +362,39 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           await Share.shareXFiles(files, text: 'Internes Bild');
                         },
                       ),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        Card(
+                          child:
+                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
+                        ),
+                    ],
+                  );
+                });
+          });
+        })
+        // ;
+        // }),
+        // ),
+        );
+
+// ignore: non_constant_identifier_names
+Widget standard_statefulFileView<ChildData extends WithLangText,
+            DDModel extends DropDownModel<ChildData, WithOffline?>>(
+        DDModel model, ChildData? data,
+        {bool addImgIntent = false}) =>
+    ChangeNotifierProvider<DDModel>.value(
+        value: model,
+        // child: ChangeNotifierProvider<ChildData>.value(
+        //   value: data,
+        child: Builder(builder: (context) {
+          return Consumer<DDModel>(builder: (context, model, child) {
+            // return Consumer<ChildData>(builder: (context, data, child) {
+            return FutureBuilder<ChildData?>(
+                future: model.currentlyChosenChildData,
+                builder: (context, snapshot) {
+                  return Stack(
+                    children: [
+                      // ImagesPage.futured()
                       if (snapshot.connectionState == ConnectionState.waiting)
                         Card(
                           child:

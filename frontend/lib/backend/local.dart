@@ -194,6 +194,10 @@ class LocalMirror {
     return null;
   }
 
+  Future<XFile?> getFileByHash(String hash) async {
+    return (await OP.localFile(hash)).toXFile();
+  }
+
   /// upload a bunch of images
   Future<String?> uploadNewImagesOrFiles<DataT extends Data>(
     DataT data,
@@ -225,6 +229,7 @@ class LocalMirror {
   final failedRequestWasSuccessful = OP.failedRequestWasSuccessful;
   final logFailedReq = OP.logFailedReq;
   final storeImage = OP.storeImage;
+  final storeFile = OP.storeFile;
   final readImage = OP.readImage;
 }
 

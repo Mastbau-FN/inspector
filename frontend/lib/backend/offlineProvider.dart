@@ -52,6 +52,21 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
+Future<File?> storeFile(Uint8List fileBytes, String name) async {
+  // Write the file
+  try {
+    var file = await localFile(name);
+    // if (kIsWeb) {
+    //TODO: support storing images/file in indexedDb or something for web
+    // } else
+    file = await file.writeAsBytes(fileBytes); //u good?
+    return file;
+  } catch (e) {
+    debugPrint("!!! failed to store file: " + e.toString());
+    return null;
+  }
+}
+
 class NoImagePlaceholderException implements Exception {
   @override
   String toString() =>
@@ -261,5 +276,13 @@ Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
 }
 
 Future<XFile> retrieveStoredXFile(String name) async {
-  return XFile((await localFile(name)).path);
+  return (await localFile(name)).toXFile();
+}
+
+extension ToXFile on File {
+  XFile toXFile() => XFile(this.path);
+}
+
+extension ToFile on XFile {
+  File toFile() => File(this.path);
 }
