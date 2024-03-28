@@ -336,6 +336,8 @@ class InputData {
       .replaceAll("", "")
       .replaceAll("<", "")
       .replaceAll(">", "")
+      .replaceAll("-", "")
+      .replaceAll("&", "")
       .replaceAll("|", ""));
 
   static String? noSpacesAtEndAndNoSlashes(String? str) =>
