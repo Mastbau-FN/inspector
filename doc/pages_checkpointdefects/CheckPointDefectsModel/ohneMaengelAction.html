@@ -88,13 +88,22 @@
         ereArt: OufnessChooser.none,
         kurzText: currentData.title + &quot;  ohne Mangel&quot;,
         langText: &quot;ohne Mangel&quot;,
-      )..id = currentData.pjNr.toString() +
-          &quot;-&quot; +
-          currentData.category_index.toString() +
-          &quot;-&quot; +
-          currentData.category_index.toString() +
-          &quot;-&quot; +
-          &quot;-1&quot;, &#47;&#47;TODO: test
+      )
+        ..parentId = currentData.pjNr.toString() +
+            &quot;-&quot; +
+            currentData.category_index.toString() +
+            &quot;-&quot; +
+            currentData.index.toString() +
+            &quot;-&quot; +
+            &quot;0&quot;
+        ..id = currentData.pjNr.toString() +
+            &quot;-&quot; +
+            currentData.category_index.toString() +
+            &quot;-&quot; +
+            currentData.index.toString() +
+            &quot;-&quot; +
+            &quot;1&quot;, &#47;&#47;TODO: test
+
       &#47;&#47; ..height = &quot;----&quot;,
       caller: currentData,
     ); &#47;&#47;TO-DO: does not work in online mode #387
