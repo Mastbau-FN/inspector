@@ -1,8 +1,8 @@
 {
-  description = "Flutter Carii App";
+  description = "Flutter Inspection App";
 
   inputs = {
-    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11";
   };
@@ -17,8 +17,8 @@
             android_sdk.accept_license = true;
           };
         };
-        pkgs = import nixpkgs { inherit (pkg-opts) system config;};
-        pkgs-stable = import nixpkgs-stable { inherit (pkg-opts) system config; };
+        pkgs-unstable = import nixpkgs { inherit (pkg-opts) system config;};
+        pkgs = import nixpkgs-stable { inherit (pkg-opts) system config; };
       in rec {
 
         deps = with pkgs; [
@@ -27,19 +27,23 @@
         ];
 
         packages = {
-          apk = pkgs.stdEnv.mkDerivation {
+          apk = pkgs.stdenv.mkDerivation {
+            name = "apk";
             buildInputs = with pkgs; deps ++ [ jdk17 ];
             buildPhase = ''
               flutter build apk
             '';
+            # TODO: install st that nix run .#apk opens avd
           };
-          aab = pkgs.stdEnv.mkDerivation {
+          aab = pkgs.stdenv.mkDerivation {
+            name = "aab";
             buildInputs = with pkgs; deps ++ [ jdk17 ];
             buildPhase = ''
               flutter build aab
             '';
           };
-          linux = pkgs.stdEnv.mkDerivation {
+          linux = pkgs.stdenv.mkDerivation {
+            name = "linux binary execqutable";
             buildInputs = with pkgs; deps ++ [  ];
             buildPhase = ''
               flutter build linux
@@ -47,7 +51,7 @@
           };
         };
 
-        defaultPackage = packages.android;
+        defaultPackage = packages.apk;
 
         # shell = mkShell
 

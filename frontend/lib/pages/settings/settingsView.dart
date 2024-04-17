@@ -21,6 +21,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/openNewViewTile.dart';
 
+import 'package:MBG_Inspektionen/backend/offlineProvider' show localPath;
+
 /// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;
@@ -121,7 +123,7 @@ class _BackupTileState extends State<BackupTile> {
     try {
       var encoder = ZipFileEncoder();
       encoder.create(appDocDirectory.path + "/" + 'backup.zip');
-      await encoder.addDirectory(Directory(appDocDirectory.path),
+      await encoder.addDirectory(Directory(await localPath),
           onProgress: (progress) {
         setState(() {
           this.progress = progress;
