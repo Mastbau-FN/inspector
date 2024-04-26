@@ -2,7 +2,7 @@
   description = "Flutter Inspection App";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:HannesGitH/nixpkgs/hannes_custom";
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11";
   };
@@ -18,8 +18,8 @@
             android_sdk.accept_license = true;
           };
         };
-        pkgs-unstable = import nixpkgs { inherit (pkg-opts) system config;};
-        pkgs = import nixpkgs-stable { inherit (pkg-opts) system config; };
+        pkgs = import nixpkgs { inherit (pkg-opts) system config;};
+        pkgs-stable = import nixpkgs-stable { inherit (pkg-opts) system config; };
       in rec {
 
         deps = with pkgs; [
@@ -28,7 +28,7 @@
         ];
 
         android-data = {
-          abiVersion = "arm64-v8a";
+          abiVersion = "x86_64";
           platformVersion = "34";
         };
 
@@ -61,10 +61,10 @@
         #   # extras = ["extras;google;gcm"];
         # };
 
-        android = pkgs.androidenv.composeAndroidPackages {
-          buildToolsVersions = [ "34.0.0" "28.0.3" ];
-          platformVersions = [ "34" "28" ];
-          abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
+        android = pkgs-stable.androidenv.composeAndroidPackages {
+          buildToolsVersions = [ "28.0.3" "30.0.3" ];
+          platformVersions = [ "28" "33" "31" android-data.platformVersion ];
+          abiVersions = [ "armeabi-v7a" "arm64-v8a" android-data.abiVersion ];
         };
 
         # android = pkgs.androidenv.androidPkgs_9_0;
@@ -73,19 +73,26 @@
 
           # fetchDeps = pkgs.stdenv.mkDerivation {
           #   name = "fetchDeps";
-          #   buildInputs = with pkgs; deps ++ [ wget curl cacert ];
+          #   buildInputs = with pkgs; deps ++ [ wget dart cacert ];
           #   src = frontend-dir;
           #   buildPhase = ''
           #     export HOME=$(mktemp -d)
           #     chmod -R 777 $HOME
           #     ls -la /etc/ssl/certs
           #     export DART_VM_OPTIONS="--root-certs-file=/etc/ssl/certs/ca-certificates.crt"
+          #     # export PUB_HOSTED_URL=https://pub.flutter-io.cn
+          #     # export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
           #     wget https://nixos.org/manual/nix/stable/language/import-from-derivation
           #     ls
-          #     # ls -la /usr/share
-          #     # ls -la /usr/local/share
+          #     # mkdir -p /usr
+          #     # mkdir -p /usr/share
+          #     # mkdir -p /usr/local/share
+          #     # mkdir -p /usr/local/share/ca-certificates
+          #     # cp /etc/ssl/certs/ca-certificates.crt /usr/local/share/ca-certificates/ca-certificates.crt
+          #     # update-ca-certificates
+          #     flutter doctor
           #     date
-          #     flutter pub get -vvv
+          #     dart pub get --enforce-lockfile -vv
           #   '';
           #   installPhase = ''
           #     mkdir -p $out
@@ -97,20 +104,29 @@
           #   outputHash = pkgs.lib.fakeHash;
           # };
 
+          avd = pkgs-stable.androidenv.emulateApp {
+            name = "run-test-emulatorem";
+            platformVersion = android-data.platformVersion;
+            abiVersion = android-data.abiVersion; # armeabi-v7a, mips, x86_64
+            systemImageType = "google_apis_playstore";
+            # deviceName = "test-emulator";
+          };
+
+
           apk = pkgs.stdenv.mkDerivation {
             name = "apk";
-            buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk ];
+            buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk avd ];
             src = frontend-dir;
             ANDROID_SDK_ROOT = "${android.androidsdk}/libexec/android-sdk";
               # cp ${fetchDeps}/.pub-cache $HOME/.pub-cache
             configurePhase = ''
-              export HOME=$(mktemp -d)
-              flutter pub get --offline
-              yes | flutter doctor --android-licenses
+              #export HOME=$(mktemp -d)
+              flutter pub get #--offline 
+              #yes | flutter doctor --android-licenses
             '';
             buildPhase = ''
-              ls
-              flutter doctor
+              # ls
+              # flutter doctor
               flutter build apk
             '';
             installPhase = ''
@@ -118,15 +134,13 @@
               cp -r build/app/outputs/flutter-apk/app-release.apk $out/app-release.apk
             '';
             # TODO: install st that nix run .#apk opens avd
+             shellHook = ''
+                cd frontend
+                zsh
+                # code .
+                ${avd}/bin/run-test-emulator
+             '';
           };
-          # aab = pkgs.stdenv.mkDerivation {
-          #   name = "aab";
-          #   buildInputs = with pkgs; deps ++ [ jdk17 android ];
-          #   buildPhase = ''
-          #     flutter build aab
-          #   '';
-          # };
-
 
 
           linux = pkgs.stdenv.mkDerivation {
@@ -136,6 +150,11 @@
             buildPhase = ''
               flutter build linux
             '';
+            shellHook = ''
+                cd frontend
+                zsh
+                # code .
+             '';
           };
         };
 
