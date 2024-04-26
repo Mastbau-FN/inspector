@@ -32,42 +32,90 @@
           platformVersion = "34";
         };
 
+        # android = pkgs.androidenv.composeAndroidPackages {
+        #   toolsVersion = "26.1.1";
+        #   platformToolsVersion = "34.0.5";
+        #   buildToolsVersions = [ "30.0.0"  "30.0.3" "31.0.0" "34.0.0" ];
+        #   includeEmulator = true;
+        #   emulatorVersion = "34.1.9";
+        #   platformVersions = [ "31" "33" "34" android-data.platformVersion ];
+        #   includeSources = false;
+        #   includeSystemImages = true;
+        #   # systemImageTypes = [ "google_apis_playstore" ];
+        #   abiVersions = [ "x86_64" "armeabi-v7a" "arm64-v8a" android-data.abiVersion ];
+        #   cmakeVersions = [ "3.10.2" "3.18.1" ];
+        #   includeNDK = true;
+        #   ndkVersions = [ "23.1.7779620" "22.0.7026061" ];
+        #   useGoogleAPIs = false;
+        #   useGoogleTVAddOns = false;
+        #   # avdmanager
+        #   extraLicenses = [
+        #       "android-sdk-preview-license"
+        #       "android-googletv-license"
+        #       "android-sdk-arm-dbt-license"
+        #       "google-gdk-license"
+        #       "intel-android-extra-license"
+        #       "intel-android-sysimage-license"
+        #       "mips-android-sysimage-license"
+        #     ];
+        #   # extras = ["extras;google;gcm"];
+        # };
+
         android = pkgs.androidenv.composeAndroidPackages {
-          toolsVersion = "26.1.1";
-          platformToolsVersion = "34.0.5";
-          buildToolsVersions = [ "30.0.0"  "30.0.3" "31.0.0" ];
-          includeEmulator = true;
-          emulatorVersion = "34.1.9";
-          platformVersions = [ "31" "33" "34" android-data.platformVersion ];
-          includeSources = false;
-          includeSystemImages = true;
-          systemImageTypes = [ "google_apis_playstore" ];
-          abiVersions = [ "x86_64" "armeabi-v7a" "arm64-v8a" android-data.abiVersion ];
-          cmakeVersions = [ "3.10.2" "3.18.1" ];
-          includeNDK = true;
-          ndkVersions = [ "23.1.7779620" "22.0.7026061" ];
-          useGoogleAPIs = false;
-          useGoogleTVAddOns = false;
-          #avdmanager
-          extraLicenses = [
-              "android-sdk-preview-license"
-              "android-googletv-license"
-              "android-sdk-arm-dbt-license"
-              "google-gdk-license"
-              "intel-android-extra-license"
-              "intel-android-sysimage-license"
-              "mips-android-sysimage-license"
-            ];
-          # extras = ["extras;google;gcm"];
+          buildToolsVersions = [ "34.0.0" "28.0.3" ];
+          platformVersions = [ "34" "28" ];
+          abiVersions = [ "armeabi-v7a" "arm64-v8a" ];
         };
 
-        packages = {
+        # android = pkgs.androidenv.androidPkgs_9_0;
+
+        packages = rec {
+
+          # fetchDeps = pkgs.stdenv.mkDerivation {
+          #   name = "fetchDeps";
+          #   buildInputs = with pkgs; deps ++ [ wget curl cacert ];
+          #   src = frontend-dir;
+          #   buildPhase = ''
+          #     export HOME=$(mktemp -d)
+          #     chmod -R 777 $HOME
+          #     ls -la /etc/ssl/certs
+          #     export DART_VM_OPTIONS="--root-certs-file=/etc/ssl/certs/ca-certificates.crt"
+          #     wget https://nixos.org/manual/nix/stable/language/import-from-derivation
+          #     ls
+          #     # ls -la /usr/share
+          #     # ls -la /usr/local/share
+          #     date
+          #     flutter pub get -vvv
+          #   '';
+          #   installPhase = ''
+          #     mkdir -p $out
+          #     cp -r $HOME/.pub-cache $out/.pub-cache
+          #   '';
+          #   outputHashAlgo = "sha256";
+          #   outputHashMode = "recursive";
+          #   # outputHash = "sha256-4SePc3yGlBTGCoCeZtVL9A1NK5vv2CM8EnoRCinhPA0=";
+          #   outputHash = pkgs.lib.fakeHash;
+          # };
+
           apk = pkgs.stdenv.mkDerivation {
             name = "apk";
             buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk ];
             src = frontend-dir;
+            ANDROID_SDK_ROOT = "${android.androidsdk}/libexec/android-sdk";
+              # cp ${fetchDeps}/.pub-cache $HOME/.pub-cache
+            configurePhase = ''
+              export HOME=$(mktemp -d)
+              flutter pub get --offline
+              yes | flutter doctor --android-licenses
+            '';
             buildPhase = ''
+              ls
+              flutter doctor
               flutter build apk
+            '';
+            installPhase = ''
+              mkdir -p $out
+              cp -r build/app/outputs/flutter-apk/app-release.apk $out/app-release.apk
             '';
             # TODO: install st that nix run .#apk opens avd
           };
