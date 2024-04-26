@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
@@ -121,7 +122,7 @@ class _BackupTileState extends State<BackupTile> {
     try {
       var encoder = ZipFileEncoder();
       encoder.create(appDocDirectory.path + "/" + 'backup.zip');
-      await encoder.addDirectory(Directory(appDocDirectory.path),
+      await encoder.addDirectory(Directory(await localPath),
           onProgress: (progress) {
         setState(() {
           this.progress = progress;
