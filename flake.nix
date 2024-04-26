@@ -10,6 +10,7 @@
   outputs = { self, nixpkgs, nixpkgs-stable, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        frontend-dir = ./frontend;
         pkg-opts = {
           inherit system;
           config = {
@@ -26,17 +27,22 @@
           git
         ];
 
+        android-data = {
+          abiVersion = "arm64-v8a";
+          platformVersion = "34";
+        };
+
         android = pkgs.androidenv.composeAndroidPackages {
           toolsVersion = "26.1.1";
           platformToolsVersion = "34.0.5";
           buildToolsVersions = [ "30.0.0"  "30.0.3" "31.0.0" ];
           includeEmulator = true;
           emulatorVersion = "34.1.9";
-          platformVersions = [ "31" "33" "34" ];
+          platformVersions = [ "31" "33" "34" android-data.platformVersion ];
           includeSources = false;
           includeSystemImages = true;
           systemImageTypes = [ "google_apis_playstore" ];
-          abiVersions = [ "x86_64" "armeabi-v7a" "arm64-v8a" ];
+          abiVersions = [ "x86_64" "armeabi-v7a" "arm64-v8a" android-data.abiVersion ];
           cmakeVersions = [ "3.10.2" "3.18.1" ];
           includeNDK = true;
           ndkVersions = [ "23.1.7779620" "22.0.7026061" ];
@@ -59,6 +65,7 @@
           apk = pkgs.stdenv.mkDerivation {
             name = "apk";
             buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk ];
+            src = frontend-dir;
             buildPhase = ''
               flutter build apk
             '';
@@ -71,8 +78,12 @@
           #     flutter build aab
           #   '';
           # };
+
+
+
           linux = pkgs.stdenv.mkDerivation {
-            name = "linux binary execqutable";
+            name = "linux binary executable";
+            src = frontend-dir;
             buildInputs = with pkgs; deps ++ [  ];
             buildPhase = ''
               flutter build linux
