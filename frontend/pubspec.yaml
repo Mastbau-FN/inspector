@@ -159,7 +159,7 @@ flutter:
 
   # assets used by the application
   assets:
-    - .env
+    # - .env
     - lib/assets/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

@@ -143,18 +143,30 @@
           };
 
 
-          linux = pkgs.stdenv.mkDerivation {
-            name = "linux binary executable";
+          linux = pkgs.flutter.buildFlutterApplication rec {
+            name = "linux-binary-executable";
+            pname = "inspector";
             src = frontend-dir;
-            buildInputs = with pkgs; deps ++ [  ];
-            buildPhase = ''
-              flutter build linux
+            autoPubspecLock = src + "/pubspec.lock";
+            version = "0.0.1";
+            # buildInputs = with pkgs; deps ++ [  ];
+            # buildPhase = ''
+            #   flutter build linux
+            # '';
+            # shellHook = ''
+            #     cd frontend
+            #     zsh
+            #     # code .
+            #  '';
+            gitHashes = {
+              archive = "sha256-zTCwSe+Wls+ncCGauwPHE0pFVTvuBEZ56RHMVSBQSk0=";
+              camera_android = "sha256-FMlNJGO3MJ2n+aoldkKrBiFvkkT0Yu4lZI0B+L34Hxs=";
+              weather_icons = "sha256-g+QKuVgRb/cPR+8KCHs/35vlffjzhMdQkjKqD8ku1gY=";
+            };
+            fixupPhase = ''
+              echo "exec $out/bin/frontend" > $out/bin/$pname
+              chmod +x $out/bin/$pname
             '';
-            shellHook = ''
-                cd frontend
-                zsh
-                # code .
-             '';
           };
         };
 
