@@ -83,6 +83,7 @@ _retryFailedRequestsIsolate(
       try {
         debugPrint('retry request $i/$total: ${rd.route}');
         rd.logIfFailed = false;
+
         final res = await API().remote.postJSON(rd);
         //nur 200er als ok einstufen
         if (res!.statusCode ~/ 100 == 2) {

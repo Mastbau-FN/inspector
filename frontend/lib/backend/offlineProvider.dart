@@ -176,6 +176,8 @@ Future<Map<String, dynamic>?> getJson(String documentName) =>
     otherCollection.doc(documentName).get();
 
 final failedReqLogCollection = (db).collection('failed-requests');
+final skippedReqLogCollection = (db).collection(
+    'skipped-requests'); //bei fragen zu logik hierzu hannes fragen, war sein commit
 
 Future<String> logFailedReq(RequestData rd) async {
   final doc = failedReqLogCollection
@@ -209,10 +211,22 @@ Future<List<(String, RequestData?)>?> getAllFailedRequests() async {
   return reqs;
 }
 
-failedRequestWasSuccessful(String id) {
-  failedReqLogCollection.doc(id).delete();
-  debugPrint(
-      'request $id was apperently successful, so we deleted it from the failed-Log');
+failedRequestWasSuccessful(String id, {bool wasntTho = false}) {
+  if (wasntTho) {
+    //hannes
+    failedReqLogCollection.doc(id).get().then((data) {
+      if (data == null) {
+        debugPrint('request $id wasnt in the failed-Log');
+        return;
+      }
+      skippedReqLogCollection.doc(id).set(data);
+      debugPrint('request $id was skipped and moved to skipped-Log');
+    });
+  } else {
+    failedReqLogCollection.doc(id).delete();
+    debugPrint(
+        'request $id was apperently successful, so we deleted it from the failed-Log');
+  }
 }
 
 extension SerializableBaseRequest on http.BaseRequest {

@@ -529,6 +529,6 @@ class _Env {
         .toList(growable: false),
   );
   static const String mbgUrl =
-      'https://inspection.mbg-solutions.com/api/secure/';
+      'https://inspection.mbg-solutions.com/api/secure';
   static const String version = '1.0';
 }
