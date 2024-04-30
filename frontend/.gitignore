@@ -1,6 +1,6 @@
 # secrets and environment vars
 *.env
-env.g.dart
+# env.g.dart #! this contains obfuscated secrets, so it should be ignored, but its included to trade security for reproducability as security should be given by the username-password authentication
 
 # Miscellaneous
 *.class

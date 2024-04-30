@@ -22,6 +22,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/openNewViewTile.dart';
 
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
+
 /// a page where the user can change settings. it currently support [Logout]
 class SettingsView extends StatelessWidget {
   final BuildContext logoutcontext;

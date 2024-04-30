@@ -4,6 +4,11 @@ services:
     user: "${UID}:${GID}"
     restart: always
     image: node:19-buster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1000000k"
+        max-file: "30"
     working_dir: /home/node/api
  # das ist etwas whack, idealerweise würde der postgres-service ebenfalls dockerized sein dann wär das nicht nötig
     network_mode: host
