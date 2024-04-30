@@ -64,7 +64,8 @@
         
 
 <span class="returntype">dynamic</span>
-<span class="name ">failedRequestWasSuccessful</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="failedRequestWasSuccessful-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span></span></li>
+<span class="name ">failedRequestWasSuccessful</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="failedRequestWasSuccessful-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span>, </span></li>
+<li><span class="parameter" id="failedRequestWasSuccessful-param-wasntTho">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">wasntTho</span> = <span class="default-value">false</span>}</span></li>
 </ol>)
 
         
@@ -76,10 +77,22 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">failedRequestWasSuccessful(String id) {
-  failedReqLogCollection.doc(id).delete();
-  debugPrint(
-      &#39;request $id was apperently successful, so we deleted it from the failed-Log&#39;);
+  <pre class="language-dart"><code class="language-dart">failedRequestWasSuccessful(String id, {bool wasntTho = false}) {
+  if (wasntTho) {
+    &#47;&#47;hannes
+    failedReqLogCollection.doc(id).get().then((data) {
+      if (data == null) {
+        debugPrint(&#39;request $id wasnt in the failed-Log&#39;);
+        return;
+      }
+      skippedReqLogCollection.doc(id).set(data);
+      debugPrint(&#39;request $id was skipped and moved to skipped-Log&#39;);
+    });
+  } else {
+    failedReqLogCollection.doc(id).delete();
+    debugPrint(
+        &#39;request $id was apperently successful, so we deleted it from the failed-Log&#39;);
+  }
 }</code></pre>
 </section>
 

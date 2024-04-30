@@ -177,11 +177,13 @@ Widget build(BuildContext context) {
           Row(children: [
             TextButton(
               onPressed: () async {
-                await API().local.failedRequestWasSuccessful(id);
+                await API()
+                    .local
+                    .failedRequestWasSuccessful(id, wasntTho: true);
                 showToast(&#39;Request was successfully deleted&#39;);
                 Navigator.pop(context);
               },
-              child: Text(&#39;Skip &amp; Delete&#39;),
+              child: Text(&#39;Skip&#39;),
               &#47;&#47;red style
               style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
