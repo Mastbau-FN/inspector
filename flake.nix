@@ -2,12 +2,13 @@
   description = "Flutter Inspection App";
 
   inputs = {
-    nixpkgs.url = "github:HannesGitH/nixpkgs/hannes_custom";
+    # nixpkgs.url = "github:HannesGitH/nixpkgs/hannes_custom";
+    nixpkgs.url = "github:nixos/nixpkgs/cf8cc1201be8bc71b7cbbbdaf349b22f4f99c7ae";
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, flake-utils, ... }:
+  outputs = { self, nixpkgs, nixpkgs-stable, flake-utils, ... }@inputs:
     flake-utils.lib.eachDefaultSystem (system:
       let
         frontend-dir = ./frontend;
@@ -140,6 +141,54 @@
                 # code .
                 ${avd}/bin/run-test-emulator
              '';
+          };
+
+          test = let
+            buildToolsVersionForAapt2 = "34.0.0";
+            androidComposition = (import inputs.nixpkgs {
+              inherit system;
+              config = {
+                allowUnfree = true;
+                android_sdk.accept_license = true;
+              };
+          }).androidenv.composeAndroidPackages {
+              # Installing both version for aapt2 and version that flutter wants
+              buildToolsVersions = [buildToolsVersionForAapt2 "30.0.3"];
+              platformVersions = ["34" "33" "31" "30"];
+              abiVersions = ["armeabi-v7a" "arm64-v8a" "x86" "x86_64"];
+              toolsVersion = "26.1.1";
+              platformToolsVersion = "33.0.3";
+              extraLicenses = [
+                "android-googletv-license"
+                "android-sdk-arm-dbt-license"
+                "android-sdk-license"
+                "android-sdk-preview-license"
+                "google-gdk-license"
+                "intel-android-extra-license"
+                "intel-android-sysimage-license"
+                "mips-android-sysimage-license"
+              ];
+            };
+          in androidComposition.androidsdk;
+
+          nixandroid = pkgs.flutter.buildFlutterApplication rec {
+            name = "android apks";
+            pname = "inspector";
+            src = frontend-dir;
+            autoPubspecLock = src + "/pubspec.lock";
+            version = "0.0.1";
+            targetFlutterPlatform = "android";
+            gradleHash = "sha256:1l16lh94vzfg0vgxgajdqdj4b6smz3814jh0483pzvh7l5c2jp6d";
+            
+            gitHashes = {
+              archive = "sha256-zTCwSe+Wls+ncCGauwPHE0pFVTvuBEZ56RHMVSBQSk0=";
+              camera_android = "sha256-FMlNJGO3MJ2n+aoldkKrBiFvkkT0Yu4lZI0B+L34Hxs=";
+              weather_icons = "sha256-g+QKuVgRb/cPR+8KCHs/35vlffjzhMdQkjKqD8ku1gY=";
+            };
+            # fixupPhase = ''
+            #   echo "exec $out/bin/frontend" > $out/bin/$pname
+            #   chmod +x $out/bin/$pname
+            # '';
           };
 
 
