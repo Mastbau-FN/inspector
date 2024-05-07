@@ -61,7 +61,9 @@ class UploadProgressWriter {
           });
     });
     if (success ?? false) {
-      deleteAll();
+      deleteAll(
+        keepSkippedRequests: true,
+      );
     }
   }
 

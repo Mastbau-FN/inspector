@@ -88,8 +88,20 @@ Future<File> deleteImage(String name) async {
   return await file.delete() as File;
 }
 
-Future<void> deleteAll() async =>
-    (await getApplicationDocumentsDirectory()).delete(recursive: true);
+Future<void> deleteAll({
+  bool keepSkippedRequests = false,
+}) async {
+  final root = await getApplicationDocumentsDirectory();
+  if (keepSkippedRequests) {
+    final skippedRequests = await skippedReqLogCollection.get();
+    await deleteAll();
+    skippedRequests?.forEach((key, value) async {
+      await skippedReqLogCollection.doc(key).set(value);
+    });
+  } else {
+    root.delete();
+  }
+}
 
 //MARK: data-stuff
 
