@@ -121,6 +121,7 @@ dependencies:
   sliver_app_bar_builder: ^1.1.0
   blur: ^3.1.0
   fs: ^2.0.0
+  io: ^1.0.4
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9

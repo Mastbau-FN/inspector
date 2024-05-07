@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:io/io.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:localstore/localstore.dart';
@@ -92,14 +93,15 @@ Future<void> deleteAll({
   bool keepSkippedRequests = false,
 }) async {
   final root = await getApplicationDocumentsDirectory();
+  final cache = await getApplicationCacheDirectory();
   if (keepSkippedRequests) {
-    final skippedRequests = await skippedReqLogCollection.get();
+    copyPath(root.path + "/" + SKIPPEDCOLLECTION,
+        cache.path + "/" + SKIPPEDCOLLECTION);
     await deleteAll();
-    skippedRequests?.forEach((key, value) async {
-      await skippedReqLogCollection.doc(key).set(value);
-    });
+    copyPath(cache.path + "/" + SKIPPEDCOLLECTION,
+        root.path + "/" + SKIPPEDCOLLECTION);
   } else {
-    root.delete();
+    root.delete(recursive: true);
   }
 }
 
@@ -187,9 +189,11 @@ storeJson(String documentName, Map<String, dynamic> json) =>
 Future<Map<String, dynamic>?> getJson(String documentName) =>
     otherCollection.doc(documentName).get();
 
-final failedReqLogCollection = (db).collection('failed-requests');
+const FAILEDCOLLECTION = 'failed-requests';
+const SKIPPEDCOLLECTION = 'skipped-requests';
+final failedReqLogCollection = (db).collection(FAILEDCOLLECTION);
 final skippedReqLogCollection = (db).collection(
-    'skipped-requests'); //bei fragen zu logik hierzu hannes fragen, war sein commit
+    SKIPPEDCOLLECTION); //bei fragen zu logik hierzu hannes fragen, war sein commit
 
 Future<String> logFailedReq(RequestData rd) async {
   final doc = failedReqLogCollection
