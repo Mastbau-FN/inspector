@@ -116,7 +116,7 @@
 
           apk = pkgs.stdenv.mkDerivation {
             name = "apk";
-            buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk avd ];
+            buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk avd android-tools ];
             src = frontend-dir;
             ANDROID_SDK_ROOT = "${android.androidsdk}/libexec/android-sdk";
               # cp ${fetchDeps}/.pub-cache $HOME/.pub-cache
@@ -142,34 +142,6 @@
                 ${avd}/bin/run-test-emulator
              '';
           };
-
-          test = let
-            buildToolsVersionForAapt2 = "34.0.0";
-            androidComposition = (import inputs.nixpkgs {
-              inherit system;
-              config = {
-                allowUnfree = true;
-                android_sdk.accept_license = true;
-              };
-          }).androidenv.composeAndroidPackages {
-              # Installing both version for aapt2 and version that flutter wants
-              buildToolsVersions = [buildToolsVersionForAapt2 "30.0.3"];
-              platformVersions = ["34" "33" "31" "30"];
-              abiVersions = ["armeabi-v7a" "arm64-v8a" "x86" "x86_64"];
-              toolsVersion = "26.1.1";
-              platformToolsVersion = "33.0.3";
-              extraLicenses = [
-                "android-googletv-license"
-                "android-sdk-arm-dbt-license"
-                "android-sdk-license"
-                "android-sdk-preview-license"
-                "google-gdk-license"
-                "intel-android-extra-license"
-                "intel-android-sysimage-license"
-                "mips-android-sysimage-license"
-              ];
-            };
-          in androidComposition.androidsdk;
 
           nixandroid = pkgs.flutter.buildFlutterApplication rec {
             name = "android apks";
