@@ -2,12 +2,13 @@
   description = "Flutter Inspection App";
 
   inputs = {
-    nixpkgs.url = "github:HannesGitH/nixpkgs/hannes_custom";
+    # nixpkgs.url = "github:HannesGitH/nixpkgs/hannes_custom";
+    nixpkgs.url = "github:nixos/nixpkgs/cf8cc1201be8bc71b7cbbbdaf349b22f4f99c7ae";
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-23.11";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-stable, flake-utils, ... }:
+  outputs = { self, nixpkgs, nixpkgs-stable, flake-utils, ... }@inputs:
     flake-utils.lib.eachDefaultSystem (system:
       let
         frontend-dir = ./frontend;
@@ -115,7 +116,7 @@
 
           apk = pkgs.stdenv.mkDerivation {
             name = "apk";
-            buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk avd ];
+            buildInputs = with pkgs; deps ++ [ jdk17 android.androidsdk avd android-tools ];
             src = frontend-dir;
             ANDROID_SDK_ROOT = "${android.androidsdk}/libexec/android-sdk";
               # cp ${fetchDeps}/.pub-cache $HOME/.pub-cache
@@ -140,6 +141,26 @@
                 # code .
                 ${avd}/bin/run-test-emulator
              '';
+          };
+
+          nixandroid = pkgs.flutter.buildFlutterApplication rec {
+            name = "android apks";
+            pname = "inspector";
+            src = frontend-dir;
+            autoPubspecLock = src + "/pubspec.lock";
+            version = "0.0.1";
+            targetFlutterPlatform = "android";
+            gradleHash = "sha256:1l16lh94vzfg0vgxgajdqdj4b6smz3814jh0483pzvh7l5c2jp6d";
+            
+            gitHashes = {
+              archive = "sha256-zTCwSe+Wls+ncCGauwPHE0pFVTvuBEZ56RHMVSBQSk0=";
+              camera_android = "sha256-FMlNJGO3MJ2n+aoldkKrBiFvkkT0Yu4lZI0B+L34Hxs=";
+              weather_icons = "sha256-g+QKuVgRb/cPR+8KCHs/35vlffjzhMdQkjKqD8ku1gY=";
+            };
+            # fixupPhase = ''
+            #   echo "exec $out/bin/frontend" > $out/bin/$pname
+            #   chmod +x $out/bin/$pname
+            # '';
           };
 
 
