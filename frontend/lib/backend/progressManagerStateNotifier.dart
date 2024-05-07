@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'offlineProvider.dart';
@@ -61,10 +66,18 @@ class UploadProgressWriter {
           });
     });
     if (success ?? false) {
-      deleteAll(
-        keepSkippedRequests: true,
-      );
+      () async {
+        Directory? appDocDirectory = await getExternalStorageDirectory();
+        final backupPath = appDocDirectory!.path +
+            '/inspector-automatic-backup-${DateTime.now().millisecondsSinceEpoch}.zip';
+        await backup(backupPath).last;
+        debugPrint('automatic backup saved to $backupPath');
+        deleteAll(
+          keepSkippedRequests: true,
+        );
+      }();
     }
+    ;
   }
 
   void refresh() {

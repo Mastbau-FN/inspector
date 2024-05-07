@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -122,15 +123,13 @@ class _BackupTileState extends State<BackupTile> {
       return;
     }
     try {
-      var encoder = ZipFileEncoder();
-      encoder.create(appDocDirectory.path + "/" + 'backup.zip');
-      await encoder.addDirectory(Directory(await localPath),
-          onProgress: (progress) {
+      final backupPath = appDocDirectory.path +
+          '/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
+      await for (var progress in backup(backupPath)) {
         setState(() {
           this.progress = progress;
         });
-      });
-      encoder.close();
+      }
       setState(() {
         success = true;
         loading = false;
@@ -185,6 +184,22 @@ class _BackupTileState extends State<BackupTile> {
               : null),
     );
   }
+}
+
+Stream<double> backup(String to) {
+  var encoder = ZipFileEncoder();
+  encoder.create(to);
+
+  StreamController<double> controller = StreamController<double>();
+  () async {
+    await encoder.addDirectory(Directory(await localPath),
+        onProgress: (progress) {
+      controller.add(progress);
+    });
+    encoder.close();
+    controller.close();
+  }();
+  return controller.stream;
 }
 
 class UploadSyncTile extends StatelessWidget {
