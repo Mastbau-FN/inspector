@@ -234,11 +234,10 @@ failedRequestWasSuccessful(String id, {bool wasntTho = false}) {
       skippedReqLogCollection.doc(id).set(data);
       debugPrint('request $id was skipped and moved to skipped-Log');
     });
-  } else {
-    failedReqLogCollection.doc(id).delete();
-    debugPrint(
-        'request $id was apperently successful, so we deleted it from the failed-Log');
   }
+  failedReqLogCollection.doc(id).delete();
+  debugPrint(
+      'request $id was apperently successful, so we deleted it from the failed-Log');
 }
 
 extension SerializableBaseRequest on http.BaseRequest {
