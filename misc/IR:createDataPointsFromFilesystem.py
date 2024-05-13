@@ -8,6 +8,9 @@ def main ():
     for parent_data, db_path in missing_child_walker():
         data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
         new_ereart = getChildEreart(ereart, os.path.basename(db_path))
+        e1,e2,e3 = changeEs(new_ereart, pjnr, e1=e1, e2=e2)
+        create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor)
+
 
 def problematic_inspection_walker():
     for root, dirs, files in os.walk(filesystem, topdown=True): # generate parent before children
@@ -70,6 +73,52 @@ def getChildEreart(ereart, basename):
             ereart = 5204
     return ereart
 
+def changeEs(ereart,pjnr,**kwargs):
+    if ereart == 5100:
+        return getNextE(ereart,pjnr, **kwargs), 0, 0
+    elif ereart == 5200:
+        return kwargs["e1"], getNextE(ereart,pjnr, **kwargs), 0
+    elif ereart in [5201, 5202, 5203, 5204]:
+        return kwargs["e1"], kwargs["e2"], getNextE(ereart,pjnr, **kwargs)
+
+def getNextE(ereart,pjnr,**kwargs):
+    level = {
+        5100: "E1",
+        5200: "E2",
+        5201: "E3",
+        5202: "E3",
+        5203: "E3",
+        5204: "E3"
+    }[ereart]
+    
+    additional_where = ""
+    if level == "E3":
+        additional_where += f'AND "E2" = {kwargs["e2"]}'
+    elif level in ["E2", "E1"]:
+        additional_where += f'AND "E1" = {kwargs["e1"]}'
+
+    c = conn.cursor()
+    get_e_query = f'''
+        SELECT "{level}" FROM "Events"
+        WHERE 
+            "EREArt" = {ereart}
+            AND "PjNr" = {pjnr}
+            {additional_where}
+        ORDER BY "{level}" DESC
+        LIMIT 1
+    '''
+    c.execute(get_e_query)
+    res = c.fetchall()
+    return res[0][0]+1 if len(res) > 0 else 1
+
+def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor):
+    c = conn.cursor()
+    insert_query = f'''
+        INSERT INTO "Events" ("PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner")
+        VALUES ({pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}')
+    '''
+    c.execute(insert_query)
+    conn.commit()
 
 if __name__ == "__main__":
     main()
