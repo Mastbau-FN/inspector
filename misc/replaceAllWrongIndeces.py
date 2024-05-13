@@ -140,7 +140,8 @@ def replaceallwrongindexes(path,name,pjNr, **kwargs):
         splittedname = name.split('_')
         nr = splittedname[0]
         echtername = splittedname[1]
-        echtername = echtername.replace(" ","")
+        if "mangel_idx" in kwargs:
+            echtername = echtername.replace(" ","")
         selectindexfromevents(path,echtername,nr,pjNr, **kwargs)
 
 
