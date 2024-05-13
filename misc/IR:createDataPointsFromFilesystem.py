@@ -1,17 +1,31 @@
 import os
 import psycopg2
+from nicegui import ui
 
+
+useUI = True
 filesystem = '/home/administrator/images/S/'
 problematic_inspection_ids = ["20246132"]
 
 def main ():
     add_incidence_column_if_not_exists()
-    for parent_data, db_path in missing_child_walker():
-        data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
-        new_ereart = get_child_ereart(ereart, os.path.basename(db_path))
-        e1,e2,e3 = change_es(new_ereart, pjnr, e1=e1, e2=e2)
-        create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor)
+    if useUI:
+        gen = missing_child_walker()
+        parent_data, db_path = gen.__next__()
+        # much to do here, show image (from fs_path), show input, on button click get __next__ from gen and show image, forward kurztext from input to handle_data
+        ui.label('Hello NiceGUI!')
+        ui.button('BUTTON', on_click=lambda: handle_data(parent_data, db_path))
+        ui.run()
+    else:
+        for parent_data, db_path in missing_child_walker():
+            handle_data(parent_data, db_path)
     conn.close()
+
+def handle_data(parent_data, db_path):
+    data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
+    new_ereart = get_child_ereart(ereart, os.path.basename(db_path))
+    e1,e2,e3 = change_es(new_ereart, pjnr, e1=e1, e2=e2)
+    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor)
 
 def problematic_inspection_walker():
     for root, dirs, files in os.walk(filesystem, topdown=True): # generate parent before children
@@ -116,7 +130,6 @@ def get_next_e(ereart,pjnr,**kwargs):
     return res[0][0]+1 if len(res) > 0 else 1
 
 def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor):
-    zusatzInfo = input("was war die info von ''"+db_path+"'' ?")
     c = conn.cursor()
     insert_query = f'''
         INSERT INTO "Events" ("PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
@@ -138,7 +151,7 @@ def add_incidence_column_if_not_exists():
         ''')
         conn.commit()
 
-if __name__ == "__main__":
+if __name__ in {"__main__", "__mp_main__"}:
     main()
 
 # man kann immer linkordner nehmen: denn 0 (zero) results for:s
