@@ -5,12 +5,13 @@ filesystem = '/home/administrator/images/S/'
 problematic_inspection_ids = ["20246132"]
 
 def main ():
+    add_incidence_column_if_not_exists()
     for parent_data, db_path in missing_child_walker():
         data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
-        new_ereart = getChildEreart(ereart, os.path.basename(db_path))
-        e1,e2,e3 = changeEs(new_ereart, pjnr, e1=e1, e2=e2)
+        new_ereart = get_child_ereart(ereart, os.path.basename(db_path))
+        e1,e2,e3 = change_es(new_ereart, pjnr, e1=e1, e2=e2)
         create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor)
-
+    conn.close()
 
 def problematic_inspection_walker():
     for root, dirs, files in os.walk(filesystem, topdown=True): # generate parent before children
@@ -18,29 +19,6 @@ def problematic_inspection_walker():
         if (len(seperated) >= 8 and seperated[7].split()[0] in problematic_inspection_ids):
             convertedPath = os.path.join("S:",*seperated[5:])
             yield convertedPath, root #, dirs, files
-
-conn = psycopg2.connect(
-    host=os.getenv('POSTGRES_HOST'),
-    port=os.getenv('POSTGRES_PORT'),
-    user=os.getenv('POSTGRES_USER'),
-    password=os.getenv('POSTGRES_PASSWORD'),
-    database='insp_3'
-)
-def get_es(linkOrdner):
-    c = conn.cursor()
-    get_events_query = f'''
-    SELECT "Index", "PjNr", "EREArt", "E1", "E2", "E3", "Autor" FROM "Events"
-    WHERE 
-        "LinkOrdner" = '{linkOrdner}'
-        AND (
-            "EREArt" IN (5100,5200,5201,5202,5203,5204)
-            OR "EventID" = 1910
-        )
-    '''
-    c.execute(get_events_query)
-    res = c.fetchall()
-    has_res = len(res) > 0
-    return has_res , None if not has_res else res[0]
 
 
 def missing_child_walker():
@@ -54,7 +32,7 @@ def missing_child_walker():
             yield last_data, db_path
                 
 
-def getChildEreart(ereart, basename):
+def get_child_ereart(ereart, basename):
     if ereart == 5000:
         # parent is a location, child shall be a category
         ereart = 5100
@@ -73,15 +51,41 @@ def getChildEreart(ereart, basename):
             ereart = 5204
     return ereart
 
-def changeEs(ereart,pjnr,**kwargs):
+def change_es(ereart,pjnr,**kwargs):
     if ereart == 5100:
-        return getNextE(ereart,pjnr, **kwargs), 0, 0
+        return get_next_e(ereart,pjnr, **kwargs), 0, 0
     elif ereart == 5200:
-        return kwargs["e1"], getNextE(ereart,pjnr, **kwargs), 0
+        return kwargs["e1"], get_next_e(ereart,pjnr, **kwargs), 0
     elif ereart in [5201, 5202, 5203, 5204]:
-        return kwargs["e1"], kwargs["e2"], getNextE(ereart,pjnr, **kwargs)
+        return kwargs["e1"], kwargs["e2"], get_next_e(ereart,pjnr, **kwargs)
+    
 
-def getNextE(ereart,pjnr,**kwargs):
+conn = psycopg2.connect(
+    host=os.getenv('POSTGRES_HOST'),
+    port=os.getenv('POSTGRES_PORT'),
+    user=os.getenv('POSTGRES_USER'),
+    password=os.getenv('POSTGRES_PASSWORD'),
+    database='insp_3'
+)
+
+def get_es(linkOrdner):
+    c = conn.cursor()
+    get_events_query = f'''
+    SELECT "Index", "PjNr", "EREArt", "E1", "E2", "E3", "Autor" FROM "Events"
+    WHERE 
+        "LinkOrdner" = '{linkOrdner}'
+        AND (
+            "EREArt" IN (5100,5200,5201,5202,5203,5204)
+            OR "EventID" = 1910
+        )
+    '''
+    c.execute(get_events_query)
+    res = c.fetchall()
+    has_res = len(res) > 0
+    return has_res , None if not has_res else res[0]
+
+
+def get_next_e(ereart,pjnr,**kwargs):
     level = {
         5100: "E1",
         5200: "E2",
@@ -112,13 +116,27 @@ def getNextE(ereart,pjnr,**kwargs):
     return res[0][0]+1 if len(res) > 0 else 1
 
 def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor):
+    zusatzInfo = input("was war die info von ''"+db_path+"'' ?")
     c = conn.cursor()
     insert_query = f'''
-        INSERT INTO "Events" ("PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner")
-        VALUES ({pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}')
+        INSERT INTO "Events" ("PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
+        VALUES ({pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/no_default_picture_yet', TRUE)
     '''
     c.execute(insert_query)
     conn.commit()
+
+def add_incidence_column_if_not_exists():
+    column_name = 'incident_generated'
+    c = conn.cursor()
+    c.execute(f'''
+        SELECT column_name FROM information_schema.columns WHERE table_name = 'Events' AND column_name = '{column_name}'
+    ''')
+    res = c.fetchall()
+    if len(res) == 0:
+        c.execute(f'''
+            ALTER TABLE "Events" ADD COLUMN "{column_name}" BOOLEAN DEFAULT FALSE
+        ''')
+        conn.commit()
 
 if __name__ == "__main__":
     main()
