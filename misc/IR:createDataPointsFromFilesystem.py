@@ -10,40 +10,56 @@ problematic_inspection_ids = ["20246132"]
 def main ():
     add_incidence_column_if_not_exists()
     if useUI:
+        main_ui("please wait, loading...", [], lambda:1)
         gen = missing_child_walker()
-        parent_data, db_path = gen.__next__()
-        # much to do here, show image (from fs_path), show input, on button click get __next__ from gen and show image, forward kurztext from input to handle_data
-        ui.label('Hello NiceGUI!')
-        ui.button('BUTTON', on_click=lambda: handle_data(parent_data, db_path))
+        next_data(gen)
         ui.run()
     else:
-        for parent_data, db_path in missing_child_walker():
+        for parent_data, db_path, _ in missing_child_walker():
             handle_data(parent_data, db_path)
-    conn.close()
+        conn.close()
 
-def handle_data(parent_data, db_path):
+def next_data(gen):
+    parent_data, db_path, fs_path, files = gen.__next__()
+    name = os.path.basename(db_path)
+    filepaths = [os.path.join(fs_path, file) for file in files]
+    def ondone(kurztext):
+        handle_data(parent_data, db_path, kurztext)
+        next_data(gen)
+    main_ui.refresh(name, filepaths, ondone)
+
+@ui.refreshable
+def main_ui(name, filepaths, ondone):
+    with ui.row().classes('w-full no-wrap'):
+        for filepath in filepaths:
+            ui.image(filepath)
+    ui.label(name)
+    kurztext = ui.input(label='Beschreibung').classes('w-full no-wrap')
+    ui.button('Speichern und nächster', on_click=lambda: ondone(kurztext.value))
+
+def handle_data(parent_data, db_path, kurztext = ""):
     data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
     new_ereart = get_child_ereart(ereart, os.path.basename(db_path))
     e1,e2,e3 = change_es(new_ereart, pjnr, e1=e1, e2=e2)
-    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor)
+    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor, kurztext)
 
 def problematic_inspection_walker():
     for root, dirs, files in os.walk(filesystem, topdown=True): # generate parent before children
         seperated = root.split(os.sep)
         if (len(seperated) >= 8 and seperated[7].split()[0] in problematic_inspection_ids):
             convertedPath = os.path.join("S:",*seperated[5:])
-            yield convertedPath, root #, dirs, files
+            yield convertedPath, root, files #, dirs
 
 
 def missing_child_walker():
     last_data = None
-    for db_path, fs_path in problematic_inspection_walker():
+    for db_path, fs_path, files in problematic_inspection_walker():
         found_data, data = get_es(db_path)
         if found_data:
             last_data = data
             # all good. the datapoint allready exists
         else:
-            yield last_data, db_path
+            yield last_data, db_path, fs_path, files
                 
 
 def get_child_ereart(ereart, basename):
@@ -73,7 +89,7 @@ def change_es(ereart,pjnr,**kwargs):
     elif ereart in [5201, 5202, 5203, 5204]:
         return kwargs["e1"], kwargs["e2"], get_next_e(ereart,pjnr, **kwargs)
     
-
+from dotenv import load_dotenv; load_dotenv()
 conn = psycopg2.connect(
     host=os.getenv('POSTGRES_HOST'),
     port=os.getenv('POSTGRES_PORT'),
@@ -129,11 +145,11 @@ def get_next_e(ereart,pjnr,**kwargs):
     res = c.fetchall()
     return res[0][0]+1 if len(res) > 0 else 1
 
-def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor):
+def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, kurztext):
     c = conn.cursor()
     insert_query = f'''
-        INSERT INTO "Events" ("PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
-        VALUES ({pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/no_default_picture_yet', TRUE)
+        INSERT INTO "Events" ("KurzText", "PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
+        VALUES ('{kurztext}', {pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/no_default_picture_yet', TRUE)
     '''
     c.execute(insert_query)
     conn.commit()
