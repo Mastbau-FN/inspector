@@ -13,7 +13,7 @@ def main ():
         main_ui("please wait, loading...", [], lambda:1)
         gen = missing_child_walker()
         next_data(gen)
-        ui.run()
+        ui.run(title="MBG Data Recovery", port=8081)
     else:
         for parent_data, db_path, _ in missing_child_walker():
             handle_data(parent_data, db_path)
