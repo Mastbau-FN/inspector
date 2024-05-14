@@ -1,4 +1,5 @@
 -- Active: 1715682165743@@10.46.26.9@5436@insp_3
+
 -- Query 1 : select all duplicate categories
 SELECT e.* FROM "Events" e 
 JOIN (

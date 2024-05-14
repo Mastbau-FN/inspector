@@ -8,7 +8,7 @@ rootdir = "../../images/S"
 rootdirdb = "S:"
 stolist = os.listdir(rootdir)
 
-ins_list= ["20246132"]
+ins_list= ["20236538", "20236554", "20236550", "20236551", "20236548", "20236546", "20236545", "20246132", "20246134", "20246133", "20246156", "20246135", "20246131", "20246138", "20246140", "20246136", "20246137"]
 wahrscheinlich_gut=["20246132","20236538","20236534","20236535","20236536","20236537","20236540","20246156"]
 nothinghappendlist = ["20236554","20236550",]
 newindexes = [("first",1)]
@@ -27,7 +27,7 @@ def selectindexfromevents(linkordner, echtername, nr,pjNr, **kwargs):
             port=os.getenv('POSTGRES_PORT'),
             user=os.getenv('POSTGRES_USER'),
             password=os.getenv('POSTGRES_PASSWORD'),
-            database='insp_doubled'
+            database='insp_3'
         )
         #print("Connection to the database established successfully.")
     except psycopg2.Error as e:
@@ -127,7 +127,7 @@ def selectindexfromevents(linkordner, echtername, nr,pjNr, **kwargs):
 
             
             
-    except psycopg2.Error as e:
+    except Exception as e:
             # Close the cursor and connection
         print("Error executing query:", e)
     conn.close()

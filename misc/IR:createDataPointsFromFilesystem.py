@@ -5,7 +5,7 @@ from nicegui import ui
 
 useUI = True
 filesystem = '/home/administrator/images/S/'
-problematic_inspection_ids = ["20246132"]
+problematic_inspection_ids = ["20236538", "20236554", "20236550", "20236551", "20236548", "20236546", "20236545", "20246132", "20246134", "20246133", "20246156", "20246135", "20246131", "20246138", "20246140", "20246136", "20246137" ]
 
 def main ():
     add_incidence_column_if_not_exists()
@@ -15,8 +15,8 @@ def main ():
         next_data(gen)
         ui.run(title="MBG Data Recovery", port=8081)
     else:
-        for parent_data, db_path, _ in missing_child_walker():
-            handle_data(parent_data, db_path)
+        for parent_data, db_path, _, _  in missing_child_walker():
+            handle_data(parent_data, db_path, "")
         conn.close()
 
 def next_data(gen):
@@ -57,7 +57,7 @@ def missing_child_walker():
         found_data, data = get_es(db_path)
         if found_data:
             last_data = data
-            # all good. the datapoint allready exists
+            # all good. the datapoint already exists
         else:
             yield last_data, db_path, fs_path, files
                 
@@ -95,7 +95,7 @@ conn = psycopg2.connect(
     port=os.getenv('POSTGRES_PORT'),
     user=os.getenv('POSTGRES_USER'),
     password=os.getenv('POSTGRES_PASSWORD'),
-    database='insp_3'
+    database='insp_4'
 )
 
 def get_es(linkOrdner):
