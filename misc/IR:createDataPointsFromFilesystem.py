@@ -23,8 +23,8 @@ def next_data(gen):
     parent_data, db_path, fs_path, files = gen.__next__()
     name = os.path.basename(db_path)
     filepaths = [os.path.join(fs_path, file) for file in files]
-    def ondone(kurztext):
-        handle_data(parent_data, db_path, kurztext)
+    def ondone(langtext):
+        handle_data(parent_data, db_path, langtext)
         next_data(gen)
     main_ui.refresh(name, filepaths, ondone)
 
@@ -34,14 +34,14 @@ def main_ui(name, filepaths, ondone):
         for filepath in filepaths:
             ui.image(filepath)
     ui.label(name)
-    kurztext = ui.input(label='Beschreibung').classes('w-full no-wrap')
-    ui.button('Speichern und nächster', on_click=lambda: ondone(kurztext.value))
+    langtext = ui.input(label='Beschreibung').classes('w-full no-wrap')
+    ui.button('Speichern und nächster', on_click=lambda: ondone(langtext.value))
 
-def handle_data(parent_data, db_path, kurztext = ""):
+def handle_data(parent_data, db_path, langtext = ""):
     data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
     new_ereart = get_child_ereart(ereart, os.path.basename(db_path))
     e1,e2,e3 = change_es(new_ereart, pjnr, e1=e1, e2=e2)
-    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor, kurztext)
+    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor, langtext)
 
 def problematic_inspection_walker():
     for root, dirs, files in os.walk(filesystem, topdown=True): # generate parent before children
@@ -145,11 +145,11 @@ def get_next_e(ereart,pjnr,**kwargs):
     res = c.fetchall()
     return res[0][0]+1 if len(res) > 0 else 1
 
-def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, kurztext):
+def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, langtext):
     c = conn.cursor()
     insert_query = f'''
-        INSERT INTO "Events" ("KurzText", "PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
-        VALUES ('{kurztext}', {pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/no_default_picture_yet', TRUE)
+        INSERT INTO "Events" ("LangText", "PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
+        VALUES ('{langtext}', {pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/no_default_picture_yet', TRUE)
     '''
     c.execute(insert_query)
     conn.commit()
