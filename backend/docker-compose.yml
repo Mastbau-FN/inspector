@@ -14,10 +14,10 @@ services:
         max-file: "30"
     working_dir: /home/node/api
     extra_hosts:
-    - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"
     ports:
       - "443:443"
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      # - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /home/administrator/images:/home/administrator/images
@@ -41,10 +41,10 @@ services:
         max-file: "30"
     working_dir: /home/node/api
     extra_hosts:
-    - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"
     ports:
       - "4443:443"
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      # - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /home/administrator/images:/home/administrator/images
