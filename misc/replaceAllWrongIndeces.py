@@ -141,7 +141,7 @@ def replaceallwrongindexes(path,name,pjNr, **kwargs):
         nr = splittedname[0]
         echtername = splittedname[1]
         if "mangel_idx" in kwargs:
-            echtername = echtername.replace(" ","") #TODO @chris warum sollen nochmal die lücken weg?
+            echtername = echtername.replace(" ","") #TODO @chrisoesterreichprog warum sollen nochmal die lücken weg?! note: scheinbar weil in deinem handy-backup-script die Lücken fälschlicherweise auch entfernt werden
         selectindexfromevents(path,echtername,nr,pjNr, **kwargs)
 
 

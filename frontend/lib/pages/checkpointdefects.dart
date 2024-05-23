@@ -95,6 +95,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           check_index: currentData.index,
           index: -1,
           ereArt: OufnessChooser.none,
+          //TODO: @chrisoesterreichprog, sollte das nicht andersrum sein?
           kurzText: currentData.title + "  ohne Mangel",
           langText: "ohne Mangel",
         )
