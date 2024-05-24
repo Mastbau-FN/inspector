@@ -10,7 +10,7 @@ problematic_inspection_ids = ["20236538", "20236554", "20236550", "20236551", "2
 def main ():
     add_incidence_column_if_not_exists()
     if useUI:
-        main_ui("please wait, loading...", [], lambda:1)
+        main_ui("please wait, loading...", [""], lambda:1)
         gen = missing_child_walker()
         next_data(gen)
         ui.run(title="MBG Data Recovery", port=8081)
@@ -18,30 +18,45 @@ def main ():
         for parent_data, db_path, _, _  in missing_child_walker():
             handle_data(parent_data, db_path, "")
         conn.close()
+    with open("IR:log.txt", "w") as f:
+        f.write(log_)
 
 def next_data(gen):
     parent_data, db_path, fs_path, files = gen.__next__()
-    name = os.path.basename(db_path)
+    name = db_path
     filepaths = [os.path.join(fs_path, file) for file in files]
-    def ondone(langtext):
-        handle_data(parent_data, db_path, langtext)
+    def ondone(langtext, height, favorit):
+        handle_data(parent_data, db_path, langtext, height, favorit)
         next_data(gen)
     main_ui.refresh(name, filepaths, ondone)
 
 @ui.refreshable
 def main_ui(name, filepaths, ondone):
+    chosen_file, set_chosen_file = ui.state(os.path.basename(filepaths[0]))
     with ui.row().classes('w-full no-wrap'):
         for filepath in filepaths:
-            ui.image(filepath)
+            file = os.path.basename(filepath)
+            with ui.button(on_click=lambda ffile=file: set_chosen_file(ffile)).classes('w-1/4'): # wtf python
+                ui.label('-------Favorit-------' if file == chosen_file else 'Wähle Bild')
+                ui.image(filepath)
     ui.label(name)
     langtext = ui.input(label='Beschreibung').classes('w-full no-wrap')
-    ui.button('Speichern und nächster', on_click=lambda: ondone(langtext.value))
+    height = ui.input(label='Höhe / Ort').classes('w-full no-wrap')
+    ui.button('Speichern und nächster', on_click=lambda: ondone(langtext.value, height.value, chosen_file))
 
-def handle_data(parent_data, db_path, langtext = ""):
+def handle_data(parent_data, db_path, langtext = "", height=None, favorit = None):
     data_idx, pjnr, ereart, e1, e2, e3, autor = parent_data
     new_ereart = get_child_ereart(ereart, os.path.basename(db_path))
     e1,e2,e3 = change_es(new_ereart, pjnr, e1=e1, e2=e2)
-    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor, langtext)
+    create_new_data_point(db_path, pjnr, new_ereart, e1, e2, e3, autor, langtext, height, mainImgName=favorit)
+
+log_ = ""
+def log(*args):
+    print(*args)
+    global log_
+    log_ += str(args) + "\n"
+
+
 
 def problematic_inspection_walker():
     for root, dirs, files in os.walk(filesystem, topdown=True): # generate parent before children
@@ -95,7 +110,7 @@ conn = psycopg2.connect(
     port=os.getenv('POSTGRES_PORT'),
     user=os.getenv('POSTGRES_USER'),
     password=os.getenv('POSTGRES_PASSWORD'),
-    database='insp_4'
+    database='insp_3'
 )
 
 def get_es(linkOrdner):
@@ -145,14 +160,21 @@ def get_next_e(ereart,pjnr,**kwargs):
     res = c.fetchall()
     return res[0][0]+1 if len(res) > 0 else 1
 
-def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, langtext):
+def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, langtext, height, mainImgName = "no_default_picture_yet"):
     c = conn.cursor()
+    kurztext = {
+        5201: "Mangel leicht",
+        5202: "Mangel mittel",
+        5203: "Mangel schwer",
+        5204: "ohne Mangel",
+    }[ereart]
     insert_query = f'''
-        INSERT INTO "Events" ("LangText", "PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
-        VALUES ('{langtext}', {pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/no_default_picture_yet', TRUE)
+        INSERT INTO "Events" ("LangText", "KurzText", "Zusatz_Info", "PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
+                    VALUES ('{langtext}', '{kurztext}', '{height}', {pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/{mainImgName}', TRUE)
     '''
     c.execute(insert_query)
     conn.commit()
+    log("created new data point", pjnr, ereart, e1, e2, e3, autor, langtext, height, mainImgName)
 
 def add_incidence_column_if_not_exists():
     column_name = 'incident_generated'
