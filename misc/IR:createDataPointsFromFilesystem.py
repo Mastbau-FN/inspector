@@ -3,7 +3,7 @@ import psycopg2
 from nicegui import ui
 
 
-useUI = True
+useUI = False
 filesystem = '/home/administrator/images/S/'
 problematic_inspection_ids = ["20236538", "20236554", "20236550", "20236551", "20236548", "20236546", "20236545", "20246132", "20246134", "20246133", "20246156", "20246135", "20246131", "20246138", "20246140", "20246136", "20246137" ]
 
@@ -162,12 +162,16 @@ def get_next_e(ereart,pjnr,**kwargs):
 
 def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, langtext, height, mainImgName = "no_default_picture_yet"):
     c = conn.cursor()
-    kurztext = {
-        5201: "Mangel leicht",
-        5202: "Mangel mittel",
-        5203: "Mangel schwer",
-        5204: "ohne Mangel",
-    }[ereart]
+    kurztext = ""
+    try:
+        kurztext = {
+            5201: "Mangel leicht",
+            5202: "Mangel mittel",
+            5203: "Mangel schwer",
+            5204: "ohne Mangel",
+        }[ereart]
+    except KeyError:
+        kurztext = None
     insert_query = f'''
         INSERT INTO "Events" ("LangText", "KurzText", "Zusatz_Info", "PjNr", "EREArt", "E1", "E2", "E3", "Autor", "LinkOrdner", "Link", "incident_generated")
                     VALUES ('{langtext}', '{kurztext}', '{height}', {pjnr}, {ereart}, {e1}, {e2}, {e3}, '{autor}', '{db_path}', '{db_path}/{mainImgName}', TRUE)
