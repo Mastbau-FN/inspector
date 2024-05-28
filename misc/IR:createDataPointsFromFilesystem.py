@@ -143,6 +143,9 @@ def get_next_e(ereart,pjnr,**kwargs):
     additional_where = ""
     if level == "E3":
         additional_where += f'AND "E2" = {kwargs["e2"]} '
+        ere_matcher = '"EREArt" IN (5201,5202,5203,5204) '
+    else:
+        ere_matcher = f'"EREArt" = {ereart} '
     if level in ["E2", "E3"]:
         additional_where += f'AND "E1" = {kwargs["e1"]} '
 
@@ -150,7 +153,7 @@ def get_next_e(ereart,pjnr,**kwargs):
     get_e_query = f'''
         SELECT "{level}" FROM "Events"
         WHERE 
-            "EREArt" = {ereart}
+            {ere_matcher}
             AND "PjNr" = {pjnr}
             {additional_where}
         ORDER BY "{level}" DESC
@@ -178,7 +181,7 @@ def create_new_data_point(db_path, pjnr, ereart, e1, e2, e3, autor, langtext, he
     '''
     c.execute(insert_query)
     conn.commit()
-    log("created new data point", pjnr, ereart, e1, e2, e3, autor, langtext, height, mainImgName)
+    log("created new data point", pjnr, ereart, e1, e2, e3, autor, kurztext, langtext, height, mainImgName)
 
 def add_incidence_column_if_not_exists():
     column_name = 'incident_generated'
