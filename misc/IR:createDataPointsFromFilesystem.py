@@ -142,9 +142,9 @@ def get_next_e(ereart,pjnr,**kwargs):
     
     additional_where = ""
     if level == "E3":
-        additional_where += f'AND "E2" = {kwargs["e2"]}'
-    elif level in ["E2", "E1"]:
-        additional_where += f'AND "E1" = {kwargs["e1"]}'
+        additional_where += f'AND "E2" = {kwargs["e2"]} '
+    if level in ["E2", "E3"]:
+        additional_where += f'AND "E1" = {kwargs["e1"]} '
 
     c = conn.cursor()
     get_e_query = f'''
