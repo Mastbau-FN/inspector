@@ -1,3 +1,3 @@
 # changes
 
-- fixed backup
+- added storage permissions
