@@ -369,6 +369,7 @@ import 'package:provider/provider.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../widgets/openNewViewTile.dart';
 
@@ -445,6 +446,26 @@ class OpenNextRequestTile extends StatelessWidget {
       });
 }
 
+Future<bool> _requestStoragePermission() async {
+  // Request storage permissions
+  var status = await Permission.storage.status;
+  if (status.isDenied) {
+    // We didn't ask for permission yet or the permission has been denied before but not permanently.
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+      Permission.manageExternalStorage,
+    ].request();
+
+    // Check each status and handle accordingly
+    if (statuses[Permission.storage]!.isGranted &&
+        statuses[Permission.manageExternalStorage]!.isGranted) {
+      return true;
+    }
+    return false;
+  }
+  return status.isGranted;
+}
+
 // Define the BackupTile widget
 class BackupTile extends StatefulWidget {
   const BackupTile({super.key});
@@ -463,6 +484,16 @@ class _BackupTileState extends State<BackupTile> {
       loading = true;
       progress = 0.0; // Reset progress before starting
     });
+
+    // Request storage permission
+    if (!await _requestStoragePermission()) {
+      showToast('Storage permission not granted');
+      setState(() {
+        loading = false;
+        success = false;
+      });
+      return;
+    }
 
     // Get the user's external storage directory
     Directory? externalDir = await getExternalStorageDirectory();

@@ -89,7 +89,7 @@ dependencies:
 
   # used to query and send data to our API
   http: ^0.13.3
-
+  permission_handler: ^10.3.0
   # show push notifications (progress on retryfailedrequests)
   awesome_notifications:
     ^0.7.1
