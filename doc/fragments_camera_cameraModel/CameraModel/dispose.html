@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the awaitInitDone method from the UploadProgressWriter class, for the Dart programming language.">
-  <title>awaitInitDone method - UploadProgressWriter class - progressManagerStateNotifier library - Dart API</title>
+  <meta name="description" content="API docs for the dispose method from the CameraModel class, for the Dart programming language.">
+  <title>dispose method - CameraModel class - cameraModel library - Dart API</title>
 
 
   
@@ -29,11 +29,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">backend&#47;progressManagerStateNotifier.dart</a></li>
-    <li><a href="../../backend_progressManagerStateNotifier/UploadProgressWriter-class.html">UploadProgressWriter</a></li>
-    <li class="self-crumb">awaitInitDone method</li>
+    <li><a href="../../fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">fragments&#47;camera&#47;cameraModel.dart</a></li>
+    <li><a href="../../fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
+    <li class="self-crumb">dispose method</li>
   </ol>
-  <div class="self-name">awaitInitDone</div>
+  <div class="self-name">dispose</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -54,31 +54,45 @@
   <div
       id="dartdoc-main-content"
       class="main-content"
-      data-above-sidebar="backend_progressManagerStateNotifier&#47;UploadProgressWriter-class-sidebar.html"
+      data-above-sidebar="fragments_camera_cameraModel&#47;CameraModel-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-method">awaitInitDone</span> method 
+<h1><span class="kind-method">dispose</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
       
+  <div>
+    <ol class="annotation-list">
+        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
+    </ol>
+  </div>
 
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">awaitInitDone</span>(<wbr>)
+<span class="returntype">void</span>
+<span class="name ">dispose</span>(<wbr>)
 
-      
+      <div class="features"><span class="feature">override</span></div>
 
     </section>
     
+<section class="desc markdown">
+  <p>Discards any resources used by the object. After this is called, the
+object is not in a usable state and should be discarded (calls to
+<a href="https://api.flutter.dev/flutter/foundation/ChangeNotifier/addListener.html">addListener</a> will throw after the object is disposed).</p>
+<p>This method should only be called by the object's owner.</p>
+<p>This method does not notify listeners, and clears the listener list once
+it is called. Consumers of this class must decide on whether to notify
+listeners or not immediately before disposal.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; awaitInitDone() async {
-  while (!_initDone) {
-    await Future.delayed(Duration(milliseconds: 100));
-  }
+  <pre class="language-dart"><code class="language-dart">@override
+void dispose() {
+  disposeCamera();
+  super.dispose();
 }</code></pre>
 </section>
 
@@ -95,13 +109,13 @@
 
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">progressManagerStateNotifier</a></li>
-    <li><a href="../../backend_progressManagerStateNotifier/UploadProgressWriter-class.html">UploadProgressWriter</a></li>
-    <li class="self-crumb">awaitInitDone method</li>
+    <li><a href="../../fragments_camera_cameraModel/fragments_camera_cameraModel-library.html">cameraModel</a></li>
+    <li><a href="../../fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
+    <li class="self-crumb">dispose method</li>
 </ol>
 
 
-    <h5>UploadProgressWriter class</h5>
+    <h5>CameraModel class</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
 

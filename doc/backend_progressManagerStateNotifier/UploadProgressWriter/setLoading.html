@@ -63,7 +63,7 @@
     <section class="multi-line-signature">
       
 
-<span class="returntype">void</span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
 <span class="name ">setLoading</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="setLoading-param-loading"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">loading</span></span></li>
 </ol>)
 
@@ -76,11 +76,14 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">void setLoading(bool loading) {
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setLoading(bool loading) async {
   _loading = loading;
-  SharedPreferences.getInstance().then((value) {
-    value.setBool(sync_in_progress_str, loading);
-  });
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(&#39;sync_in_progress_str&#39;, loading);
+  } catch (e) {
+    debugPrint(&#39;Error setting loading state: $e&#39;);
+  }
 }</code></pre>
 </section>
 

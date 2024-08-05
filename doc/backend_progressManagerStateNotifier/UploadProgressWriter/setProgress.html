@@ -63,7 +63,7 @@
     <section class="multi-line-signature">
       
 
-<span class="returntype">void</span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
 <span class="name ">setProgress</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="setProgress-param-progress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">progress</span></span></li>
 </ol>)
 
@@ -76,11 +76,14 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">void setProgress(double progress) {
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setProgress(double progress) async {
   _progress = progress;
-  SharedPreferences.getInstance().then((value) {
-    value.setDouble(sync_progress_str, progress);
-  });
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(&#39;sync_progress_str&#39;, progress);
+  } catch (e) {
+    debugPrint(&#39;Error setting progress: $e&#39;);
+  }
 }</code></pre>
 </section>
 

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the awaitInitDone method from the UploadProgressWriter class, for the Dart programming language.">
-  <title>awaitInitDone method - UploadProgressWriter class - progressManagerStateNotifier library - Dart API</title>
+  <meta name="description" content="API docs for the init method from the UploadProgressWriter class, for the Dart programming language.">
+  <title>init method - UploadProgressWriter class - progressManagerStateNotifier library - Dart API</title>
 
 
   
@@ -31,9 +31,9 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">backend&#47;progressManagerStateNotifier.dart</a></li>
     <li><a href="../../backend_progressManagerStateNotifier/UploadProgressWriter-class.html">UploadProgressWriter</a></li>
-    <li class="self-crumb">awaitInitDone method</li>
+    <li class="self-crumb">init method</li>
   </ol>
-  <div class="self-name">awaitInitDone</div>
+  <div class="self-name">init</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -57,14 +57,14 @@
       data-above-sidebar="backend_progressManagerStateNotifier&#47;UploadProgressWriter-class-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-method">awaitInitDone</span> method 
+<h1><span class="kind-method">init</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
       
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">awaitInitDone</span>(<wbr>)
+<span class="name ">init</span>(<wbr>)
 
       
 
@@ -75,10 +75,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; awaitInitDone() async {
-  while (!_initDone) {
-    await Future.delayed(Duration(milliseconds: 100));
-  }
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; init() async {
+  await _init();
 }</code></pre>
 </section>
 
@@ -97,7 +95,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../backend_progressManagerStateNotifier/backend_progressManagerStateNotifier-library.html">progressManagerStateNotifier</a></li>
     <li><a href="../../backend_progressManagerStateNotifier/UploadProgressWriter-class.html">UploadProgressWriter</a></li>
-    <li class="self-crumb">awaitInitDone method</li>
+    <li class="self-crumb">init method</li>
 </ol>
 
 

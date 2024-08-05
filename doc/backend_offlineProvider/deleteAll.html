@@ -64,7 +64,8 @@
         
 
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">deleteAll</span>(<wbr>)
+<span class="name ">deleteAll</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="deleteAll-param-keepSkippedRequests">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">keepSkippedRequests</span> = <span class="default-value">false</span>}</span></li>
+</ol>)
 
         
 
@@ -75,8 +76,21 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; deleteAll() async =&gt;
-    (await getApplicationDocumentsDirectory()).delete(recursive: true);</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; deleteAll({
+  bool keepSkippedRequests = false,
+}) async {
+  final root = await getApplicationDocumentsDirectory();
+  final cache = await getApplicationCacheDirectory();
+  if (keepSkippedRequests) {
+    copyPath(root.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION,
+        cache.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION);
+    await deleteAll();
+    copyPath(cache.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION,
+        root.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION);
+  } else {
+    root.delete(recursive: true);
+  }
+}</code></pre>
 </section>
 
 

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the failedRequestWasSuccessful function from the offlineProvider library, for the Dart programming language.">
-  <title>failedRequestWasSuccessful function - offlineProvider library - Dart API</title>
+  <meta name="description" content="API docs for the SKIPPEDCOLLECTION constant from the offlineProvider library, for the Dart programming language.">
+  <title>SKIPPEDCOLLECTION constant - offlineProvider library - Dart API</title>
 
 
   
@@ -30,9 +30,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">backend&#47;offlineProvider.dart</a></li>
-    <li class="self-crumb">failedRequestWasSuccessful function</li>
+    <li class="self-crumb">SKIPPEDCOLLECTION constant</li>
   </ol>
-  <div class="self-name">failedRequestWasSuccessful</div>
+  <div class="self-name">SKIPPEDCOLLECTION</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -56,44 +56,25 @@
       data-above-sidebar="backend_offlineProvider&#47;backend_offlineProvider-library-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-function">failedRequestWasSuccessful</span> function 
+<h1><span class="kind-top-level-property">SKIPPEDCOLLECTION</span> top-level constant 
  
 </h1></div>
 
-    <section class="multi-line-signature">
+        <section class="multi-line-signature">
+          
+          <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>
+          const <span class="name ">SKIPPEDCOLLECTION</span>
+          
+
+        </section>
         
 
-<span class="returntype">dynamic</span>
-<span class="name ">failedRequestWasSuccessful</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="failedRequestWasSuccessful-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span>, </span></li>
-<li><span class="parameter" id="failedRequestWasSuccessful-param-wasntTho">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">wasntTho</span> = <span class="default-value">false</span>}</span></li>
-</ol>)
-
         
-
-    </section>
-    
-
-
-    
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">failedRequestWasSuccessful(String id, {bool wasntTho = false}) {
-  if (wasntTho) {
-    &#47;&#47;hannes
-    failedReqLogCollection.doc(id).get().then((data) {
-      if (data == null) {
-        debugPrint(&#39;request $id wasnt in the failed-Log&#39;);
-        return;
-      }
-      skippedReqLogCollection.doc(id).set(data);
-      debugPrint(&#39;request $id was skipped and moved to skipped-Log&#39;);
-    });
-  }
-  failedReqLogCollection.doc(id).delete();
-  debugPrint(
-      &#39;request $id was apperently successful, so we deleted it from the failed-Log&#39;);
-}</code></pre>
+  <pre class="language-dart"><code class="language-dart">const SKIPPEDCOLLECTION = &#39;skipped-requests&#39;;</code></pre>
 </section>
+
 
 
   </div> <!-- /.main-content -->
@@ -109,7 +90,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../backend_offlineProvider/backend_offlineProvider-library.html">offlineProvider</a></li>
-    <li class="self-crumb">failedRequestWasSuccessful function</li>
+    <li class="self-crumb">SKIPPEDCOLLECTION constant</li>
 </ol>
 
 
