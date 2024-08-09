@@ -1,3 +1,3 @@
 # changes
 
-- added storage permissions
+- remove storage permissions query
