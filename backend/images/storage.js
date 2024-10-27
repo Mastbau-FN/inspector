@@ -21,11 +21,22 @@ const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
 	let frontendname = file.originalname;
-	if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX)|| !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
-		file.originalname = file.fieldname+file.originalname;
+	const date = new Date(Number(file.fieldname));
+	const day = String(date.getDate()).padStart(2, '0');
+	const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
+	const year = date.getFullYear();
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	const seconds = String(date.getSeconds()).padStart(2, '0');
+
+	// Format the date as "dd_MM_yyyy_HH_mm_ss"
+	const formattedDate = `${day}_${month}_${year}_${hours}_${minutes}_${seconds}`;
+	file.fieldname = formattedDate;
+	if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX) && !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
+		file.originalname = file.fieldname+".jpg";
 		file.fieldname = frontendname;
 	}else{
-		file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+file.originalname;
+		file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+".jpg";
 		file.fieldname = frontendname;
 	}
 	
