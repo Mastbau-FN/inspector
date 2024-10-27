@@ -92,7 +92,7 @@ dependencies:
   permission_handler: ^10.3.0
   # show push notifications (progress on retryfailedrequests)
   awesome_notifications:
-    ^0.7.1
+    ^0.10.0
     # git: https://github.com/HannesGitH/awesome_notifications.git #intl 0.18.0
 
   flutter:
