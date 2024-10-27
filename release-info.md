@@ -1,3 +1,3 @@
 # changes
 
-- shorter picture names/unique ohne Mängel
+- shorter picture names and unique ohne Mängel
