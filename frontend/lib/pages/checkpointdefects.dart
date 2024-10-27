@@ -11,6 +11,7 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:provider/provider.dart';
+import 'package:MBG_Inspektionen/backend/local.dart';
 
 import '../widgets/mySimpleAlertBox.dart';
 
@@ -95,9 +96,8 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           check_index: currentData.index,
           index: -1,
           ereArt: OufnessChooser.none,
-          //TODO: @chrisoesterreichprog, sollte das nicht andersrum sein?
-          kurzText: currentData.title + "  ohne Mangel",
-          langText: "ohne Mangel",
+          kurzText: "ohne Mangel",
+          langText: currentData.title + " ohne Mangel",
         )
           ..parentId = currentData.pjNr.toString() +
               "-" +
@@ -106,13 +106,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
               currentData.index.toString() +
               "-" +
               "0"
-          ..id = currentData.pjNr.toString() +
-              "-" +
-              currentData.category_index.toString() +
-              "-" +
-              currentData.index.toString() +
-              "-" +
-              "1", //TODO: test
+          ..id = LOCALLY_ADDED_PREFIX + UniqueKey().hashCode.toRadixString(36),
 
         // ..height = "----",
         caller: currentData,
