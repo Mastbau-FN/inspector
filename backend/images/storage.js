@@ -13,6 +13,7 @@ const {
   no_image_placeholder_name,
 } = require("../options");
 const LOCALLY_ADDED_PREFIX = '__locally_added__';
+const SHORT_LOCALLY_ADDED_PREFIX = '__loc__';
 
 const {ftb_ftb_id, update_hash_map } = require("../misc/frontend_wrapper_middleware");
 
@@ -20,11 +21,11 @@ const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
 	let frontendname = file.originalname;
-	if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX)){
+	if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX)|| !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
 		file.originalname = file.fieldname+file.originalname;
 		file.fieldname = frontendname;
 	}else{
-		file.originalname = LOCALLY_ADDED_PREFIX+file.fieldname+file.originalname;
+		file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+file.originalname;
 		file.fieldname = frontendname;
 	}
 	
@@ -51,7 +52,7 @@ const mstorage = multer.diskStorage({
 	
         	let hash = memorize_link(rf);
 	
-        	if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)) {
+        	if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)|| rf.filename.startsWith(SHORT_LOCALLY_ADDED_PREFIX)) {
           	update_hash_map({hash: rf.filename}, hash);
         	}
 	
