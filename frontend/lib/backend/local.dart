@@ -15,7 +15,7 @@ import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
 import 'api.dart';
 
-const LOCALLY_ADDED_PREFIX = '__locally_added__';
+const LOCALLY_ADDED_PREFIX = '__loc__';
 
 const CACHESIZE = 128;
 
