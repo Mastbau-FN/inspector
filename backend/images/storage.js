@@ -36,7 +36,7 @@ const mstorage = multer.diskStorage({
 		file.originalname = file.fieldname+".jpg";
 		file.fieldname = frontendname;
 	}else{
-		file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+".jpg";
+		file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+(Math.random() + 1).toString(36).substring(8)+".jpg";
 		file.fieldname = frontendname;
 	}
 	
@@ -51,7 +51,8 @@ const mstorage = multer.diskStorage({
       // console.log("🚀 ~ file: storage.js:30 ~ ftb_ftb_id ~ req", req.body);
     return rootfolder(req.body.data).then((rf) => {
       	// console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
-      	console.log("multi-upload", rf);
+      	
+		console.log("multi-upload", rf);
       	const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
       	fs.mkdirSync(path, { recursive: true });
       	let prev_filename = rf.filename;
