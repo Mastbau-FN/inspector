@@ -36,6 +36,9 @@ class CameraModel extends ChangeNotifier {
       return controller!;
     }
     controller = await newController;
+    if (controller == null) {
+      throw Exception("Failed to initialize camera");
+    }
     await controller!.initialize();
     return controller!;
   }
@@ -56,13 +59,18 @@ class CameraModel extends ChangeNotifier {
   }
 
   Future<XFile> shoot() async {
-    if (controller == null) {
-      debugPrint("we need a new cameraController");
+    if (controller == null || !controller!.value.isInitialized) {
+      debugPrint("Controller nicht initialisiert, starte Kamera...");
       await start();
     }
-    _latestPic = await controller!.takePicture();
-    notifyListeners();
-    return latestPic!;
+    try {
+      _latestPic = await controller!.takePicture();
+      notifyListeners();
+      return latestPic!;
+    } catch (e) {
+      debugPrint("Fehler beim Aufnehmen des Bildes: $e");
+      throw Exception("Fehler beim Aufnehmen des Bildes");
+    }
   }
 
   Future<List<CameraDescription>> get allCameras async {
@@ -83,18 +91,25 @@ class CameraModel extends ChangeNotifier {
       (await allCameras).firstOrNull;
 
   int _currentCameraIndex = 0;
-  Future nextCamera() async {
-    int len = (await allCameras).length;
-    _currentCameraIndex++;
-    _currentCameraIndex %= len;
+  Future<void> nextCamera() async {
+    final cameras = await allCameras;
+    if (cameras.isEmpty) {
+      showToast("Keine Kameras verfügbar");
+      return;
+    }
+    _currentCameraIndex = (_currentCameraIndex + 1) % cameras.length;
     controller = await newController;
     notifyListeners();
   }
 
-  Future prevCamera() async {
-    int len = (await allCameras).length;
-    _currentCameraIndex--;
-    _currentCameraIndex %= len;
+  Future<void> prevCamera() async {
+    final cameras = await allCameras;
+    if (cameras.isEmpty) {
+      showToast("Keine Kameras verfügbar");
+      return;
+    }
+    _currentCameraIndex =
+        (_currentCameraIndex - 1 + cameras.length) % cameras.length;
     controller = await newController;
     notifyListeners();
   }
@@ -125,8 +140,13 @@ class CameraModel extends ChangeNotifier {
   }
 
   void disposeCamera() {
-    controller?.setFlashMode(FlashMode.off);
-    controller?.dispose();
+    if (controller != null) {
+      controller!.setFlashMode(FlashMode.off).catchError((e) {
+        debugPrint("Fehler beim Ausschalten des Blitzes: $e");
+      });
+      controller!.dispose();
+      controller = null;
+    }
   }
 
   Future<void> focus(Offset focusPoint) async {
