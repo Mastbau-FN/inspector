@@ -425,8 +425,10 @@ class _ImageAddButtonState extends State<ImageAddButton>
   FloatingActionButton get photoDone => FloatingActionButton(
         backgroundColor: Colors.green,
         child: uploadingImage ? LoadingView() : Icon(Icons.check),
-        onPressed: () =>
-            addLatestToQueue(context).then((value) => uploadShots(context)),
+        onPressed: () => addLatestToQueue(context).then((value) {
+          Provider.of<CameraModel>(context, listen: false).disposeCamera();
+          uploadShots(context);
+        }),
       );
 
   Widget get addToQueue => uploadingImage

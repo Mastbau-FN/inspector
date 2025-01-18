@@ -276,7 +276,7 @@ const delete_ = async (data, KZL) => {
   try {
     //delete image folders
     ld = await _addfoldername(ld)
-    if(ld.LinkOrdner != null && ld.LinkOrdner.length > 4)
+    if((ld.LinkOrdner != null || ld.LinkOrdner != "") && ld.LinkOrdner.length > 4)
     await fsp.rmdir(require('../images/filesystem').formatpath(ld.LinkOrdner), { recursive: true, force: true });
   } catch (error) {}
 
@@ -317,13 +317,24 @@ const getRootFolder = async (pjNr) => {
 }
 
 
-
+let counter = 0;
 
 // this function is just power pure
 const getLink = async (data, andSet = true, recursion_num = 0) => {
 
   let rootfolder = await getRootFolder(data.PjNr);
-
+  // if(!data.Link==null){
+  //   if(!data.Link.toString().startsWIth("S")){
+  //     console.log("Linkdata", data)
+  //     data.Link = null;
+  //   }
+  // }
+  // if(!data.LinkOrdner==null){
+  //   if(!data.LinkOrdner.toString().startsWIth("S")){
+  //     console.log("Linkdata", data)
+  //     data.LinkOrdner = null;
+  //   }
+  // }
   let _link =
     data.Link;
 
@@ -331,9 +342,23 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
     let qres = (await _magic_query(data)).rows[0];
 
     const _newFolderName = async (data) => {
+      //console.log("data", data)
       const _backup = (await _magic_query(data, false)).rows[0];
-      const new_name = (_backup.Index ?? "TODO_INDEX") + "_" + (_backup.KurzText ?? "TODO_KURZTEXT");
+      //console.log(_backup)
+      //console.log("Index:"+_backup.Index)
+      //console.log("Kurztext:"+_backup.Kurztext)
+      // if(_backup==undefined){
+      //   console.log("mies undefined")
+      //   const new_name = counter+"_"+(data.KurzText ?? "TODO_KURZTEXT");
+      //   counter++;
+      //   return new_name;
+      // }else{
+      //   
+      const new_name = (_backup.Index ?? "TODO_INDEX")+"_"+(_backup.KurzText ?? "TODO_KURZTEXT");
       return new_name;
+     // }
+   
+     
     }
 
 
@@ -348,19 +373,18 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
             try { return (await getLink(_removeHighestLevel(data), true, recursion_num + 1)).link; } catch (e) { console.warn(e); return "NO_LINK"; }
           })())
           , //try the level above
-          await _newFolderName(data)                                            //and add the new name
+          await _newFolderName(data)
         )
         : "",                                                                    //else were fine
       qres?.Link ?? path.join(qres?.LinkOrdner ?? "", options.no_image_placeholder_name)   //otherwise 
     );
   }
 
-
+  
   let link = path.dirname(convertpath(_link)); link = rootfolder == link ? "" : link;
   let filename = path.basename(convertpath(_link));
 
   const res = { rootfolder, link, filename };
-
   if (andSet) _magic_setLink(data, res);
 
   return res;

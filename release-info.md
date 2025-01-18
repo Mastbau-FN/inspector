@@ -1,3 +1,3 @@
 # changes
 
-- fixed Bearbeiten und Hizufügen von Mängeln
+- shorter picture names and unique ohne Mängel

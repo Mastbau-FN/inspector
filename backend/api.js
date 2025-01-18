@@ -214,7 +214,7 @@ const getFileFromHash_get = async (req, res) => {
 const fileUpload = async (req, res) => {
   console.log("uploading files..");
   if (!(req.files || req.file)) {
-    res.status(400).json({ reason: "no file uploaded" });
+    res.status(204).json({ reason: "no file uploaded" });
     console.log("file failed")
   } else {
     res.status(204).json();

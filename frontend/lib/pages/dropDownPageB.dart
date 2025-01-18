@@ -2,8 +2,6 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
-import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -15,7 +13,6 @@ import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
-import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:blur/blur.dart';

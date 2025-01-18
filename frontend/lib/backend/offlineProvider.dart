@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:io/io.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:localstore/localstore.dart';
@@ -103,8 +104,21 @@ Future<File> deleteImage(String name) async {
   return await file.delete() as File;
 }
 
-Future<void> deleteAll() async =>
-    (await getApplicationDocumentsDirectory()).delete(recursive: true);
+Future<void> deleteAll({
+  bool keepSkippedRequests = false,
+}) async {
+  final root = await getApplicationDocumentsDirectory();
+  final cache = await getApplicationCacheDirectory();
+  if (keepSkippedRequests) {
+    copyPath(root.path + "/" + SKIPPEDCOLLECTION,
+        cache.path + "/" + SKIPPEDCOLLECTION);
+    await deleteAll();
+    copyPath(cache.path + "/" + SKIPPEDCOLLECTION,
+        root.path + "/" + SKIPPEDCOLLECTION);
+  } else {
+    root.delete(recursive: true);
+  }
+}
 
 //MARK: data-stuff
 
@@ -190,7 +204,11 @@ storeJson(String documentName, Map<String, dynamic> json) =>
 Future<Map<String, dynamic>?> getJson(String documentName) =>
     otherCollection.doc(documentName).get();
 
-final failedReqLogCollection = (db).collection('failed-requests');
+const FAILEDCOLLECTION = 'failed-requests';
+const SKIPPEDCOLLECTION = 'skipped-requests';
+final failedReqLogCollection = (db).collection(FAILEDCOLLECTION);
+final skippedReqLogCollection = (db).collection(
+    SKIPPEDCOLLECTION); //bei fragen zu logik hierzu hannes fragen, war sein commit
 
 Future<String> logFailedReq(RequestData rd) async {
   final doc = failedReqLogCollection
@@ -224,7 +242,18 @@ Future<List<(String, RequestData?)>?> getAllFailedRequests() async {
   return reqs;
 }
 
-failedRequestWasSuccessful(String id) {
+failedRequestWasSuccessful(String id, {bool wasntTho = false}) {
+  if (wasntTho) {
+    //hannes
+    failedReqLogCollection.doc(id).get().then((data) {
+      if (data == null) {
+        debugPrint('request $id wasnt in the failed-Log');
+        return;
+      }
+      skippedReqLogCollection.doc(id).set(data);
+      debugPrint('request $id was skipped and moved to skipped-Log');
+    });
+  }
   failedReqLogCollection.doc(id).delete();
   debugPrint(
       'request $id was apperently successful, so we deleted it from the failed-Log');

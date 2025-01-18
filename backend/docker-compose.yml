@@ -1,21 +1,55 @@
 version: '3' 
 services:
   node-api-server:
+    env_file:
+      - .env
+      - .env.prod
     user: "${UID}:${GID}"
     restart: always
     image: node:19-buster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1000000k"
+        max-file: "30"
     working_dir: /home/node/api
- # das ist etwas whack, idealerweise würde der postgres-service ebenfalls dockerized sein dann wär das nicht nötig
-    network_mode: host
- #   ports:
- #     - "443:443"
- #     - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "443:443"
+      # - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /home/administrator/images:/home/administrator/images
       - /home/administrator/compressed_images:/home/administrator/compressed_images
       - ${CERT_PATH}:${CERT_PATH}
 
+      - .:/home/node/api
+    command: sh -c " npm install --quiet && node --unhandled-rejections=warn index.js"
+
+  node-api-dev-server:
+    env_file:
+      - .env
+      - .env.dev
+    user: "${UID}:${GID}"
+    restart: always
+    image: node:19-buster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1000000k"
+        max-file: "30"
+    working_dir: /home/node/api
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "4443:443"
+      # - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /home/administrator/images:/home/administrator/images
+      - /home/administrator/compressed_images:/home/administrator/compressed_images
+      - ${CERT_PATH}:${CERT_PATH}
       - .:/home/node/api
     command: sh -c "
         npm install --quiet 

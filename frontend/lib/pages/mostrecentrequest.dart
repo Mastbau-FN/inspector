@@ -69,11 +69,13 @@ class MostRecentRequestPage extends StatelessWidget {
             Row(children: [
               TextButton(
                 onPressed: () async {
-                  await API().local.failedRequestWasSuccessful(id);
+                  await API()
+                      .local
+                      .failedRequestWasSuccessful(id, wasntTho: true);
                   showToast('Request was successfully deleted');
                   Navigator.pop(context);
                 },
-                child: Text('Skip & Delete'),
+                child: Text('Skip'),
                 //red style
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
               ),

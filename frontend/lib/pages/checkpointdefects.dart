@@ -11,6 +11,7 @@ import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:provider/provider.dart';
+import 'package:MBG_Inspektionen/backend/local.dart';
 
 import '../widgets/mySimpleAlertBox.dart';
 
@@ -95,9 +96,18 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
           check_index: currentData.index,
           index: -1,
           ereArt: OufnessChooser.none,
-          kurzText: currentData.title + "  ohne Mangel",
-          langText: "ohne Mangel",
-        )..id = "0", //TODO: test
+          kurzText: "ohne Mangel",
+          langText: currentData.title + " ohne Mangel",
+        )
+          ..parentId = currentData.pjNr.toString() +
+              "-" +
+              currentData.category_index.toString() +
+              "-" +
+              currentData.index.toString() +
+              "-" +
+              "0"
+          ..id = LOCALLY_ADDED_PREFIX + UniqueKey().hashCode.toRadixString(36),
+
         // ..height = "----",
         caller: currentData,
       ); //TO-DO: does not work in online mode #387
@@ -105,6 +115,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
       return;
     } else {
       showDialog(
+        barrierDismissible: true,
         barrierColor: Colors.black54,
         context: context,
         builder: (BuildContext context) {

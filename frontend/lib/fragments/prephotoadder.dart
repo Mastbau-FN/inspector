@@ -234,16 +234,17 @@ class _CameraForAdderState extends State<CameraForAdder>
     //showToast(S.of(context).newImageSendingThisMayTakeASec);
 
     //widget.model.currentlyChosenChildId = widget.parent.id;
-    var value = await widget.model.updateCurrentChild(
-      (data) async {
-        var ret = await API().uploadNewImagesOrFiles(cp, queue,
-            caller: widget.model.currentData, forceUpdate: true);
-        // await Future.delayed(Duration(seconds: 5));
-        return ret;
-      },
-    );
-    debugPrint("value: $value");
-    return value;
+    // var value = await widget.model.updateCurrentChild(
+    //   (data) async {
+    //     var ret =
+    await API().uploadNewImagesOrFiles(cp, queue,
+        caller: widget.model.currentData, forceUpdate: true);
+    // await Future.delayed(Duration(seconds: 5));
+    //     return ret;
+    //   },
+    // );
+    // debugPrint("value: $value");
+    // return value;
   }
 
   void uploadShots(context) async {

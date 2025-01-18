@@ -73,7 +73,7 @@ _retryFailedRequestsIsolate(
             body: 'Offline Änderungen werden hochsynchronisiert...',
             category: NotificationCategory.Progress,
             notificationLayout: NotificationLayout.ProgressBar,
-            progress: (i / total * 100).round(),
+            progress: (i / total * 100).round().toDouble(),
             // locked: true,
             payload: NotificationPayload.progress(i, total)),
       );
@@ -83,6 +83,7 @@ _retryFailedRequestsIsolate(
       try {
         debugPrint('retry request $i/$total: ${rd.route}');
         rd.logIfFailed = false;
+
         final res = await API().remote.postJSON(rd);
         //nur 200er als ok einstufen
         if (res!.statusCode ~/ 100 == 2) {
@@ -99,7 +100,7 @@ _retryFailedRequestsIsolate(
                   'Offline Änderungen konnten NICHT(!) hochsynchronisiert werden.. probiers nochmal oder melde dich beim Support',
               category: NotificationCategory.Progress,
               notificationLayout: NotificationLayout.ProgressBar,
-              progress: (i / total * 100).round(),
+              progress: (i / total * 100).round().toDouble(),
               payload: NotificationPayload.failed(rd),
               // locked: false,
             ),

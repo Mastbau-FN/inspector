@@ -118,6 +118,17 @@ class CameraModel extends ChangeNotifier {
     // notifyListeners();
   }
 
+  @override
+  void dispose() {
+    disposeCamera();
+    super.dispose();
+  }
+
+  void disposeCamera() {
+    controller?.setFlashMode(FlashMode.off);
+    controller?.dispose();
+  }
+
   Future<void> focus(Offset focusPoint) async {
     controller ??= await start();
     controller!.setFocusPoint(focusPoint);

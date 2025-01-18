@@ -197,7 +197,7 @@
   "@weCanSendYouANotificationAboutTheSyncProgress": {},
   "wontFetchAnythingSinceNoOneIsLoggedIn": "Niemand eingelogt",
   "@wontFetchAnythingSinceNoOneIsLoggedIn": {},
-  "ohneMaengel": "ohne Mängel",
+  "ohneMaengel": "mangelfrei",
   "uhoh": "Uuups",
   "defectLocation": "Ort: {location}",
   "@defectLocation": {
