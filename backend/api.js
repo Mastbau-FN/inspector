@@ -192,6 +192,40 @@ const getFileFromHash = async (req, res) => {
   }
 };
 
+const getDocumentFromHash = async (req, res) => {
+    try {
+      let file = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
+      let contentType = determineContentType(req.body.hash);
+      
+      if (!contentType) {
+        return res.status(400).json({ reason: "Unsupported file type" });
+      }
+  
+      res.writeHead(200, { "Content-Type": contentType });
+      res.end(file);
+    } catch (e) {
+      res.status(404).json({ reason: "File no longer available" });
+    }
+  };
+  
+  const determineContentType = (hash) => {
+    const fileExtensions = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      tiff: "image/tiff",
+      pdf: "application/pdf",
+      xls: "application/vnd.ms-excel",
+      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      doc: "application/msword",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    };
+  
+    const extension = hash.split('.').pop().toLowerCase();
+    return fileExtensions[extension] || null;
+  };
+  
+
 /**
  * retrieves the file given by a hash and returns it to the client
  */
@@ -230,6 +264,7 @@ module.exports = {
   getCheckPoints,
   getCheckPointDefects,
 
+  getDocumentFromHash,
   getFileFromHash,
   getFileFromHash_get,
   fileUpload,
