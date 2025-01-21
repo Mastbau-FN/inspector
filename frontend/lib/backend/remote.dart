@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
@@ -23,6 +24,7 @@ String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
 
 const _getImageFromHash_r = '/image/get';
+const _getDocumentFromHash_r = '/document/get';
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";
@@ -233,6 +235,43 @@ class Remote {
         } catch (e) {
           debugPrint("failed to load webimg: " + e.toString());
         }
+      }
+    }
+
+    return RequestAndParser(rd: rd, parser: parser);
+  }
+
+  RequestAndParser<http.BaseResponse, DocumentData?> getDocumentByHash(
+      String hash) {
+    final rd = switch (kIsWeb) {
+      true =>
+        RequestData('/login'), // TODO: Implement document retrieval for web
+      false => RequestData(
+          _getDocumentFromHash_r,
+          json: {'hash': hash},
+          returnsBinary: true,
+        )
+    };
+
+    parser(http.BaseResponse _res) async {
+      if (kIsWeb) {
+        return DocumentData(
+          File("$_baseurl/get/document/$hash"), // Placeholder for web
+          id: hash,
+        );
+      }
+
+      final res = _res.forceRes();
+      if (res == null || res.statusCode ~/ 100 != 2) return null;
+
+      try {
+        await API().local.storeDocument(res.bodyBytes, hash);
+        return DocumentData(
+          (await API().local.readDocument(hash))!,
+          id: hash,
+        );
+      } catch (e) {
+        debugPrint("Failed to load document: $e");
       }
     }
 

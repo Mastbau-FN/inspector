@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -343,6 +344,17 @@ class API {
           false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
       offline: () => local.getImageByHash(hash, compressed: compressed),
       online: () => remote.getImageByHash(hash, compressed: compressed),
+      requestType: requestType,
+    ).last;
+  }
+
+  Future<DocumentData?> getDocumentByHash(String hash) async {
+    final requestType = Helper.SimulatedRequestType.GET;
+    return _run(
+      itPrefersCache:
+          false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
+      offline: () => local.getDocumentByHash(hash),
+      online: () => remote.getDocumentByHash(hash),
       requestType: requestType,
     ).last;
   }

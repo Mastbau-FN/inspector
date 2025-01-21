@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
 import 'package:flutter/cupertino.dart';
@@ -144,6 +145,14 @@ class LocalMirror {
     return ImageData(img, id: hash);
   }
 
+  Future<DocumentData?> getDocumentByHash(String hash,
+      {bool compressed = false}) async {
+    final doc = await readDocument(hash);
+    if (doc == null) throw Exception("No document cached");
+
+    return DocumentData(doc, id: hash);
+  }
+
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash<DataT extends Data>(
     DataT? data,
@@ -226,6 +235,8 @@ class LocalMirror {
   final logFailedReq = OP.logFailedReq;
   final storeImage = OP.storeImage;
   final readImage = OP.readImage;
+  final readDocument = OP.readDocument;
+  final storeDocument = OP.storeDocument;
 }
 
 /// Helper function to parse a [List] of [Data] Objects from a Json-[Map]

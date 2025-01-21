@@ -19,7 +19,7 @@ import './helpers.dart' as Helper;
 
 const useOldImgEncoding =
     false; //TO-DO: reset after partiks incident was solved to false
-
+bool useOldDocEncoding = false;
 // MARK: image stuff
 
 Future<String> get localPath async {
@@ -37,6 +37,19 @@ Future<File> localFile(String name) async {
       '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.jpg');
 }
 
+Future<File> localDocument(String name, {String? extension}) async {
+  final String safeName = name.replaceAll(RegExp(r'[^\w]+'), '_');
+  final String ext = extension != null ? '.$extension' : '.doc';
+
+  final File p0 = File('${await localPath}/$name');
+  if (await p0.exists()) return p0;
+
+  final File p1 = File('${await localPath}/$safeName$ext');
+  if (await p1.exists() || useOldDocEncoding) return p1;
+
+  return File('${await localPath}/$safeName.maybe$ext');
+}
+
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
 Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
@@ -49,6 +62,36 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
+    return null;
+  }
+}
+
+Future<File?> storeDocument(Uint8List docBytes, String name) async {
+  try {
+    var file = await localDocument(name);
+
+    // if (kIsWeb) {
+    // TODO: support storing documents in IndexedDB or a web storage solution
+    // } else
+    file = await file.writeAsBytes(docBytes);
+
+    return file;
+  } catch (e) {
+    debugPrint("!!! Failed to store document: $e");
+    return null;
+  }
+}
+
+Future<File?> storeFile(Uint8List fileBytes, String name) async {
+  try {
+    var file = await localDocument(name);
+    // if (kIsWeb) {
+    // TODO: Implement IndexedDB or other web storage solutions
+    // } else
+    file = await file.writeAsBytes(fileBytes);
+    return file;
+  } catch (e) {
+    debugPrint("!!! Failed to store file: $e");
     return null;
   }
 }
@@ -78,6 +121,24 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await localFile(name),
       cacheHeight: cacheSize, cacheWidth: cacheSize);
+}
+
+Future<File?> readDocument(String name) async {
+  // TODO: support reading documents from IndexedDB or something for web
+
+  final file = await localDocument(name);
+  final Exception err = Exception("File $file doesn't exist");
+
+  if (!file.existsSync()) {
+    return null; // Ensures a fallback instead of crashing
+  }
+
+  if (file.lengthSync() < 5) {
+    throw Exception("File $file is definitely too small");
+  }
+
+  // Return the valid file
+  return file;
 }
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
