@@ -1,6 +1,7 @@
 const _hideProblems = false;
 
 const _getImageFromHash_r = "/image/get";
+const _getDocumentFromHash_r = "/document/get";
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";

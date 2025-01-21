@@ -244,6 +244,22 @@ const getFileFromHash_get = async (req, res) => {
     res.status(404).json({ reason: "image no longer available" });
   }
 };
+const getDocumentFromHash_get = async (req, res) => {
+  try {
+    let file = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
+    let contentType = determineContentType(req.body.hash);
+    
+    if (!contentType) {
+      return res.status(400).json({ reason: "Unsupported file type" });
+    }
+
+    res.writeHead(200, { "Content-Type": contentType });
+    res.end(file);
+  } catch (e) {
+    console.warn('failed to get image:',  e);
+    res.status(404).json({ reason: "image no longer available" });
+  }
+};
 
 const fileUpload = async (req, res) => {
   console.log("uploading files..");
@@ -265,6 +281,7 @@ module.exports = {
   getCheckPointDefects,
 
   getDocumentFromHash,
+  getDocumentFromHash_get,
   getFileFromHash,
   getFileFromHash_get,
   fileUpload,
