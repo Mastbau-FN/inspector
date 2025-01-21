@@ -487,3 +487,21 @@ D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
 
   return data;
 }
+
+D injectDocuments<D extends WithDocumentHashes>(D data) {
+  Future<DocumentData?> getDocDataFromHash(String? hash) {
+    API().getDocumentByHash(hash!);
+    return API().getDocumentByHash(hash).then((value) => value);
+  }
+
+  // No main document set
+  if (data.documenthashes == null || data.documenthashes!.isEmpty) return data;
+
+  if (data.documenthashes!.isNotEmpty) {
+    data.documentFutures =
+        data.documenthashes?.map((hash) => getDocDataFromHash(hash)).toList();
+  }
+
+  return data;
+}
+

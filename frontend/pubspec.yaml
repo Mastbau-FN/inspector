@@ -122,6 +122,8 @@ dependencies:
   fs: ^2.0.0
   io: ^1.0.4
   win32: ^5.10.0
+  open_file: ^3.5.10
+  file_picker: ^8.1.7
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9

@@ -1,9 +1,11 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:MBG_Inspektionen/pages/documentsPage.dart';
 import 'package:MBG_Inspektionen/pages/dropDownPageB.dart';
 import 'package:MBG_Inspektionen/pages/imagesPage.dart';
 import 'package:flutter/foundation.dart';
@@ -33,6 +35,13 @@ abstract mixin class WithImgHashes {
   List<Future<ImageData?>>? imageFutures;
   @JsonKey(includeToJson: false, includeFromJson: false)
   Future<ImageData?> previewImage = Future.value(null);
+}
+
+abstract mixin class WithDocumentHashes {
+  @JsonKey(name: 'documents')
+  List<String>? documenthashes; //should not be used
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<Future<DocumentData?>>? documentFutures;
 }
 
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
@@ -364,6 +373,65 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
         // }),
         // ),
         );
+Widget standard_statefulDocumentView<ChildData extends WithLangText,
+            DDModel extends DropDownModel<ChildData, WithOffline?>>(
+        DDModel model, ChildData? data) =>
+    ChangeNotifierProvider<DDModel>.value(
+        value: model,
+        child: Builder(builder: (context) {
+          return Consumer<DDModel>(builder: (context, model, child) {
+            return FutureBuilder<ChildData?>(
+                future: model.currentlyChosenChildData,
+                builder: (context, snapshot) {
+                  return Stack(
+                    children: [
+                      DocumentsPage.futured(
+                        futureDocuments: [
+                          ...?((snapshot.data as WithDocumentHashes?)
+                              ?.documentFutures)
+                        ],
+                        //   onNewDocuments: (files) async {
+                        //     showToast(S.of(context).newDocumentUploading);
+                        //     var value = await model.updateCurrentChild(
+                        //       (data) async {
+                        //         var ret = await API().uploadNewDocuments(
+                        //             data, files,
+                        //             caller: model.currentData, forceUpdate: true);
+                        //         return ret;
+                        //       },
+                        //     );
+
+                        //     _maybeShowToast(value);
+                        //     return value;
+                        //   },
+                        //   onDelete: (hash) {
+                        //     showToast(S.of(context).deletingDocument);
+                        //     model
+                        //         .updateCurrentChild((data) => API()
+                        //             .deleteDocumentByHash(data, hash.toString(),
+                        //                 caller: model.currentData,
+                        //                 forceUpdate: true))
+                        //         .then((value) {
+                        //       _maybeShowToast(value);
+                        //       return value;
+                        //     });
+                        //   },
+                        //   onShare: (hash) async {
+                        //     File docFile = await localDocument(hash.toString());
+                        //     await Share.shareXFiles([XFile(docFile.path)],
+                        //         text: 'Internes Dokument');
+                        //   },
+                      ),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        Card(
+                          child:
+                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
+                        ),
+                    ],
+                  );
+                });
+          });
+        }));
 
 Type typeOf<T>() => T;
 typedef BuilderT = Widget Function(BuildContext);

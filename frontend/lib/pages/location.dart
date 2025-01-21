@@ -44,6 +44,9 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     MyListTileData(
       title: _nextViewTitle,
     ),
+    MyListTileData(
+      title: "Dateien",
+    ),
   ];
 
   @override
@@ -68,6 +71,8 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
                 generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
+          case 'Dateien':
+            return standard_statefulDocumentView(this, data);
           default:
             return LocationDetailPage(
               locationdata: data,
