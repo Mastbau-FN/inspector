@@ -68,6 +68,26 @@ const getFileFromHash = async (hash, compressed) => {
   }
   return img
 };
+const getDocumentFromHash = async (hash) => {
+  console.log("Getting document from ", await getPathFromHash(hash));
+  let document_path = homedir + "/cached_documents/" + hash;
+
+  if (fs.existsSync(document_path)) {
+    let doc = await fsp.readFile(document_path);
+    return doc;
+  }
+
+  let doc = await imgfiler.getFileFrom(
+    cache.get(hash + "r"),
+    cache.get(hash + "l"),
+    cache.get(hash + "f")
+  );
+
+  await fsp.mkdir(document_path, { recursive: true });
+  await fsp.writeFile(document_path, doc);
+
+  return doc;
+};
 
 function throwExpression(errorMessage) {
   throw new Error(errorMessage);
@@ -105,4 +125,5 @@ module.exports = {
   getPathFromHash,
   memorize,
   memorize_link,
+  getDocumentFromHash,
 };
