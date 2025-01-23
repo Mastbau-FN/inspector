@@ -9,12 +9,12 @@ const identifiers = require("./misc/identifiers").identifiers;
 
 //errorhandling
 /**
- * 
+ *
  * @param {Promise} statement the Promise to await whose result will be parsed by jsonmaker
  * @param {Function} jsonmaker parses the result of the statement to json
  * @param {*} res the express resolve object
  * @param {*} next the express next middleware object (used for error-handling)
- * @returns 
+ * @returns
  */
 const errsafejson = async (statement, jsonmaker, res, next) => {
   try {
@@ -23,7 +23,7 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
     // console.log(res)
     if (!res.headersSent) return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(error, "caler")
+    console.warn(error, "caler");
     return next({ error: { errsafejson_captured: error.toString() } });
   }
 };
@@ -41,19 +41,68 @@ const login = (req, res) => {
 };
 
 /**
- * resolves all projects / inspections / locations for the currently logged-in user 
+ * resolves all projects / inspections / locations for the currently logged-in user
  */
 const getProjects = (req, res, next) =>
   errsafejson(
-    async () =>
-      await (async (_x) => { let x = await _x; return options.useReverseLocationAPI ? await location.addCoords(x) : x })
-        ((await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds())
-    ,
-    (x) => {
-      var ret = {};
-      ret[`${identifiers.location}s`] = x;
+    // Teil 1: async Callback, der die Daten (Projekte/Dokus) ermittelt
+    async () => {
+      // 1) Projekte/Inspektionen aus DB
+      let inspections = await queries.getInspectionsForUser(req.user);
+
+      // 2) Bilder hashen
+      inspections = inspections.hashImagesAndCreateIds();
+
+      // 3) Dokus-Ordner einlesen
+      for (let insp of inspections) {
+        // Hier musst du an die Infos kommen, wo dein Inspektionsordner liegt.
+        // Viele Implementierungen haben so etwas wie insp.rootfolder, insp.link, insp.filename
+        // Falls das bei dir abweicht, passe die Variablennamen entsprechend an.
+        const rootfolder = insp.rootfolder || "";
+        const link = insp.link || "";
+
+        // Pfad zum Dokus-Ordner
+        const dokusSubDir = path.join(link, "Dokus");
+
+        // Dateien aus /Dokus lesen
+        const fileNames = await getAllFilenamesFrom(rootfolder, dokusSubDir);
+        // => z.B. [ "Handbuch.pdf", "Plan.docx", ...]
+
+        // Hash generieren, analog wie bei Bildern
+        const dokusHashed = fileNames.map((fileName) => {
+          const hash = memorize_link({
+            rootfolder,
+            link: dokusSubDir,
+            filename: fileName,
+          });
+          return {
+            filename: fileName,
+            hash,
+          };
+        });
+
+        // An die Inspektion hängen (oder wie auch immer du es nennen willst)
+        insp.Dokus = dokusHashed;
+      }
+
+      // 4) Optional Koordinaten-Auflösung (useReverseLocationAPI)
+      if (options.useReverseLocationAPI) {
+        inspections = await location.addCoords(inspections);
+      }
+
+      // Rückgabe
+      return inspections;
+    },
+
+    // Teil 2: Ergebnis in die gewünschte JSON-Struktur packen
+    (inspections) => {
+      const ret = {};
+      // Bsp.: ret["locations"] = inspections  (oder "projects" o.ä.)
+      ret[`${identifiers.location}s`] = inspections;
       return ret;
     },
+
+    // Teil 3: Übergabe der üblichen Express-Objekte an errsafejson
     res,
     next
   );
@@ -122,7 +171,9 @@ const getCheckPointDefects = (req, res, next) =>
 const addNew = (req, res, next) =>
   errsafejson(
     async () => (await queries.addNew(req.body, req.user.KZL))[0],
-    (json) => { return { message: "added the entry", query_result: json } },
+    (json) => {
+      return { message: "added the entry", query_result: json };
+    },
     res,
     next
   );
@@ -143,7 +194,7 @@ const update = (req, res, next) =>
  */
 const delete_ = (req, res, next) =>
   errsafejson(
-    async () => (await queries.delete_(req.body, req.user.KZL)),
+    async () => await queries.delete_(req.body, req.user.KZL),
     (json) => ({ success: json.success, id: json.Index }),
     res,
     next
@@ -151,8 +202,10 @@ const delete_ = (req, res, next) =>
 
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
-    async () => (await queries.deleteImgByHash(req.body.hash)),
-    (json) => { return { message: "deleted image", query_result: json } },
+    async () => await queries.deleteImgByHash(req.body.hash),
+    (json) => {
+      return { message: "deleted image", query_result: json };
+    },
     res,
     next
   );
@@ -160,31 +213,69 @@ const deleteImgByHash = (req, res, next) =>
 const setMainImgByHash = async (req, res, next) => {
   // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
 
-  if(req.body.hash!=null){
+  if (req.body.hash != null) {
     const pathparts = imghasher.getPathFromHash(req.body.hash);
-    if(pathparts.link!=null && pathparts.filename!=null){
-      const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
-      // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
+    if (pathparts.link != null && pathparts.filename != null) {
+      const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename
+      // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename
       req.body.data.Link = newLink;
-    }else {
-      console.log("hash ungültig oder null")
-    } 
-  }else{
-    console.log("kein hash übergeben")
+    } else {
+      console.log("hash ungültig oder null");
+    }
+  } else {
+    console.log("kein hash übergeben");
   }
-
 
   // console.log("setmainimagehash api backend", req.body.hash, newLink);
   // res.status(200).json({ reason: 'kein 404 bitte'}) //FIX-ME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);
 };
+async function getDokuFile(req, res) {
+  try {
+    const { hash } = req.params;
+    const info = getPathFromHash(hash);
+    if (!info) {
+      return res.status(404).json({ error: "Doku not found in cache" });
+    }
+    const fullPath = pathm.join(info.rootpath, info.link, info.filename);
+
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: "File does not exist" });
+    }
+
+    // MIME-Type bestimmen (rudimentär, optional)
+    let contentType = "application/octet-stream";
+    if (fullPath.endsWith(".pdf")) {
+      contentType = "application/pdf";
+    } else if (fullPath.endsWith(".docx")) {
+      contentType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    }
+    // etc...
+
+    res.setHeader("Content-Type", contentType);
+    // Für Download:
+    // res.setHeader('Content-Disposition', `attachment; filename="${info.filename}"`);
+
+    const readStream = fs.createReadStream(fullPath);
+    readStream.pipe(res);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal error retrieving file" });
+  }
+}
+
+// Route registrieren (z. B. in router.js)
 
 /**
  * retrieves the file given by a hash and returns it to the client
  */
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
+    let img = await imghasher.getFileFromHash(
+      req.body.hash,
+      req.body.compressed
+    );
     res.writeHead(200, { "Content-type": "image/jpg" });
     res.end(img);
   } catch (e) {
@@ -197,7 +288,7 @@ const getFileFromHash = async (req, res) => {
  */
 const getFileFromHash_get = async (req, res) => {
   try {
-    let img/*;
+    let img /*;
     try {
       img*/ = await imghasher.getFileFromHash(req.params.hash, true); //serve compressed images only
     // } catch (e) {
@@ -206,7 +297,7 @@ const getFileFromHash_get = async (req, res) => {
     res.writeHead(200, { "Content-type": "image/jpg" });
     res.end(img);
   } catch (e) {
-    console.warn('failed to get image:',  e);
+    console.warn("failed to get image:", e);
     res.status(404).json({ reason: "image no longer available" });
   }
 };
@@ -215,10 +306,10 @@ const fileUpload = async (req, res) => {
   console.log("uploading files..");
   if (!(req.files || req.file)) {
     res.status(204).json({ reason: "no file uploaded" });
-    console.log("file failed")
+    console.log("file failed");
   } else {
     res.status(204).json();
-    console.log("file succeeded")
+    console.log("file succeeded");
   }
 };
 
@@ -240,4 +331,6 @@ module.exports = {
 
   deleteImgByHash,
   setMainImgByHash,
+
+  getDokuFile,
 };

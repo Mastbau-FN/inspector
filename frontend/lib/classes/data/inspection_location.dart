@@ -17,9 +17,10 @@ part 'inspection_location.g.dart';
 
 @JsonSerializable()
 class InspectionLocation extends Data
-    with WithImgHashes, WithLangText, WithOffline {
+    with WithImgHashes, WithLangText, WithOffline, WithDocumentHashes {
   @JsonKey(name: 'PjNr')
   final int pjNr;
+  @JsonKey(name: "Dokus", fromJson: _parseDokus, toJson: _writeDokus)
   @JsonKey(name: 'PjName')
   final String? pjName;
   @JsonKey(name: 'PjInfo')
@@ -88,6 +89,22 @@ class InspectionLocation extends Data
     weather = value.weather;
     wind_speed = value.wind_speed;
     wind_direction = value.wind_direction;
+  }
+
+  List<String>? documenthashes;
+
+  static List<String>? _parseDokus(List<dynamic>? raw) {
+    if (raw == null) return [];
+    return raw.map((obj) {
+      final map = obj as Map<String, dynamic>;
+      return map['hash'] as String;
+    }).toList();
+  }
+
+  static List<Map<String, dynamic>>? _writeDokus(List<String>? docu) {
+    if (docu == null) return null;
+    // If you only have the hash, you can put an empty filename or omit it:
+    return docu.map((hash) => {'hash': hash}).toList();
   }
 
 //XXX: ist das redundand mit den latLng?

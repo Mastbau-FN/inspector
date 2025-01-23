@@ -390,42 +390,46 @@ Widget standard_statefulDocumentView<ChildData extends WithLangText,
                           ...?((snapshot.data as WithDocumentHashes?)
                               ?.documentFutures)
                         ],
-                        //   onNewDocuments: (files) async {
-                        //     showToast(S.of(context).newDocumentUploading);
-                        //     var value = await model.updateCurrentChild(
-                        //       (data) async {
-                        //         var ret = await API().uploadNewDocuments(
-                        //             data, files,
-                        //             caller: model.currentData, forceUpdate: true);
-                        //         return ret;
-                        //       },
-                        //     );
-
-                        //     _maybeShowToast(value);
-                        //     return value;
-                        //   },
-                        //   onDelete: (hash) {
-                        //     showToast(S.of(context).deletingDocument);
-                        //     model
-                        //         .updateCurrentChild((data) => API()
-                        //             .deleteDocumentByHash(data, hash.toString(),
-                        //                 caller: model.currentData,
-                        //                 forceUpdate: true))
-                        //         .then((value) {
-                        //       _maybeShowToast(value);
-                        //       return value;
-                        //     });
-                        //   },
-                        //   onShare: (hash) async {
-                        //     File docFile = await localDocument(hash.toString());
-                        //     await Share.shareXFiles([XFile(docFile.path)],
-                        //         text: 'Internes Dokument');
-                        //   },
+                        // If you want to allow uploading new docs:
+                        onNewDocuments: (files) async {
+                          // Possibly reuse your existing “uploadNewImagesOrFiles”
+                          // or a dedicated “uploadNewDocuments” method.
+                          final value = await model.updateCurrentChild(
+                            (childData) async {
+                              // e.g.:
+                              return API().uploadNewImagesOrFiles(
+                                childData,
+                                files,
+                                caller: model.currentData,
+                                forceUpdate: true,
+                              );
+                            },
+                          );
+                          return value;
+                        },
+                        onDelete: (hash) async {
+                          // If you have a ‘deleteDocumentByHash’, call it here
+                          // or reuse your ‘deleteImageByHash’ if the backend route
+                          // is the same idea for docs.
+                          // For example:
+                          // final ret = await model.updateCurrentChild(
+                          //   (childData) => API().deleteDocumentByHash(
+                          //       childData, hash,
+                          //       caller: model.currentData, forceUpdate: true));
+                          // return ret;
+                        },
+                        onShare: (hash) async {
+                          // Example: read from local and then share
+                          // final docFile = await localDocument(hash);
+                          // if (docFile.existsSync()) {
+                          //   await Share.shareXFiles([XFile(docFile.path)]);
+                          // }
+                        },
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)
                         Card(
-                          child:
-                              Text(S.of(context).pleaseWaitDataIsBeeingSynced),
+                          child: Text(
+                              "Bitte warten, Daten werden synchronisiert..."),
                         ),
                     ],
                   );

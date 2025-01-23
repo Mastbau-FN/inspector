@@ -1,6 +1,5 @@
 const fs = require("fs");
 const fsp = fs.promises;
-
 const pathm = require("path");
 
 const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally, dont forget to also mount the correct drives in docker-compose
@@ -16,7 +15,8 @@ const formatpath = (path) => {
 const getImageFrom = (rootpath, link, filename) => {
   let pathname = formatpath(pathm.join(rootpath, link, filename));
   ////console.log("serving: "+pathname);
-  return fsp.readFile(pathname);}
+  return fsp.readFile(pathname);
+};
 
 const _getAllImagenamesFromPath = async (path) => {
   path = formatpath(path);
@@ -36,8 +36,24 @@ const getAllImagenamesFrom = async (rootpath, link) => {
   }
 };
 
+async function getAllFilenamesFrom(rootfolder, link) {
+  try {
+    const fullDir = formatpath(pathm.join(rootfolder, link));
+    const dirents = await fsp.readdir(fullDir, { withFileTypes: true });
+    // Nur Dateien, keine Unterordner
+    const fileNames = dirents
+      .filter((dirent) => dirent.isFile())
+      .map((dirent) => dirent.name);
+    return fileNames;
+  } catch (err) {
+    // Falls Ordner nicht existiert, kein Problem, dann gib leere Liste zurück
+    return [];
+  }
+}
+
 module.exports = {
   getAllImagenamesFrom,
   getImageFrom,
+  getAllFilenamesFrom,
   formatpath,
 };

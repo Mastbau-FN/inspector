@@ -24,7 +24,6 @@ String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
 
 const _getImageFromHash_r = '/image/get';
-const _getDocumentFromHash_r = '/document/get';
 const _uploadImage_r = "/image/set";
 
 const _addNew_r = "/set";
@@ -241,38 +240,42 @@ class Remote {
     return RequestAndParser(rd: rd, parser: parser);
   }
 
+  // remote.dart
+
+// 1) remove or comment out the old _getDocumentFromHash_r, since we won’t use it:
+// const _getDocumentFromHash_r = '/document/get'; // <- No longer needed
+
+// 2) In getDocumentByHash, do a GET request with the hash in the URL:
   RequestAndParser<http.BaseResponse, DocumentData?> getDocumentByHash(
       String hash) {
-    final rd = switch (kIsWeb) {
-      true =>
-        RequestData('/login'), // TODO: Implement document retrieval for web
-      false => RequestData(
-          _getDocumentFromHash_r,
-          json: {'hash': hash},
-          returnsBinary: true,
-        )
-    };
+    // We'll construct a GET request to /api/secure/getDokuFile/...
+    final route = "/api/secure/getDokuFile/$hash";
 
-    parser(http.BaseResponse _res) async {
-      if (kIsWeb) {
-        return DocumentData(
-          File("$_baseurl/get/document/$hash"), // Placeholder for web
-          id: hash,
-        );
+    // We create a new RequestData object, but it must be for a GET, not POST
+    // or we can skip RequestData altogether and do an inline approach:
+    final rd = RequestData(
+      route,
+      returnsBinary: true,
+      json: {}, // <--- can be empty if we do pure GET
+      timeout: Duration(seconds: 10),
+    );
+
+    // The parser handles the binary response, storing it locally, returning DocumentData
+    Future<DocumentData?> parser(http.BaseResponse res) async {
+      final response = res as http.Response;
+      if (response.statusCode ~/ 100 != 2) {
+        // error
+        return null;
       }
+      // Now we have raw bytes in response.bodyBytes
+      // store them in local offline system
+      await API().local.storeDocument(response.bodyBytes, hash);
 
-      final res = _res.forceRes();
-      if (res == null || res.statusCode ~/ 100 != 2) return null;
+      // Then read it back as a File
+      final file = await API().local.readDocument(hash);
+      if (file == null) return null;
 
-      try {
-        await API().local.storeDocument(res.bodyBytes, hash);
-        return DocumentData(
-          (await API().local.readDocument(hash))!,
-          id: hash,
-        );
-      } catch (e) {
-        debugPrint("Failed to load document: $e");
-      }
+      return DocumentData(file, id: hash);
     }
 
     return RequestAndParser(rd: rd, parser: parser);

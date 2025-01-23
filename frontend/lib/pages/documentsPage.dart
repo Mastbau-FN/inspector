@@ -1,163 +1,105 @@
-import 'dart:io';
-import 'package:MBG_Inspektionen/classes/documentData.dart';
-import 'package:MBG_Inspektionen/fragments/documentWrap.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
-import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
-import 'package:MBG_Inspektionen/helpers/toast.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:open_file/open_file.dart';
-import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import '../classes/documentData.dart';
 
-class DocumentsPage<T extends Object> extends StatelessWidget {
-  late final List<Stream<DocumentData<T>?>> _documents;
-  final Future<String?> Function(List<File>) onNewDocuments;
-  final int columnCount;
+// If you want to open files with e.g. open_file or share_plus, import them:
+// import 'package:open_file/open_file.dart';
+// import 'package:share_plus/share_plus.dart';
 
-  static Future<String?> _defaultAdd(List<File> list) async {
-    showToast("Not available.");
-    return "";
-  }
+class DocumentsPage extends StatelessWidget {
+  final List<Future<DocumentData?>> futureDocuments;
 
-  static _default(Object _) => showToast("Not available.");
+  /// Called when user taps a button to add new documents (if you want that).
+  final FutureOr<String?> Function(List<XFile> files)? onNewDocuments;
 
-  final Function(T) onDelete;
-  final Function(T) onShare;
+  /// Called when user taps “delete” on a document.
+  final FutureOr<String?> Function(String hash)? onDelete;
 
-  DocumentsPage.constant({
-    List<DocumentData<T>?>? documents = const [],
-    this.columnCount = 2,
+  /// Called when user taps “share” on a document.
+  final FutureOr<void> Function(String hash)? onShare;
+
+  /// If your backend supports an "open" or "download" approach, you can unify with `onOpen`.
+  // final FutureOr<void> Function(String hash)? onOpen;
+
+  const DocumentsPage.futured({
     Key? key,
-    this.onNewDocuments = _defaultAdd,
-    this.onDelete = _default,
-    this.onShare = _default,
-  }) : super(key: key) {
-    this._documents =
-        documents?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
-  }
-
-  DocumentsPage.futured({
-    List<Future<DocumentData<T>?>>? futureDocuments = const [],
-    this.columnCount = 2,
-    Key? key,
-    this.onNewDocuments = _defaultAdd,
-    this.onDelete = _default,
-    this.onShare = _default,
-  }) : super(key: key) {
-    this._documents =
-        futureDocuments?.map((e) => Stream.fromFuture(e)).toList() ?? [];
-  }
-
-  DocumentsPage.streamed({
-    List<Stream<DocumentData<T>?>>? documentStreams = const [],
-    this.columnCount = 2,
-    Key? key,
-    this.onNewDocuments = _defaultAdd,
-    this.onDelete = _default,
-    this.onShare = _default,
-  }) : super(key: key) {
-    this._documents = documentStreams ?? [];
-  }
-
-  final FilePicker _picker = FilePicker.platform;
+    required this.futureDocuments,
+    this.onNewDocuments,
+    this.onDelete,
+    this.onShare,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          endDrawer: MainDrawer(),
-          appBar: AppBar(
-            title: Text('Dokumente'),
-          ),
-          body: DocumentWrap<T>.streamed(
-            documents: _documents,
-            onDelete: onDelete,
-            onShare: onShare,
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (ocontext) => DocumentPickerModel(),
-          child: Builder(builder: (context) {
-            return DocumentAddButton(
-              picker: _picker,
-              onNewDocuments: onNewDocuments,
+    // 1) we gather all future docs
+    return FutureBuilder<List<DocumentData?>>(
+      future: Future.wait(futureDocuments),
+      builder: (context, snapshot) {
+        // 2) basic error/loading handling
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("Keine Dokumente gefunden."));
+        }
+
+        // 3) we have docs
+        final docs = snapshot.data!;
+        return ListView.separated(
+          itemCount: docs.length,
+          separatorBuilder: (_, __) => const Divider(),
+          itemBuilder: (context, index) {
+            final docData = docs[index];
+            if (docData == null) return const SizedBox.shrink();
+
+            return ListTile(
+              leading: const Icon(Icons.description),
+              title: Text("Dokument: ${docData.id}"),
+              subtitle: Text(
+                "Tippen zum Öffnen. Langdruck zum Teilen?",
+                style: TextStyle(fontSize: 12),
+              ),
+              onTap: () async {
+                // if you have an "open" approach:
+                final file = await docData.fullDocument();
+                if (file != null) {
+                  // e.g. open_file
+                  // OpenFile.open(file.path);
+
+                  // or do a “Share”:
+                  // await Share.shareXFiles([XFile(file.path)], text: 'Dokument');
+                }
+              },
+              onLongPress: () async {
+                if (onShare != null) {
+                  onShare!(docData.id.toString());
+                }
+              },
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onDelete != null)
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        onDelete!(docData.id.toString());
+                      },
+                    ),
+                  // optionally a share icon
+                  if (onShare != null)
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      onPressed: () {
+                        onShare!(docData.id.toString());
+                      },
+                    ),
+                ],
+              ),
             );
-          }),
-        ),
-      ],
+          },
+        );
+      },
     );
-  }
-}
-
-class DocumentPickerModel extends ChangeNotifier {
-  List<File> _selectedDocuments = [];
-
-  List<File> get selectedDocuments => _selectedDocuments;
-
-  Future<void> pickDocuments() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.any,
-    );
-
-    if (result != null) {
-      _selectedDocuments = result.paths
-          .map((path) => File(path!))
-          .toList(); // Convert paths to Files
-      notifyListeners(); // Notify listeners about the document changes
-    }
-  }
-}
-
-class DocumentAddButton extends StatefulWidget {
-  const DocumentAddButton({
-    Key? key,
-    required FilePicker picker,
-    required this.onNewDocuments,
-  })  : _picker = picker,
-        super(key: key);
-
-  final FilePicker _picker;
-  final Future<String?> Function(List<File> p1) onNewDocuments;
-
-  @override
-  State<DocumentAddButton> createState() => _DocumentAddButtonState();
-}
-
-class _DocumentAddButtonState extends State<DocumentAddButton> {
-  bool uploadingDocument = false;
-
-  @override
-  Widget build(BuildContext ocontext) {
-    return addDocumentButton();
-  }
-
-  Widget addDocumentButton() {
-    return Align(
-      alignment: Alignment.bottomRight,
-      child: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: uploadFromSystem,
-        ),
-      ),
-    );
-  }
-
-  void uploadFromSystem() async {
-    FilePickerResult? result = await widget._picker.pickFiles(
-      allowMultiple: true,
-      type: FileType.any,
-    );
-
-    if (result != null) {
-      List<File> files = result.paths.map((path) => File(path!)).toList();
-      var resstring = await widget.onNewDocuments(files);
-      showToast(resstring ?? "Upload completed.");
-    }
   }
 }
