@@ -8,6 +8,6 @@ class ChannelController {
         channelName: 'Progress',
         channelDescription: 'Shows the progress of the upload sync',
         defaultColor: mbgpalette0,
-        ledColor: Colors.white)
+        ledColor: Colors.white),
   ];
 }

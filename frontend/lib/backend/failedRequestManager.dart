@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:convert'; // für json.decode
 
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/notifications/controller.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../classes/dropdownClasses.dart';
+import '../classes/requestData.dart';
 import '../classes/user.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../helpers/background.dart' as BG;
@@ -21,126 +23,35 @@ import 'helpers.dart' as Helper;
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 
+// Diese drei Strings scheinen in deinem Projekt benutzt zu werden.
+// Wenn sie nicht gebraucht werden, kannst du sie entfernen.
 final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
 final sync_success_str = 'sync success';
 
-_retryFailedRequestsIsolate(
-  _RetryFailedRequestsIsolateInput input,
-) async {
-  if (!kIsWeb) {
-    // Register the background isolate with the root isolate.
-    BG.initialize(input.rootIsolateToken);
-  }
-  debugPrint('retry failed requests isolate started');
-  final upsn = UploadProgressWriter();
-  await upsn.awaitInitDone();
-  debugPrint('retry failed requests isolate init done');
-  final is_already_running = upsn.loading;
-  if (is_already_running) {
-    //mutex taken
-    return;
-  } else {
-    upsn.setLoading(true);
-  }
+/// Kleine Hilfsklasse, um aus dem Tupel (docID, RequestData) zusätzlich die pjNr zu extrahieren.
+class _FailedRequestWithPjNr {
+  final String docID;
+  final RequestData requestData;
+  final int pjNr;
 
-  final failedReqs = await API().local.getAllFailedRequests() ?? [];
-  DisplayUser? user = await API()
-      .user; //! do not remove this otherwise everything falls apart no idea why ; jk it's because the user is not set in the isolate remote, and calling API().user will inject it
-  if (user == null) {
-    input.progressSender.send((1.0, false));
-    upsn.setLoading(false);
-    return;
-  }
-  bool success = true;
-  num total = failedReqs.length;
-
-  input.progressSender.send((0.0, null));
-  upsn.setProgress(0.0);
-  debugPrint('retry failed requests isolate start retrying');
-
-  final lastStep = DateTime.fromMillisecondsSinceEpoch(0);
-  for (var i = 0; i < total; i++) {
-    input.progressSender.send(((i / total), null));
-    upsn.setProgress(i / total);
-    debugPrint('retry request $i/$total');
-    if (DateTime.now().difference(lastStep).inSeconds >= 1) {
-      AwesomeNotifications().createNotification(
-        content: NotificationContent(
-            id: 1,
-            channelKey: 'progress',
-            title: 'Upload Sync',
-            body: 'Offline Änderungen werden hochsynchronisiert...',
-            category: NotificationCategory.Progress,
-            notificationLayout: NotificationLayout.ProgressBar,
-            progress: (i / total * 100).round().toDouble(),
-            // locked: true,
-            payload: NotificationPayload.progress(i, total)),
-      );
-    }
-    final (docID, rd) = failedReqs[i];
-    if (rd != null) {
-      try {
-        debugPrint('retry request $i/$total: ${rd.route}');
-        rd.logIfFailed = false;
-
-        final res = await API().remote.postJSON(rd);
-        //nur 200er als ok einstufen
-        if (res!.statusCode ~/ 100 == 2) {
-          API().local.failedRequestWasSuccessful(docID);
-        } else {
-          success = false;
-          //TODO: what todo here?
-          AwesomeNotifications().createNotification(
-            content: NotificationContent(
-              id: 1,
-              channelKey: 'progress',
-              title: Emojis.symbols_cross_mark + ' ' + 'Upload Sync Failed',
-              body:
-                  'Offline Änderungen konnten NICHT(!) hochsynchronisiert werden.. probiers nochmal oder melde dich beim Support',
-              category: NotificationCategory.Progress,
-              notificationLayout: NotificationLayout.ProgressBar,
-              progress: (i / total * 100).round().toDouble(),
-              payload: NotificationPayload.failed(rd),
-              // locked: false,
-            ),
-          );
-          break;
-        }
-      } catch (e) {
-        debugPrint('failed to retry request: $e');
-        success = false;
-        // await prefs.setBool(sync_in_progress_str, false); //release mutex
-        upsn.setLoading(false);
-      }
-    }
-  }
-  if (input.notificationsAllowed && success) {
-    //TODO: play sound
-    AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: 1,
-        channelKey: 'progress',
-        title: Emojis.symbols_check_mark_button + ' ' + 'Upload Sync Done',
-        body: 'Offline Änderungen wurden hochsynchronisiert',
-        category: NotificationCategory.Progress,
-        notificationLayout: NotificationLayout.ProgressBar,
-        progress: 100,
-        payload: NotificationPayload.done(),
-        // locked: false,
-      ),
-    );
-  }
-  input.progressSender.send((1.0, success));
-  upsn.setSuccess(success);
-  upsn.setProgress(1.0);
-  upsn.setLoading(false); //release mutex
+  _FailedRequestWithPjNr({
+    required this.docID,
+    required this.requestData,
+    required this.pjNr,
+  });
 }
 
+/// Input-Datenklasse für den Isolate, damit wir
+/// - den RootIsolateToken (für BG-Init)
+/// - den SendPort (Fortschritts-Updates)
+/// - die Info, ob Notifications erlaubt sind
+/// mitgeben können.
 class _RetryFailedRequestsIsolateInput {
   final RootIsolateToken rootIsolateToken;
   final SendPort progressSender;
   final bool notificationsAllowed;
+
   const _RetryFailedRequestsIsolateInput({
     required this.rootIsolateToken,
     required this.progressSender,
@@ -148,11 +59,223 @@ class _RetryFailedRequestsIsolateInput {
   });
 }
 
+/// Die eigentliche Funktion, die im Isolate läuft:
+/// - Lädt alle fehlgeschlagenen Requests
+/// - Sortiert sie nach PjNr
+/// - Versucht sie erneut hochzuladen
+/// - Schickt Fortschrittsdaten zurück (per SendPort)
+/// - Erstellt/aktualisiert Notifications mit Awesome Notifications
+_retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
+  // Initialisierung für Hintergrund (falls nicht im Web)
+  if (!kIsWeb) {
+    BG.initialize(input.rootIsolateToken);
+  }
+  debugPrint('Isolate: retryFailedRequests gestartet.');
+
+  // Fortschritts-Manager (verhindert Parallel-Uploads)
+  final uploadState = UploadProgressWriter();
+  await uploadState.awaitInitDone();
+
+  // Falls bereits ein Upload läuft -> Abbruch
+  if (uploadState.loading) {
+    return;
+  } else {
+    uploadState.setLoading(true);
+  }
+
+  // 1) Fehlgeschlagene Requests laden
+  final rawFailedRequests = await API().local.getAllFailedRequests() ?? [];
+
+  // 2) User checken (z. B. Auth)
+  DisplayUser? user = await API().user;
+  if (user == null) {
+    input.progressSender.send((1.0, false));
+    uploadState.setLoading(false);
+    return;
+  }
+
+  // 3) In neue Liste parsen, um PjNr zu extrahieren
+  final List<_FailedRequestWithPjNr> failedRequests = [];
+  for (final (docID, requestData) in rawFailedRequests) {
+    if (requestData == null) continue;
+
+    // Hier extrahieren wir die PjNr aus requestData.json['data'] (String)
+    final dataAsString = requestData.json!['data'] as String?;
+    int pjNr = 0;
+    if (dataAsString != null) {
+      try {
+        final decoded = json.decode(dataAsString);
+        // PjNr aus "decoded"
+        if (decoded is Map<String, dynamic> && decoded['PjNr'] is int) {
+          pjNr = decoded['PjNr'];
+        }
+      } catch (e) {
+        debugPrint('Fehler beim JSON-Decode: $e');
+      }
+    }
+
+    failedRequests.add(
+      _FailedRequestWithPjNr(
+        docID: docID,
+        requestData: requestData,
+        pjNr: pjNr,
+      ),
+    );
+  }
+
+  // 4) Sortieren nach PjNr aufsteigend
+  failedRequests.sort((a, b) => a.pjNr.compareTo(b.pjNr));
+  final totalRequests = failedRequests.length;
+
+  debugPrint('Isolate: Gefundene fehlgeschlagene Requests: $totalRequests');
+
+  // 5) UploadProgressWriter initialisieren
+  uploadState.setProgress(0.0);
+
+  // 6) Fortschritts-Update an Haupt-Isolate: 0%
+  input.progressSender.send((0.0, null));
+
+  // 7) Wenn Notifications erlaubt & es gibt etwas zu tun -> Anfangs-Notification
+  if (input.notificationsAllowed && totalRequests > 0) {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 1, // BLEIBT 1 -> Wir überschreiben diese Notification
+        channelKey: 'progress',
+        title: 'Upload Sync',
+        body: 'Starte Uploads ...',
+        category: NotificationCategory.Progress,
+        notificationLayout: NotificationLayout.ProgressBar,
+        progress: 0,
+        payload: NotificationPayload.progress(0, totalRequests),
+      ),
+    );
+  }
+
+  bool overallSuccess = true;
+
+  // 8) Optional: Zählen, wie viele Requests pro PjNr anstehen.
+  final Map<int, int> requestsPerPjNr = {};
+  for (var item in failedRequests) {
+    requestsPerPjNr[item.pjNr] = (requestsPerPjNr[item.pjNr] ?? 0) + 1;
+  }
+
+  // Liste aller PjNrs in aufsteigender Reihenfolge
+  final pjNrsInOrder = requestsPerPjNr.keys.toList()..sort();
+  final totalPjNrs = pjNrsInOrder.length;
+  int currentPjNrIndex =
+      0; // Damit wir tracken können, die wievielte PjNr wir gerade machen
+  int lastPjNr = -1; // Zu Beginn: keine PjNr aktiv
+
+  // 9) Hauptschleife: Retry pro Request
+  for (int i = 0; i < totalRequests; i++) {
+    final item = failedRequests[i];
+    final docID = item.docID;
+    final requestData = item.requestData;
+    final pjNr = item.pjNr;
+
+    // Fortschritt (0..1)
+    final currentProgress = i / totalRequests;
+    uploadState.setProgress(currentProgress);
+    input.progressSender.send((currentProgress, null));
+
+    // Wenn wir jetzt zu einer neuen PjNr wechseln, Index erhöhen
+    if (pjNr != lastPjNr) {
+      currentPjNrIndex++;
+      lastPjNr = pjNr;
+    }
+
+    // Wieviele Requests hatte diese pjNr?
+    final totalForThisPjNr = requestsPerPjNr[pjNr] ?? 1;
+    // Davon ziehen wir jetzt 1 ab, weil wir *diesen* Request bearbeiten
+    requestsPerPjNr[pjNr] = totalForThisPjNr - 1;
+    final remainingForThisPjNr = requestsPerPjNr[pjNr]!;
+
+    // Notification nach jedem Schritt aktualisieren (falls erlaubt)
+    if (input.notificationsAllowed) {
+      final textPjNr = (pjNr > 0) ? pjNr.toString() : '?';
+      // "PJ x / n" = welche PjNr wir gerade haben
+      final bodyText = 'Aktuelle PjNr: $textPjNr '
+          '(${remainingForThisPjNr} von $totalForThisPjNr übrig) | '
+          'PJ $currentPjNrIndex / $totalPjNrs';
+
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1, // gleiche ID -> fortlaufendes Update
+          channelKey: 'progress',
+          title: 'Upload Sync',
+          body: bodyText,
+          category: NotificationCategory.Progress,
+          notificationLayout: NotificationLayout.ProgressBar,
+          progress: (currentProgress * 100).round().toDouble(),
+          payload: NotificationPayload.progress(
+              (currentProgress * 100).round(), totalRequests),
+        ),
+      );
+    }
+
+    // Request tatsächlich absenden
+    try {
+      final response = await API().remote.postJSON(requestData);
+      if (response == null || (response.statusCode ~/ 100) != 2) {
+        overallSuccess = false;
+        debugPrint('Fehler beim Request (Status != 2xx), breche ab...');
+        break;
+      } else {
+        API().local.failedRequestWasSuccessful(docID);
+      }
+    } catch (e) {
+      overallSuccess = false;
+      debugPrint('Fehler beim Hochladen: $e');
+      break;
+    }
+  }
+
+  // 10) Fortschritt auf 100% setzen, Upload abschließen
+  uploadState.setProgress(1.0);
+  uploadState.setSuccess(overallSuccess);
+  uploadState.setLoading(false);
+  input.progressSender.send((1.0, overallSuccess));
+
+  // 11) Am Ende separate Notification für Erfolg/Fehlschlag
+  if (input.notificationsAllowed && totalRequests > 0) {
+    if (overallSuccess) {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 2, // NEUE ID => separate Notification
+          channelKey: 'progress',
+          title: Emojis.symbols_check_mark_button + ' Upload Sync Done',
+          body: 'Alle PjNr wurden erfolgreich hochsynchronisiert.',
+          category: NotificationCategory.Progress,
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+    } else {
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 3, // NEUE ID => separate Notification
+          channelKey: 'progress',
+          title: Emojis.symbols_cross_mark + ' Upload Sync Failed',
+          body:
+              'Einige Offline-Änderungen konnten nicht hochsynchronisiert werden.',
+          category: NotificationCategory.Progress,
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+    }
+  }
+}
+
+/// FailedRequestmanager
+/// - Die `retryFailedrequests`-Methode startet entweder ein Isolate
+///   oder ruft `_retryFailedRequestsIsolate` direkt auf.
 class FailedRequestmanager {
-  Future<bool> retryFailedrequests(
-      {required BuildContext context,
-      void Function(double)? onProgress}) async {
-    debugPrint('retry failed requests started');
+  Future<bool> retryFailedrequests({
+    required BuildContext context,
+    void Function(double)? onProgress,
+  }) async {
+    debugPrint('Main: retryFailedRequests gestartet.');
+
+    // 1) Check Netzwerk
     try {
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
@@ -160,45 +283,48 @@ class FailedRequestmanager {
       return false;
     }
 
+    // 2) Check Notification Permission
     bool notificationsAllowed = await allowNotificationGuard(
       context,
       S.of(context).weCanSendYouANotificationAboutTheSyncProgress,
     );
 
-    bool success = false;
-    ReceivePort progressReceiver = ReceivePort();
-    var isolateInputData = _RetryFailedRequestsIsolateInput(
+    // 3) ReceivePort anlegen, um Updates zu empfangen
+    bool finalSuccess = false;
+    final progressReceiver = ReceivePort();
+    final isolateInputData = _RetryFailedRequestsIsolateInput(
       rootIsolateToken: RootIsolateToken.instance!,
       progressSender: progressReceiver.sendPort,
       notificationsAllowed: notificationsAllowed,
     );
 
-    final ss = progressReceiver.listen((msg) {
-      final (progress, _success) = msg as (double, bool?);
-      if (_success != null) {
-        success = _success;
+    // Auf Nachrichten vom Isolate lauschen
+    final sub = progressReceiver.listen((msg) {
+      final (progress, maybeSuccess) = msg as (double, bool?);
+      if (maybeSuccess != null) {
+        // Wir sind fertig
+        finalSuccess = maybeSuccess;
         progressReceiver.close();
       } else {
+        // reiner Fortschrittswert
         onProgress?.call(progress);
       }
-    }); // as StreamSubscription<(double, bool)>;
+    });
 
-    final runInIsolate = false &&
-        !kIsWeb /*FIXME: fix running in isolates and then remove: */ &&
-        false;
-
-    // ss.
-    if (runInIsolate)
+    // 4) Isolate starten (oder direkt im Main-Thread ausführen)
+    final runInIsolate = true;
+    if (runInIsolate) {
       await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
-    else
+    } else {
       await _retryFailedRequestsIsolate(isolateInputData);
+    }
 
-    await ss.asFuture();
-
-    return success;
+    // 5) Auf Abschluss warten
+    await sub.asFuture();
+    return finalSuccess;
   }
 
-  /// recursivle cache all elements that underly the caller
+  /// Beispielhafte Methode zum rekursiven Cachen (unverändert)
   Future<bool> loadAndCacheAll<
       ChildData extends WithLangText,
       ParentData extends WithOffline,
@@ -208,64 +334,52 @@ class FailedRequestmanager {
     String? name,
     String? parentID,
   }) async {
-    // base-case: CheckPointDefects have no children
     if (depth == 0) return true;
     depth--;
+
     try {
-      //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
-      //get all children, this will also cache them internally
-      var children = await caller
+      final children = await caller
           .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
           .last;
-      var didSucceed = await Future.wait(children.map(
-        (child) async {
-          if (depth == 0)
-            return true; //base-case as to not call generateNextModel
-          bool childSucceeded = await loadAndCacheAll(
-              caller.generateNextModel(child), depth,
-              name: name, parentID: caller.currentData.id);
-          return childSucceeded;
-        },
-      ));
 
-      //if all children succeeded recursive calling succeeded
-      bool success = didSucceed.every((el) => el);
+      final didSucceed = await Future.wait(children.map((child) async {
+        if (depth == 0) return true;
+        return loadAndCacheAll(
+          caller.generateNextModel(child),
+          depth,
+          name: name,
+          parentID: caller.currentData.id,
+        );
+      }));
+
+      final success = didSucceed.every((el) => el);
       if (success) {
         caller.currentData.forceOffline = true;
         if (parentID == null) return false;
-
-        try {
-          await API().local.storeData(caller.currentData, forId: parentID);
-        } catch (e) {
-          return false;
-        }
+        await API().local.storeData(caller.currentData, forId: parentID);
       }
 
       return success;
     } catch (error) {
-      debugPrint('failed! ${depth + 1}');
+      debugPrint('Fehler beim Laden/Cachen (Tiefe: ${depth + 1}): $error');
       showToast(error.toString() + "\n" + S.current!.tryAgainLater_noNetwork);
-      return false; //failed
+      return false;
     }
   }
 
-  ///this is used to remove all no-cloud icons from every datapoint aka set every [forceOffline] of [WithOffline] [Data]s
-  setOnlineTotal(BuildContext context) async {
+  /// Setzt alles auf "Online" (Beispielmethode)
+  Future<void> setOnlineTotal(BuildContext context) async {
     final model = Provider.of<LocationModel>(context, listen: false);
     final locations = await model.all().last;
     for (final loc in locations) {
       final caller = CategoryModel(loc);
-      await setOnlineAll(
-        caller,
-        3,
-        name: caller.title,
-        parentID: await API().rootID,
-      );
+      await setOnlineAll(caller, 3,
+          name: caller.title, parentID: await API().rootID);
     }
   }
 
-  Future setOnlineAll<
+  Future<void> setOnlineAll<
       ChildData extends WithLangText,
       ParentData extends WithOffline,
       DDModel extends DropDownModel<ChildData, ParentData>>(
@@ -274,80 +388,24 @@ class FailedRequestmanager {
     String? name,
     String? parentID,
   }) async {
-    // base-case: CheckPointDefects have no children
-    if (depth == 0) return true;
+    if (depth == 0) return;
     depth--;
-    var children = await caller.all().last;
+
+    final children = await caller.all().last;
     caller.currentData.forceOffline = false;
-    if (parentID != null)
-      API().local.storeData(caller.currentData, forId: parentID);
-    final nextid = caller.currentData.id;
+    if (parentID != null) {
+      await API().local.storeData(caller.currentData, forId: parentID);
+    }
+    final nextId = caller.currentData.id;
+
     for (final child in children) {
-      String _name = '$name -> ${child.title}';
-      debugPrint('__12342 got $depth: $_name');
-      if (depth == 0) return; //base-case as to not call generateNextModel
-      setOnlineAll(caller.generateNextModel(child), depth,
-          name: _name, parentID: nextid);
+      if (depth == 0) return;
+      setOnlineAll(
+        caller.generateNextModel(child),
+        depth,
+        name: '$name -> ${child.title}',
+        parentID: nextId,
+      );
     }
   }
 }
-
-// class NewImages /*extends Map<String, String?>*/ {
-//   factory NewImages() => _instance;
-//   static final NewImages _instance = NewImages._internal();
-//   NewImages._internal() {
-//     load();
-//   }
-
-//   static Map<String, dynamic> localImageToRemoteImage_ = {};
-//   static Future<Map<String, dynamic>> get() async {
-//     // await load();
-//     return localImageToRemoteImage_;
-//   }
-
-//   static set(Map<String, String?> map) async {
-//     localImageToRemoteImage_ = map;
-//     await store();
-//   }
-
-//   static add(String local, String remote) => addAll({local: remote});
-
-//   static remove(String local) async {
-//     // await load();
-//     localImageToRemoteImage_.remove(local);
-//     await store();
-//   }
-
-//   static clear() async {
-//     localImageToRemoteImage_.clear();
-//     await store();
-//   }
-
-//   static addAll(Map<String, String?> map) async {
-//     // await load();
-//     localImageToRemoteImage_.addAll(map);
-//     await store();
-//   }
-
-//   static addAllNulled(List<String> l) => addAll({for (var e in l) e: null});
-
-//   static const _IMGDOC_ = '__localImageToRemoteImageMap__';
-//   static store() => storeJson(_IMGDOC_, localImageToRemoteImage_);
-//   static load() async {
-//     final json = await getJson(_IMGDOC_);
-//     debugPrint('loaded: $json');
-//     localImageToRemoteImage_ = json ?? {};
-//   }
-// }
-
-// abstract interface class ProgressReseivePort implements ReceivePort {
-//   ProgressReseivePort() : super();
-//   @override
-//   SendPort get sendPort => ProgressSendPort();
-// }
-
-// abstract interface class ProgressSendPort implements SendPort {
-//   ProgressSendPort() : super();
-
-//   void send((double, bool?) message) => super.send(message);
-// }
