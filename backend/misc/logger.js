@@ -7,6 +7,7 @@ const logreq = (req,res,next)=>{
     if(!req.url.includes('image')){
         console.log(`${req.url}:`, req.body)
     }
+    console.log(`${req.url}:`, req.body)
     try {
         req.body.user.pass = passTmp;
     } catch (error) {}
