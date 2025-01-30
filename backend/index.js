@@ -38,7 +38,7 @@ const datapointRoutes = [
   { route: `/${identifiers.checkpoint}/get`, api: api.getCheckPoints },
   { route: `/${identifiers.defect}/get`, api: api.getCheckPointDefects },
 ];
-router.get('/api/getDokuFile/:hash', getDokuFile);
+
 const auth = require("./auth/auth");
 
 const app = express();
@@ -125,7 +125,7 @@ app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 app.get("/api/secure/get/compressed/:hash", api.getFileFromHash_get);
 
-app.get("/api/secure/getDokuFile/:hash", api.getDokuFile);
+app.post("/api/secure/getDokuFile/", api.getDokuFile);
 app.get("/error", (req, res) => {
   throw Error("failed");
 });

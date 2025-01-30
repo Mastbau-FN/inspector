@@ -1,9 +1,10 @@
 const queries = require("./db/queries");
 const location = require("./extern/location");
-
+const docfiler = require("./images/filesystem");
 const imghasher = require("./images/hash");
 const path = require("path");
 const options = require("./options");
+const memorize_link = require("./images/hash").memorize_link;
 
 const identifiers = require("./misc/identifiers").identifiers;
 
@@ -49,9 +50,8 @@ const getProjects = (req, res, next) =>
     async () => {
       // 1) Projekte/Inspektionen aus DB
       let inspections = await queries.getInspectionsForUser(req.user);
-
       // 2) Bilder hashen
-      inspections = inspections.hashImagesAndCreateIds();
+      inspections.hashImagesAndCreateIds();
 
       // 3) Dokus-Ordner einlesen
       for (let insp of inspections) {
@@ -59,29 +59,22 @@ const getProjects = (req, res, next) =>
         // Viele Implementierungen haben so etwas wie insp.rootfolder, insp.link, insp.filename
         // Falls das bei dir abweicht, passe die Variablennamen entsprechend an.
         const rootfolder = insp.rootfolder || "";
-        const link = insp.link || "";
+        const link = insp.LinkOrdner || "";
 
         // Pfad zum Dokus-Ordner
         const dokusSubDir = path.join(link, "Dokus");
-
         // Dateien aus /Dokus lesen
-        const fileNames = await getAllFilenamesFrom(rootfolder, dokusSubDir);
+        const fileNames = await docfiler.getAllFilenamesFrom(rootfolder, dokusSubDir);
         // => z.B. [ "Handbuch.pdf", "Plan.docx", ...]
-
-        // Hash generieren, analog wie bei Bildern
-        const dokusHashed = fileNames.map((fileName) => {
-          const hash = memorize_link({
+        const dokusHashed = fileNames.map((fileName) =>
+          memorize_link({
             rootfolder,
             link: dokusSubDir,
             filename: fileName,
-          });
-          return {
-            filename: fileName,
-            hash,
-          };
-        });
-
-        // An die Inspektion hängen (oder wie auch immer du es nennen willst)
+          })
+        );
+        
+        // An die Inspektion hängen (statt einer Liste von Maps, jetzt nur eine Liste von Strings)
         insp.Dokus = dokusHashed;
       }
 
@@ -230,40 +223,28 @@ const setMainImgByHash = async (req, res, next) => {
   // res.status(200).json({ reason: 'kein 404 bitte'}) //FIX-ME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);
 };
-async function getDokuFile(req, res) {
-  try {
-    const { hash } = req.params;
-    const info = getPathFromHash(hash);
-    if (!info) {
-      return res.status(404).json({ error: "Doku not found in cache" });
-    }
-    const fullPath = pathm.join(info.rootpath, info.link, info.filename);
+const getDokuFile = async (req, res) => {
 
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: "File does not exist" });
-    }
 
-    // MIME-Type bestimmen (rudimentär, optional)
-    let contentType = "application/octet-stream";
-    if (fullPath.endsWith(".pdf")) {
-      contentType = "application/pdf";
-    } else if (fullPath.endsWith(".docx")) {
-      contentType =
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    }
     // etc...
-
-    res.setHeader("Content-Type", contentType);
+    try {
+      const hash  = req.body.hash;
+      // MIME-Type bestimmen (rudimentär, optional)
+      let contentType = "application/octet-stream";
+      let doc = await imghasher.getFileFromHash(
+        hash,
+        false,
+      );
+      res.writeHead(200, { "Content-type": contentType  });
+      res.end(doc);
+    } catch (e) {
+      res.status(404).json({ reason: "doc no longer available" });
+    }
     // Für Download:
     // res.setHeader('Content-Disposition', `attachment; filename="${info.filename}"`);
 
-    const readStream = fs.createReadStream(fullPath);
-    readStream.pipe(res);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal error retrieving file" });
   }
-}
+
 
 // Route registrieren (z. B. in router.js)
 
