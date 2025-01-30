@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
@@ -106,6 +107,7 @@ class Remote {
     bool returnsBinary = false,
   }) async {
     final req = request.send();
+    debugPrint('sending request to ${request.url}');
     final res = (timeout == null) ? await req : await req.timeout(timeout);
 
     final ret = await http.Response.fromStream(res); // res.forceRes();
@@ -249,17 +251,17 @@ class Remote {
   RequestAndParser<http.BaseResponse, DocumentData?> getDocumentByHash(
       String hash) {
     // We'll construct a GET request to /api/secure/getDokuFile/...
-    final route = "/api/secure/getDokuFile/$hash";
+    final route = "/getDokuFile/";
 
     // We create a new RequestData object, but it must be for a GET, not POST
     // or we can skip RequestData altogether and do an inline approach:
     final rd = RequestData(
       route,
       returnsBinary: true,
-      json: {}, // <--- can be empty if we do pure GET
+      json: {'hash': hash}, // <--- can be empty if we do pure GET
       timeout: Duration(seconds: 10),
     );
-
+    //404 not found hash or route
     // The parser handles the binary response, storing it locally, returning DocumentData
     Future<DocumentData?> parser(http.BaseResponse res) async {
       final response = res as http.Response;
@@ -279,6 +281,19 @@ class Remote {
     }
 
     return RequestAndParser(rd: rd, parser: parser);
+  }
+
+  Future<DataT?> Function(Map<String, dynamic>)
+      _generateDocFetcher<DataT extends Data>(
+          DataT? Function(Map<String, dynamic>) jsoner) {
+    // only fetch first image automagically and the others only when said so (or at least not make the UI wait for it (#34, #35))
+    return (Map<String, dynamic> json) async {
+      DataT? data = jsoner(json);
+      if (data == null) return null;
+      if (data is WithDocumentHashes) {
+        return injectDocuments(data as WithDocumentHashes) as DataT;
+      }
+    };
   }
 
   Future<DataT?> Function(Map<String, dynamic>)
@@ -314,6 +329,8 @@ class Remote {
     Future<List<ChildData>> parser(http.Response? res) {
       Future<ChildData?> Function(Map<String, dynamic>) imageFetcher =
           _generateImageFetcher(fromJson, preloadFullImages: preloadFullImages);
+      Future<ChildData?> Function(Map<String, dynamic>) docFetcher =
+          _generateDocFetcher(fromJson);
       Future<List<ChildData>> __parse(__json) => getListFromJson(
             __json,
             imageFetcher,

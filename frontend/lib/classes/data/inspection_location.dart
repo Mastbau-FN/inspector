@@ -2,6 +2,7 @@
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,33 @@ import 'weather.dart';
 part 'inspection_location.g.dart';
 
 /// stores all the data needed for a specific location in a type-safe way
+abstract mixin class WithDocumentHashes {
+  @JsonKey(
+      name: 'Dokus',
+      fromJson: _documentHashesFromJson,
+      toJson: _documentHashesToJson)
+  List<String>? documenthashes;
+
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<Future<DocumentData?>>? documentFutures;
+}
+
+List<String>? _documentHashesFromJson(dynamic json) {
+  if (json is List) return json.map((e) => e.toString()).toList();
+  if (json is String)
+    return [json]; // Falls nur ein einzelnes String-Element kommt
+  return null;
+}
+
+dynamic _documentHashesToJson(List<String>? docs) {
+  return docs;
+}
 
 @JsonSerializable()
 class InspectionLocation extends Data
     with WithImgHashes, WithLangText, WithOffline, WithDocumentHashes {
   @JsonKey(name: 'PjNr')
   final int pjNr;
-  @JsonKey(name: "Dokus", fromJson: _parseDokus, toJson: _writeDokus)
   @JsonKey(name: 'PjName')
   final String? pjName;
   @JsonKey(name: 'PjInfo')
@@ -91,22 +112,6 @@ class InspectionLocation extends Data
     wind_direction = value.wind_direction;
   }
 
-  List<String>? documenthashes;
-
-  static List<String>? _parseDokus(List<dynamic>? raw) {
-    if (raw == null) return [];
-    return raw.map((obj) {
-      final map = obj as Map<String, dynamic>;
-      return map['hash'] as String;
-    }).toList();
-  }
-
-  static List<Map<String, dynamic>>? _writeDokus(List<String>? docu) {
-    if (docu == null) return null;
-    // If you only have the hash, you can put an empty filename or omit it:
-    return docu.map((hash) => {'hash': hash}).toList();
-  }
-
 //XXX: ist das redundand mit den latLng?
   @JsonKey(name: "X")
   String? x;
@@ -158,11 +163,11 @@ class InspectionLocation extends Data
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
     try {
-      return _$InspectionLocationFromJson(json);
-    } catch (e) {
-      debugPrint(e.toString());
+      final loc = _$InspectionLocationFromJson(json);
+      return loc;
+    } catch (e, stacktrace) {
+      return null;
     }
-    return null;
   }
 
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);

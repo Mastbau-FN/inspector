@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -490,14 +491,16 @@ D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
 
 D injectDocuments<D extends WithDocumentHashes>(D data) {
   Future<DocumentData?> getDocDataFromHash(String? hash) {
-    // triggers a fetch from backend or local:
     return API().getDocumentByHash(hash!);
   }
 
   if (data.documenthashes == null || data.documenthashes!.isEmpty) {
-    return data;
+    return data; // Sicherstellen, dass `data` zurückgegeben wird
   }
-  data.documentFutures =
-      data.documenthashes?.map((hash) => getDocDataFromHash(hash)).toList();
-  return data;
+
+  data.documentFutures = data.documenthashes!
+      .map<Future<DocumentData?>>((hash) => getDocDataFromHash(hash))
+      .toList();
+
+  return data as D; // Cast erzwingen, um Typfehler zu vermeiden
 }

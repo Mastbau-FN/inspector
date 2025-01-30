@@ -37,13 +37,6 @@ abstract mixin class WithImgHashes {
   Future<ImageData?> previewImage = Future.value(null);
 }
 
-abstract mixin class WithDocumentHashes {
-  @JsonKey(name: 'documents')
-  List<String>? documenthashes; //should not be used
-  @JsonKey(includeToJson: false, includeFromJson: false)
-  List<Future<DocumentData?>>? documentFutures;
-}
-
 /// interface that all our models need to use to handle data like e.g. [InspectionLocation]
 @JsonSerializable(includeIfNull: false)
 abstract class Data implements WithImgHashes {
@@ -390,23 +383,23 @@ Widget standard_statefulDocumentView<ChildData extends WithLangText,
                           ...?((snapshot.data as WithDocumentHashes?)
                               ?.documentFutures)
                         ],
-                        // If you want to allow uploading new docs:
-                        onNewDocuments: (files) async {
-                          // Possibly reuse your existing “uploadNewImagesOrFiles”
-                          // or a dedicated “uploadNewDocuments” method.
-                          final value = await model.updateCurrentChild(
-                            (childData) async {
-                              // e.g.:
-                              return API().uploadNewImagesOrFiles(
-                                childData,
-                                files,
-                                caller: model.currentData,
-                                forceUpdate: true,
-                              );
-                            },
-                          );
-                          return value;
-                        },
+                        // // If you want to allow uploading new docs:
+                        // onNewDocuments: (files) async {
+                        //   // Possibly reuse your existing “uploadNewImagesOrFiles”
+                        //   // or a dedicated “uploadNewDocuments” method.
+                        //   final value = await model.updateCurrentChild(
+                        //     (childData) async {
+                        //       // e.g.:
+                        //       return API().uploadNewImagesOrFiles(
+                        //         childData,
+                        //         files,
+                        //         caller: model.currentData,
+                        //         forceUpdate: true,
+                        //       );
+                        //     },
+                        //   );
+                        //   return value;
+                        // },
                         onDelete: (hash) async {
                           // If you have a ‘deleteDocumentByHash’, call it here
                           // or reuse your ‘deleteImageByHash’ if the backend route

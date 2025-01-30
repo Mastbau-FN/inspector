@@ -20,6 +20,11 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
           json['latLng'] as Map<String, dynamic>?),
     )
       ..mainhash = json['mainhash'] as String?
+      ..documenthashes = (json['Dokus'] as List<dynamic>?)?.map((e) {
+            debugPrint("Lade Dokument Hash: $e");
+            return e as String;
+          }).toList() ??
+          []
       ..imagehashes =
           (json['images'] as List<dynamic>?)?.map((e) => e as String).toList()
       ..id = Data.idFromJson(json['local_id'] as String?)
@@ -52,6 +57,7 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
     <String, dynamic>{
       'mainhash': instance.mainhash,
       'images': instance.imagehashes,
+      'Dokus': instance.documenthashes,
       'local_id': Data.idToJson(instance.id),
       'langText': instance.langText,
       'offline': instance.forceOffline_nullable,

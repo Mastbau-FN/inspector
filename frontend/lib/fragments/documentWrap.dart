@@ -2,13 +2,13 @@ import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/fragments/documentTile.dart';
 import 'package:flutter/material.dart';
 
-class DocumentWrap<T  extends Object> extends StatelessWidget {
-  final List<Stream<DocumentData<T>?>> documents;
+class DocumentWrap<T extends Object> extends StatelessWidget {
+  final List<Stream<DocumentData<T>?>> Dokus;
   final Function(T) onDelete;
   final Function(T) onShare;
 
   const DocumentWrap.streamed({
-    required this.documents,
+    required this.Dokus,
     required this.onDelete,
     required this.onShare,
   });
@@ -18,10 +18,10 @@ class DocumentWrap<T  extends Object> extends StatelessWidget {
     return GridView.builder(
       gridDelegate:
           SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-      itemCount: documents.length,
+      itemCount: Dokus.length,
       itemBuilder: (context, index) {
         return StreamBuilder<DocumentData<T>?>(
-          stream: documents[index],
+          stream: Dokus[index],
           builder: (context, snapshot) {
             if (!snapshot.hasData) return CircularProgressIndicator();
 

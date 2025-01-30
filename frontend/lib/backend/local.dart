@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/extension/map.dart';
@@ -40,15 +41,24 @@ class LocalMirror {
     String _id = id ?? json?['local_id'] ?? await API().rootID;
 
     try {
-      return (await OP.getAllChildrenFrom<ChildData>(_id))
-          ?.whereType<ChildData>()
-          .map(
-            (e) => injectImages(e),
-          )
-          .toList();
+      final rawChildren = await OP.getAllChildrenFrom<ChildData>(_id);
+      debugPrint("Geladene Daten: ${rawChildren.runtimeType}");
+      if (rawChildren == null) return [];
+
+      final List<ChildData> children =
+          rawChildren.whereType<ChildData>().toList();
+
+      return children.map((e) {
+        var item = e as ChildData;
+        item = injectImages(item);
+        if (item is WithDocumentHashes) {
+          item = injectDocuments(item as WithDocumentHashes) as ChildData;
+        }
+        return item;
+      }).toList();
     } catch (e) {
-      debugPrint("couldnt read data from disk..: " + e.toString());
-      return null;
+      debugPrint("Fehler beim Laden der Daten: $e");
+      return [];
     }
   }
 
@@ -145,8 +155,7 @@ class LocalMirror {
     return ImageData(img, id: hash);
   }
 
-  Future<DocumentData?> getDocumentByHash(String hash,
-      {bool compressed = false}) async {
+  Future<DocumentData?> getDocumentByHash(String hash) async {
     final doc = await readDocument(hash);
     if (doc == null) throw Exception("No document cached");
 

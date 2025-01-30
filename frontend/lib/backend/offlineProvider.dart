@@ -71,7 +71,7 @@ Future<File?> storeDocument(Uint8List docBytes, String name) async {
     var file = await localDocument(name);
 
     // if (kIsWeb) {
-    // TODO: support storing documents in IndexedDB or a web storage solution
+    // TODO: support storing Dokus in IndexedDB or a web storage solution
     // } else
     file = await file.writeAsBytes(docBytes);
 
@@ -124,7 +124,7 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
 }
 
 Future<File?> readDocument(String name) async {
-  // TODO: support reading documents from IndexedDB or something for web
+  // TODO: support reading Dokus from IndexedDB or something for web
 
   final file = await localDocument(name);
   final Exception err = Exception("File $file doesn't exist");
