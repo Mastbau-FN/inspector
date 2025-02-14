@@ -6,6 +6,7 @@ const path = require("path");
 const options = require("./options");
 
 const fs = require("fs");
+const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
 //errorhandling
