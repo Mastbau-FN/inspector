@@ -91,7 +91,8 @@ dependencies:
   http: ^1.2.2
   permission_handler: ^11.3.1
   # show push notifications (progress on retryfailedrequests)
-  awesome_notifications: ^0.10.0
+  awesome_notifications:
+    ^0.10.0
     # git: https://github.com/HannesGitH/awesome_notifications.git #intl 0.18.0
 
   flutter:
@@ -122,6 +123,8 @@ dependencies:
   fs: ^2.0.0
   io: ^1.0.4
   win32: ^5.10.0
+  device_info_plus: ^10.1.2
+  open_file: ^3.5.10
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9
@@ -191,4 +194,3 @@ flutter:
 
 flutter_intl:
   enabled: true
-

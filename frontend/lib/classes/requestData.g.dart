@@ -15,7 +15,7 @@ RequestData _$RequestDataFromJson(Map<String, dynamic> json) => RequestData(
           const [],
       timeout: json['timeout'] == null
           ? null
-          : Duration(microseconds: json['timeout'] as int),
+          : Duration(microseconds: (json['timeout'] as num).toInt()),
       returnsBinary: json['returnsBinary'] as bool? ?? false,
       logIfFailed: json['logIfFailed'] as bool?,
     );

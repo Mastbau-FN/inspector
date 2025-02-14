@@ -12,12 +12,15 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ort: json['Ort'] as String?,
       pjInfo: json['PjInfo'] as String?,
       pjName: json['PjName'] as String?,
-      pjNr: json['PjNr'] as int,
+      pjNr: (json['PjNr'] as num).toInt(),
       plz: json['PLZ'] as String?,
-      stONr: json['StONr'] as int,
+      stONr: (json['StONr'] as num).toInt(),
       strasse: json['Straße'] as String?,
       fallback_coords: _toplevelhelperLatLng_fromJson(
           json['latLng'] as Map<String, dynamic>?),
+      dokusFiles: (json['DokusFiles'] as List<dynamic>?)
+          ?.map((e) => DocumentData.fromJson(e as Map<String, dynamic>))
+          .toList(),
     )
       ..mainhash = json['mainhash'] as String?
       ..imagehashes =
@@ -28,7 +31,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..parentId = json['parent_local_id'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
       ..bauwerkhoehe = (json['Bauwerkhoehe'] as num?)?.toDouble()
-      ..baujahr = json['Baujahr'] as int?
+      ..baujahr = (json['Baujahr'] as num?)?.toInt()
       ..ansprechpartner = json['Ansprechpartner'] as String?
       ..steigwegtyp = json['Steigwegtyp'] as String?
       ..needs_schluessel = json['Schluessel'] as bool?
@@ -40,7 +43,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..asp_required = json['ASP_required'] as bool?
       ..steckdosen_description = json['Steckdosen_description'] as String?
       ..schluessel_description = json['Schlüssel_description'] as String?
-      ..temp = json['Temperatur'] as int?
+      ..temp = (json['Temperatur'] as num?)?.toInt()
       ..weather = $enumDecodeNullable(_$WeatherEnumMap, json['Wetter'])
       ..wind_speed = $enumDecodeNullable(_$WindPowerEnumMap, json['Wind'])
       ..wind_direction =
@@ -82,6 +85,7 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Wetter': _$WeatherEnumMap[instance.weather],
       'Wind': _$WindPowerEnumMap[instance.wind_speed],
       'Windrichtung': _$WindDirectionEnumMap[instance.wind_direction],
+      'DokusFiles': instance.dokusFiles,
       'X': instance.x,
       'Y': instance.y,
       'latLng': _toplevelhelperLatLng_toJson(instance.fallback_coords),

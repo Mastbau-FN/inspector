@@ -98,7 +98,6 @@ class API {
         return true;
       }, onError: (err) {
         if (err is NoImagePlaceholderException) return true;
-        debugPrint('offline failed: ' + err.toString());
         return false;
       });
     }
