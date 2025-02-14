@@ -5,7 +5,6 @@ const imghasher = require("./images/hash");
 const path = require("path");
 const options = require("./options");
 
-const homedir = require('os').homedir()
 const fs = require("fs");
 const identifiers = require("./misc/identifiers").identifiers;
 
@@ -62,20 +61,16 @@ const getProjects = (req, res, next) =>
       var ret = {};
       ret[`${identifiers.location}s`] = x;
       const inspections = await queries.getInspectionsForUser(req.user);
-      console.log("Inspections Data:", inspections);
       // Get all files from each inspection's LinkOrdner + 'Dokus/'
       ret['Dokus'] = inspections.map(inspection => {
-        const dokusPath = path.join(inspection.LinkOrdner, 'Dokus');
-        console.log("DokusPath:", dokusPath);
+        const cleaninsplinkOrdner = inspection.LinkOrdner.replace(/^S:/, 'S');
+        const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
         if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
-          console.log("DokusPath is a directory");
           return {
-            dokusPath: dokusPath,
             files: fs.readdirSync(dokusPath).map(file => path.join(dokusPath, file))
           };
         } else {
           return {
-            dokusPath: dokusPath,
             files: []
           };
         }
