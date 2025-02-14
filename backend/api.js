@@ -5,6 +5,8 @@ const imghasher = require("./images/hash");
 const path = require("path");
 const options = require("./options");
 
+const homedir = require('os').homedir()
+const fs = require("fs");
 const identifiers = require("./misc/identifiers").identifiers;
 
 //errorhandling
@@ -45,18 +47,46 @@ const login = (req, res) => {
  */
 const getProjects = (req, res, next) =>
   errsafejson(
-    async () =>
-      await (async (_x) => { let x = await _x; return options.useReverseLocationAPI ? await location.addCoords(x) : x })
-        ((await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds())
-    ,
-    (x) => {
+    async () => {
+      const inspections = await queries.getInspectionsForUser(req.user);
+
+
+      let processedData = await (async (_x) => { 
+        let x = await _x;
+        return options.useReverseLocationAPI ? await location.addCoords(x) : x;
+      })(inspections.hashImagesAndCreateIds());
+
+      return processedData;
+    },
+    async (x) => {
       var ret = {};
       ret[`${identifiers.location}s`] = x;
+      const inspections = await queries.getInspectionsForUser(req.user);
+      console.log("Inspections Data:", inspections);
+      // Get all files from each inspection's LinkOrdner + 'Dokus/'
+      ret['Dokus'] = inspections.map(inspection => {
+        const dokusPath = path.join(inspection.LinkOrdner, 'Dokus');
+        console.log("DokusPath:", dokusPath);
+        if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
+          console.log("DokusPath is a directory");
+          return {
+            dokusPath: dokusPath,
+            files: fs.readdirSync(dokusPath).map(file => path.join(dokusPath, file))
+          };
+        } else {
+          return {
+            dokusPath: dokusPath,
+            files: []
+          };
+        }
+      });
+      console.log("Response Data:", ret);
       return ret;
     },
     res,
     next
   );
+
 
 /**
  * resolves all categories for the current location (given by req.body.PrNr)
@@ -192,40 +222,6 @@ const getFileFromHash = async (req, res) => {
   }
 };
 
-const getDocumentFromHash = async (req, res) => {
-    try {
-      let file = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
-      let contentType = determineContentType(req.body.hash);
-      
-      if (!contentType) {
-        return res.status(400).json({ reason: "Unsupported file type" });
-      }
-  
-      res.writeHead(200, { "Content-Type": contentType });
-      res.end(file);
-    } catch (e) {
-      res.status(404).json({ reason: "File no longer available" });
-    }
-  };
-  
-  const determineContentType = (hash) => {
-    const fileExtensions = {
-      jpg: "image/jpeg",
-      jpeg: "image/jpeg",
-      png: "image/png",
-      tiff: "image/tiff",
-      pdf: "application/pdf",
-      xls: "application/vnd.ms-excel",
-      xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      doc: "application/msword",
-      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    };
-  
-    const extension = hash.split('.').pop().toLowerCase();
-    return fileExtensions[extension] || null;
-  };
-  
-
 /**
  * retrieves the file given by a hash and returns it to the client
  */
@@ -244,22 +240,7 @@ const getFileFromHash_get = async (req, res) => {
     res.status(404).json({ reason: "image no longer available" });
   }
 };
-const getDocumentFromHash_get = async (req, res) => {
-  try {
-    let file = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
-    let contentType = determineContentType(req.body.hash);
-    
-    if (!contentType) {
-      return res.status(400).json({ reason: "Unsupported file type" });
-    }
 
-    res.writeHead(200, { "Content-Type": contentType });
-    res.end(file);
-  } catch (e) {
-    console.warn('failed to get image:',  e);
-    res.status(404).json({ reason: "image no longer available" });
-  }
-};
 
 const fileUpload = async (req, res) => {
   console.log("uploading files..");
@@ -280,8 +261,6 @@ module.exports = {
   getCheckPoints,
   getCheckPointDefects,
 
-  getDocumentFromHash,
-  getDocumentFromHash_get,
   getFileFromHash,
   getFileFromHash_get,
   fileUpload,

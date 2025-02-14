@@ -126,9 +126,6 @@ app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 app.get("/api/secure/get/compressed/:hash", api.getFileFromHash_get);
 
-app.post("/api/secure" + _getDocumentFromHash_r, api.getDocumentFromHash);
-app.get("/api/secure/get/compressed/:hash", api.getDocumentFromHash_get);
-
 app.get("/error", (req, res) => {
   throw Error("failed");
 });

@@ -18,11 +18,6 @@ const getImageFrom = (rootpath, link, filename) => {
   ////console.log("serving: "+pathname);
   return fsp.readFile(pathname);}
 
-const getFileFrom = (rootpath, link, filename) => {
-    let pathname = formatpath(pathm.join(rootpath, link, filename));
-    ////console.log("serving: "+pathname);
-    return fsp.readFile(pathname);}
-
 const _getAllImagenamesFromPath = async (path) => {
   path = formatpath(path);
 
@@ -32,14 +27,6 @@ const _getAllImagenamesFromPath = async (path) => {
     .map((dirent) => dirent.name);
 };
 
-const _getAllFilenamesFromPath = async (path) => {
-  path = formatpath(path);
-
-  const dirents = await fsp.readdir(path, { withFileTypes: true });
-  return dirents
-    .filter((dirent) => dirent.isFile())
-    .map((dirent) => dirent.name);
-};
 
 const getAllImagenamesFrom = async (rootpath, link) => {
   try {
@@ -50,19 +37,9 @@ const getAllImagenamesFrom = async (rootpath, link) => {
   }
 };
 
-const getAllFilenamesFrom = async (rootpath, link) => {
-  try {
-    return await _getAllFilenamesFromPath(pathm.join(rootpath, link));
-  } catch (e) {
-    // console.warn("failed to get image names: ", e);
-    return [];
-  }
-};
 
 module.exports = {
   getAllImagenamesFrom,
   getImageFrom,
   formatpath,
-  getFileFrom,
-  getAllFilenamesFrom,
 };
