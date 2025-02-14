@@ -60,22 +60,6 @@ const getProjects = (req, res, next) =>
     async (x) => {
       var ret = {};
       ret[`${identifiers.location}s`] = x;
-      const inspections = await queries.getInspectionsForUser(req.user);
-      // Get all files from each inspection's LinkOrdner + 'Dokus/'
-      ret['Dokus'] = inspections.map(inspection => {
-        const cleaninsplinkOrdner = inspection.LinkOrdner.replace(/^S:/, 'S');
-        const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
-        if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
-          return {
-            files: fs.readdirSync(dokusPath).map(file => path.join(dokusPath, file))
-          };
-        } else {
-          return {
-            files: []
-          };
-        }
-      });
-      console.log("Response Data:", ret);
       return ret;
     },
     res,
