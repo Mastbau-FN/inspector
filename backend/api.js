@@ -5,8 +5,8 @@ const imghasher = require("./images/hash");
 const path = require("path");
 const options = require("./options");
 
-const homedir = require('os').homedir()
 const fs = require("fs");
+const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
 //errorhandling
@@ -61,26 +61,6 @@ const getProjects = (req, res, next) =>
     async (x) => {
       var ret = {};
       ret[`${identifiers.location}s`] = x;
-      const inspections = await queries.getInspectionsForUser(req.user);
-      console.log("Inspections Data:", inspections);
-      // Get all files from each inspection's LinkOrdner + 'Dokus/'
-      ret['Dokus'] = inspections.map(inspection => {
-        const dokusPath = path.join(inspection.LinkOrdner, 'Dokus');
-        console.log("DokusPath:", dokusPath);
-        if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
-          console.log("DokusPath is a directory");
-          return {
-            dokusPath: dokusPath,
-            files: fs.readdirSync(dokusPath).map(file => path.join(dokusPath, file))
-          };
-        } else {
-          return {
-            dokusPath: dokusPath,
-            files: []
-          };
-        }
-      });
-      console.log("Response Data:", ret);
       return ret;
     },
     res,
@@ -222,6 +202,19 @@ const getFileFromHash = async (req, res) => {
   }
 };
 
+const getDocFromPath = async (req, res) => {
+  try {
+    console.log("docPath", req.body.docPath);
+    let img = await fsp.readFile(req.body.docPath);
+
+    res.writeHead(200, { "Content-type": "application/octet-stream" });
+    res.end(img);
+  } catch (e) {
+    console.log("FHleer")
+    res.status(404).json({ reason: "doc no longer available" });
+  }
+};
+
 /**
  * retrieves the file given by a hash and returns it to the client
  */
@@ -261,6 +254,7 @@ module.exports = {
   getCheckPoints,
   getCheckPointDefects,
 
+  getDocFromPath,
   getFileFromHash,
   getFileFromHash_get,
   fileUpload,
