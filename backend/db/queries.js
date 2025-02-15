@@ -457,33 +457,19 @@ const hashImagesAndCreateIds = async (tthis) => {
         const fileNames = fs.readdirSync(dokusPath);
         
         // Asynchronously read contents of each file
-        thingy.DokusFiles = await Promise.all(
-          fileNames.map(async (file) => {
+        thingy.DokusPaths = 
+
+          fileNames.map((file) => {
             const filePath = path.join(dokusPath, file);
-            const fileBuffer = await fsp.readFile(filePath);
-      
-            // Decide how to encode the content based on file type
-            let content;
-            const ext = path.extname(file).toLowerCase();
-            if (ext === ".pdf") {
-              // Encode PDFs as Base64
-              content = fileBuffer.toString("base64");
-            } else {
-              // For text-like files, just do UTF-8
-              content = fileBuffer.toString("base64");
-            }
-      
             return {
-              name: file,
-              path: filePath,
-              content
+              filename: file,
+              docupath: filePath,
             };
           })
-        );
+        
       } else {
         thingy.DokusPath = null;
-        thingy.DokusFiles = [];
-      }
+        thingy.DokusPaths = [];}
       
       // append their hashes to the returned object  
       const images =

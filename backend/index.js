@@ -2,6 +2,7 @@ const _hideProblems = false;
 
 const _getImageFromHash_r = "/image/get";
 const _uploadImage_r = "/image/set";
+const _getDocFromPath_r = "/doc/get";
 
 const _addNew_r = "/set";
 const _update_r = "/update";
@@ -124,6 +125,8 @@ app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
 app.get("/api/secure/get/compressed/:hash", api.getFileFromHash_get);
+
+app.post("/api/secure" + _getDocFromPath_r, api.getDocFromPath);
 
 app.get("/error", (req, res) => {
   throw Error("failed");

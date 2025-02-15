@@ -202,6 +202,19 @@ const getFileFromHash = async (req, res) => {
   }
 };
 
+const getDocFromPath = async (req, res) => {
+  try {
+    console.log("docPath", req.body.docPath);
+    let img = await fsp.readFile(req.body.docPath);
+
+    res.writeHead(200, { "Content-type": "application/octet-stream" });
+    res.end(img);
+  } catch (e) {
+    console.log("FHleer")
+    res.status(404).json({ reason: "doc no longer available" });
+  }
+};
+
 /**
  * retrieves the file given by a hash and returns it to the client
  */
@@ -241,6 +254,7 @@ module.exports = {
   getCheckPoints,
   getCheckPointDefects,
 
+  getDocFromPath,
   getFileFromHash,
   getFileFromHash_get,
   fileUpload,
