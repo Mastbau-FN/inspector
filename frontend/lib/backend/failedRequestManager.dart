@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:convert'; // für json.decode
 
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/notifications/controller.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
@@ -342,16 +343,30 @@ class FailedRequestmanager {
       final children = await caller
           .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
           .last;
+      if (caller.currentData is InspectionLocation) {
+        final location = caller.currentData as InspectionLocation;
+        if (location.dokuspaths != null && location.dokuspaths!.isNotEmpty) {
+          var docus = location.dokuspaths;
+          if (docus != null) {
+            assert((await API().user) != null,
+                S.current!.wontFetchAnythingSinceNoOneIsLoggedIn);
+            for (var doc in docus) {
+              await API().getDocument(doc.docupath);
+            }
+          }
+        }
+      }
 
-      final didSucceed = await Future.wait(children.map((child) async {
-        if (depth == 0) return true;
-        return loadAndCacheAll(
-          caller.generateNextModel(child),
-          depth,
-          name: name,
-          parentID: caller.currentData.id,
-        );
-      }));
+      var didSucceed = await Future.wait(children.map(
+        (child) async {
+          if (depth == 0)
+            return true; //base-case as to not call generateNextModel
+          bool childSucceeded = await loadAndCacheAll(
+              caller.generateNextModel(child), depth,
+              name: name, parentID: caller.currentData.id);
+          return childSucceeded;
+        },
+      ));
 
       final success = didSucceed.every((el) => el);
       if (success) {

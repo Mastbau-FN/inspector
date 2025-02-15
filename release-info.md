@@ -1,3 +1,5 @@
 # changes
 
-- shorter picture names and unique ohne Mängel
+- new Camera and Dokus 
+- new Artifact and FlutterVersion
+- new Web Version

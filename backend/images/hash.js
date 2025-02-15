@@ -21,7 +21,7 @@ var cache = new NanoCache({
 // cache = {get:(e)=>__hash_cache.getItem(e), set:(e, b)=> __hash_cache.setItem(e,b)};
 
 const getFileFromHash = async (hash, compressed) => {
-  console.log("gettin file from ", await getPathFromHash(hash))
+  //console.log("gettin file from ", await getPathFromHash(hash))
   let compressed_path = homedir + "/compressed_images/" + hash
   if (compressed && fs.existsSync(compressed_path + '/img.heic') && heic_supported) {
     let img = await fsp.readFile(compressed_path + '/img.heic')

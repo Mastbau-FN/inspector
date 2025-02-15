@@ -1,6 +1,7 @@
 import 'dart:core';
 import 'dart:io';
 
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:flutter/foundation.dart';
@@ -27,8 +28,10 @@ Future<String> get localPath async {
   return (await getApplicationDocumentsDirectory()).path;
 }
 
-Future<File> localFile(String name) async {
-  final p0 = File('${await localPath}/${name}');
+Future<File> localFile(String name, [String? doc]) async {
+  var p0 = File('${await localPath}/${name}');
+  if (doc != null) return p0 = File('${await localPath}/${name}');
+
   if (await p0.exists()) return p0;
   final p1 =
       File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
@@ -53,6 +56,18 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
+Future<File?> storeDoc(Uint8List imgBytes, String name) async {
+  // Write the file
+  try {
+    var file = await localFile(name, "jaman");
+    file = await file.writeAsBytes(imgBytes); //u good?
+    return file;
+  } catch (e) {
+    debugPrint("!!! failed to store image: " + e.toString());
+    return null;
+  }
+}
+
 class NoImagePlaceholderException implements Exception {
   @override
   String toString() =>
@@ -65,7 +80,9 @@ String convertToCompressedHashName(String hash) => 'compressed/$hash';
 Future<Image?> readImage(String name, {int? cacheSize}) async {
   //TODO: support reading images/file from indexedDb or something for web
 
-  final file = (await localFile(name));
+  final file = (await localFile(
+    name,
+  ));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
       ? NoImagePlaceholderException()
@@ -78,6 +95,23 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
   return Image.file(await localFile(name),
       cacheHeight: cacheSize, cacheWidth: cacheSize);
+}
+
+Future<File?> readDoc(String name, {int? cacheSize}) async {
+  //TODO: support reading images/file from indexedDb or something for web
+
+  final file = (await localFile(name, "jaman"));
+  // ignore: unused_local_variable
+  final err = (name == Options().no_image_placeholder_name)
+      ? NoImagePlaceholderException()
+      : Exception("file $file doesnt exist");
+  if (!file.existsSync())
+    // throw err;
+    return null;
+  if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
+  //TO-DO: was wenn keine datei da lesbar ist? -> return null
+  // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
+  return await localFile(name);
 }
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful

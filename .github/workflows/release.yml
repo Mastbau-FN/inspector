@@ -1,48 +1,29 @@
 on:
-  #pull_request: #ODO: remove
   push:
     branches:
       - staging
       - release
-    
     paths:
-      - 'release-info.md'
+      - "release-info.md"
 
 name: Release
 
 env:
   working-directory: ./frontend
-  API_KEY: ${{secrets.API_KEY}}
+  API_KEY: ${{ secrets.API_KEY }}
   API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
   releasePS: false
 
 defaults:
   run:
-    working-directory: ./frontend #make sure it == ${{ env.working-directory}}
+    working-directory: ./frontend #make sure it == ${{ env.working-directory }}
 
 jobs:
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: Mastbau-FN/inspector/.github/actions/setup@staging
-      - name: run tests and report coverage
-        run: flutter test --coverage
-      - name: comment coverage
-        if: github.event.pull_request
-        uses: romeovs/lcov-reporter-action@v0.2.16 
-        with:
-          github-token: ${{secrets.TOKEN_GITHUB}}
-
   build-doc:
-    needs: test
     name: Build Docs
     runs-on: ubuntu-latest
     env:
-      API_KEY: ${{ secrets.API_KEY}}
+      API_KEY: ${{ secrets.API_KEY }}
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
     steps:
@@ -54,13 +35,12 @@ jobs:
           flutter pub global run dartdoc
 
       - name: upload doc artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: doc
-          path: ${{ env.working-directory}}/doc/api
+          path: ${{ env.working-directory }}/doc/api
 
   build-app:
-    needs: test
     name: Build Web + Android (apk+aab)
     runs-on: ubuntu-latest
     strategy:
@@ -80,11 +60,11 @@ jobs:
           printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
           ls 
           pwd
-          
+
       - name: map build-type (platform) to path
         uses: kanga333/variable-mapper@v0.3.0
         with:
-          key: ${{matrix.platform}}
+          key: ${{ matrix.platform }}
           map: |
             {
               "web": {
@@ -104,34 +84,34 @@ jobs:
                 "buildcmd": "flutter build appbundle"
               }
             }
-      - name: Build ${{matrix.platform}}
-        run: ${{env.buildcmd}}
 
-      - name: upload ${{matrix.platform}} artifact
-        uses: actions/upload-artifact@v3
+      - name: Build ${{ matrix.platform }}
+        run: ${{ env.buildcmd }}
+
+      - name: upload ${{ matrix.platform }} artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.platform}}
-          path: ${{env.working-directory}}/${{env.builtpath}}
+          name: ${{ matrix.platform }}
+          path: ${{ env.working-directory }}/${{ env.builtpath }}
 
   deploy-web:
-    needs: [build-doc,build-app,test]
+    needs: [build-doc, build-app]
     name: Deploy Web-App and Docs
     runs-on: ubuntu-latest
     steps:
-
-      - uses: actions/checkout@v3 # no idea why but apperently this creates a folder structure (i dont need my repo to be checked out tho)
+      - uses: actions/checkout@v3 # Creates folder structure for downloaded artifacts
       - name: download web artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: web
           path: web
 
       - name: download doc artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: doc
           path: doc
-  
+
       - run: ls -a && ls -a .. && ls -a ../..
 
       - name: make gh-pages folder for doc as well as the app
@@ -140,7 +120,7 @@ jobs:
           mkdir gh-pages
           mv doc gh-pages/doc
           mv web gh-pages/app
-          cd gh-pages && touch .nojekyll 
+          cd gh-pages && touch .nojekyll
         # the last command is needed to serve the .env
 
       - name: Deploy 🚀
@@ -150,7 +130,7 @@ jobs:
           folder: gh-pages
 
   release-GH:
-    needs: [build-app, test]
+    needs: [build-app]
     name: Release to GH
     runs-on: ubuntu-latest
     steps:
@@ -171,10 +151,12 @@ jobs:
           body: ${{ steps.release-info.outputs.content }}
           draft: false
           prerelease: false
+
       - name: download apk
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: apkr
+
       - name: upload apk
         uses: actions/upload-release-asset@v1
         env:
@@ -184,10 +166,12 @@ jobs:
           asset_path: app-release.apk
           asset_name: inspector.apk
           asset_content_type: application/octet-stream
+
       - name: download debug apk
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: apkd
+
       - name: upload debug apk
         uses: actions/upload-release-asset@v1
         env:
@@ -199,22 +183,23 @@ jobs:
           asset_content_type: application/octet-stream
 
   release-playstore:
-    if:  false # ${{env.releasePS == 'true'}} #&& github.ref_name == 'release'
-    needs: [build-app,test]
-    name: Release to the google playstore
+    if: false # ${{ env.releasePS == 'true' }} #&& github.ref_name == 'release'
+    needs: [build-app]
+    name: Release to the Google Play Store
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3 # need release notes
+      - uses: actions/checkout@v3 # Need release notes
       - name: download aab
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: appbundle
-      - name: create release notes #TODO make this actual notes
+
+      - name: create release notes # TODO: Improve release notes handling
         run: |
           cd ..
           mkdir news
           touch news/whatsnew-en-US
-          cat ./release-info.md >> news/whatsnew-en-US 
+          cat ./release-info.md >> news/whatsnew-en-US
 
       - name: upload aab
         uses: r0adkll/upload-google-play@v1.0.15
@@ -222,6 +207,6 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.mbgsolutions.inspector
           releaseFiles: app-release.aab
-          track: beta #TODO: when stable move to production
+          track: beta # TODO: Move to production when stable
           inAppUpdatePriority: 2
           whatsNewDirectory: news

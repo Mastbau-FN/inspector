@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import '../classes/documentData.dart';
 import '../classes/imageData.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';
@@ -98,7 +99,6 @@ class API {
         return true;
       }, onError: (err) {
         if (err is NoImagePlaceholderException) return true;
-        debugPrint('offline failed: ' + err.toString());
         return false;
       });
     }
@@ -347,6 +347,16 @@ class API {
     ).last;
   }
 
+  Future<File?> getDocument(String path) async {
+    final requestType = Helper.SimulatedRequestType.GET;
+    return _run(
+      itPrefersCache: false,
+      offline: () => local.getDocument(path),
+      online: () => remote.getDocument(path),
+      requestType: requestType,
+    ).last;
+  }
+
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash<DataT extends Data>(
     DataT? data,
@@ -443,6 +453,7 @@ class API {
     ).last;
   }
 }
+
 
 D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {

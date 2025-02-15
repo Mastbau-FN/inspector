@@ -209,12 +209,11 @@ class _ImageAddButtonState extends State<ImageAddButton>
   }
 
   Widget addImageButton() {
+    var isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Stack(
       children: [
-        //XXX: ich verstehe nicht was hier abgeht, wenn wir den container haben geht der touch im hintergrund nicht mehr
-        // Container(
-        //   color: Colors.black.withOpacity(0.1 * animation.value),
-        // ),
         Align(
           alignment: Alignment.bottomCenter,
           child: SafeArea(
@@ -227,7 +226,11 @@ class _ImageAddButtonState extends State<ImageAddButton>
                   if (withCamera)
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                        padding: isLandscape
+                            ? const EdgeInsets.fromLTRB(
+                                25, 0, 20, 0) // More right padding in landscape
+                            : const EdgeInsets.fromLTRB(
+                                25, 0, 8, 0), // Default padding in portrait
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: Consumer<CameraModel>(
@@ -241,7 +244,8 @@ class _ImageAddButtonState extends State<ImageAddButton>
                                       )
                                     : Image.file(
                                         File(model.latestPic!.path),
-                                        fit: BoxFit.fitWidth,
+                                        fit: BoxFit
+                                            .fitWidth, // Full width in portrait
                                       ),
                           ),
                         ),
@@ -249,27 +253,20 @@ class _ImageAddButtonState extends State<ImageAddButton>
                     ),
                   Stack(
                     alignment: Alignment.bottomRight,
-                    //mainAxisSize: MainAxisSize.min,
                     children: [
                       if (expanded && !withCamera)
                         Transform.translate(
-                          //transformHitTests: true,
                           offset: Offset(0, animation.value * -130),
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                                top:
-                                    160), //needed for hitTesting to work after transform
+                            padding: const EdgeInsets.only(top: 160),
                             child: uploadFromSystem,
                           ),
                         ),
                       if (expanded)
                         Transform.translate(
-                          //transformHitTests: true,
                           offset: Offset(0, animation.value * -70),
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                                top:
-                                    100), //needed for hitTesting to work after transform
+                            padding: const EdgeInsets.only(top: 100),
                             child: Consumer<CameraModel>(
                               builder: (context, model, child) =>
                                   takeImage(context, model),
@@ -359,50 +356,141 @@ class _ImageAddButtonState extends State<ImageAddButton>
             : expand,
       );
 
-  Widget takeImage(BuildContext context, CameraModel model) =>
-      !withCamera || model.latestPic == null
-          ? FloatingActionButton(
-              child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
-              onPressed: withCamera ? () => shoot(context) : openCam,
-            )
-          : Column(
-              verticalDirection: VerticalDirection.up,
-              children: [
-                photoDone,
-                SizedBox(height: 5),
-                discardPhoto,
-                SizedBox(height: 5),
-                addToQueue,
-                Container(
-                  height: 300,
-                  child: Column(
-                      verticalDirection: VerticalDirection.up,
-                      children: [...queueButtonStuff]),
-                ),
-              ],
-            );
+  Widget takeImage(BuildContext context, CameraModel model) {
+    var isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
-  List<Widget> get queueButtonStuff => [
-        ...queue.asMap().entries.map((entry) {
-          int idx = entry.key;
-          XFile file = entry.value;
-          return Transform.translate(
-            offset: Offset(0, -(-25 + 30 * queue.length - (80.0) * idx)),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: Image.file(
-                  File(file.path),
-                  fit: BoxFit.fitWidth,
+    return !withCamera || model.latestPic == null
+        ? FloatingActionButton(
+            child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
+            onPressed: withCamera ? () => shoot(context) : openCam,
+          )
+        : isLandscape
+            ? Row(
+                children: [
+                  Container(
+                    height: 200,
+                    child: Column(
+                      verticalDirection: VerticalDirection.down,
+                      children:
+                          queueButtonStuff, // Ensures list is handled properly
+                    ),
+                  ),
+                  SizedBox(width: 20),
+                  SizedBox(
+                    child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min, // Prevents unnecessary expansion
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        photoDone,
+                        SizedBox(height: 10),
+                        discardPhoto,
+                        SizedBox(height: 10),
+                        addToQueue,
+                      ],
+                    ),
+                  ),
+                  // Fixed spacing between buttons and images
+
+                  // Image Queue on the Right with Consistent Spacing
+                ],
+              )
+            : Column(
+                mainAxisSize:
+                    MainAxisSize.min, // Prevents unnecessary expansion
+                children: [
+                  // Image Queue Above Buttons with Fixed Space
+                  Container(
+                    height: 200,
+                    child: Column(
+                      verticalDirection: VerticalDirection.up,
+                      children:
+                          queueButtonStuff, // Ensures list is handled properly
+                    ),
+                  ),
+                  SizedBox(height: 160),
+                  // Buttons Below
+                  Column(
+                    verticalDirection: VerticalDirection.up,
+                    children: [
+                      photoDone,
+                      SizedBox(height: 10),
+                      discardPhoto,
+                      SizedBox(height: 10),
+                      addToQueue,
+                      SizedBox(height: 20),
+                    ],
+                  ),
+                ],
+              );
+  }
+
+  List<Widget> get queueButtonStuff {
+    int totalImages = queue.length;
+    int imagesToShow = totalImages > 5 ? 5 : totalImages;
+    List<XFile> latestImages =
+        queue.skip(totalImages - imagesToShow).toList(); // Get last 5 images
+    int remainingImages = totalImages - imagesToShow; // Count remaining images
+
+    return [
+      Container(
+        width: 50, // Ensures the stack has enough space for overlapping
+        height: 50, // Set height to match image size
+        child: Stack(
+          clipBehavior: Clip.none, // Allow images to overflow
+          children: [
+            // "+X More" indicator if there are more than 5 images
+            if (remainingImages > 0)
+              Positioned(
+                left: 0, // Keeps the indicator at the front
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    height: 50,
+                    width: 50,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "+$remainingImages",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
-        // SizedBox(height: 15),
-      ];
+
+            // Display the last 5 images in an overlapping fashion
+            ...latestImages.asMap().entries.map((entry) {
+              int idx = entry.key;
+              XFile file = entry.value;
+
+              return Positioned(
+                top: (idx + 1) * 30.0, // Overlapping effect (shift right)
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    height: 50,
+                    width: 50,
+                    child: Image.file(
+                      File(file.path),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    ];
+  }
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
         child: Icon(Icons.folder),

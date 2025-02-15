@@ -2,6 +2,7 @@
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:flutter/material.dart';
@@ -75,6 +76,9 @@ class InspectionLocation extends Data
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
 
+  @JsonKey(name: 'DokusPaths')
+  List<DocumentData>? dokuspaths;
+
   @JsonKey(includeFromJson: false, includeToJson: false)
   WeatherData get weatherData => WeatherData(
       temperature: temp,
@@ -119,6 +123,7 @@ class InspectionLocation extends Data
     required this.stONr,
     this.strasse,
     this.fallback_coords,
+    this.dokuspaths,
   });
 
   @override

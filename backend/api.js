@@ -5,6 +5,8 @@ const imghasher = require("./images/hash");
 const path = require("path");
 const options = require("./options");
 
+const fs = require("fs");
+const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
 //errorhandling
@@ -45,11 +47,18 @@ const login = (req, res) => {
  */
 const getProjects = (req, res, next) =>
   errsafejson(
-    async () =>
-      await (async (_x) => { let x = await _x; return options.useReverseLocationAPI ? await location.addCoords(x) : x })
-        ((await queries.getInspectionsForUser(req.user)).hashImagesAndCreateIds())
-    ,
-    (x) => {
+    async () => {
+      const inspections = await queries.getInspectionsForUser(req.user);
+
+
+      let processedData = await (async (_x) => { 
+        let x = await _x;
+        return options.useReverseLocationAPI ? await location.addCoords(x) : x;
+      })(inspections.hashImagesAndCreateIds());
+
+      return processedData;
+    },
+    async (x) => {
       var ret = {};
       ret[`${identifiers.location}s`] = x;
       return ret;
@@ -57,6 +66,7 @@ const getProjects = (req, res, next) =>
     res,
     next
   );
+
 
 /**
  * resolves all categories for the current location (given by req.body.PrNr)
@@ -192,6 +202,19 @@ const getFileFromHash = async (req, res) => {
   }
 };
 
+const getDocFromPath = async (req, res) => {
+  try {
+    console.log("docPath", req.body.docPath);
+    let img = await fsp.readFile(req.body.docPath);
+
+    res.writeHead(200, { "Content-type": "application/octet-stream" });
+    res.end(img);
+  } catch (e) {
+    console.log("FHleer")
+    res.status(404).json({ reason: "doc no longer available" });
+  }
+};
+
 /**
  * retrieves the file given by a hash and returns it to the client
  */
@@ -210,6 +233,7 @@ const getFileFromHash_get = async (req, res) => {
     res.status(404).json({ reason: "image no longer available" });
   }
 };
+
 
 const fileUpload = async (req, res) => {
   console.log("uploading files..");
@@ -230,6 +254,7 @@ module.exports = {
   getCheckPoints,
   getCheckPointDefects,
 
+  getDocFromPath,
   getFileFromHash,
   getFileFromHash_get,
   fileUpload,

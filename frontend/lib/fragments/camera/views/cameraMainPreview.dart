@@ -3,8 +3,9 @@ import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/services.dart';
 import '../../../widgets/error.dart';
+import 'package:flutter/material.dart';
 
 class CameraPreviewOnly extends StatelessWidget {
   final List<Widget> children;
@@ -68,53 +69,74 @@ class ZoomDetect extends StatefulWidget {
   State<ZoomDetect> createState() => _ZoomDetectState();
 }
 
+@override
 class _ZoomDetectState extends State<ZoomDetect> {
-  var startZoom = 1.0;
-
+  double startZoom = 1.0;
   Offset? focusPoint;
+  static const EventChannel volumeButtonChannel =
+      EventChannel('volume_button_events');
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForVolumeButtons();
+  }
+
+  void _listenForVolumeButtons() {
+    volumeButtonChannel.receiveBroadcastStream().listen((event) {
+      if (event == "volume_up") {
+        _adjustZoom(0.1); // Increase zoom
+      } else if (event == "volume_down") {
+        _adjustZoom(-0.1); // Decrease zoom
+      }
+    }, onError: (error) {
+      debugPrint("Error receiving volume button events: $error");
+    });
+  }
+
+  void _adjustZoom(double zoomStep) async {
+    double newZoom = (widget.model.zoom + zoomStep).clamp(
+        widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
+    await widget.model.setZoom(newZoom);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ZoomModel>(
-      builder: (context, zoomModel, child) => GestureDetector(
-        onScaleStart: (zoomDelta) {
-          startZoom = zoomModel.zoom;
-        },
-        onScaleUpdate: (zoomDelta) {
-          // debugPrint(zoomDelta.toString());
-          try {
-            var newZoom = startZoom * zoomDelta.scale;
-            if (newZoom < zoomModel.zoomRange.$1 ||
-                newZoom > zoomModel.zoomRange.$2) {
-              throw Exception("zoom out of bounds");
-            }
-            // debugPrint(
-            //     "newZoom: $newZoom = zoomDelta: ${zoomDelta.scale} + oldZoom: ${zoomModel.zoom}");
-            widget.model.setZoom(newZoom);
-          } catch (e) {}
-        },
-        onTapDown: (details) {
-          // debugPrint(details.localPosition.toString());
-          setState(() {
-            this.focusPoint = details.localPosition;
-          });
-          RenderBox box = context.findRenderObject()! as RenderBox;
-          final Offset focusPoint = Offset(
-            details.localPosition.dx / box.size.width,
-            details.localPosition.dy / box.size.height,
-          );
-          widget.model.focus(focusPoint);
-        },
-        onTapUp: (details) {
-          Future.delayed(Duration(milliseconds: 500)).then((value) {
+    return GestureDetector(
+      onScaleStart: (zoomDelta) {
+        startZoom = widget.model.zoom;
+      },
+      onScaleUpdate: (zoomDelta) {
+        double newZoom = (startZoom * zoomDelta.scale).clamp(
+            widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
+        widget.model.setZoom(newZoom);
+      },
+      onTapDown: (details) {
+        setState(() {
+          this.focusPoint = details.localPosition;
+        });
+
+        RenderBox? box = context.findRenderObject() as RenderBox?;
+        if (box == null || box.size.isEmpty) return;
+
+        final Offset focusPoint = Offset(
+          details.localPosition.dx / box.size.width,
+          details.localPosition.dy / box.size.height,
+        );
+        widget.model.focus(focusPoint);
+      },
+      onTapUp: (details) {
+        Future.delayed(Duration(milliseconds: 500)).then((_) {
+          if (mounted) {
             setState(() {
-              this.focusPoint = null;
+              focusPoint = null;
             });
-          });
-        },
-        onDoubleTap: widget.model.nextCamera,
-        child: child,
-      ),
+          }
+        });
+      },
+      onDoubleTap: () async {
+        await widget.model.nextCamera();
+      },
       child: Stack(
         children: [
           CameraPreview(widget.cc),
@@ -122,8 +144,7 @@ class _ZoomDetectState extends State<ZoomDetect> {
             Positioned(
               left: focusPoint!.dx,
               top: focusPoint!.dy,
-              child: // focus border square
-                  Container(
+              child: Container(
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(

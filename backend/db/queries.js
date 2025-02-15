@@ -434,7 +434,7 @@ module.exports = {
 };
 
 const hashImagesAndCreateIds = async (tthis) => {
-  // console.log({hashing: tthis})
+
   for (var thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, filename } = await getLink(thingy);
@@ -448,6 +448,29 @@ const hashImagesAndCreateIds = async (tthis) => {
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       )
 
+      const cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
+      const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
+      if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
+        thingy.DokusPath = dokusPath;
+        
+        // Get the filenames in the directory (synchronous)
+        const fileNames = fs.readdirSync(dokusPath);
+        
+        // Asynchronously read contents of each file
+        thingy.DokusPaths = 
+
+          fileNames.map((file) => {
+            const filePath = path.join(dokusPath, file);
+            return {
+              filename: file,
+              docupath: filePath,
+            };
+          })
+        
+      } else {
+        thingy.DokusPath = null;
+        thingy.DokusPaths = [];}
+      
       // append their hashes to the returned object  
       const images =
         imageNames.map(

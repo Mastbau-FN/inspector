@@ -3,6 +3,7 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/pages/dokusPage.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,9 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       title: "Infos",
     ),
     MyListTileData(
+      title: "Docs",
+    ),
+    MyListTileData(
       title: _nextViewTitle,
     ),
   ];
@@ -68,6 +72,8 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
                 generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
+          case 'Docs':
+            return DokusList(dokus: data.dokuspaths);
           default:
             return LocationDetailPage(
               locationdata: data,

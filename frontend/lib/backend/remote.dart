@@ -25,6 +25,8 @@ String routesFromData<DataT extends Data>(DataT? data) =>
 const _getImageFromHash_r = '/image/get';
 const _uploadImage_r = "/image/set";
 
+const _getDocFromHash_r = '/doc/get';
+
 const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
@@ -249,6 +251,36 @@ class Remote {
       if (data == null) return null;
       return injectImages(data, preloadFull: preloadFullImages);
     };
+  }
+
+  RequestAndParser<http.BaseResponse, File?> getDocument(String docPath) {
+    final rd = switch (kIsWeb) {
+      true => RequestData('/login'),
+      false => RequestData(
+          _getDocFromHash_r,
+          json: {
+            'docPath': docPath,
+          },
+          returnsBinary: true,
+        )
+    };
+    debugPrint("fssgfsfsdf" + rd.toString());
+
+    parser(http.BaseResponse _res) async {
+      final res = _res.forceRes();
+      if (res == null || res.statusCode ~/ 100 != 2)
+        return null;
+      else {
+        try {
+          await API().local.storeDoc(res.bodyBytes, docPath.split('/').last);
+          return API().local.readDoc(docPath.split('/').last);
+        } catch (e) {
+          debugPrint("failed to load webimg: " + e.toString());
+        }
+      }
+    }
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 
   // Future<String> get rootID async => _user!.name;
