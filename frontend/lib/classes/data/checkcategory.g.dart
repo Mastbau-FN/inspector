@@ -8,18 +8,18 @@ part of 'checkcategory.dart';
 
 CheckCategory _$CheckCategoryFromJson(Map<String, dynamic> json) =>
     CheckCategory(
-      pjNr: json['PjNr'] as int,
+      pjNr: (json['PjNr'] as num).toInt(),
       bauleitung: json['Bauleitung'] as String?,
       kurzText: json['KurzText'] as String?,
       langText: json['LangText'] as String?,
       erDate: json['ErDat'] == null
           ? null
           : DateTime.parse(json['ErDat'] as String),
-      eventID: json['EventID'] as int?,
-      ereArt: json['EREArt'] as int?,
-      index: json['E1'] as int,
-      e2: json['E2'] as int?,
-      e3: json['E3'] as int?,
+      eventID: (json['EventID'] as num?)?.toInt(),
+      ereArt: (json['EREArt'] as num?)?.toInt(),
+      index: (json['E1'] as num).toInt(),
+      e2: (json['E2'] as num?)?.toInt(),
+      e3: (json['E3'] as num?)?.toInt(),
     )
       ..mainhash = json['mainhash'] as String?
       ..imagehashes =

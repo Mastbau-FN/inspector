@@ -3,6 +3,7 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/pages/dokusPage.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,9 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       title: "Infos",
     ),
     MyListTileData(
+      title: "Docs",
+    ),
+    MyListTileData(
       title: _nextViewTitle,
     ),
   ];
@@ -68,6 +72,8 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
                 generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
+          case 'Docs':
+            return DokusList(dokus: data.dokuspaths);
           default:
             return LocationDetailPage(
               locationdata: data,
@@ -299,8 +305,8 @@ class _MapState extends State<_Map> {
                           children: [
                             FM.FlutterMap(
                               options: FM.MapOptions(
-                                center: widget.locationdata.coords!,
-                                zoom: 8.0,
+                                initialCenter: widget.locationdata.coords!,
+                                initialZoom: 8.0,
                               ),
                               children: [
                                 FM.TileLayer(
@@ -313,7 +319,7 @@ class _MapState extends State<_Map> {
                                       width: 80.0,
                                       height: 80.0,
                                       point: widget.locationdata.coords!,
-                                      builder: (ctx) => Container(
+                                      child: Container(
                                         child: Icon(Icons.location_on),
                                       ),
                                     ),
