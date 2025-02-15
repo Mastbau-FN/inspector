@@ -43,10 +43,10 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       title: "Infos",
     ),
     MyListTileData(
-      title: _nextViewTitle,
+      title: "Docs",
     ),
     MyListTileData(
-      title: "Docs",
+      title: _nextViewTitle,
     ),
   ];
 

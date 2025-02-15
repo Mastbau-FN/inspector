@@ -442,8 +442,17 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                             children: actions.indexed.map<Widget>((a) {
                               final (int i, MyListTileData actionTileData) = a;
                               if (i == 0) return Container();
+
+                              final int totalTiles = actions.length;
+                              // The three tiles immediately preceding the last one:
+                              final bool isBeforeLastThree =
+                                  i >= totalTiles - 4 && i < totalTiles - 1;
+
+                              // Use flex 3 normally, but flex 2 for these three tiles.
+                              final int flexValue = isBeforeLastThree ? 2 : 3;
+
                               return Expanded(
-                                // width: 100,
+                                flex: flexValue,
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 5),
