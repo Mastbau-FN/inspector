@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/classes/documentData.dart';
