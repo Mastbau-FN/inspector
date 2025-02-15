@@ -1,4 +1,4 @@
 # changes
 
 - new Camera and Dokus 
-- new Artifact and Flutter
+- new Artifact and FlutterVersion
