@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/notifications/controller.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
@@ -218,6 +219,20 @@ class FailedRequestmanager {
       var children = await caller
           .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
           .last;
+      if (caller.currentData is InspectionLocation) {
+        final location = caller.currentData as InspectionLocation;
+        if (location.dokuspaths != null && location.dokuspaths!.isNotEmpty) {
+          var docus = location.dokuspaths;
+          if (docus != null) {
+            assert((await API().user) != null,
+                S.current!.wontFetchAnythingSinceNoOneIsLoggedIn);
+            for (var doc in docus) {
+              await API().getDocument(doc.docupath);
+            }
+          }
+        }
+      }
+
       var didSucceed = await Future.wait(children.map(
         (child) async {
           if (depth == 0)

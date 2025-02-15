@@ -73,7 +73,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
           case 'Fotos':
             return standard_statefulImageView(this, data);
           case 'Docs':
-            return DokusList(dokus: data.dokusFiles);
+            return DokusList(dokus: data.dokuspaths);
           default:
             return LocationDetailPage(
               locationdata: data,

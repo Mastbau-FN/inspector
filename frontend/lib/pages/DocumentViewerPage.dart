@@ -1,20 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 
+import '../backend/api.dart';
+
 class DocumentViewerPage extends StatefulWidget {
   /// The Base64-encoded file data.
-  final String base64Data;
 
   /// The file name including its extension (e.g., "document.pdf", "report.docx").
-  final String fileName;
+  final String docupath;
 
   const DocumentViewerPage({
     Key? key,
-    required this.base64Data,
-    required this.fileName,
+    required this.docupath,
   }) : super(key: key);
 
   @override
@@ -33,32 +34,29 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
 
   Future<void> _openDocument() async {
     try {
-      // Decode the Base64 string into bytes.
-      final bytes = base64Decode(widget.base64Data);
-
-      // Get the temporary directory.
-      final dir = await getTemporaryDirectory();
-
-      // Create a file with the given name in the temporary directory.
-      final file = File('${dir.path}/${widget.fileName}');
-
-      // Write the bytes to the file.
-      await file.writeAsBytes(bytes);
+      // Fetch the Base64-encoded file from your API
+      final file = await API().getDocument(widget.docupath);
 
       // Open the file with the native viewer.
+      showToast(file!.path);
       final result = await OpenFile.open(file.path);
       debugPrint('OpenFile result: ${result.message}');
 
-      // Optionally, you could update the UI depending on result.
       setState(() {
         _isOpening = false;
         _message = 'Document opened. Please check your native viewer.';
       });
+      if (result.type == ResultType.noAppToOpen) {
+        setState(() {
+          _isOpening = false;
+          _message = 'Keine App zum Öffnen des Dokuments gefunden.';
+        });
+      }
     } catch (e) {
       debugPrint("Error opening document: $e");
       setState(() {
         _isOpening = false;
-        _message = 'You have no app that can open this document.';
+        _message = 'Failed to open document.';
       });
     }
   }

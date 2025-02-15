@@ -3,10 +3,10 @@ part 'documentData.g.dart';
 
 @JsonSerializable()
 class DocumentData {
-  final String name;
-  final String content; // Base64
+  final String filename;
+  final String docupath; // Base64
 
-  DocumentData({required this.name, required this.content});
+  DocumentData({required this.filename, required this.docupath});
 
   factory DocumentData.fromJson(Map<String, dynamic> json) =>
       _$DocumentDataFromJson(json);

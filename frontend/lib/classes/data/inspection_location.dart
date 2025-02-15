@@ -76,8 +76,8 @@ class InspectionLocation extends Data
   @JsonKey(name: "Windrichtung")
   WindDirection? wind_direction;
 
-  @JsonKey(name: 'DokusFiles')
-  List<DocumentData>? dokusFiles;
+  @JsonKey(name: 'DokusPaths')
+  List<DocumentData>? dokuspaths;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   WeatherData get weatherData => WeatherData(
@@ -123,7 +123,7 @@ class InspectionLocation extends Data
     required this.stONr,
     this.strasse,
     this.fallback_coords,
-    this.dokusFiles,
+    this.dokuspaths,
   });
 
   @override
@@ -158,8 +158,6 @@ class InspectionLocation extends Data
   @override
   Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'local_id': id};
 }
-
-
 
 Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
   if (latlng == null) return {};

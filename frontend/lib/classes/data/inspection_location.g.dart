@@ -18,7 +18,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       strasse: json['Straße'] as String?,
       fallback_coords: _toplevelhelperLatLng_fromJson(
           json['latLng'] as Map<String, dynamic>?),
-      dokusFiles: (json['DokusFiles'] as List<dynamic>?)
+      dokuspaths: (json['DokusPaths'] as List<dynamic>?)
           ?.map((e) => DocumentData.fromJson(e as Map<String, dynamic>))
           .toList(),
     )
@@ -85,7 +85,7 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Wetter': _$WeatherEnumMap[instance.weather],
       'Wind': _$WindPowerEnumMap[instance.wind_speed],
       'Windrichtung': _$WindDirectionEnumMap[instance.wind_direction],
-      'DokusFiles': instance.dokusFiles,
+      'DokusPaths': instance.dokuspaths,
       'X': instance.x,
       'Y': instance.y,
       'latLng': _toplevelhelperLatLng_toJson(instance.fallback_coords),
