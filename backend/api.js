@@ -94,7 +94,7 @@ const getCheckPoints = (req, res, next) =>
     async () =>
       await (
         await queries.getCheckPoints(req.body.PjNr, req.body.E1)
-      ).hashImagesAndCreateIds(),
+      ),
     (x) => {
       var ret = {};
       ret[`${identifiers.checkpoint}s`] = x;
@@ -116,7 +116,7 @@ const getCheckPointDefects = (req, res, next) =>
           req.body.E1,
           req.body.E2
         )
-      ).hashImagesAndCreateIds(),
+      ),
     (x) => {
       var ret = {};
       ret[`${identifiers.defect}s`] = x;
@@ -161,7 +161,7 @@ const delete_ = (req, res, next) =>
 
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
-    async () => (await queries.deleteImgByHash(req.body.hash)),
+    async () => (await queries.deleteImgByHash(req.body.link, req.body.hash)),
     (json) => { return { message: "deleted image", query_result: json } },
     res,
     next
@@ -171,11 +171,11 @@ const setMainImgByHash = async (req, res, next) => {
   // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
 
   if(req.body.hash!=null){
-    const pathparts = imghasher.getPathFromHash(req.body.hash);
-    if(pathparts.link!=null && pathparts.filename!=null){
-      const newLink = path.join(pathparts.link, pathparts.filename); // LinkOrdner+/+filename 
+
+    if(pathparts.link!=null && req.filename!=null){
+      const filePath = path.join(req.body.link, req.filename);
       // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
-      req.body.data.Link = newLink;
+      req.body.data.Link = filePath;
     }else {
       console.log("hash ungültig oder null")
     } 
@@ -192,13 +192,18 @@ const setMainImgByHash = async (req, res, next) => {
 /**
  * retrieves the file given by a hash and returns it to the client
  */
+
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
+    const filePath = path.join(req.body.link, req.body.hash);
+    //console.log("filePath", filePath);
+    let img = await fsp.readFile(filePath);
+
     res.writeHead(200, { "Content-type": "image/jpg" });
     res.end(img);
   } catch (e) {
     res.status(404).json({ reason: "image no longer available" });
+    console.log("FHleer", e);
   }
 };
 
@@ -220,13 +225,10 @@ const getDocFromPath = async (req, res) => {
  */
 const getFileFromHash_get = async (req, res) => {
   try {
-    let img/*;
-    try {
-      img*/ = await imghasher.getFileFromHash(req.params.hash, true); //serve compressed images only
-    // } catch (e) {
-    //   img = await imghasher.getFileFromHash(req.params.hash, false); //fallback to non-compressed
-    // }
-    res.writeHead(200, { "Content-type": "image/jpg" });
+    console.log("docPath", req.body.docPath);
+    let img = await fsp.readFile(req.body.docPath);
+
+    res.writeHead(200, { "Content-type": "application/octet-stream" });
     res.end(img);
   } catch (e) {
     console.warn('failed to get image:',  e);
