@@ -441,6 +441,10 @@ const hashImagesAndCreateIds = async (tthis) => {
       thingy.LinkOrdner="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion"
       thingy.Link="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion/20250219_1328_63cdf.jpg"
     }
+    if (!thingy.LinkOrdner) {
+      let { rootfolder, link, filename } = await getLink(thingy);
+      console.log("r",rootfolder,"l", link, "f",filename);
+      thingy.LinkOrdner = link;}
       let cleaninsplinkOrdner = "";
       let imagelink= thingy.LinkOrdner ;
       if(!thingy.LinkOrdner.startsWith("/home/administrator/images/")){
