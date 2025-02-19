@@ -37,7 +37,7 @@ Future<File> localFile(String name, [String? doc]) async {
       File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
   if (await p1.exists() || useOldImgEncoding) return p1;
   return File(
-      '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.jpg');
+      '${await localPath}/${name}');
 }
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]

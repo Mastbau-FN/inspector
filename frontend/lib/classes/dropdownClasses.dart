@@ -305,12 +305,12 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           _maybeShowToast(value);
                           return value;
                         },
-                        onStar: (hash) {
+                        onStar: (name) {
                           showToast(
                               S.of(context).settingMainImageThisMayTakeASec);
                           model
                               .updateCurrentChild((data) => API()
-                                  .setMainImageByHash(data, hash.toString(),
+                                  .setMainImageByHash(data, name.toString(),
                                       caller: model.currentData,
                                       forceUpdate: true))
                               .then((value) {
@@ -320,15 +320,32 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         },
                         onDelete: (hash) {
                           showToast(S.of(context).deletingImageThisMayTakeASec);
-                          model
-                              .updateCurrentChild((data) => API()
-                                  .deleteImageByHash(data, hash.toString(),
-                                      caller: model.currentData,
-                                      forceUpdate: true))
-                              .then((value) {
-                            _maybeShowToast(value);
-                            return value;
-                          });
+                          if (data is InspectionLocation) {
+                            model.updateCurrentChild((child) {
+                              final inspection = child as InspectionLocation;
+                              return API().deleteImageByHash(
+                                inspection.imagelink!,
+                                inspection,
+                                hash.toString(),
+                                caller: model.currentData,
+                                forceUpdate: true,
+                              );
+                            }).then((value) {
+                              _maybeShowToast(value);
+                              return value;
+                            });
+                          } else {
+                            model
+                                .updateCurrentChild((data) => API()
+                                    .deleteImageByHash(
+                                        "", data, hash.toString(),
+                                        caller: model.currentData,
+                                        forceUpdate: true))
+                                .then((value) {
+                              _maybeShowToast(value);
+                              return value;
+                            });
+                          }
                         },
                         onShare: (hash) async {
                           var files = await Future.wait(

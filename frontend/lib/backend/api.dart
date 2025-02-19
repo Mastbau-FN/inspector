@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -335,14 +337,14 @@ class API {
   }
 
   /// gets image specified by its hash
-  Future<ImageData?> getImageByHash(String hash,
+  Future<ImageData?> getImageByHash(String link, String hash,
       {bool compressed = false}) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
       itPrefersCache:
           false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
       offline: () => local.getImageByHash(hash, compressed: compressed),
-      online: () => remote.getImageByHash(hash, compressed: compressed),
+      online: () => remote.getImageByHash(link, hash, compressed: compressed),
       requestType: requestType,
     ).last;
   }
@@ -359,6 +361,7 @@ class API {
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash<DataT extends Data>(
+    String link,
     DataT? data,
     String hash, {
     Data? caller,
@@ -380,7 +383,7 @@ class API {
       // ),
       offline: () => local.deleteImageByHash(data, hash,
           caller: caller, forceUpdate: forceUpdate),
-      online: () => remote.deleteImageByHash(hash),
+      online: () => remote.deleteImageByHash(link, hash),
       requestType: requestType,
     ).last;
   }
@@ -454,35 +457,57 @@ class API {
   }
 }
 
+D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = true}) {
+  if (data is InspectionLocation) {
+    Future<ImageData?> getImgDataFromHash(String? hash) {
+      if (!hash!.endsWith(".jpg") &&
+          !hash.endsWith(".jpeg") &&
+          !hash.endsWith(".JPG") &&
+          !hash.endsWith(".png")) debugPrint('hash $hash is not an image');
+      return API()
+          .getImageByHash(data.imagelink!, hash!, compressed: true)
+          .then((value) => value
+            ?..fullImageGetter = () => API()
+                .getImageByHash(data.imagelink!, hash, compressed: false)
+                .then((value) => value?.thumbnail));
+    }
 
-D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
-  Future<ImageData?> getImgDataFromHash(String? hash) {
-    if (preloadFull) API().getImageByHash(hash!, compressed: false);
-    return API().getImageByHash(hash!, compressed: true).then((value) => value
-      ?..fullImageGetter = () => API()
-          .getImageByHash(hash, compressed: false)
-          .then((value) => value?.thumbnail));
-  }
-
-  if (data.mainhash != null &&
-      data.mainhash != Options().no_image_placeholder_name) {
-    var mainImage = getImgDataFromHash(data.mainhash);
-    data.imageFutures =
-        data.imagehashes?.map((hash) => getImgDataFromHash(hash)).toList();
-    data.mainImage = mainImage;
-    data.previewImage = mainImage;
-  } else {
-    //no main image set
-    if (data.imagehashes == null ||
-        data.imagehashes!.length == 0) //the second check *could* be omitted
-      return data;
-    data.previewImage = Future.value(null);
-    if (data.imagehashes != null && data.imagehashes!.length > 0) {
-      data.imageFutures =
-          data.imagehashes?.map((hash) => getImgDataFromHash(hash)).toList();
-      data.previewImage = data.imageFutures!.first;
+    if (data.mainhash != null &&
+        data.mainhash != Options().no_image_placeholder_name) {
+      if (data.mainhash!.endsWith("jpg") ||
+          data.mainhash!.endsWith("JPG") ||
+          data.mainhash!.endsWith("jpeg") ||
+          data.mainhash!.endsWith("png"))
+        data.mainImage = getImgDataFromHash(data.mainhash);
+      var mainImage = getImgDataFromHash(data.mainhash);
+      data.imageFutures = data.imagehashes
+          ?.where((hash) =>
+              hash.endsWith("jpg") ||
+              hash.endsWith("JPG") ||
+              hash.endsWith("jpeg") ||
+              hash.endsWith("png"))
+          .map((hash) => getImgDataFromHash(hash))
+          .toList();
+      data.mainImage = mainImage;
+      data.previewImage = mainImage;
+    } else {
+      //no main image set
+      if (data.imagehashes == null ||
+          data.imagehashes!.length == 0) //the second check *could* be omitted
+        return data;
+      data.previewImage = Future.value(null);
+      if (data.imagehashes != null && data.imagehashes!.length > 0) {
+        data.imageFutures = data.imagehashes
+            ?.where((hash) =>
+                hash.endsWith("jpg") ||
+                hash.endsWith("JPG") ||
+                hash.endsWith("jpeg") ||
+                hash.endsWith("png"))
+            .map((hash) => getImgDataFromHash(hash))
+            .toList();
+        data.previewImage = data.imageFutures!.first;
+      }
     }
   }
-
   return data;
 }

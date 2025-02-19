@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
-
+import 'package:crypto/crypto.dart';
+import 'package:intl/intl.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
@@ -139,6 +140,30 @@ class ImageAddButton extends StatefulWidget {
 
   @override
   State<ImageAddButton> createState() => _ImageAddButtonState();
+}
+
+int _imageCounter = 0;
+Future<File> renameCapturedImage(File originalFile) async {
+  _imageCounter++;
+  // Get the current date and format it as desired.
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+
+  // Read the file bytes and compute an MD5 hash.
+  List<int> fileBytes = await originalFile.readAsBytes();
+  // Compute the full hash and then take the first 6 characters.
+  String fullHash = md5.convert(fileBytes).toString();
+  String shortHash = fullHash.substring(0, 4);
+
+  // Create the new file name.
+  String newFileName = '${formattedDate}_${_imageCounter}${shortHash}.jpg';
+
+  // Construct the new file path (same directory as the original).
+  String newPath =
+      '${originalFile.parent.path}${Platform.pathSeparator}$newFileName';
+
+  // Rename (or move) the file.
+  return originalFile.rename(newPath);
 }
 
 class _ImageAddButtonState extends State<ImageAddButton>
@@ -308,8 +333,17 @@ class _ImageAddButtonState extends State<ImageAddButton>
 
   void shoot(BuildContext context) async {
     CameraModel model = Provider.of<CameraModel>(context, listen: false);
-    await model.shoot();
-    debugPrint("photo taken");
+    await model.shoot(); // This captures the photo and sets model.latestPic
+
+    if (model.latestPic != null) {
+      // Convert the XFile to a File.
+      File originalFile = File(model.latestPic!.path);
+      // Rename the file.
+      File renamedFile = await renameCapturedImage(originalFile);
+      // Update the latestPic with the new file path.
+      model.latestPic = XFile(renamedFile.path);
+    }
+    debugPrint("Photo taken and renamed");
   }
 
   void discardShot(context) =>
@@ -493,16 +527,31 @@ class _ImageAddButtonState extends State<ImageAddButton>
   }
 
   FloatingActionButton get uploadFromSystem => FloatingActionButton(
-        child: Icon(Icons.folder),
-        onPressed: () async {
-          // multipicker is a great solution for now, but could be much better (maybe use adder fragment)
-          final List<XFile>? newImages = await widget._picker.pickMultiImage();
-          var resstring = await widget.onNewImages(newImages ?? []);
-          if (kDebugMode)
-            showToast(resstring ??
-                S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
-        },
-      );
+      child: Icon(Icons.folder),
+      onPressed: () async {
+        // multipicker ist eine großartige Lösung, kann aber noch verbessert werden (vielleicht über einen Adder-Fragment)
+        final List<XFile>? newImages = await widget._picker.pickMultiImage();
+
+        if (newImages == null || newImages.isEmpty) return;
+
+        // Für jedes ausgewählte Bild: Umwandeln in File, umbenennen und wieder in XFile packen
+        List<XFile> renamedImages = [];
+        for (final xfile in newImages) {
+          File originalFile = File(xfile.path);
+          // renameImage ist die Funktion, die Datum, Uhrzeit und einen kurzen Hash anhängt.
+          File renamedFile = await renameCapturedImage(originalFile);
+          renamedImages.add(XFile(renamedFile.path));
+        }
+
+        // Übergib die umbenannten Bilder an deine onNewImages-Funktion
+        var resstring = await widget.onNewImages(renamedImages);
+        if (kDebugMode) {
+          showToast(
+            resstring ??
+                S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho,
+          );
+        }
+      });
 
   FloatingActionButton get discardPhoto => FloatingActionButton(
       backgroundColor: Colors.red,

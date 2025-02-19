@@ -187,24 +187,27 @@ class Remote {
           );
         } catch (e) {
           //if (rd.////logIfFailed) OP.logFailedReq(rd);
-          debugPrint('request failed');
+          //debugPrint('request failed');
           throw e;
         }
       }
     } catch (e) {
-      debugPrint("request failed, cause : $e");
+      //debugPrint("request failed, cause : $e");
       return null;
     }
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
+  RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(
+      String link, String hash,
       {bool compressed = false}) {
+    //debugPrint("hash: $hash");
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
       false => RequestData(
           _getImageFromHash_r,
           json: {
+            'link': link,
             'hash': hash,
             'compressed': compressed,
           },
@@ -224,16 +227,15 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeImage(res.bodyBytes,
-              compressed ? OP.convertToCompressedHashName(hash) : hash);
+          await API().local.storeImage(res.bodyBytes, hash);
           return ImageData(
-            (await API().local.readImage(
-                compressed ? OP.convertToCompressedHashName(hash) : hash,
-                cacheSize: compressed ? CACHESIZE : null))!,
+            (await API()
+                .local
+                .readImage(hash, cacheSize: compressed ? CACHESIZE : null))!,
             id: hash,
           );
         } catch (e) {
-          debugPrint("failed to load webimg: " + e.toString());
+          // debugPrint("failed to load webimg: " + e.toString());
         }
       }
     }
@@ -264,7 +266,6 @@ class Remote {
           returnsBinary: true,
         )
     };
-    debugPrint("fssgfsfsdf" + rd.toString());
 
     parser(http.BaseResponse _res) async {
       final res = _res.forceRes();
@@ -275,7 +276,7 @@ class Remote {
           await API().local.storeDoc(res.bodyBytes, docPath.split('/').last);
           return API().local.readDoc(docPath.split('/').last);
         } catch (e) {
-          debugPrint("failed to load webimg: " + e.toString());
+          // debugPrint("failed to load webimg: " + e.toString());
         }
       }
     }
@@ -439,10 +440,14 @@ class Remote {
   }
 
   /// deletes an image specified by its hash and returns the response
-  RequestAndParser<http.BaseResponse, String?> deleteImageByHash(String hash) {
+  RequestAndParser<http.BaseResponse, String?> deleteImageByHash(
+      String link, String hash) {
     final rd = RequestData(
       _deleteImageByHash_r,
-      json: {'hash': hash},
+      json: {
+        'link': link,
+        'hash': hash,
+      },
     );
 
     parser(http.BaseResponse? res) => res?.forceRes()?.body;

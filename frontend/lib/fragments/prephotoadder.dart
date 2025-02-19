@@ -7,7 +7,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:crypto/crypto.dart';
+import 'package:intl/intl.dart';
 import '../backend/api.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';
@@ -46,6 +47,29 @@ class PrePhotoAdder extends StatelessWidget {
                   })));
         });
   }
+}
+
+/// Renames the given [originalFile] to include a timestamp and a short hash.
+Future<File> renameCapturedImage(File originalFile) async {
+  // Get the current date and format it as desired.
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+
+  // Read the file bytes and compute an MD5 hash.
+  List<int> fileBytes = await originalFile.readAsBytes();
+  // Compute the full hash and then take the first 6 characters.
+  String fullHash = md5.convert(fileBytes).toString();
+  String shortHash = fullHash.substring(0, 4);
+
+  // Create the new file name.
+  String newFileName = '${formattedDate}_$shortHash.jpg';
+
+  // Construct the new file path (same directory as the original).
+  String newPath =
+      '${originalFile.parent.path}${Platform.pathSeparator}$newFileName';
+
+  // Rename (or move) the file.
+  return originalFile.rename(newPath);
 }
 
 class CameraForAdder extends StatefulWidget {
@@ -212,8 +236,17 @@ class _CameraForAdderState extends State<CameraForAdder>
 
   void shoot(BuildContext context) async {
     CameraModel model = Provider.of<CameraModel>(context, listen: false);
-    await model.shoot();
-    debugPrint("photo taken");
+    await model.shoot(); // This captures the photo and sets model.latestPic
+
+    if (model.latestPic != null) {
+      // Convert the XFile to a File.
+      File originalFile = File(model.latestPic!.path);
+      // Rename the file.
+      File renamedFile = await renameCapturedImage(originalFile);
+      // Update the latestPic with the new file path.
+      model.latestPic = XFile(renamedFile.path);
+    }
+    debugPrint("Photo taken and renamed");
   }
 
   void discardShot(context) =>
