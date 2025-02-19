@@ -461,7 +461,7 @@ const hashImagesAndCreateIds = async (tthis) => {
         .filter((dirent) => dirent.isFile())
         .map((dirent) => dirent.name);
         let { rootfolder, filename } = await getLink(thingy);
-          newd.filter((v) => v != filename));
+          newd.filter((v) => v != filename);
         const images =imageNames;
         thingy['images'] = images ?? ["error_ couldnt set image hashes"];
         let maincheck = dirents.map((dirent) => dirent.name);
