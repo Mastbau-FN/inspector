@@ -6,6 +6,7 @@ const path = require("path");
 const options = require("./options");
 
 const fs = require("fs");
+const { get } = require("http");
 const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
@@ -46,6 +47,7 @@ const login = (req, res) => {
  * resolves all projects / inspections / locations for the currently logged-in user 
  */
 const getProjects = (req, res, next) =>
+  
   errsafejson(
     async () => {
       const inspections = await queries.getInspectionsForUser(req.user);
@@ -60,6 +62,7 @@ const getProjects = (req, res, next) =>
     },
     async (x) => {
       var ret = {};
+      //console.log("getProjects", x);
       ret[`${identifiers.location}s`] = x;
       return ret;
     },
@@ -168,13 +171,14 @@ const deleteImgByHash = (req, res, next) =>
   );
 
 const setMainImgByHash = async (req, res, next) => {
-  // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
 
   if(req.body.hash!=null){
 
     if(req.body.link!=null && req.body.hash!=null){
       req.body.data.mainhash = req.body.hash;
-      req.body.data.Link = req.body.hash;
+      req.body.data.Link = req.body.link+"/"+req.body.hash;
+      //req.body.data.Link = req.body.link+req.body.hash;
+      console.log(req.body.link+req.body.hash,"Nw mainhash", req);
     }else {
       console.log("hash ungültig oder null")
     } 
@@ -193,8 +197,10 @@ const setMainImgByHash = async (req, res, next) => {
  */
 
 const getFileFromHash = async (req, res) => {
+  //console.log("filePath", req.body.link);
   try {
     const filePath = path.join(req.body.link, req.body.hash);
+
     //console.log("filePath", filePath);
     let img = await fsp.readFile(filePath);
 
@@ -208,7 +214,7 @@ const getFileFromHash = async (req, res) => {
 
 const getDocFromPath = async (req, res) => {
   try {
-    console.log("docPath", req.body.docPath);
+    //console.log("docPath", req.body.docPath);
     let img = await fsp.readFile(req.body.docPath);
 
     res.writeHead(200, { "Content-type": "application/octet-stream" });
@@ -224,7 +230,7 @@ const getDocFromPath = async (req, res) => {
  */
 const getFileFromHash_get = async (req, res) => {
   try {
-    console.log("docPath", req.body.docPath);
+    //console.log("docPath", req.body.docPath);
     let img = await fsp.readFile(req.body.docPath);
 
     res.writeHead(200, { "Content-type": "application/octet-stream" });

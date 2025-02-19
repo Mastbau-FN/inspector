@@ -394,7 +394,7 @@ const deleteImgByHash = async (link, hash) => {
 
   filePath = path.join(link, hash);
   img = await fsp.readFile(filePath);
-  console.log(filePath)
+  //console.log(filePath)
   //TODO: errorhandling
   if(img!=null && img.length>=1){;
     fsp.rm(filePath)
@@ -435,23 +435,42 @@ module.exports = {
 };
 
 const hashImagesAndCreateIds = async (tthis) => {
-
+  
   for (var thingy of tthis) {
-    if (thingy.Link) {
+    if(thingy.PjNr==20246188){
+      thingy.LinkOrdner="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion"
+      thingy.Link="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion/20250219_1328_63cdf.jpg"
+    }
+    if (!thingy.LinkOrdner) {
       let { rootfolder, link, filename } = await getLink(thingy);
-      //console.log("rootfolder", rootfolder)
-      // get all *other* image names
-      thingy.imagelink = link;
-      let imageNames = (
-        await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      ).filter((v) => v != filename);
+      console.log("r",rootfolder,"l", link, "f",filename);
+      thingy.LinkOrdner = link;
 
-      let maincheck = (
-        await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      )
-
-      const cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
-      thingy.imagelink = path.join("/home/administrator/images/",cleaninsplinkOrdner);
+    }
+      let cleaninsplinkOrdner = "";
+      let imagelink= thingy.LinkOrdner ;
+      if(!thingy.LinkOrdner.startsWith("/home/administrator/images/")){
+      cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
+      
+      imagelink = path.join("/home/administrator/images/",cleaninsplinkOrdner);}
+      
+      if (fs.existsSync(imagelink) && fs.lstatSync(imagelink).isDirectory() && thingy.LinkOrdner != null && thingy.LinkOrdner != "") {
+        thingy.imagelink = imagelink;
+        const dirents = await fsp.readdir(imagelink,{ withFileTypes: true });
+        const newd = dirents
+        .filter((dirent) => dirent.isFile())
+        .map((dirent) => dirent.name);
+        let { rootfolder, filename } = await getLink(thingy);
+          newd.filter((v) => v != filename));
+        const images =imageNames;
+        thingy['images'] = images ?? ["error_ couldnt set image hashes"];
+        let maincheck = dirents.map((dirent) => dirent.name);
+        // thingy.mainimage = mainImage;
+        // images.unshift(thingy.mainhash);
+      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
+          thingy.mainhash = filename;
+        }
+        }
       const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
       if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
         thingy.DokusPath = dokusPath;
@@ -476,30 +495,27 @@ const hashImagesAndCreateIds = async (tthis) => {
       
       // append their hashes to the returned object 
       //console.log("images", imageNames) 
-      const images =
-        imageNames
+
       //console.log("danach",images)
       // set main image at first index
 
 
-        // thingy.mainimage = mainImage;
-        // images.unshift(thingy.mainhash);
-      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
-          thingy.mainhash = filename;}
       //images and thingy.mainimage or hash
 
 
-      thingy['images'] = images ?? ["error_ couldnt set image hashes"];
-      if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
-    }
+      
+     // if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
+    
     // TO-DO: #306
     // could better be DB index or DB hash something, that doenst change , but is unique for every datenpunkt
     thingy.local_id = `${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
-    // no longer needed
-    delete thingy.Link;
-    //never needed anyways
-    delete thingy.LinkOrdner;
   }
+  delete thingy.Link;
+  //never needed anyways
+  delete thingy.LinkOrdner;
+    // no longer needed
+
+  
 
   //// //selfdestruction muhhahah
   //// delete data.rows.hashImagesAndCreateIds;
