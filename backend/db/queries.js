@@ -394,7 +394,7 @@ const deleteImgByHash = async (link, hash) => {
 
   filePath = path.join(link, hash);
   img = await fsp.readFile(filePath);
-  //console.log(filePath)
+  console.log(filePath)
   //TODO: errorhandling
   if(img!=null && img.length>=1){;
     fsp.rm(filePath)
@@ -441,12 +441,6 @@ const hashImagesAndCreateIds = async (tthis) => {
       thingy.LinkOrdner="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion"
       thingy.Link="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion/20250219_1328_63cdf.jpg"
     }
-    if (!thingy.LinkOrdner) {
-      let { rootfolder, link, filename } = await getLink(thingy);
-      console.log("r",rootfolder,"l", link, "f",filename);
-      thingy.LinkOrdner = link;
-
-    }
       let cleaninsplinkOrdner = "";
       let imagelink= thingy.LinkOrdner ;
       if(!thingy.LinkOrdner.startsWith("/home/administrator/images/")){
@@ -460,11 +454,12 @@ const hashImagesAndCreateIds = async (tthis) => {
         const newd = dirents
         .filter((dirent) => dirent.isFile())
         .map((dirent) => dirent.name);
-        let { rootfolder, filename } = await getLink(thingy);
-          newd.filter((v) => v != filename);
+        let {filename } = await getLink(thingy);
+        let imageNames = (
+          newd.filter((v) => v != filename));
         const images =imageNames;
         thingy['images'] = images ?? ["error_ couldnt set image hashes"];
-        let maincheck = dirents.map((dirent) => dirent.name);
+        let maincheck = dirents;
         // thingy.mainimage = mainImage;
         // images.unshift(thingy.mainhash);
       if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
