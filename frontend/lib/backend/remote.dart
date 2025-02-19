@@ -235,7 +235,7 @@ class Remote {
             id: hash,
           );
         } catch (e) {
-          // debugPrint("failed to load webimg: " + e.toString());
+          //debugPrint("failed to load webimg: " + e.toString());
         }
       }
     }
@@ -458,6 +458,7 @@ class Remote {
   // sets an image specified by its hash as the new main image
   RequestAndParser<http.Response, String?>
       setMainImageByHash<DataT extends Data>(
+    String link,
     DataT? data,
     String mainhash,
   ) {
@@ -466,6 +467,7 @@ class Remote {
       route: _setMainImageByHash_r,
       other: {
         'hash': mainhash,
+        'link': link,
       },
     );
     return RequestAndParser(
