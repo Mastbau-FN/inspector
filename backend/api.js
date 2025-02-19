@@ -174,6 +174,7 @@ const setMainImgByHash = async (req, res, next) => {
 
     if(req.body.link!=null && req.body.hash!=null){
       req.body.data.mainhash = req.body.hash;
+      req.body.data.Link = req.body.hash;
     }else {
       console.log("hash ungültig oder null")
     } 
