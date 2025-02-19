@@ -21,6 +21,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       dokuspaths: (json['DokusPaths'] as List<dynamic>?)
           ?.map((e) => DocumentData.fromJson(e as Map<String, dynamic>))
           .toList(),
+      imagelink: json['imagelink'] as String?,
     )
       ..mainhash = json['mainhash'] as String?
       ..imagehashes =
@@ -86,6 +87,7 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Wind': _$WindPowerEnumMap[instance.wind_speed],
       'Windrichtung': _$WindDirectionEnumMap[instance.wind_direction],
       'DokusPaths': instance.dokuspaths,
+      'imagelink': instance.imagelink,
       'X': instance.x,
       'Y': instance.y,
       'latLng': _toplevelhelperLatLng_toJson(instance.fallback_coords),

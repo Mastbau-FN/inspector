@@ -79,6 +79,9 @@ class InspectionLocation extends Data
   @JsonKey(name: 'DokusPaths')
   List<DocumentData>? dokuspaths;
 
+  @JsonKey(name: 'imagelink')
+  String? imagelink;
+
   @JsonKey(includeFromJson: false, includeToJson: false)
   WeatherData get weatherData => WeatherData(
       temperature: temp,
@@ -124,6 +127,7 @@ class InspectionLocation extends Data
     this.strasse,
     this.fallback_coords,
     this.dokuspaths,
+    this.imagelink,
   });
 
   @override
