@@ -172,12 +172,8 @@ const setMainImgByHash = async (req, res, next) => {
 
   if(req.body.hash!=null){
 
-    if(pathparts.link!=null && req.filename!=null){
-      console.log(req.hash);
-      console.log(req.filname);
-      const filePath = path.join(req.body.link, req.hash);
-      // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
-      req.body.data.Link = filePath;
+    if(req.body.link!=null && req.body.hash!=null){
+      req.body.data.mainhash = req.body.hash;
     }else {
       console.log("hash ungültig oder null")
     } 
