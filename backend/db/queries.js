@@ -390,13 +390,14 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
   return res;
 };
 
-const deleteImgByHash = async (hash) => {
-  let p = imghasher.getPathFromHash(hash);
-  //console.log(p)
+const deleteImgByHash = async (link, hash) => {
+
+  filePath = path.join(link, hash);
+  img = await fsp.readFile(filePath);
+  console.log(filePath)
   //TODO: errorhandling
-  if(p!=null && p.length>=1){
-    const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
-    fsp.rm(oldpath)
+  if(img!=null && img.length>=1){;
+    fsp.rm(filePath)
   }
 
   // const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
@@ -438,8 +439,9 @@ const hashImagesAndCreateIds = async (tthis) => {
   for (var thingy of tthis) {
     if (thingy.Link) {
       let { rootfolder, link, filename } = await getLink(thingy);
-
+      //console.log("rootfolder", rootfolder)
       // get all *other* image names
+      thingy.imagelink = link;
       let imageNames = (
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       ).filter((v) => v != filename);
@@ -449,6 +451,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       )
 
       const cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
+      thingy.imagelink = path.join("/home/administrator/images/",cleaninsplinkOrdner);
       const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
       if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
         thingy.DokusPath = dokusPath;
@@ -471,22 +474,18 @@ const hashImagesAndCreateIds = async (tthis) => {
         thingy.DokusPath = null;
         thingy.DokusPaths = [];}
       
-      // append their hashes to the returned object  
+      // append their hashes to the returned object 
+      //console.log("images", imageNames) 
       const images =
-        imageNames.map(
-          (name) => { try { let x = imghasher.memorize(rootfolder, link, name); if (options.debugImageHashes) console.log(`${name} -> ${x}`); return x; } catch (e) { console.log('failed to memorize something' + e); return "error_ could not fetch this image"; } }
-        )
-        || ["error_ image hashing failed to-te-totally"];
-      // console.log(images)
+        imageNames
+      //console.log("danach",images)
       // set main image at first index
 
-      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
-        thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
 
         // thingy.mainimage = mainImage;
         // images.unshift(thingy.mainhash);
-      }
-
+      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
+          thingy.mainhash = filename;}
       //images and thingy.mainimage or hash
 
 

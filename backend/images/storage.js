@@ -20,38 +20,39 @@ const {ftb_ftb_id, update_hash_map } = require("../misc/frontend_wrapper_middlew
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
-	let frontendname = file.originalname;
-	const date = new Date(Number(file.fieldname));
-	const day = String(date.getDate()).padStart(2, '0');
-	const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
-	const year = date.getFullYear();
-	const hours = String(date.getHours()).padStart(2, '0');
-	const minutes = String(date.getMinutes()).padStart(2, '0');
-	const seconds = String(date.getSeconds()).padStart(2, '0');
+	// let frontendname = file.originalname;
+	// const date = new Date(Number(file.fieldname));
+	// const day = String(date.getDate()).padStart(2, '0');
+	// const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
+	// const year = date.getFullYear();
+	// const hours = String(date.getHours()).padStart(2, '0');
+	// const minutes = String(date.getMinutes()).padStart(2, '0');
+	// const seconds = String(date.getSeconds()).padStart(2, '0');
 
 	// Format the date as "dd_MM_yyyy_HH_mm_ss"
-	const formattedDate = `${day}_${month}_${year}_${hours}_${minutes}_${seconds}`;
-	file.fieldname = formattedDate;
-	if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX) && !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
-		file.originalname = file.fieldname+".jpg";
-		file.fieldname = frontendname;
-	}else{
-		file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+(Math.random() + 1).toString(36).substring(8)+".jpg";
-		file.fieldname = frontendname;
-	}
+	// const formattedDate = `${day}_${month}_${year}_${hours}_${minutes}_${seconds}`;
+	// file.fieldname = formattedDate;
+	// if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX) && !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
+	// 	file.originalname = file.fieldname+".jpg";
+	// 	file.fieldname = frontendname;
+	// }else{
+	// 	file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+(Math.random() + 1).toString(36).substring(8)+".jpg";
+	// 	file.fieldname = frontendname;
+	// }
 	
     console.info("file uploaded");
+
     //shouldnt be neccessary, since upload route used fieldparser as middleware
     try {
       //might fail if the body was already parsed
       req.body.data = JSON.parse(req.body.data);
     } catch (_) {}
     
-    ftb_ftb_id(req).then((req) => {
+    //ftb_ftb_id(req).then((req) => {
       // console.log("🚀 ~ file: storage.js:30 ~ ftb_ftb_id ~ req", req.body);
     return rootfolder(req.body.data).then((rf) => {
       	// console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
-      	
+      	rf.filename = file.originalname;
 		console.log("multi-upload", rf);
       	const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
       	fs.mkdirSync(path, { recursive: true });
@@ -64,9 +65,9 @@ const mstorage = multer.diskStorage({
 	
         	let hash = memorize_link(rf);
 	
-        	if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)|| rf.filename.startsWith(SHORT_LOCALLY_ADDED_PREFIX)) {
-          	update_hash_map({hash: rf.filename}, hash);
-        	}
+        	// if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)|| rf.filename.startsWith(SHORT_LOCALLY_ADDED_PREFIX)) {
+          	// update_hash_map({hash: rf.filename}, hash);
+        	// }
 	
 	
         	//: if destination is empty -> set the new image as main (aka as req.body.Link; update)
@@ -84,7 +85,7 @@ const mstorage = multer.diskStorage({
       	cb(null, path);
 	
     	});
-  	});
+  	//});
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
