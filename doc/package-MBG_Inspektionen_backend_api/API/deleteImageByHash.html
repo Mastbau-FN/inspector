@@ -58,7 +58,8 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>&gt;</span></span>
-<span class="name ">deleteImageByHash</span>&lt;<wbr><span class="type-parameter">DataT extends Data</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="deleteImageByHash-param-data"><span class="type-annotation">DataT?</span> <span class="parameter-name">data</span>, </span></li>
+<span class="name ">deleteImageByHash</span>&lt;<wbr><span class="type-parameter">DataT extends Data</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="deleteImageByHash-param-link"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">link</span>, </span></li>
+<li><span class="parameter" id="deleteImageByHash-param-data"><span class="type-annotation">DataT?</span> <span class="parameter-name">data</span>, </span></li>
 <li><span class="parameter" id="deleteImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, {</span></li>
 <li><span class="parameter" id="deleteImageByHash-param-caller"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">caller</span>, </span></li>
 <li><span class="parameter" id="deleteImageByHash-param-forceUpdate"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">forceUpdate</span> = <span class="default-value">false</span>, </span></li>
@@ -77,6 +78,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; deleteImageByHash&lt;DataT extends Data&gt;(
+  String link,
   DataT? data,
   String hash, {
   Data? caller,
@@ -98,7 +100,7 @@
     &#47;&#47; ),
     offline: () =&gt; local.deleteImageByHash(data, hash,
         caller: caller, forceUpdate: forceUpdate),
-    online: () =&gt; remote.deleteImageByHash(hash),
+    online: () =&gt; remote.deleteImageByHash(link, hash),
     requestType: requestType,
   ).last;
 }</code></pre>

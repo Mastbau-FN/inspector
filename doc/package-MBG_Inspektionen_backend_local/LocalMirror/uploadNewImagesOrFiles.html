@@ -85,7 +85,7 @@
   List&lt;String&gt; newLocalImageNames = [];
   await Future.wait(files.map((file) async {
     final bytes = await file.readAsBytes();
-    final imageName = &#39;$LOCALLY_ADDED_PREFIX${file.name}&#39;;
+    final imageName = &#39;${file.name}&#39;;
     await storeImage(bytes, imageName);
     newLocalImageNames.add(imageName);
   }));
