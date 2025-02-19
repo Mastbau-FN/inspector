@@ -173,7 +173,9 @@ const setMainImgByHash = async (req, res, next) => {
   if(req.body.hash!=null){
 
     if(pathparts.link!=null && req.filename!=null){
-      const filePath = path.join(req.body.link, req.filename);
+      console.log(req.hash);
+      console.log(req.filname);
+      const filePath = path.join(req.body.link, req.hash);
       // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
       req.body.data.Link = filePath;
     }else {
