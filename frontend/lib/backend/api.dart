@@ -390,6 +390,7 @@ class API {
 
   // sets an image specified by its hash as the new main image
   Future<String?> setMainImageByHash<DataT extends Data>(
+    String link,
     DataT? data,
     String mainhash, {
     Data? caller,
@@ -405,6 +406,7 @@ class API {
         forceUpdate: forceUpdate,
       ),
       online: () => remote.setMainImageByHash(
+        link,
         data,
         mainhash,
       ),
