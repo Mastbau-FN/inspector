@@ -79,7 +79,6 @@ mixin WithLangText on Data {
 mixin WithAuthor on Data {
   String? get author;
 }
-
 mixin WithOffline on Data {
   @JsonKey(name: 'offline')
   // ignore: non_constant_identifier_names

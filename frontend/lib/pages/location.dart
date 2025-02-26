@@ -64,23 +64,71 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     MyListTileData tiledata,
   ) {
     currentlyChosenChildData = Future.value(data);
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) {
-        switch (tiledata.title) {
-          case _nextViewTitle:
-            return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
-                generateNextModel(data));
-          case 'Fotos':
-            return standard_statefulImageView(this, data);
-          case 'Docs':
-            return DokusList(dokus: data.dokuspaths);
-          default:
-            return LocationDetailPage(
-              locationdata: data,
-            );
+
+    // If it's Prüfkategorien, check for defects first.
+    if (tiledata.title == _nextViewTitle) {
+      data.hasDefects.then((bool hasDefects) {
+        if (hasDefects) {
+          // Show dialog
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext dialogContext) {
+              return AlertDialog(
+                title: const Text('Achtung, es gibt bereits Mängel'),
+                content: const Text(
+                    'Dieser Standort hat bereits Mängel. Möchtest du trotzdem fortfahren?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Zurück'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(); // close dialog
+                      // Then push the normal page
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (ctx) => nextModel<CheckCategory,
+                              InspectionLocation, CategoryModel>(
+                            generateNextModel(data),
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Weiter bearbeiten'),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // No defects => push immediately
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (ctx) =>
+                  nextModel<CheckCategory, InspectionLocation, CategoryModel>(
+                generateNextModel(data),
+              ),
+            ),
+          );
         }
-      }),
-    );
+      });
+    }
+    // Else it's NOT Prüfkategorien, push your route normally:
+    else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          switch (tiledata.title) {
+            case 'Fotos':
+              return standard_statefulImageView(this, data);
+            case 'Docs':
+              return DokusList(dokus: data.dokuspaths);
+            default:
+              return LocationDetailPage(locationdata: data);
+          }
+        }),
+      );
+    }
   }
 }
 
