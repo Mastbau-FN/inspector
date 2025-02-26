@@ -64,23 +64,78 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     MyListTileData tiledata,
   ) {
     currentlyChosenChildData = Future.value(data);
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) {
-        switch (tiledata.title) {
-          case _nextViewTitle:
-            return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
-                generateNextModel(data));
-          case 'Fotos':
-            return standard_statefulImageView(this, data);
-          case 'Docs':
-            return DokusList(dokus: data.dokuspaths);
-          default:
-            return LocationDetailPage(
-              locationdata: data,
+
+    switch (tiledata.title) {
+      case 'Prüfkategorien':
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) =>
+                nextModel<CheckCategory, InspectionLocation, CategoryModel>(
+              generateNextModel(data),
+            ),
+          ),
+        );
+        // 1) Check if this location is locked / has defects
+        data.hasDefects.then((bool isLocked) {
+          if (isLocked) {
+            // 3) Show dialog for locked location
+            showDialog<void>(
+              context: context,
+              builder: (BuildContext dialogContext) {
+                return AlertDialog(
+                  title: const Text('Achtung, Standort ist gesperrt'),
+                  content: const Text(
+                    'Dieser Standort hat bereits Mängel oder einen Lock. '
+                    'Möchtest du trotzdem in die Prüfkategorien?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        Navigator.of(dialogContext).pop(); // close the dialog
+                      },
+                      child: const Text('Zurück'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(); // close dialog
+                      },
+                      child: const Text('Weiter'),
+                    ),
+                  ],
+                );
+              },
             );
-        }
-      }),
-    );
+          }
+        });
+        break; // IMPORTANT: break at the end of this case
+
+      case 'Fotos':
+        // Your existing code
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => standard_statefulImageView(this, data),
+          ),
+        );
+        break;
+
+      case 'Docs':
+        // Your existing code
+        Navigator.of(context).push(
+          MaterialPageRoute(
+              builder: (ctx) => DokusList(dokus: data.dokuspaths)),
+        );
+        break;
+
+      default:
+        // Fallback if not "Prüfkategorien", "Fotos", or "Docs"
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (ctx) => LocationDetailPage(locationdata: data),
+          ),
+        );
+        break;
+    }
   }
 }
 
