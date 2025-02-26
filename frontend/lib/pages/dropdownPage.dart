@@ -233,8 +233,8 @@ Widget lockIndicator<ChildData extends WithLangText>(
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Icon(
-          Icons.lock,
-          color: Colors.red,
+          Icons.description,
+          color: Colors.black,
           size: 20,
         ),
       );
