@@ -365,7 +365,7 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         },
                         onShare: (hash) async {
                           var files = await Future.wait(
-                              [await localFile(hash.toString())]
+                              [await localFile(snapshot.data as Data, hash.toString())]
                                   .map(
                                     (e) async => XFile.fromData(
                                       Uint8List.fromList(

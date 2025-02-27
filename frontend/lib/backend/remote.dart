@@ -199,7 +199,7 @@ class Remote {
 
   //final _imageStreamController = BehaviorSubject<String>();
   RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(
-      String link, String hash,
+      Data data, String link, String hash,
       {bool compressed = false}) {
     //debugPrint("hash: $hash");
     final rd = switch (kIsWeb) {
@@ -227,11 +227,11 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeImage(res.bodyBytes, hash);
+          await API().local.storeImage(data, res.bodyBytes, hash);
           return ImageData(
             (await API()
                 .local
-                .readImage(hash, cacheSize: compressed ? CACHESIZE : null))!,
+                .readImage(data, hash, cacheSize: compressed ? CACHESIZE : null))!,
             id: hash,
           );
         } catch (e) {
@@ -255,7 +255,8 @@ class Remote {
     };
   }
 
-  RequestAndParser<http.BaseResponse, File?> getDocument(String docPath) {
+  RequestAndParser<http.BaseResponse, File?> getDocument(
+      Data data, String docPath) {
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
       false => RequestData(
@@ -273,8 +274,8 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeDoc(res.bodyBytes, docPath.split('/').last);
-          return API().local.readDoc(docPath.split('/').last);
+          await API().local.storeDoc(data, res.bodyBytes, docPath.split('/').last);
+          return API().local.readDoc(data, docPath.split('/').last);
         } catch (e) {
           // debugPrint("failed to load webimg: " + e.toString());
         }

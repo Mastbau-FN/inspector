@@ -337,24 +337,24 @@ class API {
   }
 
   /// gets image specified by its hash
-  Future<ImageData?> getImageByHash(String link, String hash,
+  Future<ImageData?> getImageByHash(Data data, String link, String hash,
       {bool compressed = false}) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
       itPrefersCache:
           false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
-      offline: () => local.getImageByHash(hash, compressed: compressed),
-      online: () => remote.getImageByHash(link, hash, compressed: compressed),
+      offline: () => local.getImageByHash(data, hash, compressed: compressed),
+      online: () => remote.getImageByHash(data, link, hash, compressed: compressed),
       requestType: requestType,
     ).last;
   }
 
-  Future<File?> getDocument(String path) async {
+  Future<File?> getDocument(Data data, String path) async {
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
       itPrefersCache: false,
-      offline: () => local.getDocument(path),
-      online: () => remote.getDocument(path),
+      offline: () => local.getDocument(data, path),
+      online: () => remote.getDocument(data, path),
       requestType: requestType,
     ).last;
   }
@@ -467,10 +467,10 @@ D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = true}) {
           !hash.endsWith(".JPG") &&
           !hash.endsWith(".png")) debugPrint('hash $hash is not an image');
       return API()
-          .getImageByHash(data.imagelink!, hash!, compressed: true)
+          .getImageByHash(data, data.imagelink!, hash!, compressed: true)
           .then((value) => value
             ?..fullImageGetter = () => API()
-                .getImageByHash(data.imagelink!, hash, compressed: false)
+                .getImageByHash(data, data.imagelink!, hash, compressed: false)
                 .then((value) => value?.thumbnail));
     }
 

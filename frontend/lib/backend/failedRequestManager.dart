@@ -227,7 +227,7 @@ class FailedRequestmanager {
             assert((await API().user) != null,
                 S.current!.wontFetchAnythingSinceNoOneIsLoggedIn);
             for (var doc in docus) {
-              await API().getDocument(doc.docupath);
+              await API().getDocument(caller.currentData, doc.docupath);
             }
           }
         }

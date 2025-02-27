@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/documentData.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'DocumentViewerPage.dart';
@@ -37,6 +38,7 @@ class DokusList extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => DocumentViewerPage(
+                      data: dokus![index] as Data,
                       docupath: dokus![index].docupath,
                     ),
                   ),

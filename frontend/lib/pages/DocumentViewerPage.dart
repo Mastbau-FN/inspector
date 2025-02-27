@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,9 +14,12 @@ class DocumentViewerPage extends StatefulWidget {
   /// The file name including its extension (e.g., "document.pdf", "report.docx").
   final String docupath;
 
+  final Data data;
+
   const DocumentViewerPage({
     Key? key,
     required this.docupath,
+    required this.data,
   }) : super(key: key);
 
   @override
@@ -35,7 +39,7 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
   Future<void> _openDocument() async {
     try {
       // Fetch the Base64-encoded file from your API
-      final file = await API().getDocument(widget.docupath);
+      final file = await API().getDocument(widget.data, widget.docupath);
 
       // Open the file with the native viewer.
       showToast(file!.path);

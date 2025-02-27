@@ -63,10 +63,9 @@ class RequestData {
   /// only gets called when the request failed and has to be tried again later
   Future<Map<String, dynamic>> get serialized async {
     //when storing files we have to make sure they are permanently stored, not only in cache
-    this.multipartFileNames ??= await Future.wait(
-        _multipartFiles! //either names or files are set
-            .map((file) async => await OP.permaStoreCachedXFile(
-                file, LOCALLY_ADDED_PREFIX + file.name)));
+    this.multipartFileNames ??=
+        await Future.wait(_multipartFiles! //either names or files are set
+            .map((file) async => await file.name));
     return _$RequestDataToJson(this);
   }
 

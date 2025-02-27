@@ -132,22 +132,18 @@ class LocalMirror {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> getImageByHash(String hash,
+  Future<ImageData?> getImageByHash(Data data,String hash,
       {bool compressed = false}) async {
-    if (compressed) {
-      final img = await readImage(OP.convertToCompressedHashName(hash),
-          cacheSize: compressed ? CACHESIZE : null);
-      if (img != null) return ImageData(img, id: hash);
-    }
-    final img = await readImage(hash, cacheSize: compressed ? CACHESIZE : null);
+
+    final img = await readImage(data, hash, cacheSize: compressed ? CACHESIZE : null);
     if (img == null) throw Exception("no img cached");
     // return null;
 
     return ImageData(img, id: hash);
   }
 
-  Future<File?> getDocument(String docPath) async {
-    final doc = await readDoc(docPath.split('/').last);
+  Future<File?> getDocument(Data data, String docPath) async {
+    final doc = await readDoc(data, docPath.split('/').last);
     if (doc == null) throw Exception("no doc cached");
     // return null;
     // return Data!;
@@ -215,7 +211,7 @@ class LocalMirror {
     await Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
       final imageName = '${file.name}';
-      await storeImage(bytes, imageName);
+      await storeImage(data, bytes, imageName);
       newLocalImageNames.add(imageName);
     }));
     if (data.imagehashes == null) data.imagehashes = [];

@@ -1,7 +1,8 @@
 import 'dart:core';
 import 'dart:io';
 
-import 'package:MBG_Inspektionen/classes/documentData.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:flutter/foundation.dart';
@@ -28,26 +29,36 @@ Future<String> get localPath async {
   return (await getApplicationDocumentsDirectory()).path;
 }
 
-Future<File> localFile(String name, [String? doc]) async {
-  var p0 = File('${await localPath}/${name}');
-  if (doc != null) return p0 = File('${await localPath}/${name}');
+Future<File> localFile(Data data, String fileName) async {
+  // 1. Get the base directory (e.g. your Documents folder).
+  final basePath = await localPath; // same localPath as before
 
-  if (await p0.exists()) return p0;
-  final p1 =
-      File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
-  if (await p1.exists() || useOldImgEncoding) return p1;
-  return File(
-      '${await localPath}/${name}');
+  // 2. Create a subfolder named after the data.inspectionId
+  if (data is CheckPointDefect) {
+    final subDir = Directory(
+        '$basePath/${data.pjNr}/${data.category_index}${data.check_index}${data.id}_Bilder');
+    if (!await subDir.exists()) {
+      await subDir.create(recursive: true);
+    }
+    return File('${subDir.path}/$fileName');
+  }
+  if (data is InspectionLocation) {
+    final subDir = Directory('$basePath/${data.pjNr}_files');
+    if (!await subDir.exists()) {
+      await subDir.create(recursive: true);
+    }
+    return File('${subDir.path}/$fileName');
+  }
+
+  // 3. Return the File reference (subDir + fileName)
+  return File('${basePath}/$fileName');
 }
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
-Future<File?> storeImage(Uint8List imgBytes, String name) async {
+Future<File?> storeImage(Data data, Uint8List imgBytes, String name) async {
   // Write the file
   try {
-    var file = await localFile(name);
-    // if (kIsWeb) {
-    //TODO: support storing images/file in indexedDb or something for web
-    // } else
+    var file = await localFile(data, name);
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -56,10 +67,10 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   }
 }
 
-Future<File?> storeDoc(Uint8List imgBytes, String name) async {
+Future<File?> storeDoc(Data data, Uint8List imgBytes, String name) async {
   // Write the file
   try {
-    var file = await localFile(name, "jaman");
+    var file = await localFile(data, name);
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -77,10 +88,11 @@ class NoImagePlaceholderException implements Exception {
 String convertToCompressedHashName(String hash) => 'compressed/$hash';
 
 ///tries to open an [Image] given by its [name] and returns it if successful
-Future<Image?> readImage(String name, {int? cacheSize}) async {
+Future<Image?> readImage(Data data, String name, {int? cacheSize}) async {
   //TODO: support reading images/file from indexedDb or something for web
 
   final file = (await localFile(
+    data,
     name,
   ));
   // ignore: unused_local_variable
@@ -93,14 +105,14 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TO-DO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  return Image.file(await localFile(name),
+  return Image.file(await localFile(data, name),
       cacheHeight: cacheSize, cacheWidth: cacheSize);
 }
 
-Future<File?> readDoc(String name, {int? cacheSize}) async {
+Future<File?> readDoc(Data data, String name, {int? cacheSize}) async {
   //TODO: support reading images/file from indexedDb or something for web
 
-  final file = (await localFile(name, "jaman"));
+  final file = (await localFile(data, name));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
       ? NoImagePlaceholderException()
@@ -111,13 +123,13 @@ Future<File?> readDoc(String name, {int? cacheSize}) async {
   if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
   //TO-DO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  return await localFile(name);
+  return await localFile(data, name);
 }
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
-Future<File> deleteImage(String name) async {
+Future<File> deleteImage(Data data, String name) async {
   //TODO: support web
-  final file = (await localFile(name));
+  final file = (await localFile(data, name));
   if (!file.existsSync()) throw Exception("file $file doesnt exist");
 
   return await file.delete() as File;
@@ -317,12 +329,20 @@ extension SerializableMultiPartReq on http.MultipartRequest {
   //     requestFromJson(json) as http.MultipartRequest;
 }
 
-Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
-  final name = _name ?? file.name;
-  await file.saveTo((await localFile(file.name)).path);
-  return name;
-}
-
 Future<XFile> retrieveStoredXFile(String name) async {
-  return XFile((await localFile(name)).path);
+  final path = (await getApplicationDocumentsDirectory()).path;
+  final directory = Directory(path);
+
+  if (!await directory.exists()) {
+    throw Exception('Directory does not exist.');
+  }
+
+  await for (FileSystemEntity entity in directory.list(recursive: true)) {
+    if (entity is File &&
+        entity.path.split(Platform.pathSeparator).last == name) {
+      return XFile(entity.path); // Found and return the XFile
+    }
+  }
+
+  throw Exception('File "$name" not found.');
 }
