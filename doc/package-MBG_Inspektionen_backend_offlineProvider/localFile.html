@@ -80,7 +80,7 @@
       File(&#39;${await localPath}&#47;${name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;)}.img&#39;);
   if (await p1.exists() || useOldImgEncoding) return p1;
   return File(
-      &#39;${await localPath}&#47;${name}&#39;);
+      &#39;${await localPath}&#47;${name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;)}.maybe.jpg&#39;);
 }</code></pre>
 </section>
 

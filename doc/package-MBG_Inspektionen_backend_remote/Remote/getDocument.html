@@ -81,6 +81,7 @@
         returnsBinary: true,
       )
   };
+  debugPrint(&quot;fssgfsfsdf&quot; + rd.toString());
 
   parser(http.BaseResponse _res) async {
     final res = _res.forceRes();
@@ -91,7 +92,7 @@
         await API().local.storeDoc(res.bodyBytes, docPath.split(&#39;&#47;&#39;).last);
         return API().local.readDoc(docPath.split(&#39;&#47;&#39;).last);
       } catch (e) {
-        &#47;&#47; debugPrint(&quot;failed to load webimg: &quot; + e.toString());
+        debugPrint(&quot;failed to load webimg: &quot; + e.toString());
       }
     }
   }
