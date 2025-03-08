@@ -3,4 +3,4 @@
 - new Camera and Dokus 
 - new Artifact and FlutterVersion
 - new Web Version
-- restore Version
+- new Notification for Nord3
