@@ -42,7 +42,6 @@ class NotificationController {
       // set the icon to null if you want to use the default app icon
       'resource://drawable/ic_icon',
       ChannelController().channels,
-      debug: kDebugMode,
     );
   }
 
