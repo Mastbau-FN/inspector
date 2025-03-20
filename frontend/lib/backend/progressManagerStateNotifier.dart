@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
-import 'package:MBG_Inspektionen/pages/settings/settingsView.dart';
+import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
+    show sync_in_progress_str, sync_progress_str, sync_success_str;
+import 'package:MBG_Inspektionen/pages/settings/settingsView.dart'; // falls nötig
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'offlineProvider.dart';
-// import 'package:provider/provider.dart';
 
 // UploadProgressWriter class for managing backup progress
 class UploadProgressWriter {
@@ -37,8 +37,8 @@ class UploadProgressWriter {
   Future<void> _init() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      final progress = prefs.getDouble('sync_progress_str');
-      final loading = prefs.getBool('sync_in_progress_str');
+      final progress = prefs.getDouble(sync_progress_str);
+      final loading = prefs.getBool(sync_in_progress_str);
 
       if (progress != null) setProgress(progress);
       if (loading != null) setLoading(loading);
@@ -53,7 +53,7 @@ class UploadProgressWriter {
     _progress = progress;
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('sync_progress_str', progress);
+      await prefs.setDouble(sync_progress_str, progress);
     } catch (e) {
       debugPrint('Error setting progress: $e');
     }
@@ -63,7 +63,7 @@ class UploadProgressWriter {
     _loading = loading;
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('sync_in_progress_str', loading);
+      await prefs.setBool(sync_in_progress_str, loading);
     } catch (e) {
       debugPrint('Error setting loading state: $e');
     }
@@ -74,7 +74,7 @@ class UploadProgressWriter {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setInt(
-          'sync_success_str',
+          sync_success_str,
           success == true
               ? 1
               : success == false

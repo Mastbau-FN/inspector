@@ -1,46 +1,41 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:convert'; // für jsonDecode
+import 'dart:convert';
 
-import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
-import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
-import 'package:MBG_Inspektionen/notifications/controller.dart';
-import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
-import '../classes/dropdownClasses.dart';
-import '../classes/user.dart';
-import 'package:MBG_Inspektionen/l10n/locales.dart';
-import '../helpers/background.dart' as BG;
-import '../helpers/toast.dart';
-import '../pages/checkcategories.dart';
-import '../pages/location.dart';
-import 'api.dart';
-import 'helpers.dart' as Helper;
-
 import 'package:awesome_notifications/awesome_notifications.dart';
 
+import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/classes/user.dart';
+import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
+import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:MBG_Inspektionen/backend/helpers.dart' as Helper;
+import 'package:flutter/services.dart';
+
+import '../notifications/controller.dart';
+
+// Diese drei Konstanten nur hier zentral definieren.
+// Von hier aus werden sie dann auch in anderen Dateien importiert.
 final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
 final sync_success_str = 'sync success';
 
-/// Beispiel: Wir bauen eine kleine Klasse, um
-/// den Fortschritt (global + pro Inspektion) verwalten zu können.
+/// Hilfsklasse, um globale und Inspektions-spezifische Upload-Fortschritte
+/// samt ETA zu verwalten.
 class SyncProgress {
-  final int totalRequests; // alle Requests über alle Inspektionen
-  int doneRequests = 0; // bisherige erfolgreich bearbeitete Requests
+  final int totalRequests;
+  int doneRequests = 0;
 
+  // Aktuelle Inspektion
   String currentInspectionId = '';
   int currentInspectionTotal = 0;
   int currentInspectionDone = 0;
 
-  DateTime startTime = DateTime.now();
-
   // Für ETA
+  DateTime startTime = DateTime.now();
   double averageTimePerRequest = 0;
   int _accumulatedDurationMs = 0;
   int _requestCount = 0;
@@ -48,11 +43,11 @@ class SyncProgress {
   SyncProgress(this.totalRequests);
 
   double get overallProgress =>
-      (totalRequests == 0) ? 1.0 : (doneRequests / totalRequests);
+      (totalRequests == 0) ? 1.0 : doneRequests / totalRequests;
 
   double get currentInspectionProgress => (currentInspectionTotal == 0)
       ? 1.0
-      : (currentInspectionDone / currentInspectionTotal);
+      : currentInspectionDone / currentInspectionTotal;
 
   Duration get estimatedTimeRemaining {
     final remaining = totalRequests - doneRequests;
@@ -62,59 +57,36 @@ class SyncProgress {
     return Duration(milliseconds: (averageTimePerRequest * remaining).round());
   }
 
-  /// Aufrufen nach jedem erfolgreichen Upload, um die durchschnittliche
-  /// Zeit pro Request (-> ETA) zu aktualisieren.
-  void updateTiming(Duration requestTime) {
-    _accumulatedDurationMs += requestTime.inMilliseconds;
+  /// Nach jedem Request aufrufen, um die Durchschnittszeit pro Request zu aktualisieren.
+  void updateTiming(Duration singleRequest) {
+    _accumulatedDurationMs += singleRequest.inMilliseconds;
     _requestCount++;
     averageTimePerRequest = _accumulatedDurationMs / _requestCount;
   }
 }
 
-/// Struktur, die unsere Isolate-Funktion benötigt
-/// (mit dem RootIsolateToken, dem SendPort usw.).
-class _RetryFailedRequestsIsolateInput {
-  final RootIsolateToken rootIsolateToken;
-  final SendPort progressSender;
-  final bool notificationsAllowed;
-  const _RetryFailedRequestsIsolateInput({
-    required this.rootIsolateToken,
-    required this.progressSender,
-    this.notificationsAllowed = false,
-  });
-}
-
-/// Diese Funktion parst das "raw JSON" in rd.json['data']
-/// und holt daraus z.B. local_id oder PjNr, um zu gruppieren.
-///
-/// Pseudocode, passt du ggf. an, falls du lieber PjNr als ID nutzt.
+/// Aus dem JSON String in rd.json['data'] wird die local_id (oder PjNr) geholt.
 String _extractInspectionIdFromRequest(RequestData rd) {
   try {
-    // rd.json sollte z.B. so aussehen: {
-    //   "type": "location",
-    //   "data": "{\"local_id\":\"6006358-undefined-undefined-undefined\",\"PjNr\":6006358,...}",
-    //   "user": {...}
-    // }
     final dataField = rd.json?['data'];
     if (dataField is String) {
-      // parse
       final parsed = jsonDecode(dataField) as Map<String, dynamic>;
-      // z.B. local_id oder PjNr
+      // z.B. "local_id" oder "PjNr"
       final localId = parsed['local_id'] as String?;
       if (localId != null && localId.isNotEmpty) {
         return localId;
       }
-      // fallback: PjNr als String
+      // Fallback: PjNr
       final pjNr = parsed['PjNr']?.toString() ?? 'unknown';
       return pjNr;
     }
   } catch (e) {
-    debugPrint('Fehler beim Lesen der inspectionId: $e');
+    debugPrint('Could not parse inspectionId: $e');
   }
   return 'unknown';
 }
 
-/// Gruppiert die Requests nach local_id (o.ä.) und sortiert sie.
+/// Gruppiert die Requests nach extrahierter Inspection-ID, anschließend sortiert.
 Map<String, List<(String docID, RequestData?)>> _groupRequestsByInspection(
   List<(String, RequestData?)> failedReqs,
 ) {
@@ -123,12 +95,11 @@ Map<String, List<(String docID, RequestData?)>> _groupRequestsByInspection(
   for (final (docID, rd) in failedReqs) {
     if (rd == null) continue;
     final inspId = _extractInspectionIdFromRequest(rd);
-
     grouped.putIfAbsent(inspId, () => []);
     grouped[inspId]!.add((docID, rd));
   }
 
-  // Keys sortieren (z.B. lexikographisch)
+  // Sortiere Keys alphabetisch
   final sortedKeys = grouped.keys.toList()..sort();
   final sortedMap = <String, List<(String, RequestData?)>>{};
   for (final k in sortedKeys) {
@@ -137,25 +108,28 @@ Map<String, List<(String docID, RequestData?)>> _groupRequestsByInspection(
   return sortedMap;
 }
 
-/// Updated während der Synchronisation eine "laufende" Notification
-/// (immer dieselbe ID => fortlaufende Aktualisierung).
+/// Formatiert Duration zu einem kurzen String.
+String _formatDuration(Duration d) {
+  if (d.inMinutes >= 1) {
+    return '${d.inMinutes} min';
+  }
+  return '${d.inSeconds} s';
+}
+
+/// Aktualisiert die laufende Sync-Notification (immer selbe ID => fortlaufendes Update).
 void _updateSyncNotification({
   required SyncProgress progress,
   required bool successSoFar,
 }) {
   final overallPct = (progress.overallProgress * 100).round().toDouble();
-  final inspPct = (progress.currentInspectionProgress * 100).round().toDouble();
+  final inspPct = (progress.currentInspectionProgress * 100).round();
+  final etaStr = _formatDuration(progress.estimatedTimeRemaining);
 
-  final eta = progress.estimatedTimeRemaining;
-  final etaStr =
-      eta.inMinutes > 0 ? '${eta.inMinutes} min' : '${eta.inSeconds} s';
-
-  final title =
-      successSoFar ? 'Upload Sync läuft ...' : 'Upload Sync (mit Fehlern)';
+  final title = successSoFar ? 'Upload Sync läuft ...' : 'Upload Sync (Fehler)';
 
   AwesomeNotifications().createNotification(
     content: NotificationContent(
-      id: 999, // gleiche ID => aktualisiert sich
+      id: 999,
       channelKey: 'progress',
       title: title,
       body: 'Inspektion: ${progress.currentInspectionId}\n'
@@ -170,78 +144,83 @@ void _updateSyncNotification({
   );
 }
 
-/// Das Herzstück: Hier führen wir das "Retry-Failed-Request" durch,
-/// gruppiert nach Inspektions-ID, sortiert, mit UI-/Notification-Fortschritt.
-_retryFailedRequestsIsolate(
-  _RetryFailedRequestsIsolateInput input,
-) async {
+/// Struktur, die wir an den Isolate übergeben (RootIsolateToken, SendPort usw.).
+class _RetryFailedRequestsIsolateInput {
+  final RootIsolateToken rootIsolateToken;
+  final SendPort progressSender;
+  final bool notificationsAllowed;
+
+  const _RetryFailedRequestsIsolateInput({
+    required this.rootIsolateToken,
+    required this.progressSender,
+    required this.notificationsAllowed,
+  });
+}
+
+/// Die eigentliche Isolate-Funktion mit Sortierung, Gruppierung, Fortschrittsanzeige & Benachrichtigung.
+_retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   if (!kIsWeb) {
     BG.initialize(input.rootIsolateToken);
   }
 
   debugPrint('retry failed requests isolate started');
-
   final upsn = UploadProgressWriter();
   await upsn.awaitInitDone();
   debugPrint('retry failed requests isolate init done');
 
-  final is_already_running = upsn.loading;
-  if (is_already_running) {
+  if (upsn.loading) {
     // Läuft bereits
     return;
-  } else {
-    upsn.setLoading(true);
   }
+  upsn.setLoading(true);
 
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
-  DisplayUser? user = await API().user;
+  final user = await API().user;
   if (user == null) {
-    input.progressSender.send((1.0, false));
+    // Sende finalen Stand
+    input.progressSender.send((1.0, false, null, 1.0, ''));
     upsn.setLoading(false);
     return;
   }
 
   bool success = true;
   final grouped = _groupRequestsByInspection(failedReqs);
-
-  // Gesamtanzahl
   final totalRequests =
       grouped.values.fold<int>(0, (acc, list) => acc + list.length);
+
   if (totalRequests == 0) {
-    // Nichts zu tun
-    input.progressSender.send((1.0, true));
+    // nix zu tun
+    input.progressSender.send((1.0, true, null, 1.0, ''));
     upsn.setLoading(false);
     return;
   }
 
-  // Fortschrittsdaten
+  // Fortschritts-Daten
   final progress = SyncProgress(totalRequests);
-  progress.startTime = DateTime.now();
 
-  // Anfang: UI und Notification auf 0%
-  input.progressSender.send((0.0, null));
+  // Erster Status
+  input.progressSender.send(
+      (0.0, null, '', 0.0, _formatDuration(progress.estimatedTimeRemaining)));
   upsn.setProgress(0.0);
-  _updateSyncNotification(progress: progress, successSoFar: success);
+  _updateSyncNotification(progress: progress, successSoFar: true);
 
-  // Über alle Inspektionen (sortiert)
-  for (final inspectionId in grouped.keys) {
-    progress.currentInspectionId = inspectionId;
-    final requestsInInsp = grouped[inspectionId]!;
-    progress.currentInspectionTotal = requestsInInsp.length;
+  // Loop über alle Inspektionen
+  for (final inspId in grouped.keys) {
+    progress.currentInspectionId = inspId;
+    final requests = grouped[inspId]!;
+    progress.currentInspectionTotal = requests.length;
     progress.currentInspectionDone = 0;
 
-    // Innerer Loop: alle Requests dieser Inspektion
-    for (int i = 0; i < requestsInInsp.length; i++) {
-      final (docID, rd) = requestsInInsp[i];
-      // Falls rd == null => überspringen
+    for (int i = 0; i < requests.length; i++) {
+      final (docID, rd) = requests[i];
       if (rd == null) {
         progress.doneRequests++;
         progress.currentInspectionDone++;
         continue;
       }
 
-      // Timer pro Request
-      final requestStart = DateTime.now();
+      // Request senden
+      final start = DateTime.now();
       try {
         rd.logIfFailed = false;
         final res = await API().remote.postJSON(rd);
@@ -256,46 +235,46 @@ _retryFailedRequestsIsolate(
         break;
       }
 
-      // Zeitmessung + ETA-Update
-      final singleDur = DateTime.now().difference(requestStart);
-      progress.updateTiming(singleDur);
+      // Zeitmessung & Counter
+      final dur = DateTime.now().difference(start);
+      progress.updateTiming(dur);
 
-      // Fortschrittszähler
       progress.doneRequests++;
       progress.currentInspectionDone++;
 
-      // UI-Update => Sende (Fortschritt, null)
       final overall = progress.overallProgress;
-      input.progressSender.send((overall, null));
+      final inspProg = progress.currentInspectionProgress;
+      final etaStr = _formatDuration(progress.estimatedTimeRemaining);
+
+      // Sende an Main: (gesamtFortschritt, success?, inspId, inspProgress, eta)
+      input.progressSender.send((overall, null, inspId, inspProg, etaStr));
       upsn.setProgress(overall);
 
-      // Notification aktualisieren
       _updateSyncNotification(progress: progress, successSoFar: success);
-
       if (!success) break;
     }
-    if (!success) break; // Abbruch auch aus äußerer Schleife
+    if (!success) break;
   }
 
-  // Ende: Sende (1.0, success)
-  input.progressSender.send((1.0, success));
+  // Ende
+  input.progressSender.send((1.0, success, null, 1.0, ''));
   upsn.setProgress(1.0);
   upsn.setSuccess(success);
   upsn.setLoading(false);
 
-  // Finale Notification (z.B. mit Ton)
+  // Abschließende Notification
   if (input.notificationsAllowed) {
     if (success) {
       AwesomeNotifications().createNotification(
         content: NotificationContent(
           id: 999,
           channelKey: 'progress',
-          title: Emojis.symbols_check_mark_button + ' Upload Sync Done',
+          title: '✅ Upload Sync Done',
           body: 'Offline Änderungen wurden erfolgreich synchronisiert.',
           category: NotificationCategory.Progress,
           notificationLayout: NotificationLayout.Default,
           progress: 100,
-          // soundSource: 'resource://raw/res_custom_success_tone', // optional
+          locked: false,
         ),
       );
     } else {
@@ -303,80 +282,81 @@ _retryFailedRequestsIsolate(
         content: NotificationContent(
           id: 999,
           channelKey: 'progress',
-          title: Emojis.symbols_cross_mark + ' Upload Sync Failed',
-          body:
-              'Einige Uploads konnten nicht verarbeitet werden. Bitte erneut versuchen.',
+          title: '❌ Upload Sync Failed',
+          body: 'Einige Uploads konnten nicht verarbeitet werden.',
           category: NotificationCategory.Progress,
           notificationLayout: NotificationLayout.Default,
           progress: 100,
-          // soundSource: 'resource://raw/res_custom_failure_tone', // optional
+          locked: false,
         ),
       );
     }
   }
 }
 
-/// Deine Manager-Klasse (unverändert), aber an ein-zwei Stellen
-/// minimal angepasst, damit wir den Isolate-Code triggern.
+/// Haupt-Klasse, die den Upload orchestriert und im UI aufgerufen wird.
 class FailedRequestmanager {
+  /// Startet den Upload, ggf. mit fortlaufender Progress-Callback.
   Future<bool> retryFailedrequests({
     required BuildContext context,
-    void Function(double)? onProgress,
+    void Function(double overallProgress, bool? success, String? currentInspId,
+            double currentInspProgress, String etaString)?
+        onProgress,
   }) async {
     debugPrint('retry failed requests started');
     try {
+      // Check Internet
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
     } catch (e) {
-      showToast(S.current!.noViableInternetConnection);
+      showToast('Keine funktionierende Internetverbindung');
       return false;
     }
 
+    // Notifications erlauben?
     bool notificationsAllowed = await allowNotificationGuard(
       context,
-      S.of(context).weCanSendYouANotificationAboutTheSyncProgress,
+      'Wir können dir eine Benachrichtigung über den Sync-Fortschritt senden.',
     );
 
-    bool success = false;
-    // Empfänger für Fortschritt
-    ReceivePort progressReceiver = ReceivePort();
+    bool finalSuccess = false;
+    final progressReceiver = ReceivePort();
 
-    var isolateInputData = _RetryFailedRequestsIsolateInput(
+    final isolateInputData = _RetryFailedRequestsIsolateInput(
       rootIsolateToken: RootIsolateToken.instance!,
       progressSender: progressReceiver.sendPort,
       notificationsAllowed: notificationsAllowed,
     );
 
-    // Den Stream abonnieren
     final subscription = progressReceiver.listen((msg) {
-      final (progressValue, maybeSuccess) = msg as (double, bool?);
+      // msg: (double overall, bool? succ, String? inspId, double inspProg, String eta)
+      final (overall, maybeSuccess, inspId, inspProg, etaStr) =
+          msg as (double, bool?, String?, double, String);
+
       if (maybeSuccess != null) {
-        // Upload abgeschlossen => Erfolg/Fehlschlag
-        success = maybeSuccess;
+        // => Upload beendet
+        finalSuccess = maybeSuccess;
         progressReceiver.close();
       } else {
-        // Laufendes Progress-Update
-        onProgress?.call(progressValue);
+        // => Zwischenschritt
+        onProgress?.call(overall, null, inspId, inspProg, etaStr);
       }
     });
 
-    // Falls du es wirklich in einem Isolate laufen lassen willst:
-    // await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
-    // Hier: direkter Aufruf
+    // Statt über ein echtes Isolate (spawn) auszulagern,
+    // rufen wir hier direkt die Upload-Logik asynchron auf:
     await _retryFailedRequestsIsolate(isolateInputData);
 
-    // Warte auf das Ende
+    // Warten, bis sämtliche Nachrichten gelesen wurden:
     await subscription.asFuture();
 
-    return success;
+    // Letztes "onProgress", um finalen Erfolg zu signalisieren:
+    onProgress?.call(1.0, finalSuccess, null, 1.0, '');
+
+    return finalSuccess;
   }
 
-  /// Deine übrigen Methoden z.B. loadAndCacheAll, setOnlineTotal usw.:
-  /// ...
-  /// Hier unverändert.
-  Future<bool> loadAndCacheAll<
-      ChildData extends WithLangText,
-      ParentData extends WithOffline,
-      DDModel extends DropDownModel<ChildData, ParentData>>(
+  /// Andere Methoden wie loadAndCacheAll, setOnlineAll etc. können hier bleiben ...
+  Future<bool> loadAndCacheAll<ChildData, ParentData, DDModel>(
     DDModel caller,
     int depth, {
     String? name,
@@ -386,16 +366,12 @@ class FailedRequestmanager {
     return false;
   }
 
-  Future setOnlineAll<
-      ChildData extends WithLangText,
-      ParentData extends WithOffline,
-      DDModel extends DropDownModel<ChildData, ParentData>>(
+  Future<void> setOnlineAll<ChildData, ParentData, DDModel>(
     DDModel caller,
     int depth, {
     String? name,
     String? parentID,
   }) async {
     // ...
-    return;
   }
 }
