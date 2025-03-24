@@ -140,6 +140,7 @@ class _BackupTileState extends State<BackupTile> {
         loading = false;
         success = false;
       });
+      showToast('Could not get external directory');
       return;
     }
 
@@ -272,7 +273,27 @@ class _UploadSyncTile extends StatefulWidget {
 }
 
 class _UploadSyncTileState extends State<_UploadSyncTile> {
+  bool isSynced = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSyncStatus();
+  }
+
+  Future<void> _checkSyncStatus() async {
+    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    setState(() {
+      isSynced = failedReqs.isEmpty;
+    });
+  }
+
   Future<void> onPress() async {
+    if (isSynced) {
+      showToast('Alle Inspektionen sind bereits synchronisiert');
+      return;
+    }
+
     final updater = context.read<ExtendedProgressStateUpdater>();
 
     if (updater.loading) {
@@ -295,6 +316,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       },
     );
     debugPrint('Upload finished: $success');
+    await _checkSyncStatus();
   }
 
   @override
@@ -318,7 +340,9 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     // Für eine mehrzeilige Anzeige einfach einen Zeilenumbruch benutzen:
     final tileText = loading
         ? '${(progress * 100).floor()}%  Bitte warten \n $secondLine'
-        : 'Synchronisierung \n mit Server';
+        : isSynced
+            ? 'Alles synchronisiert'
+            : 'Synchronisierung \n mit Server';
 
     return MyCardListTile1(
       icon: Icons.sync,
@@ -332,12 +356,14 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
                 value: progress,
               ),
             )
-          : (success != null
-              ? Icon(
-                  success ? Icons.check : Icons.error,
-                  color: success ? Colors.green : Colors.red,
-                )
-              : null),
+          : (isSynced
+              ? Icon(Icons.check_circle, color: Colors.green)
+              : (success != null
+                  ? Icon(
+                      success ? Icons.check : Icons.error,
+                      color: success ? Colors.green : Colors.red,
+                    )
+                  : null)),
     );
   }
 }
