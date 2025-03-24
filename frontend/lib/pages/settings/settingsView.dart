@@ -23,6 +23,9 @@ import 'package:MBG_Inspektionen/pages/mostrecentrequest.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/openNewViewTile.dart';
+import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart'
+    show UploadProgressWriter;
+import 'package:MBG_Inspektionen/pages/settings/backupManagementView.dart';
 
 /// A page where the user can change settings. It currently supports [Logout].
 class SettingsView extends StatelessWidget {
@@ -33,6 +36,12 @@ class SettingsView extends StatelessWidget {
         icon: Icons.developer_mode,
         title: S.current!.developerOptions,
         newView: const DeveloperSettings(),
+      );
+
+  Widget get backupManagementTile => OpenNewViewTile(
+        icon: Icons.folder,
+        title: 'Backups verwalten',
+        newView: const BackupManagementView(),
       );
 
   Widget get unsetIsRunningTile => MyCardListTile1(
@@ -62,6 +71,7 @@ class SettingsView extends StatelessWidget {
             Text(S.of(context).advancedSettingsHeadline),
             if (Options().canBeOffline) const UploadSyncTile(),
             if (Options().canBeOffline) const BackupTile(),
+            if (Options().canBeOffline) backupManagementTile,
             if (Options().canBeOffline) const OpenNextRequestTile(),
             if (Options().canBeOffline) unsetIsRunningTile,
             developerOptions,
@@ -127,12 +137,16 @@ class _BackupTileState extends State<BackupTile> {
   bool loading = false;
   bool? success;
   double progress = 0.0;
+  String currentFile = '';
+  String eta = '';
 
   void onPress(BuildContext context) async {
     setState(() {
       loading = true;
       progress = 0.0;
       success = null;
+      currentFile = '';
+      eta = '';
     });
 
     if (!await _requestStoragePermission()) {
@@ -163,9 +177,11 @@ class _BackupTileState extends State<BackupTile> {
       final backupPath =
           '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
 
-      await for (double progressValue in backup(backupPath)) {
+      await for (BackupProgress progressValue in backup(backupPath)) {
         setState(() {
-          progress = progressValue;
+          progress = progressValue.progress;
+          currentFile = progressValue.currentFile;
+          eta = progressValue.eta;
         });
       }
 
@@ -192,21 +208,20 @@ class _BackupTileState extends State<BackupTile> {
 
   @override
   Widget build(BuildContext context) {
+    String tileText = loading
+        ? '${(progress * 100).floor()}%  Bitte warten \n Aktuelle Datei: $currentFile \n ETA: $eta'
+        : 'Backup';
+
     return MyCardListTile1(
       icon: Icons.folder_zip,
-      text: loading ? '${(progress * 100).floor()}%  Please wait...' : 'Backup',
+      text: tileText,
       onTap: () => onPress(context),
       child: loading
           ? SizedBox(
               height: 25,
               width: 25,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: progress,
-                  ),
-                ],
+              child: CircularProgressIndicator(
+                value: progress,
               ),
             )
           : (success != null
@@ -223,8 +238,20 @@ class _BackupTileState extends State<BackupTile> {
   }
 }
 
+class BackupProgress {
+  final double progress;
+  final String currentFile;
+  final String eta;
+
+  BackupProgress({
+    required this.progress,
+    required this.currentFile,
+    required this.eta,
+  });
+}
+
 /// Backups everything in localPath as a zip, providing a progress stream.
-Stream<double> backup(String to) async* {
+Stream<BackupProgress> backup(String to) async* {
   final encoder = ZipFileEncoder();
   encoder.create(to);
 
@@ -237,13 +264,29 @@ Stream<double> backup(String to) async* {
           (sum, file) => sum + file.lengthSync(),
         );
     int processedSize = 0;
+    DateTime startTime = DateTime.now();
 
     for (final entity in entities) {
       if (entity is File) {
         final relativePath = entity.path.replaceFirst(directory.path, '');
         encoder.addFile(entity, relativePath);
         processedSize += entity.lengthSync();
-        yield processedSize / totalSize;
+
+        // Berechne ETA
+        final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+        final speed = processedSize / elapsed;
+        final remaining = totalSize - processedSize;
+        final etaMs = remaining / speed;
+        final etaDuration = Duration(milliseconds: etaMs.round());
+        final etaStr = etaDuration.inMinutes >= 1
+            ? '${etaDuration.inMinutes} min'
+            : '${etaDuration.inSeconds} s';
+
+        yield BackupProgress(
+          progress: processedSize / totalSize,
+          currentFile: relativePath,
+          eta: etaStr,
+        );
       }
     }
   } finally {
@@ -301,22 +344,82 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       return;
     }
 
-    // Starte Sync mit onProgress
-    bool success = await FailedRequestmanager().retryFailedrequests(
-      context: context,
-      onProgress: (overall, maybeSuccess, inspId, inspProg, etaStr) {
-        // Jedes Mal "Zwischenstand" -> Updater benachrichtigen
-        updater.setDetailedProgress(
-          overallProgress: overall,
-          success: maybeSuccess, // kann null sein, wenn noch nicht fertig
-          inspectionId: inspId,
-          inspProgress: inspProg,
-          etaString: etaStr,
-        );
-      },
+    debugPrint('Starting backup and sync process...');
+
+    // Fortschritt zurücksetzen
+    updater.setDetailedProgress(
+      overallProgress: 0.0,
+      success: null,
+      inspectionId: '',
+      inspProgress: 0.0,
+      etaString: '',
     );
-    debugPrint('Upload finished: $success');
-    await _checkSyncStatus();
+
+    // Zuerst Backup erstellen
+    bool backupSuccess = false;
+    final externalDir = await getExternalStorageDirectory();
+    if (externalDir != null) {
+      try {
+        final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
+        if (!await backupDir.exists()) {
+          await backupDir.create();
+        }
+
+        final backupPath =
+            '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
+        debugPrint('Starting backup to: $backupPath');
+
+        final upsn = UploadProgressWriter();
+        await upsn.awaitInitDone();
+        upsn.setLoading(true);
+        await upsn.setProgress(0.0); // Fortschritt zurücksetzen
+
+        // Backup durchführen
+        await for (BackupProgress progressValue in backup(backupPath)) {
+          debugPrint(
+              'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
+          // Backup-Fortschritt anzeigen
+          await upsn.setBackupProgress(progressValue);
+          updater.setDetailedProgress(
+            overallProgress: progressValue.progress,
+            success: null,
+            inspectionId: 'Backup',
+            inspProgress: progressValue.progress,
+            etaString: '',
+          );
+        }
+        debugPrint('Backup completed successfully');
+        backupSuccess = true;
+        upsn.setLoading(false);
+        upsn.setSuccess(true);
+      } catch (e) {
+        debugPrint('Backup failed: $e');
+        showToast('Backup fehlgeschlagen');
+        return;
+      }
+    }
+
+    // Nur wenn Backup erfolgreich war, Sync starten
+    if (backupSuccess) {
+      debugPrint('Starting sync process...');
+      bool success = await FailedRequestmanager().retryFailedrequests(
+        context: context,
+        onProgress: (overall, maybeSuccess, inspId, inspProg, etaStr) {
+          debugPrint(
+              'Sync progress: ${(overall * 100).toStringAsFixed(1)}% - Current inspection: $inspId');
+          // Jedes Mal "Zwischenstand" -> Updater benachrichtigen
+          updater.setDetailedProgress(
+            overallProgress: overall,
+            success: maybeSuccess, // kann null sein, wenn noch nicht fertig
+            inspectionId: inspId,
+            inspProgress: inspProg,
+            etaString: etaStr,
+          );
+        },
+      );
+      debugPrint('Sync finished: $success');
+      await _checkSyncStatus();
+    }
   }
 
   @override
@@ -333,13 +436,17 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
 
     // Zeile mit Infos
     String secondLine = '';
-    if (loading && inspId.isNotEmpty) {
-      secondLine = 'Aktuelle Insp: \n $inspId ($inspPct%) \n ETA: $eta';
+    if (loading) {
+      if (inspId == 'Backup') {
+        secondLine = 'Backup';
+      } else if (inspId.isNotEmpty) {
+        secondLine = 'Sync';
+      }
     }
 
     // Für eine mehrzeilige Anzeige einfach einen Zeilenumbruch benutzen:
     final tileText = loading
-        ? '${(progress * 100).floor()}%  Bitte warten \n $secondLine'
+        ? '${inspId == 'Backup' ? 'Schritt 1/2' : 'Schritt 2/2'}: \n$secondLine'
         : isSynced
             ? 'Alles synchronisiert'
             : 'Synchronisierung \n mit Server';
@@ -349,11 +456,27 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       text: tileText,
       onTap: onPress,
       child: loading
-          ? SizedBox(
-              height: 25,
-              width: 25,
-              child: CircularProgressIndicator(
-                value: progress,
+          ? Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    '${(progress * 100).floor()}%',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  SizedBox(
+                    height: 25,
+                    width: 25,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                    ),
+                  ),
+                ],
               ),
             )
           : (isSynced

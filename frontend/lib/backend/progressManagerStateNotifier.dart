@@ -15,6 +15,8 @@ class UploadProgressWriter {
   bool _loading = false;
   bool? _success;
   bool _initDone = false;
+  String _currentFile = '';
+  String _eta = '';
 
   UploadProgressWriter() {
     init();
@@ -33,6 +35,8 @@ class UploadProgressWriter {
   double? get progress => _progress;
   bool get loading => _loading;
   bool? get success => _success;
+  String get currentFile => _currentFile;
+  String get eta => _eta;
 
   Future<void> _init() async {
     try {
@@ -69,23 +73,23 @@ class UploadProgressWriter {
     }
   }
 
-  Future<void> setSuccess(bool? success) async {
+  Future<void> setSuccess(bool success) async {
     _success = success;
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(
-          sync_success_str,
-          success == true
-              ? 1
-              : success == false
-                  ? 0
-                  : -1);
-
-      if (success == true) {
-        await _performBackupAndCleanup();
-      }
+      await prefs.setInt(sync_success_str, success ? 1 : 0);
     } catch (e) {
-      debugPrint('Error setting success: $e');
+      debugPrint('Error setting success state: $e');
+    }
+  }
+
+  Future<void> setBackupProgress(BackupProgress progress) async {
+    _progress = progress.progress;
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(sync_progress_str, progress.progress);
+    } catch (e) {
+      debugPrint('Error setting backup progress: $e');
     }
   }
 
@@ -105,14 +109,13 @@ class UploadProgressWriter {
             '${backupDir.path}/inspector-automatic-backup-${DateTime.now().millisecondsSinceEpoch}.zip';
 
         // Listen to backup progress and update state
-        await for (double progressValue in backup(backupPath)) {
-          setProgress(progressValue);
+        await for (BackupProgress progressValue in backup(backupPath)) {
+          await setBackupProgress(progressValue);
           debugPrint(
-              'Backup Progress: ${(progressValue * 100).toStringAsFixed(2)}%');
+              'Backup Progress: ${(progressValue.progress * 100).toStringAsFixed(2)}%');
         }
 
         debugPrint('Automatic backup saved to $backupPath');
-        // Implement deleteAll as needed
       }
     } catch (e) {
       debugPrint('Error performing backup and cleanup: $e');
