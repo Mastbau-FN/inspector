@@ -69,16 +69,26 @@ class SyncProgress {
 String _extractInspectionIdFromRequest(RequestData rd) {
   try {
     final dataField = rd.json?['data'];
+    Map<String, dynamic> parsedData;
+
     if (dataField is String) {
-      final parsed = jsonDecode(dataField) as Map<String, dynamic>;
-      // z.B. "local_id" oder "PjNr"
-      final localId = parsed['local_id'] as String?;
-      if (localId != null && localId.isNotEmpty) {
-        return localId;
-      }
-      // Fallback: PjNr
-      final pjNr = parsed['PjNr']?.toString() ?? 'unknown';
+      // Wenn data ein JSON-String ist, parsen wir ihn
+      parsedData = Map<String, dynamic>.from(json.decode(dataField));
+    } else {
+      // Wenn data bereits ein Objekt ist, verwenden wir es direkt
+      parsedData = Map<String, dynamic>.from(dataField);
+    }
+
+    // Versuche zuerst die PjNr zu extrahieren
+    final pjNr = parsedData['PjNr']?.toString();
+    if (pjNr != null && pjNr.isNotEmpty) {
       return pjNr;
+    }
+
+    // Fallback: local_id
+    final localId = parsedData['local_id'] as String?;
+    if (localId != null && localId.isNotEmpty) {
+      return localId;
     }
   } catch (e) {
     debugPrint('Could not parse inspectionId: $e');
@@ -211,6 +221,38 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     progress.currentInspectionTotal = requests.length;
     progress.currentInspectionDone = 0;
 
+    // Extrahiere PJNr aus dem Request
+    String? pjNr;
+    try {
+      if (inspId != 'Backup') {
+        final failedReqs = await API().local.getAllFailedRequests();
+        if (failedReqs != null) {
+          for (var req in failedReqs) {
+            final requestData = req as Map<String, dynamic>;
+            final jsonData = requestData['json'] as Map<String, dynamic>;
+            final data = jsonData['data'];
+            Map<String, dynamic> parsedData;
+
+            if (data is String) {
+              // Wenn data ein JSON-String ist, parsen wir ihn
+              parsedData = Map<String, dynamic>.from(json.decode(data));
+            } else {
+              // Wenn data bereits ein Objekt ist, verwenden wir es direkt
+              parsedData = Map<String, dynamic>.from(data);
+            }
+
+            final localId = parsedData['local_id'] as String?;
+            if (localId == inspId) {
+              pjNr = parsedData['PjNr']?.toString();
+              break;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error extracting PJNr: $e');
+    }
+
     for (int i = 0; i < requests.length; i++) {
       final (docID, rd) = requests[i];
       if (rd == null) {
@@ -294,8 +336,87 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   }
 }
 
+/// Repräsentiert eine gruppierte Inspektion mit allen relevanten Informationen
+class GroupedInspection {
+  final String pjNr;
+  final List<String> requests;
+  final int total;
+  final int completed;
+  final double progress;
+
+  GroupedInspection({
+    required this.pjNr,
+    required this.requests,
+    required this.total,
+    required this.completed,
+    required this.progress,
+  });
+}
+
 /// Haupt-Klasse, die den Upload orchestriert und im UI aufgerufen wird.
 class FailedRequestmanager {
+  /// Gruppiert die fehlgeschlagenen Requests nach PJNr
+  Future<List<GroupedInspection>> getGroupedFailedRequests() async {
+    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    Map<String, Map<String, dynamic>> groupedRequests = {};
+
+    for (var req in failedReqs) {
+      try {
+        final requestData = req as Map<String, dynamic>;
+        final jsonData = requestData['json'] as Map<String, dynamic>;
+        final data = jsonData['data'];
+        Map<String, dynamic> parsedData;
+
+        if (data is String) {
+          parsedData = Map<String, dynamic>.from(json.decode(data));
+        } else {
+          parsedData = Map<String, dynamic>.from(data);
+        }
+
+        final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
+
+        if (!groupedRequests.containsKey(pjNr)) {
+          groupedRequests[pjNr] = {
+            'requests': [],
+            'total': 0,
+            'completed': 0,
+            'progress': 0.0
+          };
+        }
+
+        groupedRequests[pjNr]!['requests']!
+            .add(requestData['route'] ?? 'Unbekannte Route');
+        groupedRequests[pjNr]!['total'] =
+            (groupedRequests[pjNr]!['total'] as int) + 1;
+
+        if (parsedData['offline'] == false) {
+          groupedRequests[pjNr]!['completed'] =
+              (groupedRequests[pjNr]!['completed'] as int) + 1;
+        }
+      } catch (e) {
+        debugPrint('Error parsing request: $e');
+      }
+    }
+
+    // Berechne den Fortschritt für jede Inspektion
+    for (var pjNr in groupedRequests.keys) {
+      final total = groupedRequests[pjNr]!['total'] as int;
+      final completed = groupedRequests[pjNr]!['completed'] as int;
+      groupedRequests[pjNr]!['progress'] = total > 0 ? completed / total : 0.0;
+    }
+
+    // Konvertiere die Map in eine Liste von GroupedInspection Objekten
+    return groupedRequests.entries
+        .map((entry) => GroupedInspection(
+              pjNr: entry.key,
+              requests: List<String>.from(entry.value['requests'] as List),
+              total: entry.value['total'] as int,
+              completed: entry.value['completed'] as int,
+              progress: entry.value['progress'] as double,
+            ))
+        .toList();
+  }
+
   /// Startet den Upload, ggf. mit fortlaufender Progress-Callback.
   Future<bool> retryFailedrequests({
     required BuildContext context,

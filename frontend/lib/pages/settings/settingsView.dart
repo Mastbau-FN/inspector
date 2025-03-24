@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,8 @@ import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
@@ -28,9 +31,62 @@ import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart'
 import 'package:MBG_Inspektionen/pages/settings/backupManagementView.dart';
 
 /// A page where the user can change settings. It currently supports [Logout].
-class SettingsView extends StatelessWidget {
+class SettingsView extends StatefulWidget {
   final BuildContext logoutcontext;
-  const SettingsView({Key? key, required this.logoutcontext}) : super(key: key);
+  const SettingsView({super.key, required this.logoutcontext});
+
+  @override
+  State<SettingsView> createState() => _SettingsViewState();
+}
+
+class _SettingsViewState extends State<SettingsView> {
+  bool _isSynced = false;
+  bool _isSyncing = false;
+  double _syncProgress = 0.0;
+  String _currentInspectionId = '';
+  double _currentInspectionProgress = 0.0;
+  String _etaString = '';
+  Map<String, double> _inspectionProgress = {};
+  Map<String, List<String>> _inspectionRequests = {};
+  Set<String> _completedInspections = {};
+  bool? success;
+
+  Future<void> _logout() async {
+    await Provider.of<LoginModel>(widget.logoutcontext, listen: false).logout();
+    Navigator.popUntil(widget.logoutcontext, (route) => route.isFirst);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFailedRequests();
+  }
+
+  Future<void> _loadFailedRequests() async {
+    final manager = FailedRequestmanager();
+    final groupedInspections = await manager.getGroupedFailedRequests();
+
+    if (groupedInspections.isNotEmpty) {
+      Map<String, double> progressMap = {};
+      Map<String, List<String>> requestsMap = {};
+      Set<String> completedInspections = {};
+
+      for (var inspection in groupedInspections) {
+        progressMap[inspection.pjNr] = inspection.progress;
+        requestsMap[inspection.pjNr] = inspection.requests;
+
+        if (inspection.progress >= 1.0) {
+          completedInspections.add(inspection.pjNr);
+        }
+      }
+
+      setState(() {
+        _inspectionProgress = progressMap;
+        _inspectionRequests = requestsMap;
+        _completedInspections = completedInspections;
+      });
+    }
+  }
 
   Widget get developerOptions => OpenNewViewTile(
         icon: Icons.developer_mode,
@@ -58,26 +114,215 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).settings),
+        title: const Text('Einstellungen'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                _isSynced = false;
+                _isSyncing = false;
+                _syncProgress = 0.0;
+                _currentInspectionId = '';
+                _currentInspectionProgress = 0.0;
+                _etaString = '';
+                _inspectionProgress = {};
+                _inspectionRequests = {};
+                _completedInspections = {};
+              });
+            },
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Logout(logoutcontext: logoutcontext),
-            const Spacer(),
-            const Divider(),
-            Text(S.of(context).advancedSettingsHeadline),
-            if (Options().canBeOffline) const UploadSyncTile(),
-            if (Options().canBeOffline) const BackupTile(),
-            if (Options().canBeOffline) backupManagementTile,
-            if (Options().canBeOffline) const OpenNextRequestTile(),
-            if (Options().canBeOffline) unsetIsRunningTile,
-            developerOptions,
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MyCardListTile1(
+                icon: Icons.exit_to_app,
+                text: S.of(context).logoutButton,
+                onTap: _logout,
+              ),
+              const Divider(),
+              Text(S.of(context).advancedSettingsHeadline),
+              if (Options().canBeOffline) const UploadSyncTile(),
+              if (Options().canBeOffline) const BackupTile(),
+              if (Options().canBeOffline) backupManagementTile,
+              if (Options().canBeOffline) const OpenNextRequestTile(),
+              if (Options().canBeOffline) unsetIsRunningTile,
+              developerOptions,
+              _buildSyncTile(),
+              if (_inspectionProgress.isNotEmpty)
+                Container(
+                  height: 250,
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          if (_completedInspections.isNotEmpty)
+                            ExpansionTile(
+                              title: Text(
+                                  'Abgeschlossene Inspektionen (${_completedInspections.length})'),
+                              children: _completedInspections
+                                  .map((id) => ListTile(
+                                        title: Text('PJNr: $id'),
+                                        trailing: Icon(Icons.check_circle,
+                                            color: Colors.green),
+                                      ))
+                                  .toList(),
+                            ),
+                          ..._inspectionProgress.entries
+                              .where((entry) =>
+                                  !_completedInspections.contains(entry.key))
+                              .map((entry) => Card(
+                                    child: ExpansionTile(
+                                      title: Text('PJNr: ${entry.key}'),
+                                      subtitle: LinearProgressIndicator(
+                                          value: entry.value),
+                                      trailing: Text(
+                                          '${(entry.value * 100).floor()}%'),
+                                      children: _inspectionRequests[entry.key]
+                                              ?.map((route) => ListTile(
+                                                    title: Text(route),
+                                                    leading:
+                                                        Icon(Icons.arrow_right),
+                                                  ))
+                                              .toList() ??
+                                          [],
+                                    ),
+                                  )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSyncTile() {
+    return MyCardListTile1(
+      icon: Icons.sync,
+      text: _isSynced
+          ? 'Offline Änderungen wurden synchronisiert'
+          : 'Offline Änderungen synchronisieren',
+      onTap: _isSyncing ? null : _syncOfflineChanges,
+      child: _isSyncing
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  '${(_syncProgress * 100).floor()}%',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                SizedBox(width: 8),
+                SizedBox(
+                  height: 25,
+                  width: 25,
+                  child: CircularProgressIndicator(
+                    value: _syncProgress,
+                  ),
+                ),
+              ],
+            )
+          : (_isSynced
+              ? Icon(Icons.check_circle, color: Colors.green)
+              : (success == true
+                  ? Icon(Icons.check, color: Colors.green)
+                  : success == false
+                      ? Icon(Icons.error, color: Colors.red)
+                      : null)),
+    );
+  }
+
+  Future<void> _syncOfflineChanges() async {
+    setState(() {
+      _isSyncing = true;
+      _isSynced = false;
+      _syncProgress = 0.0;
+      _currentInspectionId = '';
+      _currentInspectionProgress = 0.0;
+      _etaString = '';
+      _inspectionProgress = {};
+      _inspectionRequests = {};
+      _completedInspections = {};
+    });
+
+    // Lade sofort die fehlgeschlagenen Requests
+    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    if (failedReqs.isNotEmpty) {
+      // Gruppiere Requests nach PJNr
+      Map<String, List<String>> groupedRequests = {};
+      for (var req in failedReqs) {
+        try {
+          final requestData = req as Map<String, dynamic>;
+          final jsonData = requestData['json'] as Map<String, dynamic>;
+          final data = jsonData['data'];
+          Map<String, dynamic> parsedData;
+
+          if (data is String) {
+            parsedData = Map<String, dynamic>.from(json.decode(data));
+          } else {
+            parsedData = Map<String, dynamic>.from(data);
+          }
+
+          final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
+
+          if (!groupedRequests.containsKey(pjNr)) {
+            groupedRequests[pjNr] = [];
+          }
+          groupedRequests[pjNr]!
+              .add(requestData['route'] ?? 'Unbekannte Route');
+        } catch (e) {
+          debugPrint('Error parsing request: $e');
+        }
+      }
+
+      // Initialisiere die Fortschrittsanzeige
+      setState(() {
+        _inspectionProgress = Map.fromEntries(
+          groupedRequests.keys.map((key) => MapEntry(key, 0.0)),
+        );
+        _inspectionRequests = groupedRequests;
+      });
+    }
+
+    // Starte den Upload-Prozess
+    final manager = FailedRequestmanager();
+    final result = await manager.retryFailedrequests(
+      context: context,
+      onProgress: (overallProgress, success, currentInspId, currentInspProgress,
+          etaString) {
+        setState(() {
+          _syncProgress = overallProgress;
+          _currentInspectionId = currentInspId ?? '';
+          _currentInspectionProgress = currentInspProgress;
+          _etaString = etaString;
+
+          if (currentInspId != null && currentInspId.isNotEmpty) {
+            _inspectionProgress[currentInspId] = currentInspProgress;
+            if (currentInspProgress >= 1.0) {
+              _completedInspections.add(currentInspId);
+            }
+          }
+
+          if (success != null) {
+            _isSyncing = false;
+            _isSynced = success;
+            this.success = success;
+          }
+        });
+      },
     );
   }
 }
@@ -317,6 +562,10 @@ class _UploadSyncTile extends StatefulWidget {
 
 class _UploadSyncTileState extends State<_UploadSyncTile> {
   bool isSynced = false;
+  List<String?> completedInspections = [];
+  Map<String?, double> inspectionProgress = {};
+  Map<String?, List<String>> inspectionRequests = {};
+  bool showCompleted = false;
 
   @override
   void initState() {
@@ -337,88 +586,281 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       return;
     }
 
-    final updater = context.read<ExtendedProgressStateUpdater>();
+    ExtendedProgressStateUpdater? updater;
+    try {
+      updater = context.read<ExtendedProgressStateUpdater>();
+    } catch (e) {
+      debugPrint('ExtendedProgressStateUpdater not available: $e');
+    }
 
-    if (updater.loading) {
-      // Upload läuft schon
+    if (updater?.loading ?? false) {
       return;
     }
 
-    debugPrint('Starting backup and sync process...');
+    final failedReqs = await API().local.getAllFailedRequests();
+    if (failedReqs == null || failedReqs.isEmpty) {
+      debugPrint('No failed requests found, skipping backup and sync');
+      showToast('Keine Inspektionen zum Synchronisieren vorhanden');
+      return;
+    }
 
-    // Fortschritt zurücksetzen
-    updater.setDetailedProgress(
-      overallProgress: 0.0,
-      success: null,
-      inspectionId: '',
-      inspProgress: 0.0,
-      etaString: '',
-    );
-
-    // Zuerst Backup erstellen
-    bool backupSuccess = false;
-    final externalDir = await getExternalStorageDirectory();
-    if (externalDir != null) {
+    // Gruppiere Requests nach PJNr
+    Map<String, List<String>> groupedRequests = {};
+    for (var req in failedReqs) {
       try {
-        final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
-        if (!await backupDir.exists()) {
-          await backupDir.create();
+        final requestData = req as Map<String, dynamic>;
+        final jsonData = requestData['json'] as Map<String, dynamic>;
+        final data = jsonData['data'];
+        Map<String, dynamic> parsedData;
+
+        if (data is String) {
+          // Wenn data ein JSON-String ist, parsen wir ihn
+          parsedData = Map<String, dynamic>.from(json.decode(data));
+        } else {
+          // Wenn data bereits ein Objekt ist, verwenden wir es direkt
+          parsedData = Map<String, dynamic>.from(data);
         }
 
-        final backupPath =
-            '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
-        debugPrint('Starting backup to: $backupPath');
+        final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
 
-        final upsn = UploadProgressWriter();
-        await upsn.awaitInitDone();
-        upsn.setLoading(true);
-        await upsn.setProgress(0.0); // Fortschritt zurücksetzen
+        if (!groupedRequests.containsKey(pjNr)) {
+          groupedRequests[pjNr] = [];
+        }
+        groupedRequests[pjNr]!.add(requestData['route'] ?? 'Unbekannte Route');
+      } catch (e) {
+        debugPrint('Error parsing request: $e');
+      }
+    }
 
-        // Backup durchführen
-        await for (BackupProgress progressValue in backup(backupPath)) {
+    // Setze den initialen Zustand für die Anzeige
+    setState(() {
+      inspectionRequests = groupedRequests;
+      completedInspections = [];
+      inspectionProgress = {};
+      showCompleted = false;
+    });
+
+    // Setze initialen Fortschritt für alle Inspektionen auf 0
+    for (var pjNr in groupedRequests.keys) {
+      inspectionProgress[pjNr] = 0.0;
+    }
+
+    // Warte, bis der State aktualisiert wurde
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Internetverbindung prüfen
+    debugPrint('Checking internet connection...');
+    final connectivityResult = await Connectivity().checkConnectivity();
+    debugPrint('Connectivity result: $connectivityResult');
+
+    // Prüfe auch die tatsächliche Internetverbindung
+    bool hasInternet = false;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      hasInternet = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      debugPrint('Internet check result: $hasInternet');
+    } catch (e) {
+      debugPrint('Internet check failed: $e');
+      hasInternet = false;
+    }
+
+    if (connectivityResult == ConnectivityResult.none || !hasInternet) {
+      debugPrint('No internet connection detected');
+      showToast('Keine Internetverbindung');
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'backup_progress',
+          title: 'Keine Internetverbindung',
+          body: 'Bitte prüfen Sie Ihre Verbindung',
+          notificationLayout: NotificationLayout.Default,
+          category: NotificationCategory.Status,
+          displayOnForeground: false,
+        ),
+      );
+      return;
+    }
+    debugPrint('Internet connection confirmed');
+
+    // Benachrichtigungen initialisieren
+    await initNotifications();
+
+    bool backupSuccess = true;
+    // Backup nur durchführen, wenn die Option aktiviert ist
+    if (Options().backupBeforeSync) {
+      debugPrint('Starting backup process...');
+      showToast('Backup wird erstellt...');
+
+      // Benachrichtigung anzeigen, dass Backup gestartet wird
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'backup_progress',
+          title: 'Backup wird erstellt',
+          body: 'Der Backup-Prozess wird gestartet...',
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+
+      try {
+        updater?.setDetailedProgress(
+          overallProgress: 0.0,
+          success: null,
+          inspectionId: '',
+          inspProgress: 0.0,
+          etaString: '',
+        );
+      } catch (e) {
+        debugPrint('Could not reset progress: $e');
+      }
+
+      backupSuccess = await _performBackup(updater);
+    }
+
+    // Nur wenn Backup erfolgreich war oder übersprungen wurde, Sync starten
+    if (backupSuccess) {
+      debugPrint('Starting sync process...');
+      showToast('Synchronisierung wird gestartet...');
+      bool success = await FailedRequestmanager().retryFailedrequests(
+        context: context,
+        onProgress: (overall, maybeSuccess, inspId, inspProg, etaStr) async {
           debugPrint(
-              'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
-          // Backup-Fortschritt anzeigen
-          await upsn.setBackupProgress(progressValue);
-          updater.setDetailedProgress(
+              'Sync progress: ${(overall * 100).toStringAsFixed(1)}% - Current inspection: $inspId');
+
+          // Extrahiere PJNr aus dem Request
+          String? pjNr = inspId;
+          try {
+            if (inspId != 'Backup') {
+              final failedReqs = await API().local.getAllFailedRequests();
+              if (failedReqs != null) {
+                for (var req in failedReqs) {
+                  final requestData = req as Map<String, dynamic>;
+                  final jsonData = requestData['json'] as Map<String, dynamic>;
+                  final dataStr = jsonData['data'] as String;
+                  final data = Map<String, dynamic>.from(json.decode(dataStr));
+                  final localId = data['local_id'] as String?;
+                  if (localId == inspId) {
+                    pjNr = data['PjNr']?.toString();
+                    break;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            debugPrint('Error extracting PJNr: $e');
+          }
+
+          setState(() {
+            if (pjNr != null && pjNr != 'Backup') {
+              inspectionProgress[pjNr] = inspProg;
+              if (maybeSuccess == true) {
+                completedInspections.add(pjNr);
+              }
+            }
+          });
+
+          try {
+            updater?.setDetailedProgress(
+              overallProgress: overall,
+              success: maybeSuccess,
+              inspectionId: pjNr ?? inspId,
+              inspProgress: inspProg,
+              etaString: etaStr,
+            );
+          } catch (e) {
+            debugPrint('Could not update sync progress: $e');
+          }
+        },
+      );
+      debugPrint('Sync finished: $success');
+      await _checkSyncStatus();
+      if (success) {
+        showToast('Synchronisierung erfolgreich abgeschlossen');
+      } else {
+        showToast('Synchronisierung fehlgeschlagen');
+      }
+    }
+  }
+
+  Future<bool> _performBackup(ExtendedProgressStateUpdater? updater) async {
+    final externalDir = await getExternalStorageDirectory();
+    if (externalDir == null) {
+      showToast('Could not get external directory');
+      return false;
+    }
+
+    try {
+      final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
+      if (!await backupDir.exists()) {
+        await backupDir.create();
+      }
+
+      final backupPath =
+          '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
+      debugPrint('Starting backup to: $backupPath');
+
+      final upsn = UploadProgressWriter();
+      await upsn.awaitInitDone();
+      upsn.setLoading(true);
+      await upsn.setProgress(0.0);
+
+      await for (BackupProgress progressValue in backup(backupPath)) {
+        debugPrint(
+            'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
+        await upsn.setBackupProgress(progressValue);
+        try {
+          updater?.setDetailedProgress(
             overallProgress: progressValue.progress,
             success: null,
             inspectionId: 'Backup',
             inspProgress: progressValue.progress,
             etaString: '',
           );
+        } catch (e) {
+          debugPrint('Could not update progress: $e');
         }
-        debugPrint('Backup completed successfully');
-        backupSuccess = true;
-        upsn.setLoading(false);
-        upsn.setSuccess(true);
-      } catch (e) {
-        debugPrint('Backup failed: $e');
-        showToast('Backup fehlgeschlagen');
-        return;
-      }
-    }
 
-    // Nur wenn Backup erfolgreich war, Sync starten
-    if (backupSuccess) {
-      debugPrint('Starting sync process...');
-      bool success = await FailedRequestmanager().retryFailedrequests(
-        context: context,
-        onProgress: (overall, maybeSuccess, inspId, inspProg, etaStr) {
-          debugPrint(
-              'Sync progress: ${(overall * 100).toStringAsFixed(1)}% - Current inspection: $inspId');
-          // Jedes Mal "Zwischenstand" -> Updater benachrichtigen
-          updater.setDetailedProgress(
-            overallProgress: overall,
-            success: maybeSuccess, // kann null sein, wenn noch nicht fertig
-            inspectionId: inspId,
-            inspProgress: inspProg,
-            etaString: etaStr,
-          );
-        },
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 1,
+            channelKey: 'backup_progress',
+            title: 'Backup wird erstellt',
+            body:
+                '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
+            notificationLayout: NotificationLayout.Default,
+            progress: progressValue.progress,
+          ),
+        );
+      }
+      debugPrint('Backup completed successfully');
+      upsn.setLoading(false);
+      upsn.setSuccess(true);
+      showToast('Backup erfolgreich erstellt');
+
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'backup_progress',
+          title: 'Backup erfolgreich',
+          body: 'Das Backup wurde erfolgreich erstellt',
+          notificationLayout: NotificationLayout.Default,
+        ),
       );
-      debugPrint('Sync finished: $success');
-      await _checkSyncStatus();
+      return true;
+    } catch (e) {
+      debugPrint('Backup failed: $e');
+      showToast('Backup fehlgeschlagen');
+
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'backup_progress',
+          title: 'Backup fehlgeschlagen',
+          body: 'Es gab einen Fehler beim Erstellen des Backups',
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+      return false;
     }
   }
 
@@ -428,13 +870,10 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     final loading = updater.loading;
     final progress = updater.progress ?? 0.0;
     final success = updater.success;
-
-    // Neue Felder
     final inspId = updater.currentInspection ?? '';
     final inspPct = ((updater.currentInspectionProgress ?? 0) * 100).round();
     final eta = updater.eta ?? '';
 
-    // Zeile mit Infos
     String secondLine = '';
     if (loading) {
       if (inspId == 'Backup') {
@@ -444,49 +883,94 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       }
     }
 
-    // Für eine mehrzeilige Anzeige einfach einen Zeilenumbruch benutzen:
     final tileText = loading
         ? '${inspId == 'Backup' ? 'Schritt 1/2' : 'Schritt 2/2'}: \n$secondLine'
         : isSynced
             ? 'Alles synchronisiert'
             : 'Synchronisierung \n mit Server';
 
-    return MyCardListTile1(
-      icon: Icons.sync,
-      text: tileText,
-      onTap: onPress,
-      child: loading
-          ? Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    '${(progress * 100).floor()}%',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+    return Column(
+      children: [
+        MyCardListTile1(
+          icon: Icons.sync,
+          text: tileText,
+          onTap: onPress,
+          child: loading
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${(progress * 100).floor()}%',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 8),
-                  SizedBox(
-                    height: 25,
-                    width: 25,
-                    child: CircularProgressIndicator(
-                      value: progress,
+                    SizedBox(width: 8),
+                    SizedBox(
+                      height: 25,
+                      width: 25,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                )
+              : (isSynced
+                  ? Icon(Icons.check_circle, color: Colors.green)
+                  : (success != null
+                      ? Icon(
+                          success ? Icons.check : Icons.error,
+                          color: success ? Colors.green : Colors.red,
+                        )
+                      : null)),
+        ),
+        if (inspectionProgress.isNotEmpty)
+          Container(
+            height: 300, // Feste Höhe für den scrollbaren Bereich
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    if (completedInspections.isNotEmpty)
+                      ExpansionTile(
+                        title: Text(
+                            'Abgeschlossene Inspektionen (${completedInspections.length})'),
+                        children: completedInspections
+                            .map((id) => ListTile(
+                                  title: Text('PJNr: $id'),
+                                  trailing: Icon(Icons.check_circle,
+                                      color: Colors.green),
+                                ))
+                            .toList(),
+                      ),
+                    ...inspectionProgress.entries
+                        .where((entry) =>
+                            !completedInspections.contains(entry.key))
+                        .map((entry) => Card(
+                              child: ExpansionTile(
+                                title: Text('PJNr: ${entry.key}'),
+                                subtitle:
+                                    LinearProgressIndicator(value: entry.value),
+                                trailing:
+                                    Text('${(entry.value * 100).floor()}%'),
+                                children: inspectionRequests[entry.key]
+                                        ?.map((route) => ListTile(
+                                              title: Text(route),
+                                              leading: Icon(Icons.arrow_right),
+                                            ))
+                                        .toList() ??
+                                    [],
+                              ),
+                            )),
+                  ],
+                ),
               ),
-            )
-          : (isSynced
-              ? Icon(Icons.check_circle, color: Colors.green)
-              : (success != null
-                  ? Icon(
-                      success ? Icons.check : Icons.error,
-                      color: success ? Colors.green : Colors.red,
-                    )
-                  : null)),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -512,4 +996,39 @@ class Logout extends StatelessWidget {
       onTap: () => _logout(context),
     );
   }
+}
+
+// Notification-Konfiguration
+@pragma('vm:entry-point')
+Future<void> _onActionReceivedMethod(ReceivedAction receivedAction) async {
+  // Hier können wir auf Notification-Aktionen reagieren
+}
+
+@pragma('vm:entry-point')
+Future<void> _onNotificationCreatedMethod(
+    ReceivedNotification receivedNotification) async {
+  // Hier können wir auf Notification-Erstellung reagieren
+}
+
+Future<void> initNotifications() async {
+  await AwesomeNotifications().initialize(
+    'resource://drawable/ic_icon',
+    [
+      NotificationChannel(
+        channelKey: 'backup_progress',
+        channelName: 'Backup Fortschritt',
+        channelDescription: 'Zeigt den Fortschritt des Backup-Prozesses an',
+        importance: NotificationImportance.Low,
+        defaultPrivacy: NotificationPrivacy.Private,
+        defaultRingtoneType: DefaultRingtoneType.Notification,
+        enableVibration: false,
+        playSound: false,
+      ),
+    ],
+  );
+
+  await AwesomeNotifications().setListeners(
+    onActionReceivedMethod: _onActionReceivedMethod,
+    onNotificationCreatedMethod: _onNotificationCreatedMethod,
+  );
 }
