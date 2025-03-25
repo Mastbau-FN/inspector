@@ -40,75 +40,10 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  bool _isSynced = false;
-  bool _isSyncing = false;
-  double _syncProgress = 0.0;
-  String _currentInspectionId = '';
-  double _currentInspectionProgress = 0.0;
-  String _etaString = '';
-  Map<String, double> _inspectionProgress = {};
-  Map<String, List<String>> _inspectionRequests = {};
-  Set<String> _completedInspections = {};
-  bool? success;
-
   Future<void> _logout() async {
     await Provider.of<LoginModel>(widget.logoutcontext, listen: false).logout();
     Navigator.popUntil(widget.logoutcontext, (route) => route.isFirst);
   }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFailedRequests();
-  }
-
-  Future<void> _loadFailedRequests() async {
-    final manager = FailedRequestmanager();
-    final groupedInspections = await manager.getGroupedFailedRequests();
-
-    if (groupedInspections.isNotEmpty) {
-      Map<String, double> progressMap = {};
-      Map<String, List<String>> requestsMap = {};
-      Set<String> completedInspections = {};
-
-      for (var inspection in groupedInspections) {
-        progressMap[inspection.pjNr] = inspection.progress;
-        requestsMap[inspection.pjNr] = inspection.requests;
-
-        if (inspection.progress >= 1.0) {
-          completedInspections.add(inspection.pjNr);
-        }
-      }
-
-      setState(() {
-        _inspectionProgress = progressMap;
-        _inspectionRequests = requestsMap;
-        _completedInspections = completedInspections;
-      });
-    }
-  }
-
-  Widget get developerOptions => OpenNewViewTile(
-        icon: Icons.developer_mode,
-        title: S.current!.developerOptions,
-        newView: const DeveloperSettings(),
-      );
-
-  Widget get backupManagementTile => OpenNewViewTile(
-        icon: Icons.folder,
-        title: 'Backups verwalten',
-        newView: const BackupManagementView(),
-      );
-
-  Widget get unsetIsRunningTile => MyCardListTile1(
-        icon: Icons.remove_circle_outline,
-        text: 'unset isRunning',
-        onTap: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          // Verwende hier die Konstante aus failedRequestManager.dart
-          prefs.setBool(sync_in_progress_str, false);
-        },
-      );
 
   @override
   Widget build(BuildContext context) {
@@ -119,17 +54,7 @@ class _SettingsViewState extends State<SettingsView> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              setState(() {
-                _isSynced = false;
-                _isSyncing = false;
-                _syncProgress = 0.0;
-                _currentInspectionId = '';
-                _currentInspectionProgress = 0.0;
-                _etaString = '';
-                _inspectionProgress = {};
-                _inspectionRequests = {};
-                _completedInspections = {};
-              });
+              setState(() {});
             },
           ),
         ],
@@ -153,52 +78,6 @@ class _SettingsViewState extends State<SettingsView> {
               if (Options().canBeOffline) const OpenNextRequestTile(),
               if (Options().canBeOffline) unsetIsRunningTile,
               developerOptions,
-              _buildSyncTile(),
-              if (_inspectionProgress.isNotEmpty)
-                Container(
-                  height: 250,
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          if (_completedInspections.isNotEmpty)
-                            ExpansionTile(
-                              title: Text(
-                                  'Abgeschlossene Inspektionen (${_completedInspections.length})'),
-                              children: _completedInspections
-                                  .map((id) => ListTile(
-                                        title: Text('PJNr: $id'),
-                                        trailing: Icon(Icons.check_circle,
-                                            color: Colors.green),
-                                      ))
-                                  .toList(),
-                            ),
-                          ..._inspectionProgress.entries
-                              .where((entry) =>
-                                  !_completedInspections.contains(entry.key))
-                              .map((entry) => Card(
-                                    child: ExpansionTile(
-                                      title: Text('PJNr: ${entry.key}'),
-                                      subtitle: LinearProgressIndicator(
-                                          value: entry.value),
-                                      trailing: Text(
-                                          '${(entry.value * 100).floor()}%'),
-                                      children: _inspectionRequests[entry.key]
-                                              ?.map((route) => ListTile(
-                                                    title: Text(route),
-                                                    leading:
-                                                        Icon(Icons.arrow_right),
-                                                  ))
-                                              .toList() ??
-                                          [],
-                                    ),
-                                  )),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
@@ -206,125 +85,27 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  Widget _buildSyncTile() {
-    return MyCardListTile1(
-      icon: Icons.sync,
-      text: _isSynced
-          ? 'Offline Änderungen wurden synchronisiert'
-          : 'Offline Änderungen synchronisieren',
-      onTap: _isSyncing ? null : _syncOfflineChanges,
-      child: _isSyncing
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  '${(_syncProgress * 100).floor()}%',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                SizedBox(width: 8),
-                SizedBox(
-                  height: 25,
-                  width: 25,
-                  child: CircularProgressIndicator(
-                    value: _syncProgress,
-                  ),
-                ),
-              ],
-            )
-          : (_isSynced
-              ? Icon(Icons.check_circle, color: Colors.green)
-              : (success == true
-                  ? Icon(Icons.check, color: Colors.green)
-                  : success == false
-                      ? Icon(Icons.error, color: Colors.red)
-                      : null)),
-    );
-  }
+  Widget get developerOptions => OpenNewViewTile(
+        icon: Icons.developer_mode,
+        title: S.current!.developerOptions,
+        newView: const DeveloperSettings(),
+      );
 
-  Future<void> _syncOfflineChanges() async {
-    setState(() {
-      _isSyncing = true;
-      _isSynced = false;
-      _syncProgress = 0.0;
-      _currentInspectionId = '';
-      _currentInspectionProgress = 0.0;
-      _etaString = '';
-      _inspectionProgress = {};
-      _inspectionRequests = {};
-      _completedInspections = {};
-    });
+  Widget get backupManagementTile => OpenNewViewTile(
+        icon: Icons.folder,
+        title: 'Backups verwalten',
+        newView: const BackupManagementView(),
+      );
 
-    // Lade sofort die fehlgeschlagenen Requests
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    if (failedReqs.isNotEmpty) {
-      // Gruppiere Requests nach PJNr
-      Map<String, List<String>> groupedRequests = {};
-      for (var req in failedReqs) {
-        try {
-          final requestData = req as Map<String, dynamic>;
-          final jsonData = requestData['json'] as Map<String, dynamic>;
-          final data = jsonData['data'];
-          Map<String, dynamic> parsedData;
-
-          if (data is String) {
-            parsedData = Map<String, dynamic>.from(json.decode(data));
-          } else {
-            parsedData = Map<String, dynamic>.from(data);
-          }
-
-          final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
-
-          if (!groupedRequests.containsKey(pjNr)) {
-            groupedRequests[pjNr] = [];
-          }
-          groupedRequests[pjNr]!
-              .add(requestData['route'] ?? 'Unbekannte Route');
-        } catch (e) {
-          debugPrint('Error parsing request: $e');
-        }
-      }
-
-      // Initialisiere die Fortschrittsanzeige
-      setState(() {
-        _inspectionProgress = Map.fromEntries(
-          groupedRequests.keys.map((key) => MapEntry(key, 0.0)),
-        );
-        _inspectionRequests = groupedRequests;
-      });
-    }
-
-    // Starte den Upload-Prozess
-    final manager = FailedRequestmanager();
-    final result = await manager.retryFailedrequests(
-      context: context,
-      onProgress: (overallProgress, success, currentInspId, currentInspProgress,
-          etaString) {
-        setState(() {
-          _syncProgress = overallProgress;
-          _currentInspectionId = currentInspId ?? '';
-          _currentInspectionProgress = currentInspProgress;
-          _etaString = etaString;
-
-          if (currentInspId != null && currentInspId.isNotEmpty) {
-            _inspectionProgress[currentInspId] = currentInspProgress;
-            if (currentInspProgress >= 1.0) {
-              _completedInspections.add(currentInspId);
-            }
-          }
-
-          if (success != null) {
-            _isSyncing = false;
-            _isSynced = success;
-            this.success = success;
-          }
-        });
-      },
-    );
-  }
+  Widget get unsetIsRunningTile => MyCardListTile1(
+        icon: Icons.remove_circle_outline,
+        text: 'unset isRunning',
+        onTap: () async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          // Verwende hier die Konstante aus failedRequestManager.dart
+          prefs.setBool(sync_in_progress_str, false);
+        },
+      );
 }
 
 /// Displays a page with the "next request" if available.
@@ -614,19 +395,20 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
         Map<String, dynamic> parsedData;
 
         if (data is String) {
-          // Wenn data ein JSON-String ist, parsen wir ihn
           parsedData = Map<String, dynamic>.from(json.decode(data));
         } else {
-          // Wenn data bereits ein Objekt ist, verwenden wir es direkt
           parsedData = Map<String, dynamic>.from(data);
         }
 
-        final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
-
-        if (!groupedRequests.containsKey(pjNr)) {
-          groupedRequests[pjNr] = [];
+        final pjNr = parsedData['PjNr']?.toString();
+        // Nur fortfahren, wenn eine gültige PJNr vorhanden ist
+        if (pjNr != null && pjNr.isNotEmpty && pjNr != 'Unbekannt') {
+          if (!groupedRequests.containsKey(pjNr)) {
+            groupedRequests[pjNr] = [];
+          }
+          groupedRequests[pjNr]!
+              .add(requestData['route'] ?? 'Unbekannte Route');
         }
-        groupedRequests[pjNr]!.add(requestData['route'] ?? 'Unbekannte Route');
       } catch (e) {
         debugPrint('Error parsing request: $e');
       }
