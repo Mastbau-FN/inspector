@@ -46,8 +46,27 @@ class SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<SettingsView> {
   Future<void> _logout() async {
-    await Provider.of<LoginModel>(widget.logoutcontext, listen: false).logout();
-    Navigator.popUntil(widget.logoutcontext, (route) => route.isFirst);
+    try {
+      // Verwende den direkten Kontext statt widget.logoutcontext
+      await Provider.of<LoginModel>(context, listen: false).logout();
+
+      // Füge Verzögerung hinzu, um UI-Updates abzuschließen
+      await Future.delayed(Duration(milliseconds: 100));
+
+      // Lösche alle Routen im Stack und gehe zurück zur Login-Seite
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+
+      // Debugausgabe für erfolgreichen Logout
+      debugPrint('Logout erfolgreich, Navigation zur Login-Seite');
+    } catch (e) {
+      debugPrint('Fehler beim Logout: $e');
+      // Fallback: Wenn der Navigator-Aufruf fehlschlägt, versuche einen alternativen Ansatz
+      try {
+        Navigator.popUntil(context, (route) => route.isFirst);
+      } catch (navError) {
+        debugPrint('Auch alternative Navigation fehlgeschlagen: $navError');
+      }
+    }
   }
 
   @override

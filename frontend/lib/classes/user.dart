@@ -2,6 +2,7 @@
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 
 /// all userdata that is needed to use it in the UI
 class DisplayUser {
@@ -64,8 +65,20 @@ class User extends DisplayUser {
 
   /// deletes user from device (used for logout)
   Future unstore() async {
-    await _storage.write(key: _username_store, value: null);
-    await _storage.write(key: _userpass_store, value: null);
+    try {
+      // Lösche Anmeldedaten
+      await _storage.delete(key: _username_store);
+      await _storage.delete(key: _userpass_store);
+
+      // Lösche auch die nicht-sensiblen Daten
+      final prefs = await _prefs;
+      await prefs.remove(_full_name_store);
+      await prefs.remove(_full_surname_store);
+
+      debugPrint('User-Daten vollständig gelöscht');
+    } catch (e) {
+      debugPrint('Fehler beim Löschen der Benutzerdaten: $e');
+    }
   }
 
   /// creates a new User from variables stored on device

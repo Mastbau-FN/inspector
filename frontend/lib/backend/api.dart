@@ -225,10 +225,20 @@ class API {
   }
 
   /// removes the credentials from local storage and therefors logs out
-  Future logout() async {
-    (await _c_user)?.unstore();
-    _user = null;
-    debugPrint('user logged out');
+  Future<void> logout() async {
+    try {
+      final currentUser = await _c_user;
+      if (currentUser != null) {
+        await currentUser.unstore();
+        debugPrint('User-Daten gelöscht');
+      }
+      _user = null;
+      debugPrint('User ausgeloggt');
+    } catch (e) {
+      debugPrint('Fehler beim Ausloggen: $e');
+      // Trotz Fehler zurücksetzen, um UI-Update zu ermöglichen
+      _user = null;
+    }
   }
 
   /// gets all the [ChildData]points for the given [ParentData]
