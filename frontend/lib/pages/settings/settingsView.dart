@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +15,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
-    show FailedRequestmanager, sync_in_progress_str, sync_success_str;
+    show
+        FailedRequestmanager,
+        sync_in_progress_str,
+        sync_success_str,
+        GroupedInspection;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -59,26 +64,29 @@ class _SettingsViewState extends State<SettingsView> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MyCardListTile1(
-                icon: Icons.exit_to_app,
-                text: S.of(context).logoutButton,
-                onTap: _logout,
-              ),
-              const Divider(),
-              Text(S.of(context).advancedSettingsHeadline),
-              if (Options().canBeOffline) const UploadSyncTile(),
-              if (Options().canBeOffline) const BackupTile(),
-              if (Options().canBeOffline) backupManagementTile,
-              if (Options().canBeOffline) const OpenNextRequestTile(),
-              if (Options().canBeOffline) unsetIsRunningTile,
-              developerOptions,
-            ],
+      body: ChangeNotifierProvider(
+        create: (_) => InspectionData(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MyCardListTile1(
+                  icon: Icons.exit_to_app,
+                  text: S.of(context).logoutButton,
+                  onTap: _logout,
+                ),
+                const Divider(),
+                Text(S.of(context).advancedSettingsHeadline),
+                if (Options().canBeOffline) const UploadSyncTile(),
+                if (Options().canBeOffline) const BackupTile(),
+                if (Options().canBeOffline) backupManagementTile,
+                if (Options().canBeOffline) const OpenNextRequestTile(),
+                if (Options().canBeOffline) unsetIsRunningTile,
+                developerOptions,
+              ],
+            ),
           ),
         ),
       ),
@@ -133,21 +141,110 @@ class OpenNextRequestTile extends StatelessWidget {
 }
 
 /// Requests storage permission if needed
-Future<bool> _requestStoragePermission() async {
+Future<bool> _requestStoragePermission(BuildContext context) async {
+  // Prüfe Speicherberechtigung
   var status = await Permission.storage.status;
-  if (status.isDenied) {
-    // We didn't ask for permission yet or the permission has been denied before but not permanently.
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.storage,
-      Permission.manageExternalStorage,
-    ].request();
+  if (!status.isGranted) {
+    debugPrint('Speicherberechtigung fehlt');
 
-    if (statuses[Permission.storage]!.isGranted &&
-        statuses[Permission.manageExternalStorage]!.isGranted) {
-      return true;
+    // Versuche zunächst, die Berechtigung direkt anzufordern
+    final result = await Permission.storage.request();
+    if (result.isGranted) {
+      debugPrint('Speicherberechtigung wurde gewährt');
+    } else {
+      // Zeige Dialog zum Öffnen der Einstellungen
+      final bool? shouldOpenSettings = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Speicherzugriff erforderlich'),
+            content: Text(
+                'Für das Erstellen von Backups benötigt die App Zugriff auf den Speicher. Möchten Sie die Einstellungen öffnen, um die Berechtigung zu erteilen?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Abbrechen'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: Text('Einstellungen öffnen'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (shouldOpenSettings == true) {
+        debugPrint('Öffne App-Einstellungen für Speicherberechtigung...');
+        await openAppSettings();
+
+        // Warte kurz und prüfe dann erneut
+        await Future.delayed(Duration(seconds: 2));
+        status = await Permission.storage.status;
+        if (!status.isGranted) {
+          debugPrint('Speicherberechtigung immer noch nicht erlaubt');
+          return false;
+        }
+        debugPrint('Speicherberechtigung wurde erteilt');
+      } else {
+        debugPrint('Benutzer hat abgebrochen');
+        return false;
+      }
     }
-    return false;
   }
+
+  // Prüfe externe Speicherberechtigung (für Android 11+)
+  var externalStatus = await Permission.manageExternalStorage.status;
+  if (!externalStatus.isGranted) {
+    debugPrint('Externe Speicherberechtigung fehlt');
+
+    // Versuche zunächst, die Berechtigung direkt anzufordern
+    final result = await Permission.manageExternalStorage.request();
+    if (result.isGranted) {
+      debugPrint('Externe Speicherberechtigung wurde gewährt');
+    } else {
+      // Zeige Dialog zum Öffnen der Einstellungen
+      final bool? shouldOpenSettings = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Erweiterte Speicherberechtigung erforderlich'),
+            content: Text(
+                'Für das Erstellen von Backups benötigt die App erweiterten Zugriff auf den Speicher. Möchten Sie die Einstellungen öffnen, um die Berechtigung zu erteilen?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Abbrechen'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: Text('Einstellungen öffnen'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (shouldOpenSettings == true) {
+        debugPrint(
+            'Öffne App-Einstellungen für externe Speicherberechtigung...');
+        await openAppSettings();
+
+        // Warte kurz und prüfe dann erneut
+        await Future.delayed(Duration(seconds: 2));
+        externalStatus = await Permission.manageExternalStorage.status;
+        if (!externalStatus.isGranted) {
+          debugPrint('Externe Speicherberechtigung immer noch nicht erlaubt');
+          return false;
+        }
+        debugPrint('Externe Speicherberechtigung wurde erteilt');
+      } else {
+        debugPrint('Benutzer hat abgebrochen');
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -167,6 +264,12 @@ class _BackupTileState extends State<BackupTile> {
   String eta = '';
 
   void onPress(BuildContext context) async {
+    // Prüfe zuerst die Berechtigungen, bevor wir irgendetwas anderes tun
+    if (!await _requestStoragePermission(context)) {
+      showToast('Speicherberechtigung ist erforderlich für das Backup');
+      return;
+    }
+
     setState(() {
       loading = true;
       progress = 0.0;
@@ -174,15 +277,6 @@ class _BackupTileState extends State<BackupTile> {
       currentFile = '';
       eta = '';
     });
-
-    if (!await _requestStoragePermission()) {
-      setState(() {
-        loading = false;
-        success = false;
-      });
-      showToast('Could not get external directory');
-      return;
-    }
 
     final externalDir = await getExternalStorageDirectory();
     if (externalDir == null) {
@@ -328,9 +422,53 @@ class UploadSyncTile extends StatelessWidget {
   Widget build(BuildContext context) {
     // Hier kommt nun **die** ExtendedProgressStateUpdater-Klasse aus progressStateUpdater.dart
     return ChangeNotifierProvider(
-      create: (_) => ExtendedProgressStateUpdater(),
-      child: const _UploadSyncTile(),
+      create: (_) => InspectionData(),
+      child: ChangeNotifierProvider(
+        create: (_) => ExtendedProgressStateUpdater(),
+        child: const _UploadSyncTile(),
+      ),
     );
+  }
+}
+
+class InspectionData extends ChangeNotifier {
+  List<String?> completedInspections = [];
+  Map<String?, double> inspectionProgress = {};
+  Map<String?, List<String>> inspectionRequests = {};
+  List<GroupedInspection>? analyzedInspections;
+  bool isAnalyzing = false;
+
+  void reset() {
+    completedInspections = [];
+    inspectionProgress = {};
+    inspectionRequests = {};
+    analyzedInspections = null;
+    isAnalyzing = false;
+    notifyListeners();
+  }
+
+  void updateProgress(String? pjNr, double progress) {
+    if (pjNr != null) {
+      inspectionProgress[pjNr] = progress;
+      notifyListeners();
+    }
+  }
+
+  void markAsCompleted(String? pjNr) {
+    if (pjNr != null && !completedInspections.contains(pjNr)) {
+      completedInspections.add(pjNr);
+      notifyListeners();
+    }
+  }
+
+  void setAnalyzedInspections(List<GroupedInspection> inspections) {
+    analyzedInspections = inspections;
+    notifyListeners();
+  }
+
+  void setAnalyzing(bool analyzing) {
+    isAnalyzing = analyzing;
+    notifyListeners();
   }
 }
 
@@ -343,9 +481,6 @@ class _UploadSyncTile extends StatefulWidget {
 
 class _UploadSyncTileState extends State<_UploadSyncTile> {
   bool isSynced = false;
-  List<String?> completedInspections = [];
-  Map<String?, double> inspectionProgress = {};
-  Map<String?, List<String>> inspectionRequests = {};
   bool showCompleted = false;
 
   @override
@@ -361,11 +496,44 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     });
   }
 
+  Future<void> _analyzeRequests() async {
+    final inspectionData = context.read<InspectionData>();
+    if (inspectionData.isAnalyzing) {
+      debugPrint('Analyse läuft bereits, überspringe...');
+      return;
+    }
+
+    debugPrint('Starte Analyse der Requests...');
+    inspectionData.setAnalyzing(true);
+
+    try {
+      final inspections =
+          await FailedRequestmanager().getGroupedFailedRequests();
+      debugPrint(
+          'Analyse abgeschlossen. Gefundene Inspektionen: ${inspections.length}');
+      inspectionData.setAnalyzedInspections(inspections);
+    } catch (e) {
+      debugPrint('Error analyzing requests: $e');
+      showToast('Fehler bei der Analyse der Requests');
+    } finally {
+      inspectionData.setAnalyzing(false);
+    }
+  }
+
   Future<void> onPress() async {
     if (isSynced) {
       showToast('Alle Inspektionen sind bereits synchronisiert');
       return;
     }
+
+    final inspectionData = context.read<InspectionData>();
+    inspectionData.reset();
+
+    // WICHTIG: Benachrichtigungen neu initialisieren, um sicherzustellen, dass nur der Erfolgskanal einen Ton hat
+    await reinitializeNotificationChannels();
+
+    // Starte die Analyse
+    await _analyzeRequests();
 
     ExtendedProgressStateUpdater? updater;
     try {
@@ -384,51 +552,6 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       showToast('Keine Inspektionen zum Synchronisieren vorhanden');
       return;
     }
-
-    // Gruppiere Requests nach PJNr
-    Map<String, List<String>> groupedRequests = {};
-    for (var req in failedReqs) {
-      try {
-        final requestData = req as Map<String, dynamic>;
-        final jsonData = requestData['json'] as Map<String, dynamic>;
-        final data = jsonData['data'];
-        Map<String, dynamic> parsedData;
-
-        if (data is String) {
-          parsedData = Map<String, dynamic>.from(json.decode(data));
-        } else {
-          parsedData = Map<String, dynamic>.from(data);
-        }
-
-        final pjNr = parsedData['PjNr']?.toString();
-        // Nur fortfahren, wenn eine gültige PJNr vorhanden ist
-        if (pjNr != null && pjNr.isNotEmpty && pjNr != 'Unbekannt') {
-          if (!groupedRequests.containsKey(pjNr)) {
-            groupedRequests[pjNr] = [];
-          }
-          groupedRequests[pjNr]!
-              .add(requestData['route'] ?? 'Unbekannte Route');
-        }
-      } catch (e) {
-        debugPrint('Error parsing request: $e');
-      }
-    }
-
-    // Setze den initialen Zustand für die Anzeige
-    setState(() {
-      inspectionRequests = groupedRequests;
-      completedInspections = [];
-      inspectionProgress = {};
-      showCompleted = false;
-    });
-
-    // Setze initialen Fortschritt für alle Inspektionen auf 0
-    for (var pjNr in groupedRequests.keys) {
-      inspectionProgress[pjNr] = 0.0;
-    }
-
-    // Warte, bis der State aktualisiert wurde
-    await Future.delayed(const Duration(milliseconds: 100));
 
     // Internetverbindung prüfen
     debugPrint('Checking internet connection...');
@@ -456,8 +579,6 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
           title: 'Keine Internetverbindung',
           body: 'Bitte prüfen Sie Ihre Verbindung',
           notificationLayout: NotificationLayout.Default,
-          category: NotificationCategory.Status,
-          displayOnForeground: false,
         ),
       );
       return;
@@ -515,15 +636,28 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
             if (inspId != 'Backup') {
               final failedReqs = await API().local.getAllFailedRequests();
               if (failedReqs != null) {
-                for (var req in failedReqs) {
-                  final requestData = req as Map<String, dynamic>;
-                  final jsonData = requestData['json'] as Map<String, dynamic>;
-                  final dataStr = jsonData['data'] as String;
-                  final data = Map<String, dynamic>.from(json.decode(dataStr));
-                  final localId = data['local_id'] as String?;
-                  if (localId == inspId) {
-                    pjNr = data['PjNr']?.toString();
-                    break;
+                for (var (_, requestData) in failedReqs) {
+                  if (requestData != null) {
+                    final jsonData = requestData.json;
+                    if (jsonData != null) {
+                      final data = jsonData['data'];
+                      Map<String, dynamic> parsedData;
+
+                      if (data is String) {
+                        parsedData =
+                            Map<String, dynamic>.from(json.decode(data));
+                      } else if (data is Map<String, dynamic>) {
+                        parsedData = data;
+                      } else {
+                        continue;
+                      }
+
+                      final localId = parsedData['local_id']?.toString();
+                      if (localId == inspId) {
+                        pjNr = parsedData['PjNr']?.toString();
+                        break;
+                      }
+                    }
                   }
                 }
               }
@@ -532,14 +666,11 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
             debugPrint('Error extracting PJNr: $e');
           }
 
-          setState(() {
-            if (pjNr != null && pjNr != 'Backup') {
-              inspectionProgress[pjNr] = inspProg;
-              if (maybeSuccess == true) {
-                completedInspections.add(pjNr);
-              }
-            }
-          });
+          inspectionData.updateProgress(pjNr, inspProg);
+
+          if (maybeSuccess == true && inspProg >= 1.0) {
+            inspectionData.markAsCompleted(pjNr);
+          }
 
           try {
             updater?.setDetailedProgress(
@@ -586,6 +717,14 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       upsn.setLoading(true);
       await upsn.setProgress(0.0);
 
+      // Prüfe Benachrichtigungsberechtigung
+      final isAllowed = await AwesomeNotifications().isNotificationAllowed();
+      if (!isAllowed) {
+        debugPrint(
+            'Benachrichtigungen sind nicht erlaubt, fordere Berechtigung an...');
+        await AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+
       await for (BackupProgress progressValue in backup(backupPath)) {
         debugPrint(
             'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
@@ -602,46 +741,61 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
           debugPrint('Could not update progress: $e');
         }
 
-        await AwesomeNotifications().createNotification(
-          content: NotificationContent(
-            id: 1,
-            channelKey: 'backup_progress',
-            title: 'Backup wird erstellt',
-            body:
-                '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
-            notificationLayout: NotificationLayout.Default,
-            progress: progressValue.progress,
-          ),
-        );
+        try {
+          await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: 1,
+              channelKey:
+                  'progress', // Verwende den lautlosen Kanal statt backup_progress
+              title: 'Backup wird erstellt',
+              body:
+                  '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
+              notificationLayout: NotificationLayout.Default,
+              progress: progressValue.progress,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+        }
       }
       debugPrint('Backup completed successfully');
       upsn.setLoading(false);
       upsn.setSuccess(true);
       showToast('Backup erfolgreich erstellt');
 
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 1,
-          channelKey: 'backup_progress',
-          title: 'Backup erfolgreich',
-          body: 'Das Backup wurde erfolgreich erstellt',
-          notificationLayout: NotificationLayout.Default,
-        ),
-      );
+      try {
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 1,
+            channelKey:
+                'progress', // Verwende den lautlosen Kanal statt backup_progress
+            title: 'Backup erfolgreich',
+            body: 'Das Backup wurde erfolgreich erstellt',
+            notificationLayout: NotificationLayout.Default,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+      }
       return true;
     } catch (e) {
       debugPrint('Backup failed: $e');
       showToast('Backup fehlgeschlagen');
 
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 1,
-          channelKey: 'backup_progress',
-          title: 'Backup fehlgeschlagen',
-          body: 'Es gab einen Fehler beim Erstellen des Backups',
-          notificationLayout: NotificationLayout.Default,
-        ),
-      );
+      try {
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 1,
+            channelKey:
+                'progress', // Verwende den lautlosen Kanal statt backup_progress
+            title: 'Backup fehlgeschlagen',
+            body: 'Es gab einen Fehler beim Erstellen des Backups',
+            notificationLayout: NotificationLayout.Default,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+      }
       return false;
     }
   }
@@ -649,6 +803,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   @override
   Widget build(BuildContext context) {
     final updater = context.watch<ExtendedProgressStateUpdater>();
+    final inspectionData = context.watch<InspectionData>();
     final loading = updater.loading;
     final progress = updater.progress ?? 0.0;
     final success = updater.success;
@@ -656,20 +811,20 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     final inspPct = ((updater.currentInspectionProgress ?? 0) * 100).round();
     final eta = updater.eta ?? '';
 
-    String secondLine = '';
+    debugPrint(
+        'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
+
+    String tileText = '';
     if (loading) {
       if (inspId == 'Backup') {
-        secondLine = 'Backup';
-      } else if (inspId.isNotEmpty) {
-        secondLine = 'Sync';
+        tileText = 'Backup wird\nerstellt';
+      } else {
+        tileText = 'Fortschritt:';
       }
+    } else {
+      tileText =
+          isSynced ? 'Alles synchronisiert' : 'Synchronisierung\nmit Server';
     }
-
-    final tileText = loading
-        ? '${inspId == 'Backup' ? 'Schritt 1/2' : 'Schritt 2/2'}: \n$secondLine'
-        : isSynced
-            ? 'Alles synchronisiert'
-            : 'Synchronisierung \n mit Server';
 
     return Column(
       children: [
@@ -681,6 +836,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    SizedBox(width: 4),
                     Text(
                       '${(progress * 100).floor()}%',
                       style: TextStyle(
@@ -689,7 +845,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 4),
                     SizedBox(
                       height: 25,
                       width: 25,
@@ -708,45 +864,204 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
                         )
                       : null)),
         ),
-        if (inspectionProgress.isNotEmpty)
+        if (inspectionData.isAnalyzing)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text('Analysiere Requests...'),
+              ],
+            ),
+          ),
+        if (inspectionData.analyzedInspections != null)
           Container(
-            height: 300, // Feste Höhe für den scrollbaren Bereich
+            height: 300,
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
-                    if (completedInspections.isNotEmpty)
-                      ExpansionTile(
-                        title: Text(
-                            'Abgeschlossene Inspektionen (${completedInspections.length})'),
-                        children: completedInspections
-                            .map((id) => ListTile(
-                                  title: Text('PJNr: $id'),
-                                  trailing: Icon(Icons.check_circle,
-                                      color: Colors.green),
-                                ))
-                            .toList(),
-                      ),
-                    ...inspectionProgress.entries
-                        .where((entry) =>
-                            !completedInspections.contains(entry.key))
-                        .map((entry) => Card(
-                              child: ExpansionTile(
-                                title: Text('PJNr: ${entry.key}'),
-                                subtitle:
-                                    LinearProgressIndicator(value: entry.value),
-                                trailing:
-                                    Text('${(entry.value * 100).floor()}%'),
-                                children: inspectionRequests[entry.key]
-                                        ?.map((route) => ListTile(
-                                              title: Text(route),
-                                              leading: Icon(Icons.arrow_right),
-                                            ))
-                                        .toList() ??
-                                    [],
+                    if (inspectionData.analyzedInspections!.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Keine ausstehenden Requests gefunden',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Abgeschlossene Inspektionen
+                          if (inspectionData
+                              .completedInspections.isNotEmpty) ...[
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                'Abgeschlossene Inspektionen',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.green,
+                                ),
                               ),
-                            )),
+                            ),
+                            ...inspectionData.analyzedInspections!
+                                .where((inspection) => inspectionData
+                                    .completedInspections
+                                    .contains(inspection.pjNr))
+                                .map((inspection) => Card(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'PJNr: ${inspection.pjNr}',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                Icon(Icons.check_circle,
+                                                    color: Colors.green),
+                                              ],
+                                            ),
+                                            SizedBox(height: 8),
+                                            LinearProgressIndicator(
+                                              value: 1.0,
+                                              backgroundColor: Colors.grey[200],
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.green),
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                                '${inspection.total} Requests'),
+                                            Text(
+                                                'Letzte Änderung: ${inspection.formattedLastModified}'),
+                                            SizedBox(height: 8),
+                                            Wrap(
+                                              spacing: 8,
+                                              children: inspection
+                                                  .requestTypes.entries
+                                                  .map((type) {
+                                                return Chip(
+                                                  label: Text(
+                                                      '${type.key}: ${type.value}'),
+                                                  backgroundColor:
+                                                      Colors.grey[200],
+                                                );
+                                              }).toList(),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )),
+                          ],
+
+                          // Laufende Inspektionen
+                          if (inspectionData.analyzedInspections!.any(
+                              (inspection) => !inspectionData
+                                  .completedInspections
+                                  .contains(inspection.pjNr))) ...[
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                'Laufende Inspektionen',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            ...inspectionData.analyzedInspections!
+                                .where((inspection) => !inspectionData
+                                    .completedInspections
+                                    .contains(inspection.pjNr))
+                                .map((inspection) {
+                              final currentProgress = inspectionData
+                                      .inspectionProgress[inspection.pjNr] ??
+                                  inspection.progress;
+                              final isCompleted = inspectionData
+                                  .completedInspections
+                                  .contains(inspection.pjNr);
+                              final currentRequest =
+                                  (inspection.total * currentProgress).round();
+
+                              return Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'PJNr: ${inspection.pjNr}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Request $currentRequest von ${inspection.total}',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        value: currentProgress,
+                                        backgroundColor: Colors.grey[200],
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                          'Letzte Änderung: ${inspection.formattedLastModified}'),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -793,24 +1108,98 @@ Future<void> _onNotificationCreatedMethod(
 }
 
 Future<void> initNotifications() async {
-  await AwesomeNotifications().initialize(
-    'resource://drawable/ic_icon',
-    [
-      NotificationChannel(
-        channelKey: 'backup_progress',
-        channelName: 'Backup Fortschritt',
-        channelDescription: 'Zeigt den Fortschritt des Backup-Prozesses an',
-        importance: NotificationImportance.Low,
-        defaultPrivacy: NotificationPrivacy.Private,
-        defaultRingtoneType: DefaultRingtoneType.Notification,
-        enableVibration: false,
-        playSound: false,
-      ),
-    ],
-  );
-
+  // Wir stellen nur sicher, dass die Listener gesetzt sind
+  // Die Kanäle wurden bereits beim App-Start in NotificationController initialisiert
   await AwesomeNotifications().setListeners(
     onActionReceivedMethod: _onActionReceivedMethod,
     onNotificationCreatedMethod: _onNotificationCreatedMethod,
   );
+}
+
+Future<void> reinitializeNotificationChannels() async {
+  debugPrint(
+      'Neuinitialisierung der Benachrichtigungskanäle für die Synchronisierung...');
+
+  // Prüfe zuerst, ob Benachrichtigungen erlaubt sind
+  final isAllowed = await AwesomeNotifications().isNotificationAllowed();
+  if (!isAllowed) {
+    debugPrint(
+        'Benachrichtigungen sind nicht erlaubt, fordere Berechtigung an...');
+    final requestResult =
+        await AwesomeNotifications().requestPermissionToSendNotifications();
+    if (!requestResult) {
+      debugPrint('Benachrichtigungen wurden abgelehnt!');
+      return;
+    }
+    debugPrint('Benachrichtigungen wurden erlaubt!');
+  }
+
+  try {
+    // Lösche alle vorhandenen Kanäle
+    await AwesomeNotifications().removeChannel('progress');
+    await AwesomeNotifications().removeChannel('backup_progress');
+    await AwesomeNotifications().removeChannel('sync_complete');
+
+    // Füge Kanäle neu hinzu mit expliziten Einstellungen
+    await AwesomeNotifications().initialize(
+      'resource://drawable/ic_icon',
+      [
+        NotificationChannel(
+          channelGroupKey: 'mbg_retryfailed_group',
+          channelKey: 'progress',
+          channelName: 'Sync Fortschritt (LAUTLOS)',
+          channelDescription: 'Zeigt den Fortschritt der Synchronisation an',
+          defaultColor: Colors.blue,
+          importance: NotificationImportance.Min,
+          playSound: false,
+          enableVibration: false,
+          ledColor: Colors.transparent,
+        ),
+        NotificationChannel(
+          channelGroupKey: 'mbg_retryfailed_group',
+          channelKey: 'backup_progress',
+          channelName: 'Backup Fortschritt (LAUTLOS)',
+          channelDescription: 'Zeigt den Fortschritt des Backup-Prozesses an',
+          defaultColor: Colors.blue,
+          importance: NotificationImportance.Min,
+          playSound: false,
+          enableVibration: false,
+          ledColor: Colors.transparent,
+        ),
+        NotificationChannel(
+          channelGroupKey: 'mbg_retryfailed_group',
+          channelKey: 'sync_complete',
+          channelName: 'Sync Abschluss (MIT TON)',
+          channelDescription:
+              'Benachrichtigt über den Abschluss der Synchronisation',
+          defaultColor: Colors.green,
+          importance: NotificationImportance.High,
+          playSound: true,
+          enableVibration: true,
+          ledColor: Colors.green,
+        ),
+      ],
+    );
+
+    debugPrint('Benachrichtigungskanäle wurden neu initialisiert');
+
+    // Teste die Kanäle mit einer Benachrichtigung
+    try {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 1,
+          channelKey: 'progress',
+          title: 'Test',
+          body: 'Benachrichtigungskanäle wurden initialisiert',
+          notificationLayout: NotificationLayout.Default,
+        ),
+      );
+      debugPrint('Test-Benachrichtigung erfolgreich gesendet');
+    } catch (e) {
+      debugPrint('Fehler beim Senden der Test-Benachrichtigung: $e');
+    }
+  } catch (e) {
+    debugPrint(
+        'Fehler bei der Initialisierung der Benachrichtigungskanäle: $e');
+  }
 }

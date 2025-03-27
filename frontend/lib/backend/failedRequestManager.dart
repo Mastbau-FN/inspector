@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
@@ -40,14 +43,22 @@ class SyncProgress {
   int _accumulatedDurationMs = 0;
   int _requestCount = 0;
 
-  SyncProgress(this.totalRequests);
+  SyncProgress(this.totalRequests) {
+    debugPrint('SyncProgress initialisiert mit $totalRequests Requests');
+  }
 
-  double get overallProgress =>
-      (totalRequests == 0) ? 1.0 : doneRequests / totalRequests;
+  double get overallProgress {
+    if (totalRequests == 0) return 1.0;
+    final progress = doneRequests / totalRequests;
+    debugPrint(
+        'Fortschritt: $doneRequests von $totalRequests Requests = ${(progress * 100).toStringAsFixed(1)}%');
+    return progress;
+  }
 
-  double get currentInspectionProgress => (currentInspectionTotal == 0)
-      ? 1.0
-      : currentInspectionDone / currentInspectionTotal;
+  double get currentInspectionProgress {
+    if (currentInspectionTotal == 0) return 1.0;
+    return currentInspectionDone / currentInspectionTotal;
+  }
 
   Duration get estimatedTimeRemaining {
     final remaining = totalRequests - doneRequests;
@@ -57,7 +68,6 @@ class SyncProgress {
     return Duration(milliseconds: (averageTimePerRequest * remaining).round());
   }
 
-  /// Nach jedem Request aufrufen, um die Durchschnittszeit pro Request zu aktualisieren.
   void updateTiming(Duration singleRequest) {
     _accumulatedDurationMs += singleRequest.inMilliseconds;
     _requestCount++;
@@ -69,14 +79,15 @@ class SyncProgress {
 String _extractInspectionIdFromRequest(RequestData rd) {
   try {
     final dataField = rd.json?['data'];
-    Map<String, dynamic> parsedData;
+    if (dataField == null) return 'unknown';
 
+    Map<String, dynamic> parsedData;
     if (dataField is String) {
-      // Wenn data ein JSON-String ist, parsen wir ihn
       parsedData = Map<String, dynamic>.from(json.decode(dataField));
+    } else if (dataField is Map<String, dynamic>) {
+      parsedData = dataField;
     } else {
-      // Wenn data bereits ein Objekt ist, verwenden wir es direkt
-      parsedData = Map<String, dynamic>.from(dataField);
+      return 'unknown';
     }
 
     // Versuche zuerst die PjNr zu extrahieren
@@ -86,7 +97,7 @@ String _extractInspectionIdFromRequest(RequestData rd) {
     }
 
     // Fallback: local_id
-    final localId = parsedData['local_id'] as String?;
+    final localId = parsedData['local_id']?.toString();
     if (localId != null && localId.isNotEmpty) {
       return localId;
     }
@@ -126,32 +137,92 @@ String _formatDuration(Duration d) {
   return '${d.inSeconds} s';
 }
 
+/// Prüft, ob Benachrichtigungen erlaubt sind und fragt bei Bedarf
+Future<bool> _ensureNotificationsAllowed() async {
+  try {
+    // Prüfe, ob Benachrichtigungen erlaubt sind
+    final isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      debugPrint('Benachrichtigungen sind nicht erlaubt, fordere an...');
+
+      // Fordere Benachrichtigungsberechtigung an
+      final requestResult =
+          await AwesomeNotifications().requestPermissionToSendNotifications();
+
+      if (requestResult) {
+        debugPrint('Benachrichtigungen wurden erlaubt!');
+        return true;
+      } else {
+        debugPrint('Benachrichtigungen wurden abgelehnt!');
+        return false;
+      }
+    }
+    return true;
+  } catch (e) {
+    debugPrint('Fehler bei Benachrichtigungsprüfung: $e');
+    return false;
+  }
+}
+
 /// Aktualisiert die laufende Sync-Notification (immer selbe ID => fortlaufendes Update).
-void _updateSyncNotification({
+Future<void> _updateSyncNotification({
   required SyncProgress progress,
   required bool successSoFar,
-}) {
+  String? pjNr,
+}) async {
+  // Prüfe zuerst, ob Benachrichtigungen erlaubt sind
+  if (!await _ensureNotificationsAllowed()) {
+    debugPrint(
+        'Benachrichtigungen sind nicht erlaubt, überspringe Notification');
+    return;
+  }
+
   final overallPct = (progress.overallProgress * 100).round().toDouble();
   final inspPct = (progress.currentInspectionProgress * 100).round();
   final etaStr = _formatDuration(progress.estimatedTimeRemaining);
 
-  final title = successSoFar ? 'Upload Sync läuft ...' : 'Upload Sync (Fehler)';
+  final title = successSoFar ? 'Upload Sync läuft...' : 'Upload Sync (Fehler)';
 
-  AwesomeNotifications().createNotification(
-    content: NotificationContent(
-      id: 999,
-      channelKey: 'progress',
-      title: title,
-      body: 'Inspektion: ${progress.currentInspectionId}\n'
-          'Inspektions-Fortschritt: $inspPct%\n'
-          'Gesamt-Fortschritt: $overallPct%\n'
-          'Verbleibende Zeit: ~ $etaStr',
-      category: NotificationCategory.Progress,
-      notificationLayout: NotificationLayout.Default,
-      progress: overallPct,
-      locked: true,
-    ),
-  );
+  // Verwende explizite Trennlinien für bessere visuelle Trennung
+  final body = 'Inspektion: ${pjNr ?? progress.currentInspectionId}\n'
+      '------------------------\n'
+      'Inspektions-Fortschritt: $inspPct%\n'
+      '------------------------\n'
+      'Gesamt-Fortschritt: $overallPct%\n'
+      '------------------------\n'
+      'Verbleibende Zeit: ~ $etaStr';
+
+  debugPrint(
+      'Sende Benachrichtigung: Gesamtfortschritt: $overallPct%, Inspektionsfortschritt: $inspPct%, BenutzeKanal: PROGRESS');
+
+  try {
+    // Verwende immer den 'progress' Kanal für Zwischenmeldungen (lautlos)
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 888, // Verwende eine andere ID als die abschließenden Benachrichtigungen
+        channelKey: 'progress', // Lautloser Fortschrittskanal
+        title: title,
+        body: body,
+        category: NotificationCategory.Progress,
+        notificationLayout: NotificationLayout
+            .BigText, // Verwende BigText für bessere Textdarstellung
+        progress: overallPct,
+        locked: true,
+        displayOnForeground: true,
+        displayOnBackground: true,
+        autoDismissible: false,
+      ),
+      actionButtons: [
+        NotificationActionButton(
+          key: 'OPEN_APP',
+          label: 'Öffnen',
+          autoDismissible: true,
+        ),
+      ],
+    );
+  } catch (e) {
+    debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+  }
 }
 
 /// Struktur, die wir an den Isolate übergeben (RootIsolateToken, SendPort usw.).
@@ -167,6 +238,51 @@ class _RetryFailedRequestsIsolateInput {
   });
 }
 
+/// Diese Klasse bietet verbesserte HTTP-Verbindungen mit höheren Timeouts
+class _ExtendedTimeoutHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+
+    // Konfiguriere den Client für robuste Verbindungen im Hintergrund
+    client.connectionTimeout = Duration(minutes: 2);
+    client.idleTimeout = Duration(minutes: 5);
+    client.maxConnectionsPerHost = 8;
+    client.autoUncompress = true;
+
+    return client;
+  }
+}
+
+/// Pausiert kurz und versucht dann die Operation erneut
+Future<T> _retryWithBackoff<T>({
+  required Future<T> Function() operation,
+  int maxRetries = 3,
+  Duration initialDelay = const Duration(seconds: 1),
+}) async {
+  int retryCount = 0;
+  Duration delay = initialDelay;
+
+  while (true) {
+    try {
+      return await operation();
+    } catch (e) {
+      retryCount++;
+      if (retryCount >= maxRetries) {
+        debugPrint('Max Retry-Versuche überschritten ($maxRetries): $e');
+        rethrow;
+      }
+
+      debugPrint(
+          'Fehler aufgetreten, versuche erneut in ${delay.inSeconds}s: $e');
+      await Future.delayed(delay);
+
+      // Verdoppele die Wartezeit für den nächsten Versuch (exponentielles Backoff)
+      delay *= 2;
+    }
+  }
+}
+
 /// Die eigentliche Isolate-Funktion mit Sortierung, Gruppierung, Fortschrittsanzeige & Benachrichtigung.
 _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   if (!kIsWeb) {
@@ -179,160 +295,308 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   debugPrint('retry failed requests isolate init done');
 
   if (upsn.loading) {
-    // Läuft bereits
     return;
   }
   upsn.setLoading(true);
 
-  final failedReqs = await API().local.getAllFailedRequests() ?? [];
-  final user = await API().user;
-  if (user == null) {
-    // Sende finalen Stand
-    input.progressSender.send((1.0, false, null, 1.0, ''));
-    upsn.setLoading(false);
-    return;
-  }
-
-  bool success = true;
-  final grouped = _groupRequestsByInspection(failedReqs);
-  final totalRequests =
-      grouped.values.fold<int>(0, (acc, list) => acc + list.length);
-
-  if (totalRequests == 0) {
-    // nix zu tun
-    input.progressSender.send((1.0, true, null, 1.0, ''));
-    upsn.setLoading(false);
-    return;
-  }
-
-  // Fortschritts-Daten
-  final progress = SyncProgress(totalRequests);
-
-  // Erster Status
-  input.progressSender.send(
-      (0.0, null, '', 0.0, _formatDuration(progress.estimatedTimeRemaining)));
-  upsn.setProgress(0.0);
-  _updateSyncNotification(progress: progress, successSoFar: true);
-
-  // Loop über alle Inspektionen
-  for (final inspId in grouped.keys) {
-    progress.currentInspectionId = inspId;
-    final requests = grouped[inspId]!;
-    progress.currentInspectionTotal = requests.length;
-    progress.currentInspectionDone = 0;
-
-    // Extrahiere PJNr aus dem Request
-    String? pjNr;
+  // Aktiviere Wakelock, um zu verhindern, dass das Gerät in den Schlafmodus wechselt
+  if (!kIsWeb) {
     try {
-      if (inspId != 'Backup') {
-        final failedReqs = await API().local.getAllFailedRequests();
-        if (failedReqs != null) {
-          for (var req in failedReqs) {
-            final requestData = req as Map<String, dynamic>;
-            final jsonData = requestData['json'] as Map<String, dynamic>;
-            final data = jsonData['data'];
-            Map<String, dynamic> parsedData;
+      await WakelockPlus.enable();
+      debugPrint('Wakelock aktiviert - verhindere Geräteschlafmodus');
+    } catch (e) {
+      debugPrint('Fehler beim Aktivieren des Wakelocks: $e');
+    }
+  }
 
-            if (data is String) {
-              // Wenn data ein JSON-String ist, parsen wir ihn
-              parsedData = Map<String, dynamic>.from(json.decode(data));
-            } else {
-              // Wenn data bereits ein Objekt ist, verwenden wir es direkt
-              parsedData = Map<String, dynamic>.from(data);
-            }
+  // Setze verbesserte HTTP-Einstellungen
+  HttpOverrides.global = _ExtendedTimeoutHttpOverrides();
+  HttpClient.enableTimelineLogging = kDebugMode;
 
-            final localId = parsedData['local_id'] as String?;
-            if (localId == inspId) {
+  debugPrint(
+      'HTTP-Verbindungseinstellungen optimiert für Hintergrundausführung');
+
+  try {
+    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    final user = await API().user;
+    if (user == null) {
+      input.progressSender.send((1.0, false, null, 1.0, ''));
+      upsn.setLoading(false);
+      return;
+    }
+
+    bool success = true;
+    final grouped = _groupRequestsByInspection(failedReqs);
+    final totalRequests =
+        grouped.values.fold<int>(0, (acc, list) => acc + list.length);
+
+    if (totalRequests == 0) {
+      input.progressSender.send((1.0, true, null, 1.0, ''));
+      upsn.setLoading(false);
+      return;
+    }
+
+    final progress = SyncProgress(totalRequests);
+
+    // Erster Status
+    input.progressSender.send(
+        (0.0, null, '', 0.0, _formatDuration(progress.estimatedTimeRemaining)));
+    upsn.setProgress(0.0);
+    await _updateSyncNotification(progress: progress, successSoFar: true);
+
+    // Start-Benachrichtigung mit Ton
+    if (input.notificationsAllowed) {
+      if (await _ensureNotificationsAllowed()) {
+        debugPrint('Sende START-Benachrichtigung mit Kanal: SYNC_COMPLETE');
+        try {
+          await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: 900,
+              channelKey: 'sync_complete', // Kanal mit Ton
+              title: '🔄 Upload Sync gestartet',
+              body:
+                  'Die Synchronisierung von ${totalRequests} Requests beginnt...',
+              category: NotificationCategory.Progress,
+              notificationLayout: NotificationLayout.Default,
+              progress: 0,
+              locked: false,
+              displayOnForeground: true,
+              displayOnBackground: true,
+              autoDismissible: false,
+            ),
+            actionButtons: [
+              NotificationActionButton(
+                key: 'OPEN_APP',
+                label: 'Öffnen',
+                autoDismissible: true,
+              ),
+            ],
+          );
+        } catch (e) {
+          debugPrint('Fehler beim Senden der Start-Benachrichtigung: $e');
+        }
+      }
+    }
+
+    // Socket-Keepalive-Timer starten
+    Timer? keepAliveTimer;
+    if (!kIsWeb) {
+      keepAliveTimer = Timer.periodic(Duration(seconds: 30), (_) async {
+        try {
+          // Sende ein einfaches Signal an den Server, um die Verbindung aktiv zu halten
+          await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+          debugPrint('Keepalive-Signal gesendet, um Socket aktiv zu halten');
+        } catch (e) {
+          debugPrint('Keepalive-Signal fehlgeschlagen, ignoriere: $e');
+        }
+      });
+    }
+
+    for (final inspId in grouped.keys) {
+      progress.currentInspectionId = inspId;
+      final requests = grouped[inspId]!;
+      progress.currentInspectionTotal = requests.length;
+      progress.currentInspectionDone = 0;
+
+      String? pjNr;
+      try {
+        if (inspId != 'Backup') {
+          final (_, requestData) = requests.first;
+          if (requestData != null) {
+            final jsonData = requestData.json;
+            if (jsonData != null) {
+              final data = jsonData['data'];
+              Map<String, dynamic> parsedData;
+
+              if (data is String) {
+                parsedData = Map<String, dynamic>.from(json.decode(data));
+              } else {
+                parsedData = Map<String, dynamic>.from(data);
+              }
+
               pjNr = parsedData['PjNr']?.toString();
-              break;
             }
           }
         }
-      }
-    } catch (e) {
-      debugPrint('Error extracting PJNr: $e');
-    }
-
-    for (int i = 0; i < requests.length; i++) {
-      final (docID, rd) = requests[i];
-      if (rd == null) {
-        progress.doneRequests++;
-        progress.currentInspectionDone++;
-        continue;
+      } catch (e) {
+        debugPrint('Error extracting PJNr: $e');
       }
 
-      // Request senden
-      final start = DateTime.now();
-      try {
-        rd.logIfFailed = false;
-        final res = await API().remote.postJSON(rd);
-        if (res!.statusCode ~/ 100 == 2) {
-          API().local.failedRequestWasSuccessful(docID);
-        } else {
+      await _updateSyncNotification(
+        progress: progress,
+        successSoFar: success,
+        pjNr: pjNr,
+      );
+
+      for (int i = 0; i < requests.length; i++) {
+        final (docID, rd) = requests[i];
+        if (rd == null) {
+          progress.doneRequests++;
+          progress.currentInspectionDone++;
+          continue;
+        }
+
+        final start = DateTime.now();
+
+        // Verwende ein exponentielles Backoff-Verfahren für Wiederholungsversuche
+        try {
+          rd.logIfFailed = false;
+
+          bool requestSuccess = false;
+
+          // Verbesserte Wiederholungsstrategie mit exponentiellem Backoff
+          await _retryWithBackoff(
+            operation: () async {
+              // Verwende die verbesserte Methode für Socket-Fehler
+              final res = await API().remote.postJSONWithSocketRetry(
+                    rd,
+                    maxRetries: 3,
+                    initialDelay: Duration(seconds: 2),
+                    exponentialBackoff: true,
+                  );
+
+              if (res != null && res.statusCode ~/ 100 == 2) {
+                API().local.failedRequestWasSuccessful(docID);
+                requestSuccess = true;
+                return true;
+              } else {
+                debugPrint(
+                    'Request fehlgeschlagen mit Status: ${res?.statusCode ?? "null"}');
+                return false;
+              }
+            },
+            maxRetries:
+                3, // Insgesamt bis zu 9 Versuche (3 in operation * 3 hier)
+            initialDelay: Duration(seconds: 5),
+          ).catchError((e) {
+            debugPrint('Alle Wiederholungsversuche fehlgeschlagen: $e');
+            throw e; // Fehler weitergeben
+          });
+
+          if (!requestSuccess) {
+            debugPrint('Request war nach mehreren Versuchen nicht erfolgreich');
+            success = false;
+            break;
+          }
+        } catch (e) {
+          debugPrint('Kritischer Fehler bei der Verarbeitung: $e');
           success = false;
           break;
         }
-      } catch (e) {
-        success = false;
-        break;
+
+        final dur = DateTime.now().difference(start);
+        progress.updateTiming(dur);
+
+        progress.doneRequests++;
+        progress.currentInspectionDone++;
+
+        final overall = progress.overallProgress;
+        final inspProg = progress.currentInspectionProgress;
+        final etaStr = _formatDuration(progress.estimatedTimeRemaining);
+
+        input.progressSender.send((overall, null, inspId, inspProg, etaStr));
+        upsn.setProgress(overall);
+
+        await _updateSyncNotification(
+          progress: progress,
+          successSoFar: success,
+          pjNr: pjNr,
+        );
+
+        if (!success) break;
       }
-
-      // Zeitmessung & Counter
-      final dur = DateTime.now().difference(start);
-      progress.updateTiming(dur);
-
-      progress.doneRequests++;
-      progress.currentInspectionDone++;
-
-      final overall = progress.overallProgress;
-      final inspProg = progress.currentInspectionProgress;
-      final etaStr = _formatDuration(progress.estimatedTimeRemaining);
-
-      // Sende an Main: (gesamtFortschritt, success?, inspId, inspProgress, eta)
-      input.progressSender.send((overall, null, inspId, inspProg, etaStr));
-      upsn.setProgress(overall);
-
-      _updateSyncNotification(progress: progress, successSoFar: success);
       if (!success) break;
     }
-    if (!success) break;
-  }
 
-  // Ende
-  input.progressSender.send((1.0, success, null, 1.0, ''));
-  upsn.setProgress(1.0);
-  upsn.setSuccess(success);
-  upsn.setLoading(false);
+    // Beende den Keepalive-Timer
+    keepAliveTimer?.cancel();
 
-  // Abschließende Notification
-  if (input.notificationsAllowed) {
-    if (success) {
-      AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 999,
-          channelKey: 'progress',
-          title: '✅ Upload Sync Done',
-          body: 'Offline Änderungen wurden erfolgreich synchronisiert.',
-          category: NotificationCategory.Progress,
-          notificationLayout: NotificationLayout.Default,
-          progress: 100,
-          locked: false,
-        ),
-      );
-    } else {
-      AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 999,
-          channelKey: 'progress',
-          title: '❌ Upload Sync Failed',
-          body: 'Einige Uploads konnten nicht verarbeitet werden.',
-          category: NotificationCategory.Progress,
-          notificationLayout: NotificationLayout.Default,
-          progress: 100,
-          locked: false,
-        ),
-      );
+    // Ende
+    final finalOverall = progress.overallProgress;
+    debugPrint('Final overall progress: $finalOverall');
+
+    input.progressSender.send((finalOverall, success, null, 1.0, ''));
+    upsn.setProgress(finalOverall);
+    upsn.setSuccess(success);
+    upsn.setLoading(false);
+
+    // Abschließende Notification
+    if (input.notificationsAllowed) {
+      if (await _ensureNotificationsAllowed()) {
+        if (success) {
+          debugPrint('Sende ERFOLGS-Benachrichtigung mit Kanal: SYNC_COMPLETE');
+          try {
+            // NUR diese Benachrichtigung erzeugt einen Ton (sync_complete Kanal)
+            await AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: 999, // Eindeutige ID für die Erfolgsbenachrichtigung
+                channelKey: 'sync_complete', // Kanal mit Ton
+                title: '✅ Upload Sync Done',
+                body: 'Offline Änderungen wurden erfolgreich synchronisiert.',
+                category: NotificationCategory.Progress,
+                notificationLayout: NotificationLayout.Default,
+                progress: 100,
+                locked: false,
+                displayOnForeground: true,
+                displayOnBackground: true,
+                autoDismissible: false,
+              ),
+              actionButtons: [
+                NotificationActionButton(
+                  key: 'OPEN_APP',
+                  label: 'Öffnen',
+                  autoDismissible: true,
+                ),
+              ],
+            );
+          } catch (e) {
+            debugPrint('Fehler beim Senden der Erfolgs-Benachrichtigung: $e');
+          }
+        } else {
+          debugPrint('Sende FEHLER-Benachrichtigung mit Kanal: PROGRESS');
+          try {
+            // Fehlerbenachrichtigung - kein Ton
+            await AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: 997, // Eindeutige ID für die Fehlerbenachrichtigung
+                channelKey: 'progress', // Lautloser Kanal
+                title: '❌ Upload Sync Failed',
+                body: 'Einige Uploads konnten nicht verarbeitet werden.',
+                category: NotificationCategory.Progress,
+                notificationLayout: NotificationLayout.Default,
+                progress: 100,
+                locked: false,
+                displayOnForeground: true,
+                displayOnBackground: true,
+                autoDismissible: false,
+              ),
+              actionButtons: [
+                NotificationActionButton(
+                  key: 'OPEN_APP',
+                  label: 'Öffnen',
+                  autoDismissible: true,
+                ),
+              ],
+            );
+          } catch (e) {
+            debugPrint('Fehler beim Senden der Fehler-Benachrichtigung: $e');
+          }
+        }
+      }
     }
+  } finally {
+    // Deaktiviere Wakelock am Ende, unabhängig vom Ergebnis
+    if (!kIsWeb) {
+      try {
+        await WakelockPlus.disable();
+        debugPrint('Wakelock deaktiviert');
+      } catch (e) {
+        debugPrint('Fehler beim Deaktivieren des Wakelocks: $e');
+      }
+    }
+
+    // Setze HTTP-Overrides zurück
+    HttpOverrides.global = null;
   }
 }
 
@@ -343,6 +607,10 @@ class GroupedInspection {
   final int total;
   final int completed;
   final double progress;
+  final Map<String, int>
+      requestTypes; // Neue Map für die verschiedenen Request-Typen
+  final int totalSize; // Gesamtgröße aller Requests in Bytes
+  final DateTime lastModified; // Zeitstempel der letzten Änderung
 
   GroupedInspection({
     required this.pjNr,
@@ -350,53 +618,228 @@ class GroupedInspection {
     required this.total,
     required this.completed,
     required this.progress,
+    required this.requestTypes,
+    required this.totalSize,
+    required this.lastModified,
   });
+
+  // Hilfsmethode zum Formatieren der Größe
+  String get formattedSize {
+    if (totalSize < 1024) return '$totalSize B';
+    if (totalSize < 1024 * 1024)
+      return '${(totalSize / 1024).toStringAsFixed(1)} KB';
+    return '${(totalSize / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  // Hilfsmethode zum Formatieren des Zeitstempels
+  String get formattedLastModified {
+    final now = DateTime.now();
+    final difference = now.difference(lastModified);
+
+    if (difference.inDays > 0) return '${difference.inDays} Tage';
+    if (difference.inHours > 0) return '${difference.inHours} Stunden';
+    if (difference.inMinutes > 0) return '${difference.inMinutes} Minuten';
+    return '${difference.inSeconds} Sekunden';
+  }
+}
+
+/// Fordert die Benachrichtigungsberechtigung an
+Future<bool> _requestNotificationPermission() async {
+  debugPrint('Fordere Benachrichtigungsberechtigung an...');
+
+  // Initialisiere die Benachrichtigungen
+  await AwesomeNotifications().initialize(
+    'resource://drawable/ic_icon',
+    [
+      NotificationChannel(
+        channelGroupKey: 'mbg_retryfailed_group',
+        channelKey: 'progress',
+        channelName: 'Sync Fortschritt (LAUTLOS)',
+        channelDescription: 'Zeigt den Fortschritt der Synchronisation an',
+        defaultColor: Colors.blue,
+        importance: NotificationImportance.Min,
+        playSound: false,
+        enableVibration: false,
+        ledColor: Colors.transparent,
+      ),
+      NotificationChannel(
+        channelGroupKey: 'mbg_retryfailed_group',
+        channelKey: 'backup_progress',
+        channelName: 'Backup Fortschritt (LAUTLOS)',
+        channelDescription: 'Zeigt den Fortschritt des Backup-Prozesses an',
+        defaultColor: Colors.blue,
+        importance: NotificationImportance.Min,
+        playSound: false,
+        enableVibration: false,
+        ledColor: Colors.transparent,
+      ),
+      NotificationChannel(
+        channelGroupKey: 'mbg_retryfailed_group',
+        channelKey: 'sync_complete',
+        channelName: 'Sync Abschluss (MIT TON)',
+        channelDescription:
+            'Benachrichtigt über den Abschluss der Synchronisation',
+        defaultColor: Colors.green,
+        importance: NotificationImportance.High,
+        playSound: true,
+        enableVibration: true,
+        ledColor: Colors.green,
+      ),
+    ],
+  );
+
+  // Keine Test-Benachrichtigung mehr senden
+  debugPrint('Benachrichtigungskanäle erfolgreich initialisiert');
+  return true;
+}
+
+/// Öffnet die Speichereinstellungen direkt
+Future<void> _openStorageSettings() async {
+  try {
+    // Für alle Plattformen - öffnet die App-Einstellungen, meist direkt zur Speicherseite
+    await openAppSettings();
+    debugPrint('Speichereinstellungen geöffnet');
+  } catch (e) {
+    debugPrint('Fehler beim Öffnen der Speichereinstellungen: $e');
+  }
+}
+
+/// Prüft alle notwendigen Berechtigungen für die Synchronisierung
+Future<bool> _checkPermissions(BuildContext context) async {
+  debugPrint('Prüfe Berechtigungen...');
+
+  // Prüfe und fordere Benachrichtigungsberechtigung an
+  final notificationStatus =
+      await AwesomeNotifications().isNotificationAllowed();
+  if (!notificationStatus) {
+    debugPrint(
+        'Benachrichtigungen sind nicht erlaubt, fordere Berechtigung an...');
+
+    // Versuche die Berechtigung anzufordern
+    final permissionGranted = await _requestNotificationPermission();
+    if (!permissionGranted) {
+      // Zeige Dialog zum Aktivieren der Benachrichtigungen
+      final bool? shouldOpenSettings = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Benachrichtigungen aktivieren'),
+            content: Text(
+                'Um den Fortschritt der Synchronisierung zu sehen, müssen Benachrichtigungen aktiviert werden. Möchten Sie die Einstellungen öffnen?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Abbrechen'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: Text('Einstellungen öffnen'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (shouldOpenSettings == true) {
+        debugPrint('Öffne App-Einstellungen...');
+        // Öffne die App-Einstellungen
+        await openAppSettings();
+
+        // Warte kurz und prüfe dann erneut
+        await Future.delayed(Duration(seconds: 1));
+        final newStatus = await AwesomeNotifications().isNotificationAllowed();
+        if (!newStatus) {
+          debugPrint('Benachrichtigungen immer noch nicht erlaubt');
+          showToast(
+              'Bitte erlauben Sie Benachrichtigungen in den Einstellungen');
+          return false;
+        }
+        debugPrint('Benachrichtigungen wurden aktiviert');
+      } else {
+        debugPrint('Benutzer hat abgebrochen');
+        showToast('Bitte erlauben Sie Benachrichtigungen in den Einstellungen');
+        return false;
+      }
+    }
+  }
+
+  debugPrint('Alle Berechtigungen sind vorhanden');
+  return true;
 }
 
 /// Haupt-Klasse, die den Upload orchestriert und im UI aufgerufen wird.
 class FailedRequestmanager {
   /// Gruppiert die fehlgeschlagenen Requests nach PJNr
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
+    debugPrint('getGroupedFailedRequests: Starte...');
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    debugPrint(
+        'getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
+
     Map<String, Map<String, dynamic>> groupedRequests = {};
 
-    for (var req in failedReqs) {
+    for (var (id, requestData) in failedReqs) {
       try {
-        final requestData = req as Map<String, dynamic>;
-        final jsonData = requestData['json'] as Map<String, dynamic>;
-        final data = jsonData['data'];
-        Map<String, dynamic> parsedData;
+        if (requestData != null) {
+          final jsonData = requestData.json;
+          if (jsonData != null) {
+            final data = jsonData['data'];
+            Map<String, dynamic> parsedData;
 
-        if (data is String) {
-          parsedData = Map<String, dynamic>.from(json.decode(data));
-        } else {
-          parsedData = Map<String, dynamic>.from(data);
-        }
+            if (data is String) {
+              parsedData = Map<String, dynamic>.from(json.decode(data));
+            } else {
+              parsedData = Map<String, dynamic>.from(data);
+            }
 
-        final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
+            final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
+            final route = requestData.route;
+            final timestamp =
+                DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
 
-        if (!groupedRequests.containsKey(pjNr)) {
-          groupedRequests[pjNr] = {
-            'requests': [],
-            'total': 0,
-            'completed': 0,
-            'progress': 0.0
-          };
-        }
+            if (!groupedRequests.containsKey(pjNr)) {
+              groupedRequests[pjNr] = {
+                'requests': [],
+                'total': 0,
+                'completed': 0,
+                'progress': 0.0,
+                'requestTypes': <String, int>{},
+                'totalSize': 0,
+                'lastModified': timestamp,
+              };
+            }
 
-        groupedRequests[pjNr]!['requests']!
-            .add(requestData['route'] ?? 'Unbekannte Route');
-        groupedRequests[pjNr]!['total'] =
-            (groupedRequests[pjNr]!['total'] as int) + 1;
+            // Aktualisiere die Map mit den Request-Informationen
+            final group = groupedRequests[pjNr]!;
+            group['requests']!.add(route);
+            group['total'] = (group['total'] as int) + 1;
 
-        if (parsedData['offline'] == false) {
-          groupedRequests[pjNr]!['completed'] =
-              (groupedRequests[pjNr]!['completed'] as int) + 1;
+            // Zähle die Request-Typen
+            final requestType = route.split('/').first;
+            group['requestTypes'][requestType] =
+                (group['requestTypes'][requestType] ?? 0) + 1;
+
+            // Berechne die Größe des Requests
+            final requestSize = json.encode(requestData).length;
+            group['totalSize'] = (group['totalSize'] as int) + requestSize;
+
+            // Aktualisiere den Zeitstempel der letzten Änderung
+            if (timestamp.isAfter(group['lastModified'] as DateTime)) {
+              group['lastModified'] = timestamp;
+            }
+
+            if (parsedData['offline'] == false) {
+              group['completed'] = (group['completed'] as int) + 1;
+            }
+          }
         }
       } catch (e) {
         debugPrint('Error parsing request: $e');
       }
     }
+
+    debugPrint(
+        'getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
 
     // Berechne den Fortschritt für jede Inspektion
     for (var pjNr in groupedRequests.keys) {
@@ -406,15 +849,23 @@ class FailedRequestmanager {
     }
 
     // Konvertiere die Map in eine Liste von GroupedInspection Objekten
-    return groupedRequests.entries
+    final result = groupedRequests.entries
         .map((entry) => GroupedInspection(
               pjNr: entry.key,
               requests: List<String>.from(entry.value['requests'] as List),
               total: entry.value['total'] as int,
               completed: entry.value['completed'] as int,
               progress: entry.value['progress'] as double,
+              requestTypes:
+                  Map<String, int>.from(entry.value['requestTypes'] as Map),
+              totalSize: entry.value['totalSize'] as int,
+              lastModified: entry.value['lastModified'] as DateTime,
             ))
         .toList();
+
+    debugPrint(
+        'getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
+    return result;
   }
 
   /// Startet den Upload, ggf. mit fortlaufender Progress-Callback.
@@ -425,6 +876,12 @@ class FailedRequestmanager {
         onProgress,
   }) async {
     debugPrint('retry failed requests started');
+
+    // Prüfe zuerst alle Berechtigungen
+    if (!await _checkPermissions(context)) {
+      return false;
+    }
+
     try {
       // Check Internet
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -452,8 +453,69 @@ class API {
       requestType: requestType,
     ).last;
   }
-}
 
+  /// Versucht, einen HTTP-Request unter Berücksichtigung möglicher Socket-Fehler durchzuführen
+  /// Diese Methode erweitert die bestehende postJSON-Methode und fügt Wiederverbindungs-Logik hinzu
+  Future<http.Response?> postJSONWithSocketRetry(
+    RequestData requestData, {
+    int maxRetries = 3,
+    Duration retryDelay = const Duration(seconds: 2),
+  }) async {
+    int attempts = 0;
+    SocketException? lastSocketException;
+
+    while (attempts < maxRetries) {
+      try {
+        // Verwende die postJSON-Methode von remote
+        final response = await remote.postJSON(requestData);
+        return response as http.Response?;
+      } on SocketException catch (e) {
+        lastSocketException = e;
+        attempts++;
+
+        debugPrint(
+            'Socket-Fehler bei Versuch $attempts/$maxRetries: ${e.message}');
+
+        // Wenn es sich um einen "Write failed" oder "Connection abort" Fehler handelt
+        if (e.message.contains('Write failed') ||
+            e.message.contains('connection abort') ||
+            e.message.contains('Connection refused')) {
+          debugPrint(
+              'Erkannter Socket-Fehler im Hintergrund, warte vor Wiederversuch...');
+
+          // Warte etwas länger bei Socket-Fehlern, die typischerweise im Hintergrund auftreten
+          await Future.delayed(retryDelay * attempts);
+
+          // Versuche die Verbindung zurückzusetzen
+          try {
+            HttpClient().close(force: true);
+            debugPrint('HTTP-Client zurückgesetzt');
+          } catch (resetError) {
+            debugPrint(
+                'Fehler beim Zurücksetzen des HTTP-Clients: $resetError');
+          }
+
+          continue;
+        }
+
+        // Andere Socket-Fehler
+        await Future.delayed(retryDelay);
+      } catch (e) {
+        // Andere Fehler einfach durchreichen
+        debugPrint('Nicht-Socket-Fehler bei HTTP-Request: $e');
+        rethrow;
+      }
+    }
+
+    if (lastSocketException != null) {
+      debugPrint(
+          'Maximale Wiederversuche überschritten, werfe letzten Socket-Fehler');
+      throw lastSocketException;
+    }
+
+    throw Exception('Unbekannter Fehler bei der HTTP-Kommunikation');
+  }
+}
 
 D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {

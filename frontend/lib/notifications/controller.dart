@@ -78,15 +78,13 @@ class NotificationController {
   @pragma("vm:entry-point")
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
-    // Your code goes here
+    // Debugging-Ausgabe zur Nachverfolgung
+    debugPrint(
+        'Notification Action received: ID=${receivedAction.id}, Channel=${receivedAction.channelKey}, Button=${receivedAction.buttonKeyPressed}');
 
-    // Navigate into pages, avoiding to open the notification details page over another details page already opened
+    // Zur DefaultNotificationPage navigieren
     MyApp.navigatorKey.currentState
-        ?.pushNamed /*AndRemoveUntil*/ ('/default-notification-page',
-            // (route) =>
-            //     (route.settings.name != '/default-notification-page') ||
-            //     route.isFirst,
-            arguments: receivedAction);
+        ?.pushNamed('/default-notification-page', arguments: receivedAction);
   }
 }
 
