@@ -71,9 +71,13 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; focus(Offset focusPoint) async {
-  controller ??= await start();
-  controller!.setFocusPoint(focusPoint);
-  controller!.setExposurePoint(focusPoint);
+  _controller ??= await start();
+  try {
+    await _controller!.setFocusPoint(focusPoint);
+    await _controller!.setExposurePoint(focusPoint);
+  } catch (e) {
+    debugPrint(&quot;Fehler beim Fokussieren: $e&quot;);
+  }
 }</code></pre>
 </section>
 

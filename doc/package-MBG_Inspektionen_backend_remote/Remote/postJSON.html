@@ -114,24 +114,46 @@
             ? await mreq.send()
             : await mreq.send().timeout(rd.timeout!);
         return res;
+      } on SocketException catch (e) {
+        debugPrint(&#39;Socket-Fehler bei Multipart-Request: ${e.message}&#39;);
+        if (e.message.contains(&#39;Write failed&#39;) ||
+            e.message.contains(&#39;connection abort&#39;) ||
+            e.message.contains(&#39;Connection refused&#39;) ||
+            e.message.contains(&#39;Software caused connection abort&#39;)) {
+          debugPrint(
+              &#39;Hintergrund-Socket-Fehler erkannt, App möglicherweise im Hintergrund&#39;);
+        }
+        rethrow;
       } on Exception catch (e) {
-        &#47;&#47;if (rd.&#47;&#47;&#47;&#47;logIfFailed) OP.logFailedReq(rd);
-        debugPrint(&#39;multipartRequest, failed&#39;);
-        throw e;
+        debugPrint(&#39;multipartRequest, failed: $e&#39;);
+        rethrow;
       }
     } else {
       final req =
           makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
       try {
-        return await send(
+        &#47;&#47; Erhöhe die Robustheit des Requests speziell für Hintergrundausführung
+        final response = await send(
           req,
-          timeout: rd.timeout,
+          timeout:
+              rd.timeout ?? Duration(minutes: 2), &#47;&#47; Längerer Standard-Timeout
           returnsBinary: rd.returnsBinary,
         );
+
+        return response;
+      } on SocketException catch (e) {
+        debugPrint(&#39;Socket-Fehler bei HTTP-Request: ${e.message}&#39;);
+        if (e.message.contains(&#39;Write failed&#39;) ||
+            e.message.contains(&#39;connection abort&#39;) ||
+            e.message.contains(&#39;Connection refused&#39;) ||
+            e.message.contains(&#39;Software caused connection abort&#39;)) {
+          debugPrint(
+              &#39;Hintergrund-Socket-Fehler erkannt, App möglicherweise im Hintergrund&#39;);
+        }
+        rethrow;
       } catch (e) {
-        &#47;&#47;if (rd.&#47;&#47;&#47;&#47;logIfFailed) OP.logFailedReq(rd);
-        debugPrint(&#39;request failed&#39;);
-        throw e;
+        debugPrint(&#39;request failed: $e&#39;);
+        rethrow;
       }
     }
   } catch (e) {

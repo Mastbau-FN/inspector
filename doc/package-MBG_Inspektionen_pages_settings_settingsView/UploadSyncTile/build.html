@@ -112,8 +112,14 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
+  &#47;&#47; Hier kommt nun **die** ExtendedProgressStateUpdater-Klasse aus progressStateUpdater.dart
   return ChangeNotifierProvider(
-      create: (_) =&gt; ProgressStateUpdater(), child: _UploadSyncTile());
+    create: (_) =&gt; InspectionData(),
+    child: ChangeNotifierProvider(
+      create: (_) =&gt; ExtendedProgressStateUpdater(),
+      child: const _UploadSyncTile(),
+    ),
+  );
 }</code></pre>
 </section>
 

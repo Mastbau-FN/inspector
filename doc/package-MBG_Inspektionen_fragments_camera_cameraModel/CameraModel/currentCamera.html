@@ -76,9 +76,11 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;CameraDescription?&gt; get currentCamera async {
   try {
     return (await allCameras)[_currentCameraIndex];
-  } catch (e) {}
+  } catch (e) {
+    debugPrint(&quot;Fehler beim Abrufen der aktuellen Kamera: $e&quot;);
+  }
 
-  return await mainCamera; &#47;&#47;XXX (related to #202) use other lenses
+  return await mainCamera;
 }</code></pre>
 </section>
 

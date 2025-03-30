@@ -268,7 +268,7 @@ if no <code>ParentData</code> is given it defaults to root
 
         <dt id="logout" class="callable">
   <span class="name"><a href="../package-MBG_Inspektionen_backend_api/API/logout.html">logout</a></span><span class="signature">(<wbr>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a></span>
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
   </span>
   
 
@@ -289,6 +289,20 @@ if no <code>ParentData</code> is given it defaults to root
 <dd class="inherited">
   Invoked when a nonexistent method or property is accessed.
   <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="postJSONWithSocketRetry" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_backend_api/API/postJSONWithSocketRetry.html">postJSONWithSocketRetry</a></span><span class="signature">(<wbr><span class="parameter" id="postJSONWithSocketRetry-param-requestData"><span class="type-annotation"><a href="../package-MBG_Inspektionen_classes_requestData/RequestData-class.html">RequestData</a></span> <span class="parameter-name">requestData</span>, {</span><span class="parameter" id="postJSONWithSocketRetry-param-maxRetries"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">maxRetries</span> = <span class="default-value">3</span>, </span><span class="parameter" id="postJSONWithSocketRetry-param-retryDelay"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a></span> <span class="parameter-name">retryDelay</span> = <span class="default-value">const Duration(seconds: 2)</span></span>})
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/1.2.2/http/Response-class.html">Response</a>?</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Versucht, einen HTTP-Request unter Berücksichtigung möglicher Socket-Fehler durchzuführen
+Diese Methode erweitert die bestehende postJSON-Methode und fügt Wiederverbindungs-Logik hinzu
+  
 
 </dd>
 

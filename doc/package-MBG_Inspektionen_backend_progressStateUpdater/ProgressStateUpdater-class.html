@@ -56,6 +56,9 @@
 </h1></div>
 
     
+<section class="desc markdown">
+  <p>Basisklasse mit dem alten Polling-Mechanismus aus SharedPrefs.</p>
+</section>
 
 
     <section>
@@ -73,6 +76,10 @@
         
         
 
+          <dt>Implementers</dt>
+          <dd><ul class="comma-separated clazz-relationships">
+              <li><a href="../package-MBG_Inspektionen_backend_progressStateUpdater/ExtendedProgressStateUpdater-class.html">ExtendedProgressStateUpdater</a></li>
+          </ul></dd>
 
         
         
@@ -208,32 +215,6 @@ object is not in a usable state and should be discarded (calls to
 
 </dd>
 
-        <dt id="getLoading" class="callable">
-  <span class="name"><a href="../package-MBG_Inspektionen_backend_progressStateUpdater/ProgressStateUpdater/getLoading.html">getLoading</a></span><span class="signature">(<wbr>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span>&gt;</span></span>
-  </span>
-  
-
-</dt>
-<dd>
-  
-  
-
-</dd>
-
-        <dt id="getSuccess" class="callable">
-  <span class="name"><a href="../package-MBG_Inspektionen_backend_progressStateUpdater/ProgressStateUpdater/getSuccess.html">getSuccess</a></span><span class="signature">(<wbr>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span>&gt;</span></span>
-  </span>
-  
-
-</dt>
-<dd>
-  
-  
-
-</dd>
-
         <dt id="noSuchMethod" class="callable inherited">
   <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
     <span class="returntype parameter">&#8594; dynamic</span>
@@ -271,6 +252,32 @@ object is not in a usable state and should be discarded (calls to
   Remove a previously registered closure from the list of closures that are
 notified when the object changes.
   <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="setProgress" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_backend_progressStateUpdater/ProgressStateUpdater/setProgress.html">setProgress</a></span><span class="signature">(<wbr><span class="parameter" id="setProgress-param-value"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">value</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  NEU: Setter-Methoden, damit z.B. ein Kind „super.setProgress(...)“ aufrufen kann
+  
+
+</dd>
+
+        <dt id="setSuccess" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_backend_progressStateUpdater/ProgressStateUpdater/setSuccess.html">setSuccess</a></span><span class="signature">(<wbr><span class="parameter" id="setSuccess-param-value"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">value</span></span>)
+    <span class="returntype parameter">&#8594; void</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 

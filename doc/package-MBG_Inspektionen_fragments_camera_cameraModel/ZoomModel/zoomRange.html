@@ -56,23 +56,52 @@
 </h1></div>
 
     
-      <section class="multi-line-signature">
-        
-        (<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>, </span><span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span></span>)
-        <span class="name ">zoomRange</span>
-        <div class="features"><span class="feature">getter/setter pair</span></div>
-
-      </section>
-      
-
-      
-<section class="summary source-code" id="source">
-  <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">(double, double) zoomRange = (1.0, 2.0);</code></pre>
-</section>
-
 
     
+        
+  <section id="getter">
+    <section class="multi-line-signature">
+      
+      <span class="returntype">(<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>, </span><span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span></span>)</span>
+      get
+      <span class="name ">zoomRange</span>
+      
+
+    </section>
+    
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">(double, double) get zoomRange =&gt; _zoomRange;</code></pre>
+</section>
+
+  </section>
+
+
+        
+  <section id="setter">
+    <section class="multi-line-signature">
+      
+      set
+      <span class="name ">zoomRange</span>
+      <span class="signature">(<wbr><span class="parameter" id="zoomRange=-param-range"><span class="type-annotation">(<span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>, </span><span class="field"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span></span>)</span> <span class="parameter-name">range</span></span>)</span>
+      
+
+    </section>
+    
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">set zoomRange((double, double) range) {
+  _zoomRange = range;
+  notifyListeners();
+}</code></pre>
+</section>
+
+  </section>
+
 </div> <!-- /.main-content -->
 <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
   <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->

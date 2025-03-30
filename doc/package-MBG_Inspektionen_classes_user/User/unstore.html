@@ -73,8 +73,20 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future unstore() async {
-  await _storage.write(key: _username_store, value: null);
-  await _storage.write(key: _userpass_store, value: null);
+  try {
+    &#47;&#47; Lösche Anmeldedaten
+    await _storage.delete(key: _username_store);
+    await _storage.delete(key: _userpass_store);
+
+    &#47;&#47; Lösche auch die nicht-sensiblen Daten
+    final prefs = await _prefs;
+    await prefs.remove(_full_name_store);
+    await prefs.remove(_full_surname_store);
+
+    debugPrint(&#39;User-Daten vollständig gelöscht&#39;);
+  } catch (e) {
+    debugPrint(&#39;Fehler beim Löschen der Benutzerdaten: $e&#39;);
+  }
 }</code></pre>
 </section>
 

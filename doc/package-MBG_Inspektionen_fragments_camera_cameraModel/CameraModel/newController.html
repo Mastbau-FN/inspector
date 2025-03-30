@@ -73,16 +73,17 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;CameraController?&gt; get newController async =&gt;
-    switch (await currentCamera) {
-      null =&gt; null,
-      CameraDescription cd =&gt; CameraController(
-          &#47;&#47; Get a specific camera from the list of available cameras.
-          cd,
-          &#47;&#47; Define the resolution to use.
-          ResolutionPreset.max,
-        )
-    };</code></pre>
+  <pre class="language-dart"><code class="language-dart">Future&lt;CameraController?&gt; get newController async {
+  final camera = await currentCamera;
+  if (camera == null) return null;
+
+  return CameraController(
+    camera,
+    ResolutionPreset.max,
+    enableAudio: false,
+    imageFormatGroup: ImageFormatGroup.jpeg,
+  );
+}</code></pre>
 </section>
 
   </section>

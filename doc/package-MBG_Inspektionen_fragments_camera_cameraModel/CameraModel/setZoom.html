@@ -58,7 +58,7 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">setZoom</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="setZoom-param-newVal"><span class="type-annotation">dynamic</span> <span class="parameter-name">newVal</span></span></li>
+<span class="name ">setZoom</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="setZoom-param-newVal"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">newVal</span></span></li>
 </ol>)
 
       
@@ -70,11 +70,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setZoom(newVal) async {
-  zoomM.zoom = newVal;
-  controller ??= await start();
-  controller!.setZoomLevel(newVal);
-  &#47;&#47; notifyListeners();
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setZoom(double newVal) async {
+  _zoomModel.zoom = newVal;
+  _controller ??= await start();
+  await _controller!.setZoomLevel(newVal);
 }</code></pre>
 </section>
 

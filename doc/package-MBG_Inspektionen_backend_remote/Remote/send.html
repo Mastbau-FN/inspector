@@ -77,11 +77,44 @@
   Duration? timeout,
   bool returnsBinary = false,
 }) async {
-  final req = request.send();
-  final res = (timeout == null) ? await req : await req.timeout(timeout);
+  try {
+    &#47;&#47; Setze Verbindungstimeouts für die Verbindung
+    request.persistentConnection = true;
 
-  final ret = await http.Response.fromStream(res); &#47;&#47; res.forceRes();
-  return ret;
+    &#47;&#47; Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
+    timeout ??= Duration(minutes: 2);
+
+    final req = request.send();
+    final res = await req.timeout(timeout, onTimeout: () {
+      debugPrint(&#39;HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden&#39;);
+      throw TimeoutException(&#39;HTTP Request Timeout&#39;, timeout);
+    });
+
+    try {
+      final ret = await http.Response.fromStream(res);
+      return ret;
+    } catch (e) {
+      debugPrint(&#39;Fehler beim Verarbeiten des Response-Streams: $e&#39;);
+      &#47;&#47; Versuche es noch einmal mit einem neuen Request, wenn der Stream beschädigt ist
+      if (e is IOException) {
+        debugPrint(
+            &#39;IO-Fehler beim Lesen des Streams, möglicherweise Netzwerkunterbrechung&#39;);
+      }
+      rethrow;
+    }
+  } on SocketException catch (e) {
+    debugPrint(&#39;Socket-Fehler beim Senden des Requests: ${e.message}&#39;);
+    &#47;&#47; Spezielle Behandlung für bestimmte Socket-Fehler
+    if (e.message.contains(&#39;Software caused connection abort&#39;) ||
+        e.message.contains(&#39;Write failed&#39;)) {
+      debugPrint(
+          &#39;App wahrscheinlich im Hintergrund, Socket wurde vom System geschlossen&#39;);
+    }
+    rethrow;
+  } catch (e) {
+    debugPrint(&#39;Fehler beim Senden des Requests: $e&#39;);
+    rethrow;
+  }
 }</code></pre>
 </section>
 
