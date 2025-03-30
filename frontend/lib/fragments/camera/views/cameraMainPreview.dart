@@ -2,161 +2,343 @@ import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'dart:math';
 import '../../../widgets/error.dart';
-import 'package:flutter/material.dart';
 
+/// Hauptkomponente für die Kameravorschau mit optionalen Steuerelementen
 class CameraPreviewOnly extends StatelessWidget {
   final List<Widget> children;
+
   const CameraPreviewOnly({this.children = const [], Key? key})
       : super(key: key);
 
-  Widget _previewWithChildren(CameraController cc, CameraModel model) =>
-      children.isEmpty
-          ? CameraPreview(cc)
-          : Stack(
-              alignment: Alignment.topRight,
-              children: [
-                ZoomDetect(
-                  model: model,
-                  cc: cc,
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: children,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  // direction: Axis.horizontal,
-                  // alignment: WrapAlignment.end,
-                  // crossAxisAlignment: WrapCrossAlignment.end,
-                ),
-              ],
-            );
-
   @override
-  Widget build(BuildContext context) => Material(
-        //FIXME: why the hell would i need a Material, it should be an ancestor already..
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black,
+      child: SafeArea(
         child: Consumer<CameraModel>(
-          builder: (context, model, child) {
+          builder: (context, model, _) {
             return FutureBuilder(
               future: model.start(),
-              builder: (context, AsyncSnapshot<CameraController> snapshot) =>
-                  // LoadingView(),
-                  switch ((snapshot.connectionState, snapshot.data)) {
-                (ConnectionState.done, CameraController cc) =>
-                  _previewWithChildren(cc, model),
-                (ConnectionState.done, null) => ErrorText("no camera"),
-                (ConnectionState.waiting, _) => LoadingView(),
-                (ConnectionState.active, _) => LoadingView(),
-                (ConnectionState.none, _) => ErrorText("no camera"),
+              builder: (context, AsyncSnapshot<CameraController> snapshot) {
+                return switch ((snapshot.connectionState, snapshot.data)) {
+                  (ConnectionState.done, CameraController cc) =>
+                    _buildCameraPreview(cc, model, context),
+                  (ConnectionState.done, null) => Center(
+                      child: ErrorText("Keine Kamera verfügbar"),
+                    ),
+                  (ConnectionState.waiting, _) =>
+                    const Center(child: LoadingView()),
+                  (ConnectionState.active, _) =>
+                    const Center(child: LoadingView()),
+                  (ConnectionState.none, _) => Center(
+                      child: ErrorText("Keine Kamera verfügbar"),
+                    ),
+                };
               },
             );
           },
         ),
-      );
+      ),
+    );
+  }
+
+  /// Baut die Kameravorschau mit allen notwendigen Elementen
+  Widget _buildCameraPreview(
+      CameraController controller, CameraModel model, BuildContext context) {
+    // Bildschirmabmessungen für responsives Design
+    final Size screenSize = MediaQuery.of(context).size;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    return Container(
+      color: Colors.black,
+      width: screenSize.width,
+      height: screenSize.height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Kamera mit Interaktionshandler
+          CameraInteractionHandler(
+            model: model,
+            controller: controller,
+          ),
+
+          // Zusätzliche Steuerelemente (falls vorhanden)
+          if (children.isNotEmpty)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: children,
+              ),
+            ),
+
+          // Kamera-Wechsel-Hinweis
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: _buildCameraSwitchIndicator(),
+          ),
+
+          // Ladeindikator (wenn die Kamera verarbeitet)
+          if (model.isProcessing)
+            const Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Hinweis zum Kamerawechsel
+  Widget _buildCameraSwitchIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.flip_camera_ios, color: Colors.white, size: 16),
+          SizedBox(width: 4),
+          Text(
+            'Doppeltipp',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class ZoomDetect extends StatefulWidget {
+/// Komponente für Kamera-Interaktionen (Zoom, Fokus, Kamerawechsel)
+class CameraInteractionHandler extends StatefulWidget {
   final CameraModel model;
-  final CameraController cc;
-  ZoomDetect({
-    super.key,
+  final CameraController controller;
+
+  const CameraInteractionHandler({
+    Key? key,
     required this.model,
-    required this.cc,
-  });
+    required this.controller,
+  }) : super(key: key);
 
   @override
-  State<ZoomDetect> createState() => _ZoomDetectState();
+  State<CameraInteractionHandler> createState() =>
+      _CameraInteractionHandlerState();
 }
 
-@override
-class _ZoomDetectState extends State<ZoomDetect> {
-  double startZoom = 1.0;
-  Offset? focusPoint;
-  static const EventChannel volumeButtonChannel =
+class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
+    with SingleTickerProviderStateMixin {
+  double _startZoom = 1.0;
+  Offset? _focusPoint;
+  late AnimationController _focusAnimationController;
+  static const EventChannel _volumeButtonChannel =
       EventChannel('volume_button_events');
 
   @override
   void initState() {
     super.initState();
-    _listenForVolumeButtons();
+    _initVolumeButtonHandler();
+
+    // Animation für das Fokusquadrat
+    _focusAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
   }
 
-  void _listenForVolumeButtons() {
-    volumeButtonChannel.receiveBroadcastStream().listen((event) {
+  @override
+  void dispose() {
+    _focusAnimationController.dispose();
+    super.dispose();
+  }
+
+  /// Initialisiert den Event-Listener für die Lautstärketasten
+  void _initVolumeButtonHandler() {
+    _volumeButtonChannel.receiveBroadcastStream().listen((event) {
       if (event == "volume_up") {
-        _adjustZoom(0.1); // Increase zoom
+        _adjustZoom(0.1); // Zoom erhöhen
       } else if (event == "volume_down") {
-        _adjustZoom(-0.1); // Decrease zoom
+        _adjustZoom(-0.1); // Zoom verringern
       }
     }, onError: (error) {
-      debugPrint("Error receiving volume button events: $error");
+      debugPrint("Fehler beim Empfang von Lautstärketasten-Events: $error");
     });
   }
 
+  /// Passt den Zoom basierend auf dem angegebenen Schritt an
   void _adjustZoom(double zoomStep) async {
     double newZoom = (widget.model.zoom + zoomStep).clamp(
         widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
     await widget.model.setZoom(newZoom);
   }
 
+  /// Zeigt kurz den Fokuspunkt an und blendet ihn dann aus
+  void _showFocusPoint(Offset point) {
+    setState(() {
+      _focusPoint = point;
+    });
+
+    _focusAnimationController.forward(from: 0.0);
+    Future.delayed(const Duration(milliseconds: 800)).then((_) {
+      if (mounted) {
+        _focusAnimationController.reverse().then((_) {
+          if (mounted) {
+            setState(() => _focusPoint = null);
+          }
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onScaleStart: (zoomDelta) {
-        startZoom = widget.model.zoom;
+      // Zoom-Gesten
+      onScaleStart: (details) {
+        _startZoom = widget.model.zoom;
       },
-      onScaleUpdate: (zoomDelta) {
-        double newZoom = (startZoom * zoomDelta.scale).clamp(
+      onScaleUpdate: (details) {
+        double newZoom = (_startZoom * details.scale).clamp(
             widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
         widget.model.setZoom(newZoom);
       },
-      onTapDown: (details) {
-        setState(() {
-          this.focusPoint = details.localPosition;
-        });
 
-        RenderBox? box = context.findRenderObject() as RenderBox?;
+      // Fokus-Gesten
+      onTapDown: (details) {
+        _showFocusPoint(details.localPosition);
+
+        final RenderBox? box = context.findRenderObject() as RenderBox?;
         if (box == null || box.size.isEmpty) return;
 
-        final Offset focusPoint = Offset(
+        final Offset normalizedFocusPoint = Offset(
           details.localPosition.dx / box.size.width,
           details.localPosition.dy / box.size.height,
         );
-        widget.model.focus(focusPoint);
+        widget.model.focus(normalizedFocusPoint);
       },
-      onTapUp: (details) {
-        Future.delayed(Duration(milliseconds: 500)).then((_) {
-          if (mounted) {
-            setState(() {
-              focusPoint = null;
-            });
-          }
-        });
-      },
+
+      // Kamerawechsel per Doppeltipp
       onDoubleTap: () async {
+        HapticFeedback.mediumImpact(); // Haptisches Feedback beim Kamerawechsel
         await widget.model.nextCamera();
       },
+
+      // Kameravorschau und UI-Elemente
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          CameraPreview(widget.cc),
-          if (focusPoint != null)
-            Positioned(
-              left: focusPoint!.dx,
-              top: focusPoint!.dy,
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 2,
+          // Kameravorschau mit korrekter Ausrichtung
+          _buildCameraPreview(),
+
+          // Fokusquadrat (wenn ein Fokuspunkt gesetzt wurde)
+          if (_focusPoint != null) _buildFocusPoint(),
+        ],
+      ),
+    );
+  }
+
+  /// Baut die Kameravorschau mit korrekter Ausrichtung
+  Widget _buildCameraPreview() {
+    // Holen der Geräte-Orientierung (Portrait/Landscape)
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    // Rotation für Hoch- und Querformat
+    final shouldRotate = !isLandscape;
+    // Im Hochformat um 90° drehen, im Querformat keine Drehung
+    final double rotationAngle = shouldRotate ? pi / 2 : pi / 2;
+
+    // Bildschirmgröße ermitteln
+    final screenSize = MediaQuery.of(context).size;
+
+    // So wird das Seitenverhältnis GARANTIERT 3:4 im Hochformat
+    double width, height;
+    if (isLandscape) {
+      // Im Querformat: 4:3
+      height = screenSize.height * 0.9;
+      width = height * 4 / 3;
+    } else {
+      // Im Hochformat: 3:4
+      width = screenSize.width * 0.9;
+      height = width * 4 / 3;
+    }
+
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: Container(
+          // FESTE Größe für die Vorschau, damit das Verhältnis GARANTIERT stimmt
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.black,
+          ),
+          child: ClipRect(
+            child: Transform.rotate(
+              angle: rotationAngle,
+              alignment: Alignment.center,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: shouldRotate ? 3 / 4 : 4 / 3,
+                  child: SizedBox.expand(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width:
+                            widget.controller.value.previewSize?.width ?? 1920,
+                        height:
+                            widget.controller.value.previewSize?.height ?? 1080,
+                        child: CameraPreview(widget.controller),
+                      ),
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
-        ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Baut das animierte Fokusquadrat
+  Widget _buildFocusPoint() {
+    return Positioned(
+      left: _focusPoint!.dx - 25, // Zentrieren des Quadrats um den Fokuspunkt
+      top: _focusPoint!.dy - 25,
+      child: AnimatedBuilder(
+        animation: _focusAnimationController,
+        builder: (context, child) {
+          final double size = 50 - (_focusAnimationController.value * 10);
+          return Opacity(
+            opacity: 1.0 - _focusAnimationController.value * 0.5,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
