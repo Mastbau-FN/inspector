@@ -12,13 +12,17 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
-import 'package:MBG_Inspektionen/classes/user.dart';
+
 import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/backend/helpers.dart' as Helper;
 import 'package:flutter/services.dart';
 
 import '../notifications/controller.dart';
+import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+
+import 'package:MBG_Inspektionen/options.dart';
 
 // Diese drei Konstanten nur hier zentral definieren.
 // Von hier aus werden sie dann auch in anderen Dateien importiert.
@@ -934,14 +938,71 @@ class FailedRequestmanager {
   }
 
   /// Andere Methoden wie loadAndCacheAll, setOnlineAll etc. können hier bleiben ...
-  Future<bool> loadAndCacheAll<ChildData, ParentData, DDModel>(
+  Future<bool> loadAndCacheAll<
+      ChildData extends WithLangText,
+      ParentData extends WithOffline,
+      DDModel extends DropDownModel<ChildData, ParentData>>(
     DDModel caller,
     int depth, {
     String? name,
     String? parentID,
   }) async {
-    // ...
-    return false;
+    // base-case: CheckPointDefects have no children
+    if (depth == 0) return true;
+    depth--;
+    try {
+      //fail early if no connection
+      await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+      //get all children, this will also cache them internally
+      var children = await caller
+          .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
+          .last;
+      if (caller.currentData is InspectionLocation) {
+        final location = caller.currentData as InspectionLocation;
+        if (location.dokuspaths != null && location.dokuspaths!.isNotEmpty) {
+          var docus = location.dokuspaths;
+          if (docus != null) {
+            assert((await API().user) != null,
+                'Niemand eingeloggt'); // Using string directly instead of S.current
+            for (var doc in docus) {
+              await API().getDocument(doc.docupath);
+            }
+          }
+        }
+      }
+
+      var didSucceed = await Future.wait(children.map(
+        (child) async {
+          if (depth == 0)
+            return true; //base-case as to not call generateNextModel
+          bool childSucceeded = await loadAndCacheAll(
+              caller.generateNextModel(child), depth,
+              name: name, parentID: caller.currentData.id);
+          return childSucceeded;
+        },
+      ));
+
+      //if all children succeeded recursive calling succeeded
+      bool success = didSucceed.every((el) => el);
+      if (success) {
+        caller.currentData.forceOffline = true;
+        if (parentID == null) return false;
+
+        try {
+          await API().local.storeData(caller.currentData, forId: parentID);
+        } catch (e) {
+          return false;
+        }
+      }
+
+      return success;
+    } catch (error) {
+      debugPrint('failed! ${depth + 1}');
+      showToast(error.toString() +
+          "\n" +
+          'Probiere es später nochmal'); // Using string directly instead of S.current
+      return false; //failed
+    }
   }
 
   Future<void> setOnlineAll<ChildData, ParentData, DDModel>(
