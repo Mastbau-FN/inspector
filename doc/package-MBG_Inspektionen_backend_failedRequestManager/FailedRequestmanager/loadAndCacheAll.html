@@ -27,7 +27,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/">backend&#47;failedRequestManager.dart</a></li>
     <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/FailedRequestmanager-class.html">FailedRequestmanager</a></li>
-    <li class="self-crumb">loadAndCacheAll&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>, <span class="type-parameter">DDModel</span>&gt; method</li>
+    <li class="self-crumb">loadAndCacheAll&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends WithOffline</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>&gt;</span>&gt; method</li>
   </ol>
   <div class="self-name">loadAndCacheAll</div>
   <form class="search navbar-right" role="search">
@@ -52,13 +52,13 @@
     data-above-sidebar="package-MBG_Inspektionen_backend_failedRequestManager&#47;FailedRequestmanager-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-method">loadAndCacheAll&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>, <span class="type-parameter">DDModel</span>&gt;</span> method 
+<h1><span class="kind-method">loadAndCacheAll&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends WithOffline</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>&gt;</span>&gt;</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>&gt;</span></span>
-<span class="name ">loadAndCacheAll</span>&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>, <span class="type-parameter">DDModel</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="loadAndCacheAll-param-caller"><span class="type-annotation">DDModel</span> <span class="parameter-name">caller</span>, </span></li>
+<span class="name ">loadAndCacheAll</span>&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends WithOffline</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>&gt;</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="loadAndCacheAll-param-caller"><span class="type-annotation">DDModel</span> <span class="parameter-name">caller</span>, </span></li>
 <li><span class="parameter" id="loadAndCacheAll-param-depth"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">depth</span>, {</span></li>
 <li><span class="parameter" id="loadAndCacheAll-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">name</span>, </span></li>
 <li><span class="parameter" id="loadAndCacheAll-param-parentID"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">parentID</span>, </span></li>
@@ -76,14 +76,71 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;bool&gt; loadAndCacheAll&lt;ChildData, ParentData, DDModel&gt;(
+  <pre class="language-dart"><code class="language-dart">Future&lt;bool&gt; loadAndCacheAll&lt;
+    ChildData extends WithLangText,
+    ParentData extends WithOffline,
+    DDModel extends DropDownModel&lt;ChildData, ParentData&gt;&gt;(
   DDModel caller,
   int depth, {
   String? name,
   String? parentID,
 }) async {
-  &#47;&#47; ...
-  return false;
+  &#47;&#47; base-case: CheckPointDefects have no children
+  if (depth == 0) return true;
+  depth--;
+  try {
+    &#47;&#47;fail early if no connection
+    await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+    &#47;&#47;get all children, this will also cache them internally
+    var children = await caller
+        .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
+        .last;
+    if (caller.currentData is InspectionLocation) {
+      final location = caller.currentData as InspectionLocation;
+      if (location.dokuspaths != null &amp;&amp; location.dokuspaths!.isNotEmpty) {
+        var docus = location.dokuspaths;
+        if (docus != null) {
+          assert((await API().user) != null,
+              &#39;Niemand eingeloggt&#39;); &#47;&#47; Using string directly instead of S.current
+          for (var doc in docus) {
+            await API().getDocument(doc.docupath);
+          }
+        }
+      }
+    }
+
+    var didSucceed = await Future.wait(children.map(
+      (child) async {
+        if (depth == 0)
+          return true; &#47;&#47;base-case as to not call generateNextModel
+        bool childSucceeded = await loadAndCacheAll(
+            caller.generateNextModel(child), depth,
+            name: name, parentID: caller.currentData.id);
+        return childSucceeded;
+      },
+    ));
+
+    &#47;&#47;if all children succeeded recursive calling succeeded
+    bool success = didSucceed.every((el) =&gt; el);
+    if (success) {
+      caller.currentData.forceOffline = true;
+      if (parentID == null) return false;
+
+      try {
+        await API().local.storeData(caller.currentData, forId: parentID);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    return success;
+  } catch (error) {
+    debugPrint(&#39;failed! ${depth + 1}&#39;);
+    showToast(error.toString() +
+        &quot;\n&quot; +
+        &#39;Probiere es später nochmal&#39;); &#47;&#47; Using string directly instead of S.current
+    return false; &#47;&#47;failed
+  }
 }</code></pre>
 </section>
 
@@ -100,7 +157,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/">failedRequestManager</a></li>
     <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/FailedRequestmanager-class.html">FailedRequestmanager</a></li>
-    <li class="self-crumb">loadAndCacheAll&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>, <span class="type-parameter">DDModel</span>&gt; method</li>
+    <li class="self-crumb">loadAndCacheAll&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>, <span class="type-parameter">ParentData extends WithOffline</span>, <span class="type-parameter">DDModel extends DropDownModel&lt;<wbr><span class="type-parameter">ChildData</span>, <span class="type-parameter">ParentData</span>&gt;</span>&gt; method</li>
 </ol>
 
     <h5>FailedRequestmanager class</h5>
