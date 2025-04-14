@@ -8,6 +8,11 @@
         <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
         <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
         <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+        <!-- Berechtigungen für Android 13+ (API 33+) -->
+        <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+        <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+        <!-- Berechtigungen für Android 14+ (API 34+) -->
+        <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
    <application
         android:label="MBG Inspektionen"

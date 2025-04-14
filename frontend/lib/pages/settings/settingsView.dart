@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
@@ -160,7 +161,97 @@ class OpenNextRequestTile extends StatelessWidget {
 }
 
 /// Requests storage permission if needed
-Future<bool> _requestStoragePermission(BuildContext context) async {
+Future<bool> requestStoragePermission(BuildContext context) async {
+  // Android-Version ermitteln
+  int? androidVersion;
+  if (Platform.isAndroid) {
+    final deviceInfo = DeviceInfoPlugin();
+    final androidInfo = await deviceInfo.androidInfo;
+    androidVersion = androidInfo.version.sdkInt;
+    debugPrint('Android SDK Version: $androidVersion');
+  }
+
+  // Unterschiedliche Berechtigungsabfrage basierend auf Android-Version
+  if (Platform.isAndroid && androidVersion != null) {
+    if (androidVersion >= 34) {
+      // Android 14+ (API 34+)
+      // Android 14+ verwendet den neuen Photo Picker für selektiven Medienzugriff
+      debugPrint('Android 14+ erkannt, nutze READ_MEDIA_VISUAL_USER_SELECTED');
+
+      try {
+        // Für Android 14+ (API 34+) - selektiver Medienzugriff
+        var visualMediaStatus = await Permission.photos.status;
+        if (!visualMediaStatus.isGranted) {
+          final result = await Permission.photos.request();
+          if (!result.isGranted) {
+            // Spezielle Anleitung für Android 14+
+            await _showPermissionSettingsDialog(
+                context,
+                'Medienzugriff erforderlich',
+                'Für Backups benötigt die App Zugriff auf ausgewählte Medien. Bitte erlauben Sie den Zugriff in den Einstellungen und wählen Sie die relevanten Ordner.');
+            return false;
+          }
+        }
+        return true;
+      } catch (e) {
+        debugPrint('Fehler beim Anfordern der Medienberechtigungen: $e');
+        return false;
+      }
+    } else if (androidVersion >= 33) {
+      // Android 13 (API 33)
+      // Für Android 13 werden gezielt Photos & Videos Berechtigungen benötigt
+      var photoStatus = await Permission.photos.status;
+      var videoStatus = await Permission.videos.status;
+
+      if (!photoStatus.isGranted) {
+        final photoResult = await Permission.photos.request();
+        if (!photoResult.isGranted) {
+          await _showPermissionSettingsDialog(
+              context,
+              'Fotos-Zugriff erforderlich',
+              'Für das Erstellen von Backups benötigt die App Zugriff auf Ihre Fotos.');
+          return false;
+        }
+      }
+
+      if (!videoStatus.isGranted) {
+        final videoResult = await Permission.videos.request();
+        if (!videoResult.isGranted) {
+          await _showPermissionSettingsDialog(
+              context,
+              'Video-Zugriff erforderlich',
+              'Für das Erstellen von Backups benötigt die App Zugriff auf Ihre Videos.');
+          return false;
+        }
+      }
+
+      return true;
+    } else if (androidVersion >= 30) {
+      // Android 11-12 (API 30-32)
+      // Prüfe Speicherberechtigung für Android 11 und 12
+      var externalStatus = await Permission.manageExternalStorage.status;
+      if (!externalStatus.isGranted) {
+        debugPrint('Externe Speicherberechtigung fehlt (Android 11-12)');
+
+        // Versuche zunächst, die Berechtigung direkt anzufordern
+        final result = await Permission.manageExternalStorage.request();
+        if (result.isGranted) {
+          debugPrint('Externe Speicherberechtigung wurde gewährt');
+        } else {
+          // Zeige Dialog zum Öffnen der Einstellungen
+          await _showPermissionSettingsDialog(
+              context,
+              'Erweiterte Speicherberechtigung erforderlich',
+              'Für das Erstellen von Backups benötigt die App erweiterten Zugriff auf den Speicher.');
+          return false;
+        }
+      }
+
+      return true;
+    }
+  }
+
+  // Fallback für alle anderen Versionen (Android 10 und niedriger oder andere Plattformen)
   // Prüfe Speicherberechtigung
   var status = await Permission.storage.status;
   if (!status.isGranted) {
@@ -172,99 +263,52 @@ Future<bool> _requestStoragePermission(BuildContext context) async {
       debugPrint('Speicherberechtigung wurde gewährt');
     } else {
       // Zeige Dialog zum Öffnen der Einstellungen
-      final bool? shouldOpenSettings = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Speicherzugriff erforderlich'),
-            content: Text(
-                'Für das Erstellen von Backups benötigt die App Zugriff auf den Speicher. Möchten Sie die Einstellungen öffnen, um die Berechtigung zu erteilen?'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Abbrechen'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              TextButton(
-                child: Text('Einstellungen öffnen'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (shouldOpenSettings == true) {
-        debugPrint('Öffne App-Einstellungen für Speicherberechtigung...');
-        await openAppSettings();
-
-        // Warte kurz und prüfe dann erneut
-        await Future.delayed(Duration(seconds: 2));
-        status = await Permission.storage.status;
-        if (!status.isGranted) {
-          debugPrint('Speicherberechtigung immer noch nicht erlaubt');
-          return false;
-        }
-        debugPrint('Speicherberechtigung wurde erteilt');
-      } else {
-        debugPrint('Benutzer hat abgebrochen');
-        return false;
-      }
-    }
-  }
-
-  // Prüfe externe Speicherberechtigung (für Android 11+)
-  var externalStatus = await Permission.manageExternalStorage.status;
-  if (!externalStatus.isGranted) {
-    debugPrint('Externe Speicherberechtigung fehlt');
-
-    // Versuche zunächst, die Berechtigung direkt anzufordern
-    final result = await Permission.manageExternalStorage.request();
-    if (result.isGranted) {
-      debugPrint('Externe Speicherberechtigung wurde gewährt');
-    } else {
-      // Zeige Dialog zum Öffnen der Einstellungen
-      final bool? shouldOpenSettings = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Erweiterte Speicherberechtigung erforderlich'),
-            content: Text(
-                'Für das Erstellen von Backups benötigt die App erweiterten Zugriff auf den Speicher. Möchten Sie die Einstellungen öffnen, um die Berechtigung zu erteilen?'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Abbrechen'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              TextButton(
-                child: Text('Einstellungen öffnen'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (shouldOpenSettings == true) {
-        debugPrint(
-            'Öffne App-Einstellungen für externe Speicherberechtigung...');
-        await openAppSettings();
-
-        // Warte kurz und prüfe dann erneut
-        await Future.delayed(Duration(seconds: 2));
-        externalStatus = await Permission.manageExternalStorage.status;
-        if (!externalStatus.isGranted) {
-          debugPrint('Externe Speicherberechtigung immer noch nicht erlaubt');
-          return false;
-        }
-        debugPrint('Externe Speicherberechtigung wurde erteilt');
-      } else {
-        debugPrint('Benutzer hat abgebrochen');
-        return false;
-      }
+      await _showPermissionSettingsDialog(
+          context,
+          'Speicherzugriff erforderlich',
+          'Für das Erstellen von Backups benötigt die App Zugriff auf den Speicher.');
+      return false;
     }
   }
 
   return true;
+}
+
+/// Hilfsfunktion zum Anzeigen des Berechtigungsdialogs
+Future<bool> _showPermissionSettingsDialog(
+    BuildContext context, String title, String content) async {
+  final bool? shouldOpenSettings = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(
+            '$content Möchten Sie die Einstellungen öffnen, um die Berechtigung zu erteilen?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Abbrechen'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: Text('Einstellungen öffnen'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (shouldOpenSettings == true) {
+    debugPrint('Öffne App-Einstellungen für Berechtigung...');
+    await openAppSettings();
+
+    // Warte kurz und prüfe dann erneut
+    await Future.delayed(Duration(seconds: 2));
+    return false; // Wir gehen davon aus, dass der Benutzer die Berechtigung später erteilen wird
+  } else {
+    debugPrint('Benutzer hat abgebrochen');
+    return false;
+  }
 }
 
 /// Creates a backup as ZIP and shows the progress with a progress indicator.
@@ -284,7 +328,7 @@ class _BackupTileState extends State<BackupTile> {
 
   void onPress(BuildContext context) async {
     // Prüfe zuerst die Berechtigungen, bevor wir irgendetwas anderes tun
-    if (!await _requestStoragePermission(context)) {
+    if (!await requestStoragePermission(context)) {
       showToast('Speicherberechtigung ist erforderlich für das Backup');
       return;
     }
@@ -715,50 +759,94 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   }
 
   Future<bool> _performBackup(ExtendedProgressStateUpdater? updater) async {
-    final externalDir = await getExternalStorageDirectory();
-    if (externalDir == null) {
-      showToast('Could not get external directory');
-      return false;
-    }
-
     try {
-      final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
-      if (!await backupDir.exists()) {
-        await backupDir.create();
+      // Prüfe zuerst die Berechtigungen, bevor wir das Backup starten
+      if (!await requestStoragePermission(
+          GlobalKey<NavigatorState>().currentContext!)) {
+        showToast('Speicherberechtigungen fehlen für das Backup');
+        debugPrint('Backup abgebrochen: Fehlende Speicherberechtigungen');
+
+        // Benachrichtigung für fehlende Berechtigung
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 10,
+            channelKey: 'backup_progress',
+            title: 'Backup fehlgeschlagen',
+            body:
+                'Speicherberechtigungen fehlen, bitte in Einstellungen erteilen',
+            notificationLayout: NotificationLayout.Default,
+          ),
+        );
+
+        return false;
       }
 
-      final backupPath =
-          '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
-      debugPrint('Starting backup to: $backupPath');
-
-      final upsn = UploadProgressWriter();
-      await upsn.awaitInitDone();
-      upsn.setLoading(true);
-      await upsn.setProgress(0.0);
-
-      // Prüfe Benachrichtigungsberechtigung
-      final isAllowed = await AwesomeNotifications().isNotificationAllowed();
-      if (!isAllowed) {
-        debugPrint(
-            'Benachrichtigungen sind nicht erlaubt, fordere Berechtigung an...');
-        await AwesomeNotifications().requestPermissionToSendNotifications();
+      final externalDir = await getExternalStorageDirectory();
+      if (externalDir == null) {
+        showToast('Could not get external directory');
+        return false;
       }
 
-      await for (BackupProgress progressValue in backup(backupPath)) {
-        debugPrint(
-            'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
-        await upsn.setBackupProgress(progressValue);
-        try {
-          updater?.setDetailedProgress(
-            overallProgress: progressValue.progress,
-            success: null,
-            inspectionId: 'Backup',
-            inspProgress: progressValue.progress,
-            etaString: '',
-          );
-        } catch (e) {
-          debugPrint('Could not update progress: $e');
+      try {
+        final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
+        if (!await backupDir.exists()) {
+          await backupDir.create();
         }
+
+        final backupPath =
+            '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
+        debugPrint('Starting backup to: $backupPath');
+
+        final upsn = UploadProgressWriter();
+        await upsn.awaitInitDone();
+        upsn.setLoading(true);
+        await upsn.setProgress(0.0);
+
+        // Prüfe Benachrichtigungsberechtigung
+        final isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (!isAllowed) {
+          debugPrint(
+              'Benachrichtigungen sind nicht erlaubt, fordere Berechtigung an...');
+          await AwesomeNotifications().requestPermissionToSendNotifications();
+        }
+
+        await for (BackupProgress progressValue in backup(backupPath)) {
+          debugPrint(
+              'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
+          await upsn.setBackupProgress(progressValue);
+          try {
+            updater?.setDetailedProgress(
+              overallProgress: progressValue.progress,
+              success: null,
+              inspectionId: 'Backup',
+              inspProgress: progressValue.progress,
+              etaString: '',
+            );
+          } catch (e) {
+            debugPrint('Could not update progress: $e');
+          }
+
+          try {
+            await AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: 1,
+                channelKey:
+                    'progress', // Verwende den lautlosen Kanal statt backup_progress
+                title: 'Backup wird erstellt',
+                body:
+                    '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
+                notificationLayout: NotificationLayout.Default,
+                progress: progressValue.progress,
+              ),
+            );
+          } catch (e) {
+            debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+          }
+        }
+        debugPrint('Backup completed successfully');
+        upsn.setLoading(false);
+        upsn.setSuccess(true);
+        showToast('Backup erfolgreich erstellt');
 
         try {
           await AwesomeNotifications().createNotification(
@@ -766,55 +854,38 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
               id: 1,
               channelKey:
                   'progress', // Verwende den lautlosen Kanal statt backup_progress
-              title: 'Backup wird erstellt',
-              body:
-                  '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
+              title: 'Backup erfolgreich',
+              body: 'Das Backup wurde erfolgreich erstellt',
               notificationLayout: NotificationLayout.Default,
-              progress: progressValue.progress,
             ),
           );
         } catch (e) {
           debugPrint('Fehler beim Senden der Benachrichtigung: $e');
         }
-      }
-      debugPrint('Backup completed successfully');
-      upsn.setLoading(false);
-      upsn.setSuccess(true);
-      showToast('Backup erfolgreich erstellt');
-
-      try {
-        await AwesomeNotifications().createNotification(
-          content: NotificationContent(
-            id: 1,
-            channelKey:
-                'progress', // Verwende den lautlosen Kanal statt backup_progress
-            title: 'Backup erfolgreich',
-            body: 'Das Backup wurde erfolgreich erstellt',
-            notificationLayout: NotificationLayout.Default,
-          ),
-        );
+        return true;
       } catch (e) {
-        debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+        debugPrint('Backup failed: $e');
+        showToast('Backup fehlgeschlagen');
+
+        try {
+          await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: 1,
+              channelKey:
+                  'progress', // Verwende den lautlosen Kanal statt backup_progress
+              title: 'Backup fehlgeschlagen',
+              body: 'Es gab einen Fehler beim Erstellen des Backups',
+              notificationLayout: NotificationLayout.Default,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+        }
+        return false;
       }
-      return true;
     } catch (e) {
       debugPrint('Backup failed: $e');
       showToast('Backup fehlgeschlagen');
-
-      try {
-        await AwesomeNotifications().createNotification(
-          content: NotificationContent(
-            id: 1,
-            channelKey:
-                'progress', // Verwende den lautlosen Kanal statt backup_progress
-            title: 'Backup fehlgeschlagen',
-            body: 'Es gab einen Fehler beim Erstellen des Backups',
-            notificationLayout: NotificationLayout.Default,
-          ),
-        );
-      } catch (e) {
-        debugPrint('Fehler beim Senden der Benachrichtigung: $e');
-      }
       return false;
     }
   }

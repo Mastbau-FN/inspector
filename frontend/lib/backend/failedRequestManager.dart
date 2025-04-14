@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:MBG_Inspektionen/main.dart'; // Für MyApp
+import 'package:MBG_Inspektionen/pages/settings/settingsView.dart'
+    show requestStoragePermission;
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
@@ -17,6 +21,7 @@ import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/backend/helpers.dart' as Helper;
 import 'package:flutter/services.dart';
+import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 
 import '../notifications/controller.dart';
 
@@ -951,5 +956,74 @@ class FailedRequestmanager {
     String? parentID,
   }) async {
     // ...
+  }
+
+  Future<bool> _performBackup(ExtendedProgressStateUpdater? updater) async {
+    try {
+      // Kontext holen (falls möglich)
+      BuildContext? context;
+      try {
+        // Versuche den aktuellen BuildContext zu bekommen, falls verfügbar
+        if (Navigator.of(MyApp.navigatorKey.currentContext!).canPop()) {
+          context = MyApp.navigatorKey.currentContext;
+        }
+      } catch (e) {
+        debugPrint('Kein gültiger BuildContext verfügbar: $e');
+      }
+
+      // Prüfe Speicherberechtigungen vor dem Backup
+      if (context != null) {
+        // Rufe die externe Funktion direkt über den Import auf
+        if (!(await requestStoragePermission(context))) {
+          showToast('Speicherberechtigungen fehlen für das Backup');
+          debugPrint('Backup abgebrochen: Fehlende Speicherberechtigungen');
+
+          // Benachrichtigung über fehlende Berechtigung
+          await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: 10,
+              channelKey: 'backup_progress',
+              title: 'Backup fehlgeschlagen',
+              body:
+                  'Speicherberechtigungen fehlen, bitte in Einstellungen erteilen',
+              notificationLayout: NotificationLayout.Default,
+            ),
+          );
+
+          return false;
+        }
+      } else {
+        debugPrint(
+            'Warnung: Konnte Speicherberechtigungen nicht prüfen (kein Kontext)');
+      }
+
+      final externalDir = await getExternalStorageDirectory();
+      if (externalDir == null) {
+        showToast('Could not get external directory');
+        return false;
+      }
+
+      // Rest der Backup-Logik
+      try {
+        final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
+        if (!await backupDir.exists()) {
+          await backupDir.create();
+        }
+
+        final backupPath =
+            '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
+        debugPrint('Starting backup to: $backupPath');
+
+        // ... Rest des Codes ...
+
+        return true;
+      } catch (e) {
+        debugPrint('Backup failed: $e');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Backup process failed: $e');
+      return false;
+    }
   }
 }
