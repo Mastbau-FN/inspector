@@ -12,7 +12,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
-import 'package:MBG_Inspektionen/classes/user.dart';
+
 import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/backend/helpers.dart' as Helper;
@@ -21,9 +21,8 @@ import 'package:flutter/services.dart';
 import '../notifications/controller.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
-import 'package:MBG_Inspektionen/generated/l10n.dart';
+
 import 'package:MBG_Inspektionen/options.dart';
-import 'package:MBG_Inspektionen/l10n/locales.dart';
 
 // Diese drei Konstanten nur hier zentral definieren.
 // Von hier aus werden sie dann auch in anderen Dateien importiert.
