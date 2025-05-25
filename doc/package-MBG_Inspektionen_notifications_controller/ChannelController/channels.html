@@ -33,17 +33,14 @@
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
 <div
@@ -70,36 +67,14 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">List&lt;NotificationChannel&gt; channels = [
   NotificationChannel(
-      channelGroupKey: &#39;mbg_retryfailed_group&#39;,
-      channelKey: &#39;progress&#39;,
-      channelName: &#39;Sync Fortschritt (lautlos)&#39;,
-      channelDescription: &#39;Zeigt den Fortschritt der Synchronisation an&#39;,
+      channelKey: &#39;mbg_all_notifications&#39;,
+      channelName: &#39;MBG App Benachrichtigungen&#39;,
+      channelDescription: &#39;Alle Benachrichtigungen der MBG App&#39;,
       defaultColor: mbgpalette0,
-      importance: NotificationImportance.None,
-      playSound: false,
-      enableVibration: false,
-      ledColor: Colors.transparent),
-  NotificationChannel(
-      channelGroupKey: &#39;mbg_retryfailed_group&#39;,
-      channelKey: &#39;backup_progress&#39;,
-      channelName: &#39;Backup Fortschritt (lautlos)&#39;,
-      channelDescription: &#39;Zeigt den Fortschritt des Backup-Prozesses an&#39;,
-      defaultColor: mbgpalette0,
-      importance: NotificationImportance.None,
-      playSound: false,
-      enableVibration: false,
-      ledColor: Colors.transparent),
-  NotificationChannel(
-      channelGroupKey: &#39;mbg_retryfailed_group&#39;,
-      channelKey: &#39;sync_complete&#39;,
-      channelName: &#39;Sync Abschluss (mit Ton)&#39;,
-      channelDescription:
-          &#39;Benachrichtigt über den Abschluss der Synchronisation&#39;,
-      defaultColor: Colors.green,
-      importance: NotificationImportance.High,
+      importance: NotificationImportance.Max,
       playSound: true,
       enableVibration: true,
-      ledColor: Colors.green),
+      ledColor: Colors.blue),
 ];</code></pre>
 </section>
 

@@ -32,17 +32,14 @@
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
-  <div class="toggle" id="theme-button" title="Toggle brightness">
-    <label for="theme">
-      <input type="checkbox" id="theme" value="light-theme">
-      <span id="dark-theme-button" class="material-symbols-outlined">
-        dark_mode
-      </span>
-      <span id="light-theme-button" class="material-symbols-outlined">
-        light_mode
-      </span>
-    </label>
-  </div>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
 </header>
 <main>
   <div
@@ -70,90 +67,75 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; reinitializeNotificationChannels() async {
-  debugPrint(
-      &#39;Neuinitialisierung der Benachrichtigungskanäle für die Synchronisierung...&#39;);
-
-  &#47;&#47; Prüfe zuerst, ob Benachrichtigungen erlaubt sind
-  final isAllowed = await AwesomeNotifications().isNotificationAllowed();
-  if (!isAllowed) {
-    debugPrint(
-        &#39;Benachrichtigungen sind nicht erlaubt, fordere Berechtigung an...&#39;);
-    final requestResult =
-        await AwesomeNotifications().requestPermissionToSendNotifications();
-    if (!requestResult) {
-      debugPrint(&#39;Benachrichtigungen wurden abgelehnt!&#39;);
-      return;
-    }
-    debugPrint(&#39;Benachrichtigungen wurden erlaubt!&#39;);
-  }
+  debugPrint(&#39;Initialisiere alle Benachrichtigungskanäle...&#39;);
 
   try {
-    &#47;&#47; Lösche alle vorhandenen Kanäle
-    await AwesomeNotifications().removeChannel(&#39;progress&#39;);
-    await AwesomeNotifications().removeChannel(&#39;backup_progress&#39;);
-    await AwesomeNotifications().removeChannel(&#39;sync_complete&#39;);
+    &#47;&#47; Zuerst alle vorhandenen Kanäle entfernen
+    await AwesomeNotifications()
+        .cancelAll(); &#47;&#47; Alle aktiven Benachrichtigungen löschen
 
-    &#47;&#47; Füge Kanäle neu hinzu mit expliziten Einstellungen
+    &#47;&#47; Standard-Kanäle direkt entfernen
+    try {
+      await AwesomeNotifications().removeChannel(&#39;progress&#39;);
+      await AwesomeNotifications().removeChannel(&#39;backup_progress&#39;);
+      await AwesomeNotifications().removeChannel(&#39;sync_complete&#39;);
+      debugPrint(&#39;Standard-Kanäle entfernt&#39;);
+    } catch (e) {
+      debugPrint(&#39;Fehler beim Entfernen der Standard-Kanäle: $e&#39;);
+    }
+
+    &#47;&#47; Warte kurz, um sicherzustellen, dass die Kanäle wirklich entfernt wurden
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    &#47;&#47; WICHTIG: Alle Kanäle in einen einzigen Hauptkanal konsolidieren
+    &#47;&#47; Dies kann auf manchen Android-Geräten die Aktivierung erleichtern
     await AwesomeNotifications().initialize(
       &#39;resource:&#47;&#47;drawable&#47;ic_icon&#39;,
       [
         NotificationChannel(
-          channelGroupKey: &#39;mbg_retryfailed_group&#39;,
-          channelKey: &#39;progress&#39;,
-          channelName: &#39;Sync Fortschritt (LAUTLOS)&#39;,
-          channelDescription: &#39;Zeigt den Fortschritt der Synchronisation an&#39;,
+          channelKey:
+              &#39;mbg_all_notifications&#39;, &#47;&#47; Ein Hauptkanal für alle Benachrichtigungen
+          channelName: &#39;MBG App Benachrichtigungen&#39;,
+          channelDescription: &#39;Alle Benachrichtigungen der MBG App&#39;,
           defaultColor: Colors.blue,
-          importance: NotificationImportance.Min,
-          playSound: false,
-          enableVibration: false,
-          ledColor: Colors.transparent,
-        ),
-        NotificationChannel(
-          channelGroupKey: &#39;mbg_retryfailed_group&#39;,
-          channelKey: &#39;backup_progress&#39;,
-          channelName: &#39;Backup Fortschritt (LAUTLOS)&#39;,
-          channelDescription: &#39;Zeigt den Fortschritt des Backup-Prozesses an&#39;,
-          defaultColor: Colors.blue,
-          importance: NotificationImportance.Min,
-          playSound: false,
-          enableVibration: false,
-          ledColor: Colors.transparent,
-        ),
-        NotificationChannel(
-          channelGroupKey: &#39;mbg_retryfailed_group&#39;,
-          channelKey: &#39;sync_complete&#39;,
-          channelName: &#39;Sync Abschluss (MIT TON)&#39;,
-          channelDescription:
-              &#39;Benachrichtigt über den Abschluss der Synchronisation&#39;,
-          defaultColor: Colors.green,
-          importance: NotificationImportance.High,
-          playSound: true,
-          enableVibration: true,
-          ledColor: Colors.green,
+          importance:
+              NotificationImportance.Max, &#47;&#47; Maximale Priorität für Sichtbarkeit
+          playSound: true, &#47;&#47; Sound einschalten für bessere Erkennung
+          enableVibration: true, &#47;&#47; Vibration für bessere Erkennung
+          ledColor: Colors.blue,
+          &#47;&#47; Keine Gruppierung mehr, da dies auf manchen Geräten Probleme verursachen kann
         ),
       ],
     );
 
-    debugPrint(&#39;Benachrichtigungskanäle wurden neu initialisiert&#39;);
+    &#47;&#47; Eine kurze Verzögerung
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    &#47;&#47; Teste die Kanäle mit einer Benachrichtigung
-    try {
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 1,
-          channelKey: &#39;progress&#39;,
-          title: &#39;Test&#39;,
-          body: &#39;Benachrichtigungskanäle wurden initialisiert&#39;,
-          notificationLayout: NotificationLayout.Default,
+    &#47;&#47; Eine aktive Benachrichtigung senden und NICHT sofort löschen
+    &#47;&#47; Dies ist wichtig, damit der Benutzer sie sehen und mit ihr interagieren kann
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 1000,
+        channelKey: &#39;mbg_all_notifications&#39;,
+        title: &#39;Benachrichtigungen aktiviert&#39;,
+        body:
+            &#39;Die App kann jetzt Benachrichtigungen anzeigen. Tippe hier, um Einstellungen zu öffnen.&#39;,
+        notificationLayout: NotificationLayout.Default,
+        payload: {&#39;open_settings&#39;: &#39;true&#39;},
+      ),
+      actionButtons: [
+        NotificationActionButton(
+          key: &#39;OPEN_SETTINGS&#39;,
+          label: &#39;Einstellungen öffnen&#39;,
+          enabled: true,
         ),
-      );
-      debugPrint(&#39;Test-Benachrichtigung erfolgreich gesendet&#39;);
-    } catch (e) {
-      debugPrint(&#39;Fehler beim Senden der Test-Benachrichtigung: $e&#39;);
-    }
+      ],
+    );
+
+    debugPrint(&#39;Benachrichtigungskanal erfolgreich initialisiert&#39;);
   } catch (e) {
     debugPrint(
-        &#39;Fehler bei der Initialisierung der Benachrichtigungskanäle: $e&#39;);
+        &#39;Fehler bei der Initialisierung des Benachrichtigungskanals: $e&#39;);
   }
 }</code></pre>
 </section>
