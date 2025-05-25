@@ -1,5 +1,4 @@
 # changes
 
 - few camera fixes
-- new Sync Stats
-- fixed Download Circle
+- backup with storage permissions
