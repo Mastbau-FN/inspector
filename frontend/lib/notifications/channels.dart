@@ -3,35 +3,13 @@ part of 'controller.dart';
 class ChannelController {
   List<NotificationChannel> channels = [
     NotificationChannel(
-        channelGroupKey: 'mbg_retryfailed_group',
-        channelKey: 'progress',
-        channelName: 'Sync Fortschritt (lautlos)',
-        channelDescription: 'Zeigt den Fortschritt der Synchronisation an',
+        channelKey: 'mbg_all_notifications',
+        channelName: 'MBG App Benachrichtigungen',
+        channelDescription: 'Alle Benachrichtigungen der MBG App',
         defaultColor: mbgpalette0,
-        importance: NotificationImportance.None,
-        playSound: false,
-        enableVibration: false,
-        ledColor: Colors.transparent),
-    NotificationChannel(
-        channelGroupKey: 'mbg_retryfailed_group',
-        channelKey: 'backup_progress',
-        channelName: 'Backup Fortschritt (lautlos)',
-        channelDescription: 'Zeigt den Fortschritt des Backup-Prozesses an',
-        defaultColor: mbgpalette0,
-        importance: NotificationImportance.None,
-        playSound: false,
-        enableVibration: false,
-        ledColor: Colors.transparent),
-    NotificationChannel(
-        channelGroupKey: 'mbg_retryfailed_group',
-        channelKey: 'sync_complete',
-        channelName: 'Sync Abschluss (mit Ton)',
-        channelDescription:
-            'Benachrichtigt über den Abschluss der Synchronisation',
-        defaultColor: Colors.green,
-        importance: NotificationImportance.High,
+        importance: NotificationImportance.Max,
         playSound: true,
         enableVibration: true,
-        ledColor: Colors.green),
+        ledColor: Colors.blue),
   ];
 }

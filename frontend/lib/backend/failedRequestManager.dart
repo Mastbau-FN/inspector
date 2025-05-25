@@ -204,17 +204,18 @@ Future<void> _updateSyncNotification({
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: 888, // Verwende eine andere ID als die abschließenden Benachrichtigungen
-        channelKey: 'progress', // Lautloser Fortschrittskanal
+        channelKey:
+            'mbg_all_notifications', // GEÄNDERT: Neuer gemeinsamer Kanal
         title: title,
         body: body,
         category: NotificationCategory.Progress,
         notificationLayout: NotificationLayout
             .BigText, // Verwende BigText für bessere Textdarstellung
         progress: overallPct,
-        locked: true,
+        locked: false, // Nicht mehr sperren
         displayOnForeground: true,
         displayOnBackground: true,
-        autoDismissible: false,
+        autoDismissible: true, // Automatisch schließen
       ),
       actionButtons: [
         NotificationActionButton(
@@ -366,7 +367,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
               locked: false,
               displayOnForeground: true,
               displayOnBackground: true,
-              autoDismissible: false,
+              autoDismissible: true, // Automatisch schließen
             ),
             actionButtons: [
               NotificationActionButton(
@@ -528,13 +529,14 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     if (input.notificationsAllowed) {
       if (await _ensureNotificationsAllowed()) {
         if (success) {
-          debugPrint('Sende ERFOLGS-Benachrichtigung mit Kanal: SYNC_COMPLETE');
+          debugPrint('Sende ERFOLGS-Benachrichtigung mit gemeinsamen Kanal');
           try {
             // NUR diese Benachrichtigung erzeugt einen Ton (sync_complete Kanal)
             await AwesomeNotifications().createNotification(
               content: NotificationContent(
                 id: 999, // Eindeutige ID für die Erfolgsbenachrichtigung
-                channelKey: 'sync_complete', // Kanal mit Ton
+                channelKey:
+                    'mbg_all_notifications', // GEÄNDERT: Neuer gemeinsamer Kanal
                 title: '✅ Upload Sync Done',
                 body: 'Offline Änderungen wurden erfolgreich synchronisiert.',
                 category: NotificationCategory.Progress,
@@ -543,7 +545,8 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                 locked: false,
                 displayOnForeground: true,
                 displayOnBackground: true,
-                autoDismissible: false,
+                autoDismissible:
+                    false, // Diese Benachrichtigung NICHT automatisch schließen
               ),
               actionButtons: [
                 NotificationActionButton(
@@ -557,13 +560,14 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
             debugPrint('Fehler beim Senden der Erfolgs-Benachrichtigung: $e');
           }
         } else {
-          debugPrint('Sende FEHLER-Benachrichtigung mit Kanal: PROGRESS');
+          debugPrint('Sende FEHLER-Benachrichtigung mit gemeinsamen Kanal');
           try {
             // Fehlerbenachrichtigung - kein Ton
             await AwesomeNotifications().createNotification(
               content: NotificationContent(
                 id: 997, // Eindeutige ID für die Fehlerbenachrichtigung
-                channelKey: 'progress', // Lautloser Kanal
+                channelKey:
+                    'mbg_all_notifications', // GEÄNDERT: Neuer gemeinsamer Kanal
                 title: '❌ Upload Sync Failed',
                 body: 'Einige Uploads konnten nicht verarbeitet werden.',
                 category: NotificationCategory.Progress,
@@ -572,7 +576,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                 locked: false,
                 displayOnForeground: true,
                 displayOnBackground: true,
-                autoDismissible: false,
+                autoDismissible: true, // Automatisch schließen
               ),
               actionButtons: [
                 NotificationActionButton(
@@ -651,49 +655,27 @@ class GroupedInspection {
 Future<bool> _requestNotificationPermission() async {
   debugPrint('Fordere Benachrichtigungsberechtigung an...');
 
-  // Initialisiere die Benachrichtigungen
+  // Initialisiere die Benachrichtigungen mit nur einem Kanal
   await AwesomeNotifications().initialize(
     'resource://drawable/ic_icon',
     [
       NotificationChannel(
-        channelGroupKey: 'mbg_retryfailed_group',
-        channelKey: 'progress',
-        channelName: 'Sync Fortschritt (LAUTLOS)',
-        channelDescription: 'Zeigt den Fortschritt der Synchronisation an',
+        channelKey:
+            'mbg_all_notifications', // GEÄNDERT: Neuer gemeinsamer Kanal
+        channelName: 'MBG App Benachrichtigungen',
+        channelDescription: 'Alle Benachrichtigungen der MBG App',
         defaultColor: Colors.blue,
-        importance: NotificationImportance.Min,
-        playSound: false,
-        enableVibration: false,
-        ledColor: Colors.transparent,
-      ),
-      NotificationChannel(
-        channelGroupKey: 'mbg_retryfailed_group',
-        channelKey: 'backup_progress',
-        channelName: 'Backup Fortschritt (LAUTLOS)',
-        channelDescription: 'Zeigt den Fortschritt des Backup-Prozesses an',
-        defaultColor: Colors.blue,
-        importance: NotificationImportance.Min,
-        playSound: false,
-        enableVibration: false,
-        ledColor: Colors.transparent,
-      ),
-      NotificationChannel(
-        channelGroupKey: 'mbg_retryfailed_group',
-        channelKey: 'sync_complete',
-        channelName: 'Sync Abschluss (MIT TON)',
-        channelDescription:
-            'Benachrichtigt über den Abschluss der Synchronisation',
-        defaultColor: Colors.green,
-        importance: NotificationImportance.High,
-        playSound: true,
-        enableVibration: true,
-        ledColor: Colors.green,
+        importance:
+            NotificationImportance.Max, // Maximale Priorität für Sichtbarkeit
+        playSound: true, // Sound einschalten für bessere Erkennung
+        enableVibration: true, // Vibration für bessere Erkennung
+        ledColor: Colors.blue,
       ),
     ],
   );
 
   // Keine Test-Benachrichtigung mehr senden
-  debugPrint('Benachrichtigungskanäle erfolgreich initialisiert');
+  debugPrint('Benachrichtigungskanal erfolgreich initialisiert');
   return true;
 }
 
