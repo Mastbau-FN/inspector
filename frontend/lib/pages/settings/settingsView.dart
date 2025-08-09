@@ -1110,7 +1110,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
           ),
         );
       } catch (e) {
-        debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+        //debugPrint('Fehler beim Senden der Benachrichtigung: $e');
       }
       return false;
     }
@@ -1127,8 +1127,8 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     final inspPct = ((updater.currentInspectionProgress ?? 0) * 100).round();
     final eta = updater.eta ?? '';
 
-    debugPrint(
-        'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
+    ////debugPrint(
+       // 'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
 
     String tileText = '';
     if (loading) {

@@ -48,14 +48,13 @@ class SyncProgress {
   int _requestCount = 0;
 
   SyncProgress(this.totalRequests) {
-    debugPrint('SyncProgress initialisiert mit $totalRequests Requests');
+    // debugPrint('SyncProgress initialisiert mit $totalRequests Requests');
   }
 
   double get overallProgress {
     if (totalRequests == 0) return 1.0;
     final progress = doneRequests / totalRequests;
-    debugPrint(
-        'Fortschritt: $doneRequests von $totalRequests Requests = ${(progress * 100).toStringAsFixed(1)}%');
+    // debugPrint('Fortschritt: $doneRequests von $totalRequests Requests = ${(progress * 100).toStringAsFixed(1)}%');
     return progress;
   }
 
@@ -106,7 +105,7 @@ String _extractInspectionIdFromRequest(RequestData rd) {
       return localId;
     }
   } catch (e) {
-    debugPrint('Could not parse inspectionId: $e');
+    // debugPrint('Could not parse inspectionId: $e');
   }
   return 'unknown';
 }
@@ -147,23 +146,23 @@ Future<bool> _ensureNotificationsAllowed() async {
     // Prüfe, ob Benachrichtigungen erlaubt sind
     final isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
-      debugPrint('Benachrichtigungen sind nicht erlaubt, fordere an...');
+      // debugPrint('Benachrichtigungen sind nicht erlaubt, fordere an...');
 
       // Fordere Benachrichtigungsberechtigung an
       final requestResult =
           await AwesomeNotifications().requestPermissionToSendNotifications();
 
       if (requestResult) {
-        debugPrint('Benachrichtigungen wurden erlaubt!');
+        // debugPrint('Benachrichtigungen wurden erlaubt!');
         return true;
       } else {
-        debugPrint('Benachrichtigungen wurden abgelehnt!');
+        // debugPrint('Benachrichtigungen wurden abgelehnt!');
         return false;
       }
     }
     return true;
   } catch (e) {
-    debugPrint('Fehler bei Benachrichtigungsprüfung: $e');
+    // debugPrint('Fehler bei Benachrichtigungsprüfung: $e');
     return false;
   }
 }
@@ -176,8 +175,7 @@ Future<void> _updateSyncNotification({
 }) async {
   // Prüfe zuerst, ob Benachrichtigungen erlaubt sind
   if (!await _ensureNotificationsAllowed()) {
-    debugPrint(
-        'Benachrichtigungen sind nicht erlaubt, überspringe Notification');
+    // debugPrint('Benachrichtigungen sind nicht erlaubt, überspringe Notification');
     return;
   }
 
@@ -196,8 +194,7 @@ Future<void> _updateSyncNotification({
       '------------------------\n'
       'Verbleibende Zeit: ~ $etaStr';
 
-  debugPrint(
-      'Sende Benachrichtigung: Gesamtfortschritt: $overallPct%, Inspektionsfortschritt: $inspPct%, BenutzeKanal: PROGRESS');
+  // debugPrint('Sende Benachrichtigung: Gesamtfortschritt: $overallPct%, Inspektionsfortschritt: $inspPct%, BenutzeKanal: PROGRESS');
 
   try {
     // Verwende immer den 'progress' Kanal für Zwischenmeldungen (lautlos)
@@ -226,7 +223,7 @@ Future<void> _updateSyncNotification({
       ],
     );
   } catch (e) {
-    debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+    // debugPrint('Fehler beim Senden der Benachrichtigung: $e');
   }
 }
 
@@ -274,12 +271,11 @@ Future<T> _retryWithBackoff<T>({
     } catch (e) {
       retryCount++;
       if (retryCount >= maxRetries) {
-        debugPrint('Max Retry-Versuche überschritten ($maxRetries): $e');
+        // debugPrint('Max Retry-Versuche überschritten ($maxRetries): $e');
         rethrow;
       }
 
-      debugPrint(
-          'Fehler aufgetreten, versuche erneut in ${delay.inSeconds}s: $e');
+      // debugPrint('Fehler aufgetreten, versuche erneut in ${delay.inSeconds}s: $e');
       await Future.delayed(delay);
 
       // Verdoppele die Wartezeit für den nächsten Versuch (exponentielles Backoff)
@@ -294,10 +290,10 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     BG.initialize(input.rootIsolateToken);
   }
 
-  debugPrint('retry failed requests isolate started');
+  // debugPrint('retry failed requests isolate started');
   final upsn = UploadProgressWriter();
   await upsn.awaitInitDone();
-  debugPrint('retry failed requests isolate init done');
+  // debugPrint('retry failed requests isolate init done');
 
   if (upsn.loading) {
     return;
@@ -308,9 +304,9 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   if (!kIsWeb) {
     try {
       await WakelockPlus.enable();
-      debugPrint('Wakelock aktiviert - verhindere Geräteschlafmodus');
+      // debugPrint('Wakelock aktiviert - verhindere Geräteschlafmodus');
     } catch (e) {
-      debugPrint('Fehler beim Aktivieren des Wakelocks: $e');
+      // debugPrint('Fehler beim Aktivieren des Wakelocks: $e');
     }
   }
 
@@ -318,8 +314,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   HttpOverrides.global = _ExtendedTimeoutHttpOverrides();
   HttpClient.enableTimelineLogging = kDebugMode;
 
-  debugPrint(
-      'HTTP-Verbindungseinstellungen optimiert für Hintergrundausführung');
+  // debugPrint('HTTP-Verbindungseinstellungen optimiert für Hintergrundausführung');
 
   try {
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
@@ -352,7 +347,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     // Start-Benachrichtigung mit Ton
     if (input.notificationsAllowed) {
       if (await _ensureNotificationsAllowed()) {
-        debugPrint('Sende START-Benachrichtigung mit Kanal: SYNC_COMPLETE');
+        // debugPrint('Sende START-Benachrichtigung mit Kanal: SYNC_COMPLETE');
         try {
           await AwesomeNotifications().createNotification(
             content: NotificationContent(
@@ -378,7 +373,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
             ],
           );
         } catch (e) {
-          debugPrint('Fehler beim Senden der Start-Benachrichtigung: $e');
+          // debugPrint('Fehler beim Senden der Start-Benachrichtigung: $e');
         }
       }
     }
@@ -390,7 +385,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
         try {
           // Sende ein einfaches Signal an den Server, um die Verbindung aktiv zu halten
           await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
-          debugPrint('Keepalive-Signal gesendet, um Socket aktiv zu halten');
+          // debugPrint('Keepalive-Signal gesendet, um Socket aktiv zu halten');
         } catch (e) {
           debugPrint('Keepalive-Signal fehlgeschlagen, ignoriere: $e');
         }
@@ -759,8 +754,7 @@ class FailedRequestmanager {
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
     debugPrint('getGroupedFailedRequests: Starte...');
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    debugPrint(
-        'getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
+    debugPrint('getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
 
     Map<String, Map<String, dynamic>> groupedRequests = {};
 
@@ -780,24 +774,23 @@ class FailedRequestmanager {
 
             final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
             final route = requestData.route;
-            final timestamp =
-                DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
+            final timestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
 
             if (!groupedRequests.containsKey(pjNr)) {
               groupedRequests[pjNr] = {
-                'requests': [],
+                'requests': <String>[],
                 'total': 0,
                 'completed': 0,
                 'progress': 0.0,
                 'requestTypes': <String, int>{},
-                'totalSize': 0,
+                'totalSize': 0, // Set to 0 or skip for large batches
                 'lastModified': timestamp,
               };
             }
 
             // Aktualisiere die Map mit den Request-Informationen
             final group = groupedRequests[pjNr]!;
-            group['requests']!.add(route);
+            (group['requests'] as List<String>).add(route);
             group['total'] = (group['total'] as int) + 1;
 
             // Zähle die Request-Typen
@@ -805,9 +798,8 @@ class FailedRequestmanager {
             group['requestTypes'][requestType] =
                 (group['requestTypes'][requestType] ?? 0) + 1;
 
-            // Berechne die Größe des Requests
-            final requestSize = json.encode(requestData).length;
-            group['totalSize'] = (group['totalSize'] as int) + requestSize;
+            // Do NOT serialize the full request, just estimate or skip size
+            // group['totalSize'] = (group['totalSize'] as int) + 0;
 
             // Aktualisiere den Zeitstempel der letzten Änderung
             if (timestamp.isAfter(group['lastModified'] as DateTime)) {
@@ -824,8 +816,7 @@ class FailedRequestmanager {
       }
     }
 
-    debugPrint(
-        'getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
+    debugPrint('getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
 
     // Berechne den Fortschritt für jede Inspektion
     for (var pjNr in groupedRequests.keys) {
@@ -849,8 +840,7 @@ class FailedRequestmanager {
             ))
         .toList();
 
-    debugPrint(
-        'getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
+    debugPrint('getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
     return result;
   }
 

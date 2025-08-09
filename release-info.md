@@ -1,4 +1,3 @@
 # changes
 
-- few camera fixes
-- backup with storage permissions
+- upload more stable with reducing memory overload
