@@ -72,8 +72,7 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;GroupedInspection&gt;&gt; getGroupedFailedRequests() async {
   debugPrint(&#39;getGroupedFailedRequests: Starte...&#39;);
   final failedReqs = await API().local.getAllFailedRequests() ?? [];
-  debugPrint(
-      &#39;getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden&#39;);
+  debugPrint(&#39;getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden&#39;);
 
   Map&lt;String, Map&lt;String, dynamic&gt;&gt; groupedRequests = {};
 
@@ -93,24 +92,23 @@
 
           final pjNr = parsedData[&#39;PjNr&#39;]?.toString() ?? &#39;Unbekannt&#39;;
           final route = requestData.route;
-          final timestamp =
-              DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
+          final timestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
 
           if (!groupedRequests.containsKey(pjNr)) {
             groupedRequests[pjNr] = {
-              &#39;requests&#39;: [],
+              &#39;requests&#39;: &lt;String&gt;[],
               &#39;total&#39;: 0,
               &#39;completed&#39;: 0,
               &#39;progress&#39;: 0.0,
               &#39;requestTypes&#39;: &lt;String, int&gt;{},
-              &#39;totalSize&#39;: 0,
+              &#39;totalSize&#39;: 0, &#47;&#47; Set to 0 or skip for large batches
               &#39;lastModified&#39;: timestamp,
             };
           }
 
           &#47;&#47; Aktualisiere die Map mit den Request-Informationen
           final group = groupedRequests[pjNr]!;
-          group[&#39;requests&#39;]!.add(route);
+          (group[&#39;requests&#39;] as List&lt;String&gt;).add(route);
           group[&#39;total&#39;] = (group[&#39;total&#39;] as int) + 1;
 
           &#47;&#47; Zähle die Request-Typen
@@ -118,9 +116,8 @@
           group[&#39;requestTypes&#39;][requestType] =
               (group[&#39;requestTypes&#39;][requestType] ?? 0) + 1;
 
-          &#47;&#47; Berechne die Größe des Requests
-          final requestSize = json.encode(requestData).length;
-          group[&#39;totalSize&#39;] = (group[&#39;totalSize&#39;] as int) + requestSize;
+          &#47;&#47; Do NOT serialize the full request, just estimate or skip size
+          &#47;&#47; group[&#39;totalSize&#39;] = (group[&#39;totalSize&#39;] as int) + 0;
 
           &#47;&#47; Aktualisiere den Zeitstempel der letzten Änderung
           if (timestamp.isAfter(group[&#39;lastModified&#39;] as DateTime)) {
@@ -137,8 +134,7 @@
     }
   }
 
-  debugPrint(
-      &#39;getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden&#39;);
+  debugPrint(&#39;getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden&#39;);
 
   &#47;&#47; Berechne den Fortschritt für jede Inspektion
   for (var pjNr in groupedRequests.keys) {
@@ -162,8 +158,7 @@
           ))
       .toList();
 
-  debugPrint(
-      &#39;getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben&#39;);
+  debugPrint(&#39;getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben&#39;);
   return result;
 }</code></pre>
 </section>

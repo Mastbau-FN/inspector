@@ -73,8 +73,7 @@
   <pre class="language-dart"><code class="language-dart">double get overallProgress {
   if (totalRequests == 0) return 1.0;
   final progress = doneRequests &#47; totalRequests;
-  debugPrint(
-      &#39;Fortschritt: $doneRequests von $totalRequests Requests = ${(progress * 100).toStringAsFixed(1)}%&#39;);
+  &#47;&#47; debugPrint(&#39;Fortschritt: $doneRequests von $totalRequests Requests = ${(progress * 100).toStringAsFixed(1)}%&#39;);
   return progress;
 }</code></pre>
 </section>
