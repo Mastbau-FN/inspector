@@ -351,18 +351,19 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
         try {
           await AwesomeNotifications().createNotification(
             content: NotificationContent(
-              id: 900,
-              channelKey: 'sync_complete', // Kanal mit Ton
+              id: 900, // Eindeutige ID für die Erfolgsbenachrichtigung
+              channelKey:
+                  'mbg_all_notifications', // GEÄNDERT: Neuer gemeinsamer Kanal
               title: '🔄 Upload Sync gestartet',
               body:
                   'Die Synchronisierung von ${totalRequests} Requests beginnt...',
-              category: NotificationCategory.Progress,
-              notificationLayout: NotificationLayout.Default,
+
               progress: 0,
               locked: false,
               displayOnForeground: true,
               displayOnBackground: true,
-              autoDismissible: true, // Automatisch schließen
+              autoDismissible:
+                  true, // Diese Benachrichtigung NICHT automatisch schließen
             ),
             actionButtons: [
               NotificationActionButton(
@@ -754,7 +755,8 @@ class FailedRequestmanager {
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
     debugPrint('getGroupedFailedRequests: Starte...');
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    debugPrint('getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
+    debugPrint(
+        'getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
 
     Map<String, Map<String, dynamic>> groupedRequests = {};
 
@@ -774,7 +776,8 @@ class FailedRequestmanager {
 
             final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
             final route = requestData.route;
-            final timestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
+            final timestamp =
+                DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
 
             if (!groupedRequests.containsKey(pjNr)) {
               groupedRequests[pjNr] = {
@@ -816,7 +819,8 @@ class FailedRequestmanager {
       }
     }
 
-    debugPrint('getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
+    debugPrint(
+        'getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
 
     // Berechne den Fortschritt für jede Inspektion
     for (var pjNr in groupedRequests.keys) {
@@ -840,7 +844,8 @@ class FailedRequestmanager {
             ))
         .toList();
 
-    debugPrint('getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
+    debugPrint(
+        'getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
     return result;
   }
 

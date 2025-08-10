@@ -16,10 +16,8 @@ import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:blur/blur.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_app_bar_builder/sliver_app_bar_builder.dart';
 
