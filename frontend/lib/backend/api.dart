@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import '../classes/documentData.dart';
 import '../classes/imageData.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';
@@ -121,7 +122,7 @@ class API {
             final bool wantsonline =
                 forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
             if (wantsonline || wantsmerged) {
-              // this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
+              // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
               await Future.delayed(Duration(milliseconds: 100));
               final res = await remote.postJSON(rap.rd);
               onlineRes = await rap.parser(res as R);
@@ -274,7 +275,7 @@ class API {
         await local.storeData(
           childData,
           forId: data?.id ?? await API().rootID,
-          //uncomment this as soon as offline can mirror everything well #211
+          //TODO: uncomment this as soon as offline can mirror everything well #211
           // overrideMode: OverrideMode.abortIfExistent,
         );
       }),

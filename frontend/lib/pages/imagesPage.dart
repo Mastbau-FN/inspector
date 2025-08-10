@@ -7,10 +7,13 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 
 import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
@@ -53,7 +56,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.intendsToAddPicture = false,
   }) : super(key: key) {
     this._images =
-        images?.nonNulls.map((e) => Stream.value(e)).toList() ?? [];
+        images?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
   }
 
   /// Konstruktor für Future-basierte Bildlisten
@@ -341,7 +344,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
               }
             },
             child: Container(
-              color: Color.fromRGBO(0, 0, 0, 0.3 * animation.value),
+              color: Colors.black.withOpacity(0.3 * animation.value),
               width: double.infinity,
               height: double.infinity,
             ),
@@ -512,7 +515,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                     max: snapshot.data!.$2,
                     onChanged: (newZoom) => model.setZoom(newZoom),
                     activeColor: Colors.white,
-                    inactiveColor: Color.fromRGBO(255, 255, 255, 0.5),
+                    inactiveColor: Colors.white.withOpacity(0.5),
                   );
                 }),
               ),
@@ -530,7 +533,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
       onPressed: () async {
         try {
           final newImages = await widget._picker.pickMultiImage();
-          if (newImages.isNotEmpty) {
+          if (newImages != null && newImages.isNotEmpty) {
             final result = await widget.onNewImages(newImages);
             if (kDebugMode) {
               showToast(result ??
@@ -576,6 +579,9 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
 
   // Bildaufnahmesteuerung
   Widget _buildImageCaptureControls(CameraModel model) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     // Wenn keine Kamera geöffnet oder kein Bild aufgenommen
     if (!withCamera || model.latestPic == null) {
       return FloatingActionButton(
@@ -747,7 +753,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(0, 0, 0, 0.6),
+                      color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
@@ -806,7 +812,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                 width: 50,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Color.fromRGBO(0, 0, 0, 0.7),
+                  color: Colors.black.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.white, width: 2),
                 ),
@@ -833,7 +839,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.3),
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 5,
                       spreadRadius: 1,
                     ),

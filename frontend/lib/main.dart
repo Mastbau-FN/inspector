@@ -64,32 +64,22 @@ class _MyAppState extends State<MyApp> {
                 backgroundColor: Colors.white,
               ),
           switchTheme: SwitchThemeData(
-            thumbColor: WidgetStateProperty.resolveWith<Color>(
-                (Set<WidgetState> states) {
-              if (states.contains(WidgetState.disabled)) {
-                 return Color.fromRGBO(
-                  Colors.orange.r.toInt(),
-                  Colors.orange.g.toInt(),
-                  Colors.orange.b.toInt(),
-                  0.48,
-                );
+            thumbColor: MaterialStateProperty.resolveWith<Color>(
+                (Set<MaterialState> states) {
+              if (states.contains(MaterialState.disabled)) {
+                return Colors.orange.withOpacity(.48);
               }
-              if (states.contains(WidgetState.selected)) {
+              if (states.contains(MaterialState.selected)) {
                 return Colors.white;
               }
               return mbgpalette0;
             }),
-            trackColor: WidgetStateProperty.resolveWith<Color>(
-                (Set<WidgetState> states) {
-              if (states.contains(WidgetState.disabled)) {
-                return Color.fromRGBO(
-                  Colors.orange.r.toInt(),
-                  Colors.orange.g.toInt(),
-                  Colors.orange.b.toInt(),
-                  0.48,
-                );
+            trackColor: MaterialStateProperty.resolveWith<Color>(
+                (Set<MaterialState> states) {
+              if (states.contains(MaterialState.disabled)) {
+                return Colors.orange.withOpacity(.48);
               }
-              if (states.contains(WidgetState.selected)) {
+              if (states.contains(MaterialState.selected)) {
                 return mbgpalette0;
               }
               return Colors.grey;

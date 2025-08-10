@@ -268,7 +268,7 @@ class _Input extends StatelessWidget {
         //   enabledBorder: UnderlineInputBorder(
         //       borderSide: BorderSide(
         //           color:
-        //               Theme.of(context).colorScheme.onSurface.withAlpha(50),
+        //               Theme.of(context).colorScheme.onBackground.withAlpha(50),
         //           width: 1)),
         //   hintText: hint,
         //   hintStyle: TextStyle(

@@ -106,8 +106,7 @@ String _extractInspectionIdFromRequest(RequestData rd) {
 
 /// Gruppiert die Requests nach extrahierter Inspection-ID, anschließend sortiert.
 /// Gruppiert die Requests nach extrahierter Inspection-ID, speichert nur die IDs (docID), nicht die RequestData-Objekte.
-Map<String, List<String>> _groupRequestIdsByInspection(
-    List<(String, RequestData?)> failedReqs) {
+Map<String, List<String>> _groupRequestIdsByInspection(List<(String, RequestData?)> failedReqs) {
   final Map<String, List<String>> grouped = {};
   for (final (docID, rd) in failedReqs) {
     if (rd == null) continue;
@@ -321,8 +320,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
     bool success = true;
     final grouped = _groupRequestIdsByInspection(failedReqs);
-    final totalRequests =
-        grouped.values.fold<int>(0, (acc, list) => acc + list.length);
+    final totalRequests = grouped.values.fold<int>(0, (acc, list) => acc + list.length);
 
     if (totalRequests == 0) {
       input.progressSender.send((1.0, true, null, 1.0, ''));
@@ -397,9 +395,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       try {
         if (inspId != 'Backup' && requestIds.isNotEmpty) {
           // Fetch only the first request to extract PJNr
-          final reqTuple = failedReqs.firstWhere(
-              (e) => e.$1 == requestIds.first,
-              orElse: () => ('', null));
+          final reqTuple = failedReqs.firstWhere((e) => e.$1 == requestIds.first, orElse: () => ('', null));
           final requestData = reqTuple.$2;
           if (requestData != null) {
             final jsonData = requestData.json;
@@ -428,8 +424,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       for (int i = 0; i < requestIds.length; i++) {
         final docID = requestIds[i];
         // Fetch the full request by ID only when needed
-        final reqTuple = failedReqs.firstWhere((e) => e.$1 == docID,
-            orElse: () => ('', null));
+  final reqTuple = failedReqs.firstWhere((e) => e.$1 == docID, orElse: () => ('', null));
         final rd = reqTuple.$2;
         if (rd == null) {
           progress.doneRequests++;
@@ -445,18 +440,17 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           await _retryWithBackoff(
             operation: () async {
               final res = await API().remote.postJSONWithSocketRetry(
-                    rd,
-                    maxRetries: 3,
-                    initialDelay: Duration(seconds: 2),
-                    exponentialBackoff: true,
-                  );
+                rd,
+                maxRetries: 3,
+                initialDelay: Duration(seconds: 2),
+                exponentialBackoff: true,
+              );
               if (res != null && res.statusCode ~/ 100 == 2) {
                 API().local.failedRequestWasSuccessful(docID);
                 requestSuccess = true;
                 return true;
               } else {
-                debugPrint(
-                    'Request fehlgeschlagen mit Status: [33m${res?.statusCode ?? "null"}[0m');
+                debugPrint('Request fehlgeschlagen mit Status: [33m${res?.statusCode ?? "null"}[0m');
                 return false;
               }
             },
@@ -660,6 +654,17 @@ Future<bool> _requestNotificationPermission() async {
   // Keine Test-Benachrichtigung mehr senden
   debugPrint('Benachrichtigungskanal erfolgreich initialisiert');
   return true;
+}
+
+/// Öffnet die Speichereinstellungen direkt
+Future<void> _openStorageSettings() async {
+  try {
+    // Für alle Plattformen - öffnet die App-Einstellungen, meist direkt zur Speicherseite
+    await openAppSettings();
+    debugPrint('Speichereinstellungen geöffnet');
+  } catch (e) {
+    debugPrint('Fehler beim Öffnen der Speichereinstellungen: $e');
+  }
 }
 
 /// Prüft alle notwendigen Berechtigungen für die Synchronisierung

@@ -125,7 +125,7 @@ class _DropDownBodyState<
   Widget _list(AsyncSnapshot<List<ChildData>> snapshot, BuildContext context) {
     if (snapshot.connectionState != ConnectionState.waiting) {
       return Container(
-        color: Theme.of(context).colorScheme.onSurface.withAlpha(20),
+        color: Theme.of(context).colorScheme.onBackground.withAlpha(20),
         child: ListView(
           shrinkWrap: true,
           children: [
@@ -154,7 +154,7 @@ class _DropDownBodyState<
     }
     return ExpandablesListRadio.fake(
       3,
-      color: Theme.of(context).colorScheme.surface,
+      color: Theme.of(context).colorScheme.background,
     );
   }
 
@@ -164,7 +164,7 @@ class _DropDownBodyState<
     return ExpandableCard2(
         //if typof data is Defect: display in low density format
         lowDensity: typeOf<ChildData>() == typeOf<CheckPointDefect>(),
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.background,
         previewImg: data.previewImage,
         title: data.title,
         subtitle: data.subtitle,

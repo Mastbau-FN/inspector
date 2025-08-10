@@ -23,7 +23,6 @@ class DefaultNotificationPage extends StatelessWidget {
     if (action.id == 900) {
       // Sync Start Benachrichtigung
       notificationType = 'progress';
-      debugPrint('Notification Type: $notificationType');
       title = '🔄 Upload Sync gestartet';
       contentWidget = Column(
         children: [
