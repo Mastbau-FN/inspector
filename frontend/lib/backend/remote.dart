@@ -242,12 +242,12 @@ class Remote {
           }
           rethrow;
         } catch (e) {
-          //debugPrint('request failed: $e');
+          debugPrint('request failed: $e');
           rethrow;
         }
       }
     } catch (e) {
-      //debugPrint("request failed, cause : $e");
+      debugPrint("request failed, cause : $e");
       return null;
     }
   }
