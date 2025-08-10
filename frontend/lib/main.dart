@@ -230,7 +230,7 @@ class _AppHttpOverrides extends HttpOverrides {
     client.maxConnectionsPerHost = 8;
     client.autoUncompress = true;
 
-    debugPrint('Konfigurierte globale HTTP-Verbindungen mit erhöhten Timeouts');
+    //debugPrint('Konfigurierte globale HTTP-Verbindungen mit erhöhten Timeouts');
     return client;
   }
 }
