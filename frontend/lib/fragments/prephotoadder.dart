@@ -6,16 +6,12 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../backend/api.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';
-import '../l10n/locales.dart';
-import '../pages/imagesPage.dart';
-import 'adder.dart';
 import 'camera/cameraModel.dart';
 import 'camera/views/cameraMainPreview.dart';
 
@@ -257,7 +253,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                     max: snapshot.data!.$2,
                     onChanged: (newZoom) => model.setZoom(newZoom),
                     activeColor: Colors.white,
-                    inactiveColor: Colors.white.withOpacity(0.5),
+                    inactiveColor: Color.fromRGBO(255, 255, 255, 0.5),
                   );
                 },
               ),
@@ -381,42 +377,6 @@ class _CameraForAdderState extends State<CameraForAdder>
     closeCam();
   }
 
-  // Bildwarteschlange bauen
-  List<Widget> _buildImageQueue() {
-    return [
-      ...queue.asMap().entries.map((entry) {
-        int idx = entry.key;
-        XFile file = entry.value;
-        return Transform.translate(
-          offset: Offset(0, -(-25 + 30 * queue.length - (80.0) * idx)),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: Image.file(
-                  File(file.path),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-    ];
-  }
-
   // Neue Widget-Version der Bilderwarteschlange für bessere Positionierung
   Widget _buildImageQueueWidget() {
     int totalImages = queue.length;
@@ -441,7 +401,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                 width: 50,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Color.fromRGBO(0, 0, 0, 0.7),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.white, width: 2),
                 ),
@@ -468,7 +428,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Color.fromRGBO(0, 0, 0, 0.3),
                       blurRadius: 5,
                       spreadRadius: 1,
                     ),
@@ -656,7 +616,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Color.fromRGBO(0, 0, 0, 0.6),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(

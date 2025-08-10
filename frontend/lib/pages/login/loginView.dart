@@ -96,7 +96,10 @@ class LoginView extends StatelessWidget {
             SvgPicture.asset(
               'lib/assets/icon_smooth.svg',
               semanticsLabel: 'MBG Logo',
-              color: Theme.of(context).colorScheme.primary,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.primary,
+                BlendMode.srcIn, // keeps only the shape, applies color
+              ),
             ),
             SizedBox(height: 20),
             LoginField(

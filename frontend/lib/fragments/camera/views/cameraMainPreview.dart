@@ -51,8 +51,7 @@ class CameraPreviewOnly extends StatelessWidget {
       CameraController controller, CameraModel model, BuildContext context) {
     // Bildschirmabmessungen für responsives Design
     final Size screenSize = MediaQuery.of(context).size;
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+
 
     return Container(
       color: Colors.black,

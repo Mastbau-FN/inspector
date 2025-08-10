@@ -49,7 +49,6 @@ class DropDownPageB<
                     .ohneMaengelButton(context),
               )
             : Container();
-
         final sliverAppBar = SliverAppBarBuilder(
           barHeight:
               // Theme.of(context).appBarTheme.toolbarHeight ??
@@ -82,7 +81,7 @@ class DropDownPageB<
                           boxShadow: [
                             if (img != null)
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Color.fromRGBO(0, 0, 0, 0.5),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                                 offset: Offset(0, 5),
@@ -161,10 +160,24 @@ class DropDownPageB<
                                           borderRadius:
                                               BorderRadius.circular(25),
                                           child: Container(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .surface
-                                                .withOpacity(0.5),
+                                            color: Color.fromRGBO(
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .surface
+                                                  .r
+                                                  .toInt(),
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .surface
+                                                  .g
+                                                  .toInt(),
+                                              Theme.of(context)
+                                                  .colorScheme
+                                                  .surface
+                                                  .b
+                                                  .toInt(),
+                                              0.5,
+                                            ),
                                             // alignment: Alignment.center,
                                             padding: EdgeInsets.symmetric(
                                               horizontal: 25,
@@ -183,7 +196,7 @@ class DropDownPageB<
                                                     ddmodel
                                                         .currentData.runtimeType
                                                         .toString() +
-                                                    'disabled', //FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
+                                                    'disabled',
                                                 child: Text(
                                                   ddmodel.title,
                                                   overflow: expandRatio >
@@ -322,7 +335,12 @@ class DropDownPageB<
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
               alignment: Alignment.centerLeft,
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              color: Color.fromRGBO(
+                Theme.of(context).colorScheme.surface.r.toInt(),
+                Theme.of(context).colorScheme.surface.g.toInt(),
+                Theme.of(context).colorScheme.surface.b.toInt(),
+                0.5,
+              ),
               height: barHeight - 20,
               child: IconButton(
                 icon: Icon(Icons.menu),
@@ -348,7 +366,12 @@ class DropDownPageB<
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
               alignment: Alignment.centerLeft,
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              color: Color.fromRGBO(
+                Theme.of(context).colorScheme.surface.r.toInt(),
+                Theme.of(context).colorScheme.surface.g.toInt(),
+                Theme.of(context).colorScheme.surface.b.toInt(),
+                0.5,
+              ),
               height: barHeight - 20,
               child: (ModalRoute.of(context)?.canPop ?? false)
                   ? BackButton(

@@ -1,13 +1,8 @@
-import 'dart:io';
-
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
     show sync_in_progress_str, sync_progress_str, sync_success_str;
 import 'package:MBG_Inspektionen/pages/settings/settingsView.dart'; // falls nötig
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'offlineProvider.dart';
 
 // UploadProgressWriter class for managing backup progress
 class UploadProgressWriter {
@@ -91,38 +86,5 @@ class UploadProgressWriter {
     } catch (e) {
       debugPrint('Error setting backup progress: $e');
     }
-  }
-
-  Future<void> _performBackupAndCleanup() async {
-    try {
-      // Get the user's external storage directory
-      Directory? externalDir = await getExternalStorageDirectory();
-      if (externalDir != null) {
-        // Create MBGBackups folder in external storage
-        final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
-        if (!await backupDir.exists()) {
-          await backupDir.create();
-        }
-
-        // Define the backup file path within MBGBackups
-        final backupPath =
-            '${backupDir.path}/inspector-automatic-backup-${DateTime.now().millisecondsSinceEpoch}.zip';
-
-        // Listen to backup progress and update state
-        await for (BackupProgress progressValue in backup(backupPath)) {
-          await setBackupProgress(progressValue);
-          debugPrint(
-              'Backup Progress: ${(progressValue.progress * 100).toStringAsFixed(2)}%');
-        }
-
-        debugPrint('Automatic backup saved to $backupPath');
-      }
-    } catch (e) {
-      debugPrint('Error performing backup and cleanup: $e');
-    }
-  }
-
-  void refresh() {
-    _init();
   }
 }

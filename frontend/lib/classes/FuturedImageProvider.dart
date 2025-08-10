@@ -1,73 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:async';
 
-class FuturedImageProvider implements ImageProvider {
-  FuturedImageProvider(this.futureImage);
-  FuturedImageProvider.fromFunc(
-      Future<ImageProvider> Function() futureImageFunc)
-      : this.futureImage = futureImageFunc();
-  final Future<ImageProvider> futureImage;
-  ImageStream? _imageStream;
+/// An ImageProvider that loads its underlying provider asynchronously.
+class FuturedImageProvider extends ImageProvider<FuturedImageProvider> {
+  final Future<ImageProvider> futureImageProvider;
+
+  FuturedImageProvider(this.futureImageProvider);
 
   @override
-  ImageStream createStream(ImageConfiguration configuration) {
-    _imageStream ??= ImageStream();
-    _setStream(configuration);
-    return _imageStream!;
-  }
-
-  void _setStream(ImageConfiguration configuration) async {
-    _imageStream = (await futureImage).resolve(configuration);
+  Future<FuturedImageProvider> obtainKey(ImageConfiguration configuration) {
+    // The key is just this instance
+    return SynchronousFuture(this);
   }
 
   @override
-  Future<bool> evict(
-          {ImageCache? cache,
-          ImageConfiguration configuration = ImageConfiguration.empty}) async =>
-      (await futureImage).evict();
+  ImageStreamCompleter loadImage(FuturedImageProvider key, ImageDecoderCallback decode) {
+    return OneFrameImageStreamCompleter(_loadAsync(key, decode));
+  }
 
-  @override
-  ImageStreamCompleter load(Object key, decode) {
-    return _imageStream!
-        .completer!; //TODO: das ausrufezeichen hinter dem completer ist gefährlich
+  Future<ImageInfo> _loadAsync(FuturedImageProvider key, ImageDecoderCallback decode) async {
+    final provider = await futureImageProvider;
+    final resolvedKey = await provider.obtainKey(const ImageConfiguration());
+    final completer = provider.loadImage(resolvedKey, decode);
+    final completerResult = Completer<ImageInfo>();
+    void listener(ImageInfo image, bool synchronousCall) {
+      if (!completerResult.isCompleted) {
+        completerResult.complete(image);
+      }
+    }
+    final stream = ImageStream();
+    final listenerObj = ImageStreamListener(listener);
+    stream.setCompleter(completer);
+    stream.addListener(listenerObj);
+    final imageInfo = await completerResult.future;
+    stream.removeListener(listenerObj);
+    return imageInfo;
   }
 
   @override
-  Future<ImageCacheStatus?> obtainCacheStatus(
-          {required ImageConfiguration configuration,
-          ImageErrorListener? handleError}) async =>
-      (await futureImage).obtainCacheStatus(
-          configuration: configuration, handleError: handleError);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FuturedImageProvider &&
+          runtimeType == other.runtimeType &&
+          futureImageProvider == other.futureImageProvider;
 
   @override
-  Future<Object> obtainKey(ImageConfiguration configuration) async =>
-      (await futureImage).obtainKey(configuration);
-
-  @override
-  ImageStream resolve(ImageConfiguration configuration) {
-    _imageStream ??= ImageStream();
-    return _imageStream!;
-  }
-
-  @override
-  void resolveStreamForKey(ImageConfiguration configuration, ImageStream stream,
-          Object key, ImageErrorListener handleError) async =>
-      (await futureImage)
-          .resolveStreamForKey(configuration, stream, key, handleError);
-
-  @override
-  ImageStreamCompleter loadBuffer(Object key, DecoderBufferCallback decode) {
-    // TO-DO: implement loadBuffer
-    return _imageStream!.completer!;
-  }
-
-  // ignore: override_on_non_overriding_member
-  @override
-  ImageStreamCompleter loadImage(Object key, ImageDecoderCallback decode) {
-    // TO-DO: implement loadImage
-    return _imageStream!.completer!;
-  }
+  int get hashCode => futureImageProvider.hashCode;
 }
-
-// class _FutureImageStreamCompleter implements ImageStreamCompleter {
-//   NetworkImage img;
-// }

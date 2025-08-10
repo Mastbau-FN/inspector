@@ -429,8 +429,8 @@ class _EditableTextState extends State<EditableText> {
         // Spacer(),
         TextButton(
           // style: ButtonStyle(
-          //     fixedSize: MaterialStateProperty.all<Size>(Size(50, 10)),
-          //     padding: MaterialStateProperty.all(EdgeInsets.all(-10))),
+          //     fixedSize: WidgetStateProperty.all<Size>(Size(50, 10)),
+          //     padding: WidgetStateProperty.all(EdgeInsets.all(-10))),
           // constraints: BoxConstraints(maxHeight: 20, maxWidth: 20),
           child: Icon(isEditing ? Icons.check : Icons.edit),
           onPressed: () => setState(() {

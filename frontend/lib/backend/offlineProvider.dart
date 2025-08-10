@@ -1,7 +1,6 @@
 import 'dart:core';
 import 'dart:io';
 
-import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:flutter/foundation.dart';
@@ -24,7 +23,7 @@ const useOldImgEncoding =
 // MARK: image stuff
 
 Future<String> get localPath async {
-  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/"; //TODO
+  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/"; 
   return (await getApplicationDocumentsDirectory()).path;
 }
 
@@ -46,7 +45,7 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   try {
     var file = await localFile(name);
     // if (kIsWeb) {
-    //TODO: support storing images/file in indexedDb or something for web
+    //support storing images/file in indexedDb or something for web
     // } else
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
@@ -78,7 +77,7 @@ String convertToCompressedHashName(String hash) => 'compressed/$hash';
 
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name, {int? cacheSize}) async {
-  //TODO: support reading images/file from indexedDb or something for web
+  //support reading images/file from indexedDb or something for web
 
   final file = (await localFile(
     name,
@@ -98,7 +97,7 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
 }
 
 Future<File?> readDoc(String name, {int? cacheSize}) async {
-  //TODO: support reading images/file from indexedDb or something for web
+  //support reading images/file from indexedDb or something for web
 
   final file = (await localFile(name, "jaman"));
   // ignore: unused_local_variable
@@ -116,7 +115,7 @@ Future<File?> readDoc(String name, {int? cacheSize}) async {
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
-  //TODO: support web
+  // support web
   final file = (await localFile(name));
   if (!file.existsSync()) throw Exception("file $file doesnt exist");
 

@@ -294,8 +294,7 @@ class _OufnessChooserState extends State<OufnessChooser> {
         padding: const EdgeInsets.all(8.0),
         child: ChoiceChip(
           elevation: 4,
-          shadowColor:
-              Theme.of(context).colorScheme.onBackground.withAlpha(100),
+          shadowColor: Theme.of(context).colorScheme.onSurface.withAlpha(100),
           selectedShadowColor: cd?.backgroundColor,
           selectedColor: cd?.backgroundColor,
           backgroundColor: cd?.backgroundColor?.withAlpha(70),
@@ -389,14 +388,22 @@ class DefectWidget extends StatelessWidget {
       child: TextButton(
         style: TextButton.styleFrom(
           // iconColor: Theme.of(context).colorScheme.onSurface,
-          foregroundColor:
-              CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(1),
+          foregroundColor: Color.fromRGBO(
+            CheckPointDefect.ereArtToColor(data.ereArt).r.toInt(),
+            CheckPointDefect.ereArtToColor(data.ereArt).g.toInt(),
+            CheckPointDefect.ereArtToColor(data.ereArt).b.toInt(),
+            1.0,
+          ),
           // primary: Theme.of(context).colorScheme.onSurface,
           backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 10,
           //     CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.4),
-          shadowColor:
-              CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.8),
+          shadowColor: Color.fromRGBO(
+            CheckPointDefect.ereArtToColor(data.ereArt).r.toInt(),
+            CheckPointDefect.ereArtToColor(data.ereArt).g.toInt(),
+            CheckPointDefect.ereArtToColor(data.ereArt).b.toInt(),
+            0.8,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -407,7 +414,7 @@ class DefectWidget extends StatelessWidget {
           padding: EdgeInsets.all(0),
         ).copyWith(
           foregroundColor:
-              MaterialStatePropertyAll(Theme.of(context).colorScheme.onSurface),
+              WidgetStatePropertyAll(Theme.of(context).colorScheme.onSurface),
         ),
         onPressed: () => onExpansionChanged(!isExpanded),
         child: IntrinsicHeight(
@@ -420,8 +427,12 @@ class DefectWidget extends StatelessWidget {
                     topLeft: Radius.circular(15),
                     bottomLeft: Radius.circular(15),
                   ),
-                  color: CheckPointDefect.ereArtToColor(data.ereArt)
-                      .withOpacity(1),
+                  color: Color.fromRGBO(
+                    CheckPointDefect.ereArtToColor(data.ereArt).r.toInt(),
+                    CheckPointDefect.ereArtToColor(data.ereArt).g.toInt(),
+                    CheckPointDefect.ereArtToColor(data.ereArt).b.toInt(),
+                    1.0,
+                  ),
                 ),
                 width: 40,
                 child: Center(
@@ -442,8 +453,8 @@ class DefectWidget extends StatelessWidget {
                           style: (Theme.of(context).textButtonTheme.style ??
                                   ButtonStyle())
                               .copyWith(
-                            padding: MaterialStateProperty.all(EdgeInsets.zero),
-                            iconColor: MaterialStateProperty.all(
+                            padding: WidgetStateProperty.all(EdgeInsets.zero),
+                            iconColor: WidgetStateProperty.all(
                                 Theme.of(context).colorScheme.onSurface),
                           ),
                           onPressed: () {
@@ -557,7 +568,6 @@ class DefectWidget extends StatelessWidget {
 
                           await API().delete<CheckPointDefect>(data,
                               caller: model.currentData);
-                          model.notifyListeners();
                         }),
                       ],
                     ),

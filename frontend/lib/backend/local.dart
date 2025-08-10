@@ -10,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
-import '../classes/documentData.dart';
 import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
@@ -165,7 +164,7 @@ class LocalMirror {
     if ((forceUpdate || caller != null) && data != null) {
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
-        // await OP.deleteImage(hash); //TODO: delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
+        // await OP.deleteImage(hash); // delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
         data.imagehashes!.remove(hash);
         await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully deleted image offline';

@@ -10,7 +10,7 @@ import 'package:MBG_Inspektionen/pages/login/loginView.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:integration_test/integration_test.dart';
 
-// TODO if tests are wanted/needed , feel free
+// if tests are wanted/needed , feel free
 final doTestLol = false;
 
 Future main() async {
@@ -97,6 +97,7 @@ Future main() async {
   ///test backend
   test('backend', () {
     var b = API();
+    expect(b, isNotNull);
     // TO DO
   });
 }
