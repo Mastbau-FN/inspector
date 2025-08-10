@@ -78,7 +78,7 @@ class SyncProgress {
   }
 }
 
-/// Aus dem JSON String in rd.json['data'] wird die local_id (oder PjNr) geholt.
+/// Aus dem JSON String in rd.json['data'] wird die PjNr geholt.
 String _extractInspectionIdFromRequest(RequestData rd) {
   try {
     final dataField = rd.json?['data'];
@@ -98,12 +98,6 @@ String _extractInspectionIdFromRequest(RequestData rd) {
     if (pjNr != null && pjNr.isNotEmpty) {
       return pjNr;
     }
-
-    // Fallback: local_id
-    final localId = parsedData['local_id']?.toString();
-    if (localId != null && localId.isNotEmpty) {
-      return localId;
-    }
   } catch (e) {
     // debugPrint('Could not parse inspectionId: $e');
   }
@@ -111,21 +105,18 @@ String _extractInspectionIdFromRequest(RequestData rd) {
 }
 
 /// Gruppiert die Requests nach extrahierter Inspection-ID, anschließend sortiert.
-Map<String, List<(String docID, RequestData?)>> _groupRequestsByInspection(
-  List<(String, RequestData?)> failedReqs,
-) {
-  final Map<String, List<(String, RequestData?)>> grouped = {};
-
+/// Gruppiert die Requests nach extrahierter Inspection-ID, speichert nur die IDs (docID), nicht die RequestData-Objekte.
+Map<String, List<String>> _groupRequestIdsByInspection(List<(String, RequestData?)> failedReqs) {
+  final Map<String, List<String>> grouped = {};
   for (final (docID, rd) in failedReqs) {
     if (rd == null) continue;
     final inspId = _extractInspectionIdFromRequest(rd);
     grouped.putIfAbsent(inspId, () => []);
-    grouped[inspId]!.add((docID, rd));
+    grouped[inspId]!.add(docID);
   }
-
   // Sortiere Keys alphabetisch
   final sortedKeys = grouped.keys.toList()..sort();
-  final sortedMap = <String, List<(String, RequestData?)>>{};
+  final sortedMap = <String, List<String>>{};
   for (final k in sortedKeys) {
     sortedMap[k] = grouped[k]!;
   }
@@ -318,17 +309,18 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
   try {
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    // alle FailedRequests
     final user = await API().user;
     if (user == null) {
       input.progressSender.send((1.0, false, null, 1.0, ''));
       upsn.setLoading(false);
       return;
     }
+    //kein User -> Fehler
 
     bool success = true;
-    final grouped = _groupRequestsByInspection(failedReqs);
-    final totalRequests =
-        grouped.values.fold<int>(0, (acc, list) => acc + list.length);
+    final grouped = _groupRequestIdsByInspection(failedReqs);
+    final totalRequests = grouped.values.fold<int>(0, (acc, list) => acc + list.length);
 
     if (totalRequests == 0) {
       input.progressSender.send((1.0, true, null, 1.0, ''));
@@ -395,26 +387,26 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
     for (final inspId in grouped.keys) {
       progress.currentInspectionId = inspId;
-      final requests = grouped[inspId]!;
-      progress.currentInspectionTotal = requests.length;
+      final requestIds = grouped[inspId]!;
+      progress.currentInspectionTotal = requestIds.length;
       progress.currentInspectionDone = 0;
 
       String? pjNr;
       try {
-        if (inspId != 'Backup') {
-          final (_, requestData) = requests.first;
+        if (inspId != 'Backup' && requestIds.isNotEmpty) {
+          // Fetch only the first request to extract PJNr
+          final reqTuple = failedReqs.firstWhere((e) => e.$1 == requestIds.first, orElse: () => ('', null));
+          final requestData = reqTuple.$2;
           if (requestData != null) {
             final jsonData = requestData.json;
             if (jsonData != null) {
               final data = jsonData['data'];
               Map<String, dynamic> parsedData;
-
               if (data is String) {
                 parsedData = Map<String, dynamic>.from(json.decode(data));
               } else {
                 parsedData = Map<String, dynamic>.from(data);
               }
-
               pjNr = parsedData['PjNr']?.toString();
             }
           }
@@ -429,8 +421,11 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
         pjNr: pjNr,
       );
 
-      for (int i = 0; i < requests.length; i++) {
-        final (docID, rd) = requests[i];
+      for (int i = 0; i < requestIds.length; i++) {
+        final docID = requestIds[i];
+        // Fetch the full request by ID only when needed
+  final reqTuple = failedReqs.firstWhere((e) => e.$1 == docID, orElse: () => ('', null));
+        final rd = reqTuple.$2;
         if (rd == null) {
           progress.doneRequests++;
           progress.currentInspectionDone++;
@@ -439,41 +434,32 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
         final start = DateTime.now();
 
-        // Verwende ein exponentielles Backoff-Verfahren für Wiederholungsversuche
         try {
           rd.logIfFailed = false;
-
           bool requestSuccess = false;
-
-          // Verbesserte Wiederholungsstrategie mit exponentiellem Backoff
           await _retryWithBackoff(
             operation: () async {
-              // Verwende die verbesserte Methode für Socket-Fehler
               final res = await API().remote.postJSONWithSocketRetry(
-                    rd,
-                    maxRetries: 3,
-                    initialDelay: Duration(seconds: 2),
-                    exponentialBackoff: true,
-                  );
-
+                rd,
+                maxRetries: 3,
+                initialDelay: Duration(seconds: 2),
+                exponentialBackoff: true,
+              );
               if (res != null && res.statusCode ~/ 100 == 2) {
                 API().local.failedRequestWasSuccessful(docID);
                 requestSuccess = true;
                 return true;
               } else {
-                debugPrint(
-                    'Request fehlgeschlagen mit Status: ${res?.statusCode ?? "null"}');
+                debugPrint('Request fehlgeschlagen mit Status: [33m${res?.statusCode ?? "null"}[0m');
                 return false;
               }
             },
-            maxRetries:
-                3, // Insgesamt bis zu 9 Versuche (3 in operation * 3 hier)
+            maxRetries: 3,
             initialDelay: Duration(seconds: 5),
           ).catchError((e) {
             debugPrint('Alle Wiederholungsversuche fehlgeschlagen: $e');
-            throw e; // Fehler weitergeben
+            throw e;
           });
-
           if (!requestSuccess) {
             debugPrint('Request war nach mehreren Versuchen nicht erfolgreich');
             success = false;
@@ -487,23 +473,18 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
         final dur = DateTime.now().difference(start);
         progress.updateTiming(dur);
-
         progress.doneRequests++;
         progress.currentInspectionDone++;
-
         final overall = progress.overallProgress;
         final inspProg = progress.currentInspectionProgress;
         final etaStr = _formatDuration(progress.estimatedTimeRemaining);
-
         input.progressSender.send((overall, null, inspId, inspProg, etaStr));
         upsn.setProgress(overall);
-
         await _updateSyncNotification(
           progress: progress,
           successSoFar: success,
           pjNr: pjNr,
         );
-
         if (!success) break;
       }
       if (!success) break;
