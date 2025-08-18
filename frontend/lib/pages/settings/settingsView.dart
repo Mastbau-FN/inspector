@@ -690,7 +690,11 @@ Stream<BackupProgress> backup(String to) async* {
         final elapsed = DateTime.now().difference(startTime).inMilliseconds;
         final speed = processedSize / elapsed;
         final remaining = totalSize - processedSize;
-        final etaMs = remaining / speed;
+        var etaMs = remaining / speed;
+        if (etaMs.isInfinite || etaMs.isNaN) {
+          etaMs =
+              0; // Skip if                               ETA calculation is invalid
+        }
         final etaDuration = Duration(milliseconds: etaMs.round());
         final etaStr = etaDuration.inMinutes >= 1
             ? '${etaDuration.inMinutes} min'
@@ -1128,7 +1132,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     final eta = updater.eta ?? '';
 
     ////debugPrint(
-       // 'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
+    // 'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
 
     String tileText = '';
     if (loading) {
