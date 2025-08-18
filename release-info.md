@@ -1,3 +1,3 @@
 # changes
 
-- upload more stable with reducing memory overload
+- stable release version memory and backup
