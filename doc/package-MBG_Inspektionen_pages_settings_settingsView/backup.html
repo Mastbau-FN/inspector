@@ -95,7 +95,11 @@
         final elapsed = DateTime.now().difference(startTime).inMilliseconds;
         final speed = processedSize &#47; elapsed;
         final remaining = totalSize - processedSize;
-        final etaMs = remaining &#47; speed;
+        var etaMs = remaining &#47; speed;
+        if (etaMs.isInfinite || etaMs.isNaN) {
+          etaMs =
+              0; &#47;&#47; Skip if                               ETA calculation is invalid
+        }
         final etaDuration = Duration(milliseconds: etaMs.round());
         final etaStr = etaDuration.inMinutes &gt;= 1
             ? &#39;${etaDuration.inMinutes} min&#39;
