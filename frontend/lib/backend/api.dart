@@ -88,7 +88,6 @@ class API {
     bool? itPrefersCache = false,
   }) {
     var controller = StreamController<T>();
-    // late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     late T onlineRes;
@@ -106,71 +105,75 @@ class API {
 
     Future<RequestAndParser<R, T>>(online).then(
       (rap) async {
-        // ignore: unused_local_variable
-        late Object _latestErr;
-        Future<bool?> doOnline(
-            {bool orDontIf = false, bool? forceOnline}) async {
-          try {
-            if (orDontIf) {
-              throw BackendCommunicationException(
-                  'we prefer the local variant');
+        try {
+          // ignore: unused_local_variable
+          late Object _latestErr;
+          Future<bool?> doOnline(
+              {bool orDontIf = false, bool? forceOnline}) async {
+            try {
+              if (orDontIf) {
+                throw BackendCommunicationException(
+                    'we prefer the local variant');
+              }
+
+              await tryNetwork(requestType: requestType);
+              final bool wantsmerged =
+                  merge != null && Options().canBeOffline && !_itPrefersCache;
+              final bool wantsonline =
+                  forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
+              if (wantsonline || wantsmerged) {
+                await Future.delayed(Duration(milliseconds: 100));
+                final res = await remote.postJSON(rap.rd);
+                onlineRes = await rap.parser(res as R);
+                if (wantsonline) controller.add(onlineRes);
+                if (wantsmerged)
+                  controller.add(await merge(offlineRes, onlineRes));
+              } else
+                return null;
+            } catch (e) {
+              _latestErr = e;
+              return false;
             }
-
-            await tryNetwork(requestType: requestType);
-            final bool wantsmerged =
-                merge != null && Options().canBeOffline && !_itPrefersCache;
-            final bool wantsonline =
-                forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
-            if (wantsonline || wantsmerged) {
-              // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
-              await Future.delayed(Duration(milliseconds: 100));
-              final res = await remote.postJSON(rap.rd);
-              onlineRes = await rap.parser(res as R);
-              if (wantsonline) controller.add(onlineRes);
-              if (wantsmerged)
-                controller.add(await merge(offlineRes, onlineRes));
-            } else
-              return null;
-          } catch (e) {
-            _latestErr = e;
-            return false;
+            return true;
           }
-          return true;
-        }
 
-        onlineFailedProcedure() async {
-          bool log = rap.rd.logIfFailed ??
-              (requestType != Helper.SimulatedRequestType.GET);
-          if (onlineFailedCB != null)
-            await onlineFailedCB(offlineRes, rap);
-          else if (log) {
-            await local.logFailedReq(rap.rd);
+          onlineFailedProcedure() async {
+            bool log = rap.rd.logIfFailed ??
+                (requestType != Helper.SimulatedRequestType.GET);
+            if (onlineFailedCB != null)
+              await onlineFailedCB(offlineRes, rap);
+            else if (log) {
+              await local.logFailedReq(rap.rd);
+            }
           }
-        }
 
-        onlineSuccessProcedure() async {
-          if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
-          //XXX: vllt das onsuccess lieber dem rd übergeben?
-        }
+          onlineSuccessProcedure() async {
+            if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
+          }
 
-        List<bool?> _success = await Future.wait([
-          doOnline(
-            orDontIf: _itPrefersCache,
-            forceOnline: Options().canBeOffline ? null : true,
-          ),
-          doOffline(
-            orDontIf: !Options().canBeOffline,
-          )
-        ], eagerError: false);
+          List<bool?> _success = await Future.wait([
+            doOnline(
+              orDontIf: _itPrefersCache,
+              forceOnline: Options().canBeOffline ? null : true,
+            ),
+            doOffline(
+              orDontIf: !Options().canBeOffline,
+            )
+          ], eagerError: false);
 
-        bool? onlineSucc = _success[0];
-        bool? offlineSucc = _success[1];
-        if (!(onlineSucc ?? false) && !offlineSucc!) {
-          onlineSucc = await doOnline(forceOnline: true);
+          bool? onlineSucc = _success[0];
+          bool? offlineSucc = _success[1];
+          if (!(onlineSucc ?? false) && !offlineSucc!) {
+            onlineSucc = await doOnline(forceOnline: true);
+          }
+          if (onlineSucc != null)
+            onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+        } finally {
+          if (!controller.isClosed) controller.close();
         }
-        controller.close();
-        if (onlineSucc != null)
-          onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+      },
+      onError: (e) {
+        if (!controller.isClosed) controller.close();
       },
     );
     return controller.stream;

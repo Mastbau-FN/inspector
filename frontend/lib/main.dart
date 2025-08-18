@@ -25,9 +25,6 @@ Future main() async {
 
   NotificationController.initialize();
 
-  // Konfiguriere globale HTTP-Timeouts und Verbindungseinstellungen
-  HttpOverrides.global = _AppHttpOverrides();
-
   runApp(GlobalProviders(child: MyApp()));
 }
 
@@ -207,20 +204,3 @@ class WebWrap extends StatelessWidget {
 }
 
 /// Angepasste HTTP-Einstellungen für die gesamte App
-class _AppHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    final client = super.createHttpClient(context);
-
-    // Erhöhe Timeouts für alle HTTP-Verbindungen in der App
-    client.connectionTimeout = Duration(minutes: 1);
-    client.idleTimeout = Duration(minutes: 3);
-
-    // Verbessere Socket-Stabilität
-    client.maxConnectionsPerHost = 8;
-    client.autoUncompress = true;
-
-    debugPrint('Konfigurierte globale HTTP-Verbindungen mit erhöhten Timeouts');
-    return client;
-  }
-}
