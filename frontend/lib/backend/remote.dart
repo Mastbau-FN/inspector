@@ -63,6 +63,8 @@ class Remote {
     // init
   }
 
+  final http.Client _client = http.Client();
+
   User? _user;
   injectUser(User? user) => _user = user;
 
@@ -108,12 +110,11 @@ class Remote {
   }) async {
     try {
       // Setze Verbindungstimeouts für die Verbindung
-      request.persistentConnection = true;
 
       // Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
       timeout ??= Duration(minutes: 2);
 
-      final req = request.send();
+      final req = _client.send(request);
       final res = await req.timeout(timeout, onTimeout: () {
         debugPrint('HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden');
         throw TimeoutException('HTTP Request Timeout', timeout);
@@ -165,7 +166,7 @@ class Remote {
   /// post_JSON to our backend as the user
   Future<http.BaseResponse?> postJSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    rd.json = rd.json ?? {};
+    rd.json ??= {};
     rd.json!['user'] = _user?.toJson();
     try {
       if (rd.multipartFiles.isNotEmpty) {
@@ -201,8 +202,8 @@ class Remote {
                         .toString()))); // this causes #279, but that is fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
-              ? await mreq.send()
-              : await mreq.send().timeout(rd.timeout!);
+              ? await _client.send(mreq)
+              : await _client.send(mreq).timeout(rd.timeout!);
           return res;
         } on SocketException catch (e) {
           debugPrint('Socket-Fehler bei Multipart-Request: ${e.message}');
