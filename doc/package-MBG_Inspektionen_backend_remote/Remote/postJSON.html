@@ -72,7 +72,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;http.BaseResponse?&gt; postJSON(RequestData rd) async {
   var headers = {HttpHeaders.contentTypeHeader: &#39;application&#47;json&#39;};
-  rd.json = rd.json ?? {};
+  rd.json ??= {};
   rd.json![&#39;user&#39;] = _user?.toJson();
   try {
     if (rd.multipartFiles.isNotEmpty) {
@@ -108,8 +108,8 @@
                       .toString()))); &#47;&#47; this causes #279, but that is fixed in backend, since the formrequests fields is Map&lt;String, String&gt; and not Map&lt;String, dynamic&gt;
         debugPrint(&quot;gonna send multipart-req with booty ${mreq.fields}&quot;);
         var res = (rd.timeout == null)
-            ? await mreq.send()
-            : await mreq.send().timeout(rd.timeout!);
+            ? await _client.send(mreq)
+            : await _client.send(mreq).timeout(rd.timeout!);
         return res;
       } on SocketException catch (e) {
         debugPrint(&#39;Socket-Fehler bei Multipart-Request: ${e.message}&#39;);

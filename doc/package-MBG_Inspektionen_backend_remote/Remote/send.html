@@ -76,12 +76,11 @@
 }) async {
   try {
     &#47;&#47; Setze Verbindungstimeouts für die Verbindung
-    request.persistentConnection = true;
 
     &#47;&#47; Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
     timeout ??= Duration(minutes: 2);
 
-    final req = request.send();
+    final req = _client.send(request);
     final res = await req.timeout(timeout, onTimeout: () {
       debugPrint(&#39;HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden&#39;);
       throw TimeoutException(&#39;HTTP Request Timeout&#39;, timeout);
