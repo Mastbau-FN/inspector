@@ -4,8 +4,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
-import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -89,7 +88,6 @@ class API {
     bool? itPrefersCache = false,
   }) {
     var controller = StreamController<T>();
-    // late var canBeClosed; // = Future.delayed(Duration(seconds: 10), () => true);
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     late T onlineRes;
@@ -107,71 +105,75 @@ class API {
 
     Future<RequestAndParser<R, T>>(online).then(
       (rap) async {
-        // ignore: unused_local_variable
-        late Object _latestErr;
-        Future<bool?> doOnline(
-            {bool orDontIf = false, bool? forceOnline}) async {
-          try {
-            if (orDontIf) {
-              throw BackendCommunicationException(
-                  'we prefer the local variant');
+        try {
+          // ignore: unused_local_variable
+          late Object _latestErr;
+          Future<bool?> doOnline(
+              {bool orDontIf = false, bool? forceOnline}) async {
+            try {
+              if (orDontIf) {
+                throw BackendCommunicationException(
+                    'we prefer the local variant');
+              }
+
+              await tryNetwork(requestType: requestType);
+              final bool wantsmerged =
+                  merge != null && Options().canBeOffline && !_itPrefersCache;
+              final bool wantsonline =
+                  forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
+              if (wantsonline || wantsmerged) {
+                await Future.delayed(Duration(milliseconds: 100));
+                final res = await remote.postJSON(rap.rd);
+                onlineRes = await rap.parser(res as R);
+                if (wantsonline) controller.add(onlineRes);
+                if (wantsmerged)
+                  controller.add(await merge(offlineRes, onlineRes));
+              } else
+                return null;
+            } catch (e) {
+              _latestErr = e;
+              return false;
             }
-
-            await tryNetwork(requestType: requestType);
-            final bool wantsmerged =
-                merge != null && Options().canBeOffline && !_itPrefersCache;
-            final bool wantsonline =
-                forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
-            if (wantsonline || wantsmerged) {
-              // TODO: this is a very dirty fix for #225, would be better to make sure the online variant always comes after the offline one or something, by introducing a custom stream controller, but nah
-              await Future.delayed(Duration(milliseconds: 100));
-              final res = await remote.postJSON(rap.rd);
-              onlineRes = await rap.parser(res as R);
-              if (wantsonline) controller.add(onlineRes);
-              if (wantsmerged)
-                controller.add(await merge(offlineRes, onlineRes));
-            } else
-              return null;
-          } catch (e) {
-            _latestErr = e;
-            return false;
+            return true;
           }
-          return true;
-        }
 
-        onlineFailedProcedure() async {
-          bool log = rap.rd.logIfFailed ??
-              (requestType != Helper.SimulatedRequestType.GET);
-          if (onlineFailedCB != null)
-            await onlineFailedCB(offlineRes, rap);
-          else if (log) {
-            await local.logFailedReq(rap.rd);
+          onlineFailedProcedure() async {
+            bool log = rap.rd.logIfFailed ??
+                (requestType != Helper.SimulatedRequestType.GET);
+            if (onlineFailedCB != null)
+              await onlineFailedCB(offlineRes, rap);
+            else if (log) {
+              await local.logFailedReq(rap.rd);
+            }
           }
-        }
 
-        onlineSuccessProcedure() async {
-          if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
-          //XXX: vllt das onsuccess lieber dem rd übergeben?
-        }
+          onlineSuccessProcedure() async {
+            if (onlineSuccessCB != null) await onlineSuccessCB(onlineRes);
+          }
 
-        List<bool?> _success = await Future.wait([
-          doOnline(
-            orDontIf: _itPrefersCache,
-            forceOnline: Options().canBeOffline ? null : true,
-          ),
-          doOffline(
-            orDontIf: !Options().canBeOffline,
-          )
-        ], eagerError: false);
+          List<bool?> _success = await Future.wait([
+            doOnline(
+              orDontIf: _itPrefersCache,
+              forceOnline: Options().canBeOffline ? null : true,
+            ),
+            doOffline(
+              orDontIf: !Options().canBeOffline,
+            )
+          ], eagerError: false);
 
-        bool? onlineSucc = _success[0];
-        bool? offlineSucc = _success[1];
-        if (!(onlineSucc ?? false) && !offlineSucc!) {
-          onlineSucc = await doOnline(forceOnline: true);
+          bool? onlineSucc = _success[0];
+          bool? offlineSucc = _success[1];
+          if (!(onlineSucc ?? false) && !offlineSucc!) {
+            onlineSucc = await doOnline(forceOnline: true);
+          }
+          if (onlineSucc != null)
+            onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+        } finally {
+          if (!controller.isClosed) controller.close();
         }
-        controller.close();
-        if (onlineSucc != null)
-          onlineSucc ? onlineSuccessProcedure() : onlineFailedProcedure();
+      },
+      onError: (e) {
+        if (!controller.isClosed) controller.close();
       },
     );
     return controller.stream;
@@ -226,10 +228,20 @@ class API {
   }
 
   /// removes the credentials from local storage and therefors logs out
-  Future logout() async {
-    (await _c_user)?.unstore();
-    _user = null;
-    debugPrint('user logged out');
+  Future<void> logout() async {
+    try {
+      final currentUser = await _c_user;
+      if (currentUser != null) {
+        await currentUser.unstore();
+        debugPrint('User-Daten gelöscht');
+      }
+      _user = null;
+      debugPrint('User ausgeloggt');
+    } catch (e) {
+      debugPrint('Fehler beim Ausloggen: $e');
+      // Trotz Fehler zurücksetzen, um UI-Update zu ermöglichen
+      _user = null;
+    }
   }
 
   /// gets all the [ChildData]points for the given [ParentData]
@@ -457,22 +469,69 @@ class API {
       requestType: requestType,
     ).last;
   }
-}
 
-D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = true}) {
-  if (data is InspectionLocation) {
-    Future<ImageData?> getImgDataFromHash(String? hash) {
-      if (!hash!.endsWith(".jpg") &&
-          !hash.endsWith(".jpeg") &&
-          !hash.endsWith(".JPG") &&
-          !hash.endsWith(".png")) debugPrint('hash $hash is not an image');
-      return API()
-          .getImageByHash(data.imagelink!, hash!, compressed: true)
-          .then((value) => value
-            ?..fullImageGetter = () => API()
-                .getImageByHash(data.imagelink!, hash, compressed: false)
-                .then((value) => value?.thumbnail));
+  /// Versucht, einen HTTP-Request unter Berücksichtigung möglicher Socket-Fehler durchzuführen
+  /// Diese Methode erweitert die bestehende postJSON-Methode und fügt Wiederverbindungs-Logik hinzu
+  Future<http.Response?> postJSONWithSocketRetry(
+    RequestData requestData, {
+    int maxRetries = 3,
+    Duration retryDelay = const Duration(seconds: 2),
+  }) async {
+    int attempts = 0;
+    SocketException? lastSocketException;
+
+    while (attempts < maxRetries) {
+      try {
+        // Verwende die postJSON-Methode von remote
+        final response = await remote.postJSON(requestData);
+        return response as http.Response?;
+      } on SocketException catch (e) {
+        lastSocketException = e;
+        attempts++;
+
+        debugPrint(
+            'Socket-Fehler bei Versuch $attempts/$maxRetries: ${e.message}');
+
+        // Wenn es sich um einen "Write failed" oder "Connection abort" Fehler handelt
+        if (e.message.contains('Write failed') ||
+            e.message.contains('connection abort') ||
+            e.message.contains('Connection refused')) {
+          debugPrint(
+              'Erkannter Socket-Fehler im Hintergrund, warte vor Wiederversuch...');
+
+          // Warte etwas länger bei Socket-Fehlern, die typischerweise im Hintergrund auftreten
+          await Future.delayed(retryDelay * attempts);
+
+          // Versuche die Verbindung zurückzusetzen
+          try {
+            HttpClient().close(force: true);
+            debugPrint('HTTP-Client zurückgesetzt');
+          } catch (resetError) {
+            debugPrint(
+                'Fehler beim Zurücksetzen des HTTP-Clients: $resetError');
+          }
+
+          continue;
+        }
+
+        // Andere Socket-Fehler
+        await Future.delayed(retryDelay);
+      } catch (e) {
+        // Andere Fehler einfach durchreichen
+        debugPrint('Nicht-Socket-Fehler bei HTTP-Request: $e');
+        rethrow;
+      }
     }
+
+    if (lastSocketException != null) {
+      debugPrint(
+          'Maximale Wiederversuche überschritten, werfe letzten Socket-Fehler');
+      throw lastSocketException;
+    }
+
+    throw Exception('Unbekannter Fehler bei der HTTP-Kommunikation');
+  }
+}
 
     if (data.mainhash != null &&
         data.mainhash != Options().no_image_placeholder_name) {
