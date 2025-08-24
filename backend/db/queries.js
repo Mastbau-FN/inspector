@@ -390,14 +390,13 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
   return res;
 };
 
-const deleteImgByHash = async (link, hash) => {
-
-  filePath = path.join(link, hash);
-  img = await fsp.readFile(filePath);
-  console.log(filePath)
+const deleteImgByHash = async (hash) => {
+  let p = imghasher.getPathFromHash(hash);
+  //console.log(p)
   //TODO: errorhandling
-  if(img!=null && img.length>=1){;
-    fsp.rm(filePath)
+  if(p!=null && p.length>=1){
+    const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
+    fsp.rm(oldpath)
   }
 
   // const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));
@@ -435,41 +434,21 @@ module.exports = {
 };
 
 const hashImagesAndCreateIds = async (tthis) => {
-  
+
   for (var thingy of tthis) {
-    if(thingy.PjNr==20246188){
-      thingy.LinkOrdner="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion"
-      thingy.Link="S:/34500-34599/StO 34571 Straße zur Krampenburg/20246188 Inspektion/20250219_1328_63cdf.jpg"
-    }
-    if (!thingy.LinkOrdner) {
+    if (thingy.Link) {
       let { rootfolder, link, filename } = await getLink(thingy);
-      console.log("r",rootfolder,"l", link, "f",filename);
-      thingy.LinkOrdner = link;}
-      let cleaninsplinkOrdner = "";
-      let imagelink= thingy.LinkOrdner ;
-      if(!thingy.LinkOrdner.startsWith("/home/administrator/images/")){
-      cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
-      
-      imagelink = path.join("/home/administrator/images/",cleaninsplinkOrdner);}
-      
-      if (fs.existsSync(imagelink) && fs.lstatSync(imagelink).isDirectory() && thingy.LinkOrdner != null && thingy.LinkOrdner != "") {
-        thingy.imagelink = imagelink;
-        const dirents = await fsp.readdir(imagelink,{ withFileTypes: true });
-        const newd = dirents
-        .filter((dirent) => dirent.isFile())
-        .map((dirent) => dirent.name);
-        let {filename } = await getLink(thingy);
-        let imageNames = (
-          newd.filter((v) => v != filename));
-        const images =imageNames;
-        thingy['images'] = images ?? ["error_ couldnt set image hashes"];
-        let maincheck = dirents;
-        // thingy.mainimage = mainImage;
-        // images.unshift(thingy.mainhash);
-      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
-          thingy.mainhash = filename;
-        }
-        }
+
+      // get all *other* image names
+      let imageNames = (
+        await imgfiler.getAllImagenamesFrom(rootfolder, link)
+      ).filter((v) => v != filename);
+
+      let maincheck = (
+        await imgfiler.getAllImagenamesFrom(rootfolder, link)
+      )
+
+      const cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
       const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
       if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
         thingy.DokusPath = dokusPath;
@@ -492,29 +471,36 @@ const hashImagesAndCreateIds = async (tthis) => {
         thingy.DokusPath = null;
         thingy.DokusPaths = [];}
       
-      // append their hashes to the returned object 
-      //console.log("images", imageNames) 
-
-      //console.log("danach",images)
+      // append their hashes to the returned object  
+      const images =
+        imageNames.map(
+          (name) => { try { let x = imghasher.memorize(rootfolder, link, name); if (options.debugImageHashes) console.log(`${name} -> ${x}`); return x; } catch (e) { console.log('failed to memorize something' + e); return "error_ could not fetch this image"; } }
+        )
+        || ["error_ image hashing failed to-te-totally"];
+      // console.log(images)
       // set main image at first index
 
+      if (filename != options.no_image_placeholder_name && filename != "" && maincheck.includes(filename)) {
+        thingy.mainhash = imghasher.memorize(rootfolder, link, filename);
+
+        // thingy.mainimage = mainImage;
+        // images.unshift(thingy.mainhash);
+      }
 
       //images and thingy.mainimage or hash
 
 
-      
-     // if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
-    
+      thingy['images'] = images ?? ["error_ couldnt set image hashes"];
+      if (options.debugImageHashes) console.log(`imagehashes- ${thingy.KurzText ?? thingy.PjName ?? thingy.LangText ?? thingy.Index} -:`, thingy.images, { filename, mainHash });
+    }
     // TO-DO: #306
     // could better be DB index or DB hash something, that doenst change , but is unique for every datenpunkt
     thingy.local_id = `${thingy.PjNr}-${thingy.E1}-${thingy.E2}-${thingy.E3}`
-  }
-  delete thingy.Link;
-  //never needed anyways
-  delete thingy.LinkOrdner;
     // no longer needed
-
-  
+    delete thingy.Link;
+    //never needed anyways
+    delete thingy.LinkOrdner;
+  }
 
   //// //selfdestruction muhhahah
   //// delete data.rows.hashImagesAndCreateIds;

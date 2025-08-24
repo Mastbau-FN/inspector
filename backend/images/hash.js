@@ -20,89 +20,89 @@ var cache = new NanoCache({
 // __hash_cache.init();
 // cache = {get:(e)=>__hash_cache.getItem(e), set:(e, b)=> __hash_cache.setItem(e,b)};
 
-// const getFileFromHash = async (hash, compressed) => {
-//   //console.log("gettin file from ", await getPathFromHash(hash))
-//   let compressed_path = homedir + "/compressed_images/" + hash
-//   if (compressed && fs.existsSync(compressed_path + '/img.heic') && heic_supported) {
-//     let img = await fsp.readFile(compressed_path + '/img.heic')
-//     return img
-//   }
-//   if (compressed && fs.existsSync(compressed_path + '/img.webp')) {
-//     let img = await fsp.readFile(compressed_path + '/img.webp')
-//     return img
-//   }
+const getFileFromHash = async (hash, compressed) => {
+  //console.log("gettin file from ", await getPathFromHash(hash))
+  let compressed_path = homedir + "/compressed_images/" + hash
+  if (compressed && fs.existsSync(compressed_path + '/img.heic') && heic_supported) {
+    let img = await fsp.readFile(compressed_path + '/img.heic')
+    return img
+  }
+  if (compressed && fs.existsSync(compressed_path + '/img.webp')) {
+    let img = await fsp.readFile(compressed_path + '/img.webp')
+    return img
+  }
 
-//   let img = await imgfiler.getImageFrom(
-//     cache.get(hash + "r"),
-//     cache.get(hash + "l"),
-//     cache.get(hash + "f")
-//   );
-//   if (compressed) {
-//     const orig_img = img;
-//     img = await sharp(img)
-//       // .heif({ quality: 1, effort: 0 }) //while apple and newer android devices support this, older ones dont, and in the feature we could switch to .avif, which is completely open
-//       // .heif({ quality: 1, effort: 0, compression: 'hevc' }) //hevc is further supported (but worse) then av1
-//       .webp({ quality: 1, effort: 4 }) // this is 100% supported by flutter, could be used as fallback
-//       .withMetadata() // solves issue 249
-//       .toBuffer();
+  let img = await imgfiler.getImageFrom(
+    cache.get(hash + "r"),
+    cache.get(hash + "l"),
+    cache.get(hash + "f")
+  );
+  if (compressed) {
+    const orig_img = img;
+    img = await sharp(img)
+      // .heif({ quality: 1, effort: 0 }) //while apple and newer android devices support this, older ones dont, and in the feature we could switch to .avif, which is completely open
+      // .heif({ quality: 1, effort: 0, compression: 'hevc' }) //hevc is further supported (but worse) then av1
+      .webp({ quality: 1, effort: 4 }) // this is 100% supported by flutter, could be used as fallback
+      .withMetadata() // solves issue 249
+      .toBuffer();
 
-//     //TODO: when heic/avif is supported swipswap
-//     const heic_supported = false;
-//     if (heic_supported) {
-//       //to not auslasten the server too much at a time, compress at a random time (at night), lol
-//       const secondUntilEndOfTheDay = 86400 - Math.floor(new Date() / 1000) % 86400;
-//       (new Promise((res) => setTimeout(() => res("time's up"), secondUntilEndOfTheDay - Math.random() * 10000000))).then(
-//         async (_) => {
-//           const compr_img = await sharp(orig_img)
-//             .heif({ quality: 1, effort: 6, compression: 'hevc' }) //see above
-//             .toBuffer();
-//           await fsp.mkdir(compressed_path, { recursive: true });
-//           fsp.writeFile(compressed_path + '/img.heic', compr_img)
-//         })
-//     }
-//     else {
-//       await fsp.mkdir(compressed_path, { recursive: true });
-//       fsp.writeFile(compressed_path + '/img.webp', img)
-//     }
+    //TODO: when heic/avif is supported swipswap
+    const heic_supported = false;
+    if (heic_supported) {
+      //to not auslasten the server too much at a time, compress at a random time (at night), lol
+      const secondUntilEndOfTheDay = 86400 - Math.floor(new Date() / 1000) % 86400;
+      (new Promise((res) => setTimeout(() => res("time's up"), secondUntilEndOfTheDay - Math.random() * 10000000))).then(
+        async (_) => {
+          const compr_img = await sharp(orig_img)
+            .heif({ quality: 1, effort: 6, compression: 'hevc' }) //see above
+            .toBuffer();
+          await fsp.mkdir(compressed_path, { recursive: true });
+          fsp.writeFile(compressed_path + '/img.heic', compr_img)
+        })
+    }
+    else {
+      await fsp.mkdir(compressed_path, { recursive: true });
+      fsp.writeFile(compressed_path + '/img.webp', img)
+    }
 
-//   }
-//   return img
-// };
+  }
+  return img
+};
 
-// function throwExpression(errorMessage) {
-//   throw new Error(errorMessage);
-// }
+function throwExpression(errorMessage) {
+  throw new Error(errorMessage);
+}
 
-// const getPathFromHash = (hash) => {
-//   // console.log(hash);
-//   // console.log(cache.stats());
-//   try{
-//     return {
-//       rootpath: cache.get(hash + "r") ,
-//       link: cache.get(hash + "l") ,
-//       filename: cache.get(hash + "f") 
-//     }
-//   }catch(err) {
-//       print("Cache Miss!" + err)
-//   }
-// };
+const getPathFromHash = (hash) => {
+  // console.log(hash);
+  // console.log(cache.stats());
+  try{
+    return {
+      rootpath: cache.get(hash + "r") ,
+      link: cache.get(hash + "l") ,
+      filename: cache.get(hash + "f") 
+    }
+  }catch(err) {
+      print("Cache Miss!" + err)
+  }
+};
 
-// const memorize = (rootpath, link, filename) => {
-//   // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
-//   let key = ((filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename + 'v1').digest('base64')).replace(/\//g, '_');
+const memorize = (rootpath, link, filename) => {
+  // ja ein festes salt zu nehmen ist jetzt nicht so das Wahre, vorallem wenn es hier frei einlesbar ist, aber so wichtig ist dann auch nicht
+  let key = ((filename == options.no_image_placeholder_name) ? options.no_image_placeholder_name : crypto.createHash('sha1').update(rootpath + link + filename + 'v1').digest('base64')).replace(/\//g, '_');
 
-//   cache.set(key + "r", rootpath);
-//   cache.set(key + "l", link);
-//   cache.set(key + "f", filename);
+  cache.set(key + "r", rootpath);
+  cache.set(key + "l", link);
+  cache.set(key + "f", filename);
 
-//   return key;
-// };
+  return key;
+};
 
-// const memorize_link = (link) => memorize(link.rootfolder, link.link, link.filename);
+const memorize_link = (link) => memorize(link.rootfolder, link.link, link.filename);
 
-// module.exports = {
-//   //getFileFromHash,
-//   getPathFromHash,
-//   memorize,
-//   memorize_link,
-// };
+module.exports = {
+  getFileFromHash,
+  getPathFromHash,
+  memorize,
+  memorize_link,
+};
