@@ -30,6 +30,7 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..forceOffline_nullable = json['offline'] as bool?
       ..parentId = json['parent_local_id'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
+      ..user = json['User'] as String?
       ..bauwerkhoehe = (json['Bauwerkhoehe'] as num?)?.toDouble()
       ..baujahr = (json['Baujahr'] as num?)?.toInt()
       ..ansprechpartner = json['Ansprechpartner'] as String?
@@ -67,8 +68,9 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Straße': instance.strasse,
       'PLZ': instance.plz,
       'Ort': instance.ort,
-      'Eigentuemer': instance.eigentuemer,
-      'Bauwerkhoehe': instance.bauwerkhoehe,
+      'Eigentuemer': instance.eigentuemer,              
+      'User': instance.user,                        
+      'Bauwerkhoehe': instance.bauwerkhoehe,                
       'Baujahr': instance.baujahr,
       'Ansprechpartner': instance.ansprechpartner,
       'Steigwegtyp': instance.steigwegtyp,

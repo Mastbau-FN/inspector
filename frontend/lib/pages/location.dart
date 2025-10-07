@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -8,6 +10,7 @@ import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:map_launcher/map_launcher.dart';
 
 import 'package:flutter_map/flutter_map.dart' as FM;
@@ -19,6 +22,8 @@ import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation, Null> {
@@ -68,6 +73,8 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
           case _nextViewTitle:
+            checkFilesAndShowToast(data.pjNr, data, context);
+
             return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
                 generateNextModel(data));
           case 'Fotos':
@@ -81,6 +88,60 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
         }
       }),
     );
+  }
+
+  Future<Widget?> checkFilesAndShowToast(
+      int PjNr, InspectionLocation data, BuildContext context) async {
+    // Holen des App-Dokumentenverzeichnisses
+    final directory = await getApplicationDocumentsDirectory();
+    final basePath = directory.path;
+
+    // Alle Ordner im Verzeichnis auflisten
+    final baseDir = Directory(basePath);
+    if (!await baseDir.exists())
+      return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
+          generateNextModel(data));
+    ;
+
+    final folders = baseDir.listSync().whereType<Directory>();
+    for (var folder in folders) {
+      final folderName = folder.path.split(Platform.pathSeparator).last;
+      debugPrint("Checking folder: ${folderName}");
+      final regex = RegExp('^${PjNr}' + r'-[1-9]*-[1-9]*-0$');
+      debugPrint("Checking folder: ${regex}");
+      if (folderName.startsWith(regex)) {
+        final file = folder.listSync().whereType<File>();
+        if (file.isNotEmpty) {
+          debugPrint("Found files in folder: ${folderName}");
+          return showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text("Gefundene Mängel"),
+                  content: Text("In diesem Ordner wurden Mängel gefunden."),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      child: Text("Abbrechen"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text("Trotzdem fortfahren"),
+                    ),
+                  ],
+                );
+              });
+        }
+        break;
+      }
+    }
+
+    ;
   }
 }
 
@@ -122,6 +183,18 @@ class LocationDetailPage extends StatelessWidget {
               text: locationdata.eigentuemer,
               onChanged: (val) {
                 locationdata.eigentuemer = val;
+                updateData(locationdata);
+              },
+            ),
+            //Divider(),
+            //ASP(locationdata, updateData: updateData),
+            //Issue-236
+            Divider(),
+            EditableText(
+              label: "Prüfer",
+              text: locationdata.user,
+              onChanged: (val) {
+                locationdata.user = val;
                 updateData(locationdata);
               },
             ),

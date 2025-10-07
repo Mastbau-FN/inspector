@@ -35,7 +35,8 @@ class InspectionLocation extends Data
   final String? plz;
   @JsonKey(name: 'Ort')
   final String? ort;
-
+  @JsonKey(name: "User")
+  String? user;
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
   @JsonKey(name: "Bauwerkhoehe")
@@ -115,6 +116,8 @@ class InspectionLocation extends Data
   InspectionLocation({
     this.bauleitung,
     ////this.defaultpicture,
+    ///
+    this.user,
     this.ort,
     this.pjInfo,
     this.pjName,
