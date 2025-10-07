@@ -9,6 +9,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 import '../backend/api.dart';
 import '../classes/data/checkpoint.dart';
@@ -82,6 +83,9 @@ class _CameraForAdderState extends State<CameraForAdder>
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     openCam();
     controller = AnimationController(duration: animationDuration, vsync: this);
     animation = Tween<double>(begin: 0, end: 1).animate(controller)
@@ -95,6 +99,12 @@ class _CameraForAdderState extends State<CameraForAdder>
   @override
   void dispose() {
     controller.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     super.dispose();
   }
 

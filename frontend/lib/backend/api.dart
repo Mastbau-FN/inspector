@@ -119,8 +119,8 @@ class API {
               await tryNetwork(requestType: requestType);
               final bool wantsmerged =
                   merge != null && Options().canBeOffline && !_itPrefersCache;
-              final bool wantsonline =
-                  forceOnline ?? (requestType != Helper.SimulatedRequestType.GET);
+              final bool wantsonline = forceOnline ??
+                  (requestType != Helper.SimulatedRequestType.GET);
               if (wantsonline || wantsmerged) {
                 await Future.delayed(Duration(milliseconds: 100));
                 final res = await remote.postJSON(rap.rd);
@@ -533,7 +533,7 @@ class API {
 D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {
     if (preloadFull) API().getImageByHash(hash!, compressed: false);
-    return API().getImageByHash(hash!, compressed: true).then((value) => value
+    return API().getImageByHash(hash!, compressed: false).then((value) => value
       ?..fullImageGetter = () => API()
           .getImageByHash(hash, compressed: false)
           .then((value) => value?.thumbnail));
