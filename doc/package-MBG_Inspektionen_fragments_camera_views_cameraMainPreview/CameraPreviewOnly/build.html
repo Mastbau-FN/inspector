@@ -108,36 +108,26 @@ and</li>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Widget build(BuildContext context) {
-  return Material(
-    color: Colors.black,
-    child: SafeArea(
+Widget build(BuildContext context) =&gt; Material(
+      &#47;&#47;FIXME: why the hell would i need a Material, it should be an ancestor already..
       child: Consumer&lt;CameraModel&gt;(
-        builder: (context, model, _) {
+        builder: (context, model, child) {
           return FutureBuilder(
             future: model.start(),
-            builder: (context, AsyncSnapshot&lt;CameraController&gt; snapshot) {
-              return switch ((snapshot.connectionState, snapshot.data)) {
-                (ConnectionState.done, CameraController cc) =&gt;
-                  _buildCameraPreview(cc, model, context),
-                (ConnectionState.done, null) =&gt; Center(
-                    child: ErrorText(&quot;Keine Kamera verfügbar&quot;),
-                  ),
-                (ConnectionState.waiting, _) =&gt;
-                  const Center(child: LoadingView()),
-                (ConnectionState.active, _) =&gt;
-                  const Center(child: LoadingView()),
-                (ConnectionState.none, _) =&gt; Center(
-                    child: ErrorText(&quot;Keine Kamera verfügbar&quot;),
-                  ),
-              };
+            builder: (context, AsyncSnapshot&lt;CameraController&gt; snapshot) =&gt;
+                &#47;&#47; LoadingView(),
+                switch ((snapshot.connectionState, snapshot.data)) {
+              (ConnectionState.done, CameraController cc) =&gt;
+                _previewWithChildren(cc, model),
+              (ConnectionState.done, null) =&gt; ErrorText(&quot;no camera&quot;),
+              (ConnectionState.waiting, _) =&gt; LoadingView(),
+              (ConnectionState.active, _) =&gt; LoadingView(),
+              (ConnectionState.none, _) =&gt; ErrorText(&quot;no camera&quot;),
             },
           );
         },
       ),
-    ),
-  );
-}</code></pre>
+    );</code></pre>
 </section>
 
 

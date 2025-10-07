@@ -67,12 +67,12 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void disposeCamera() {
-  if (_controller != null) {
-    _controller!.setFlashMode(FlashMode.off).catchError((e) {
+  if (controller != null) {
+    controller!.setFlashMode(FlashMode.off).catchError((e) {
       debugPrint(&quot;Fehler beim Ausschalten des Blitzes: $e&quot;);
     });
-    _controller!.dispose();
-    _controller = null;
+    controller!.dispose();
+    controller = null;
   }
 }</code></pre>
 </section>

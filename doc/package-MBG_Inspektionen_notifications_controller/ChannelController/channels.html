@@ -67,14 +67,12 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">List&lt;NotificationChannel&gt; channels = [
   NotificationChannel(
-      channelKey: &#39;mbg_all_notifications&#39;,
-      channelName: &#39;MBG App Benachrichtigungen&#39;,
-      channelDescription: &#39;Alle Benachrichtigungen der MBG App&#39;,
+      channelGroupKey: &#39;mbg_retryfailed_group&#39;,
+      channelKey: &#39;progress&#39;,
+      channelName: &#39;Progress&#39;,
+      channelDescription: &#39;Shows the progress of the upload sync&#39;,
       defaultColor: mbgpalette0,
-      importance: NotificationImportance.Max,
-      playSound: true,
-      enableVibration: true,
-      ledColor: Colors.blue),
+      ledColor: Colors.white)
 ];</code></pre>
 </section>
 

@@ -111,80 +111,26 @@ and</li>
 Widget build(BuildContext context) {
   return Stack(
     children: [
-      &#47;&#47; Hauptscaffold mit Bildergalerie
       Scaffold(
         endDrawer: MainDrawer(),
         appBar: AppBar(
           title: Text(&#39;Bilder&#39;),
-          elevation: 0,
-          actions: [
-            Builder(
-              builder: (context) =&gt; IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () =&gt; Scaffold.of(context).openEndDrawer(),
-                tooltip: &#39;Menü öffnen&#39;,
-              ),
-            ),
-          ],
         ),
-        body: Column(
-          children: [
-            &#47;&#47; Hinweis zur Bilderverwaltung
-            if (_images.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.photo_library_outlined,
-                        size: 64,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        &#39;Keine Bilder vorhanden&#39;,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        &#39;Fotos aufnehmen oder aus der Galerie hinzufügen&#39;,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              &#47;&#47; Bildergalerie
-              Expanded(
-                child: ImageWrap&lt;T&gt;.streamed(
-                  images: _images,
-                  onDelete: onDelete,
-                  onShare: onShare,
-                  onStar: onStar,
-                  hasFav: hasMainImage,
-                ),
-              ),
-          ],
+        body: ImageWrap&lt;T&gt;.streamed(
+          images: _images,
+          onDelete: onDelete,
+          onShare: onShare,
+          onStar: onStar,
+          hasFav: hasMainImage,
         ),
       ),
-
-      &#47;&#47; Kamera-Provider und Bildaufnahme-Button
       ChangeNotifierProvider(
-        create: (context) =&gt; CameraModel(),
+        create: (ocontext) =&gt; CameraModel(),
         child: Builder(builder: (context) {
-          return ImageCapturePanel(
+          return ImageAddButton(
             picker: _picker,
             onNewImages: onNewImages,
-            autoExpand: intendsToAddPicture,
+            intended: intendsToAddPicture,
           );
         }),
       ),

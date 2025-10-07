@@ -66,7 +66,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>Andere Methoden wie loadAndCacheAll, setOnlineAll etc. können hier bleiben ...</p>
+  <p>recursivle cache all elements that underly the caller</p>
 </section>
 
 
@@ -98,7 +98,7 @@
         var docus = location.dokuspaths;
         if (docus != null) {
           assert((await API().user) != null,
-              &#39;Niemand eingeloggt&#39;); &#47;&#47; Using string directly instead of S.current
+              S.current!.wontFetchAnythingSinceNoOneIsLoggedIn);
           for (var doc in docus) {
             await API().getDocument(doc.docupath);
           }
@@ -133,9 +133,7 @@
     return success;
   } catch (error) {
     debugPrint(&#39;failed! ${depth + 1}&#39;);
-    showToast(error.toString() +
-        &quot;\n&quot; +
-        &#39;Probiere es später nochmal&#39;); &#47;&#47; Using string directly instead of S.current
+    showToast(error.toString() + &quot;\n&quot; + S.current!.tryAgainLater_noNetwork);
     return false; &#47;&#47;failed
   }
 }</code></pre>

@@ -72,15 +72,9 @@
     showToast(&quot;Keine Kameras verfügbar&quot;);
     return;
   }
-
-  _isProcessing = true;
-  notifyListeners();
-
   _currentCameraIndex =
       (_currentCameraIndex - 1 + cameras.length) % cameras.length;
-  _controller = await newController;
-
-  _isProcessing = false;
+  controller = await newController;
   notifyListeners();
 }</code></pre>
 </section>

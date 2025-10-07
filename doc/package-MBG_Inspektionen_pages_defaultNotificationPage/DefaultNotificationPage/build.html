@@ -109,152 +109,59 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
-  &#47;&#47; Debug-Ausgabe zur Nachverfolgung der Benachrichtigungsdetails
-  debugPrint(
-      &#39;DefaultNotificationPage: Received action with ID=${action.id}, Channel=${action.channelKey}&#39;);
-  debugPrint(&#39;Payload: ${action.payload}&#39;);
-
-  &#47;&#47; Bestimme den Benachrichtigungstyp basierend auf ID und Kanal
-  String notificationType;
-  String title;
-  Widget contentWidget;
-
-  if (action.id == 900) {
-    &#47;&#47; Sync Start Benachrichtigung
-    notificationType = &#39;progress&#39;;
-    title = &#39;🔄 Upload Sync gestartet&#39;;
-    contentWidget = Column(
-      children: [
-        Text(&#39;Die Synchronisierung wurde gestartet&#39;),
-        SizedBox(height: 20),
-        CircularProgressIndicator(),
-      ],
-    );
-  } else if (action.id == 999) {
-    &#47;&#47; Sync Success Benachrichtigung
-    notificationType = &#39;done&#39;;
-    title = &#39;✅ Upload Sync Done&#39;;
-    contentWidget = Column(
-      children: [
-        Text(&#39;Die Synchronisierung wurde erfolgreich abgeschlossen&#39;),
-        SizedBox(height: 10),
-        Icon(Icons.check_circle, size: 50, color: Colors.green),
-      ],
-    );
-  } else if (action.id == 997) {
-    &#47;&#47; Sync Error Benachrichtigung
-    notificationType = &#39;error&#39;;
-    title = &#39;❌ Upload Sync Failed&#39;;
-    contentWidget = Column(
-      children: [
-        Text(&#39;Bei der Synchronisierung ist ein Fehler aufgetreten&#39;),
-        SizedBox(height: 10),
-        Icon(Icons.error, size: 50, color: Colors.red),
-      ],
-    );
-  } else if (action.id == 888) {
-    &#47;&#47; Progress Benachrichtigung
-    notificationType = &#39;progress&#39;;
-    title = &#39;Upload Sync läuft...&#39;;
-
-    &#47;&#47; Hier den aktuellen Fortschritt aus dem Provider anzeigen
-    contentWidget = Column(
-      children: [
-        Text(&#39;Synchronisierung läuft...&#39;),
-        SizedBox(height: 20),
-        ChangeNotifierProvider(
-          create: (_) =&gt; ProgressStateUpdater(),
-          child: Builder(
-            builder: (context) {
-              final actualProgress =
-                  context.watch&lt;ProgressStateUpdater&gt;().progress;
-              return Column(
-                children: [
-                  Text(
-                      &#39;Fortschritt: ${((actualProgress ?? 0) * 100).toStringAsFixed(1)}%&#39;),
-                  SizedBox(height: 10),
-                  LinearProgressIndicator(
-                    value: actualProgress ?? 0,
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  } else {
-    &#47;&#47; Standard-Fallback für andere Benachrichtigungen
-    notificationType = action.payload?[&#39;type&#39;] ?? &#39;unknown&#39;;
-    title = action.payload?[&#39;title&#39;] ?? &#39;Benachrichtigung&#39;;
-
-    &#47;&#47; Ursprüngliche Logik beibehalten
-    contentWidget = Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: action.payload?[&#39;type&#39;] == &#39;done&#39;
-          ? [
-              Text(&#39;Upload Sync Done&#39;),
-              Icon(Icons.check, size: 50),
-            ]
-          : action.payload?[&#39;type&#39;] == &#39;progress&#39;
-              ? [
-                  Text(&#39;Upload Sync in Progress&#39;),
-                  Text(
-                      &#39;${action.payload![&#39;progress&#39;]} &#47; ${action.payload![&#39;max&#39;]}&#39;),
-                  LinearProgressIndicator(
-                    value: int.tryParse(action.payload![&#39;progress&#39;]!)! &#47;
-                        int.tryParse(action.payload![&#39;max&#39;]!)!,
-                  ),
-                  SizedBox(height: 20),
-                  ChangeNotifierProvider(
-                    create: (_) =&gt; ProgressStateUpdater(),
-                    child: Builder(
-                      builder: (context) {
-                        final actualProgress =
-                            context.watch&lt;ProgressStateUpdater&gt;().progress;
-                        return switch (actualProgress) {
-                          null =&gt; CircularProgressIndicator(),
-                          double p =&gt; LinearProgressIndicator(value: p),
-                        };
-                      },
-                    ),
-                  ),
-                ]
-              : action.payload?[&#39;type&#39;] == &#39;failed&#39;
-                  ? [
-                      Text(&#39;Upload Sync Failed&#39;),
-                      Text(&#39;Request Data: ${action.payload![&#39;requestData&#39;]}&#39;),
-                      Icon(Icons.error, size: 50),
-                    ]
-                  : [
-                      Text(&#39;Default Notification Page&#39;),
-                      Text(&#39;Payload: ${action.payload}&#39;),
-                    ],
-    );
-  }
-
   return Scaffold(
     appBar: AppBar(
-      title: Text(title),
+      title: Text(action.payload?[&#39;title&#39;] ?? &#39;Nothing to See Here&#39;),
     ),
     body: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            contentWidget,
-            SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(&#39;Zurück&#39;),
-            ),
-            SizedBox(height: 20),
-            OpenNextRequestTile(),
-          ],
-        ),
+      child: Column(
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: action.payload?[&#39;type&#39;] == &#39;done&#39;
+                ? [
+                    Text(&#39;Upload Sync Done&#39;),
+                    Icon(Icons.check, size: 50),
+                  ]
+                : action.payload?[&#39;type&#39;] == &#39;progress&#39;
+                    ? [
+                        Text(&#39;Upload Sync in Progress&#39;),
+                        Text(
+                            &#39;${action.payload![&#39;progress&#39;]} &#47; ${action.payload![&#39;max&#39;]}&#39;),
+                        LinearProgressIndicator(
+                          value: int.tryParse(action.payload![&#39;progress&#39;]!)! &#47;
+                              int.tryParse(action.payload![&#39;max&#39;]!)!,
+                        ),
+                        SizedBox(height: 20),
+                        ChangeNotifierProvider(
+                          create: (_) =&gt; ProgressStateUpdater(),
+                          child: Builder(
+                            builder: (context) {
+                              final actualProgress = context
+                                  .watch&lt;ProgressStateUpdater&gt;()
+                                  .progress;
+                              return switch (actualProgress) {
+                                null =&gt; CircularProgressIndicator(),
+                                double p =&gt; LinearProgressIndicator(value: p),
+                              };
+                            },
+                          ),
+                        ),
+                      ]
+                    : action.payload?[&#39;type&#39;] == &#39;failed&#39;
+                        ? [
+                            Text(&#39;Upload Sync Failed&#39;),
+                            Text(
+                                &#39;Request Data: ${action.payload![&#39;requestData&#39;]}&#39;),
+                            Icon(Icons.error, size: 50),
+                          ]
+                        : [
+                            Text(&#39;Default Notification Page&#39;),
+                            Text(&#39;Payload: ${action.payload}&#39;),
+                          ],
+          ),
+          OpenNextRequestTile(),
+        ],
       ),
     ),
   );

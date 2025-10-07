@@ -71,7 +71,7 @@
   _loading = loading;
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(sync_in_progress_str, loading);
+    await prefs.setBool(&#39;sync_in_progress_str&#39;, loading);
   } catch (e) {
     debugPrint(&#39;Error setting loading state: $e&#39;);
   }

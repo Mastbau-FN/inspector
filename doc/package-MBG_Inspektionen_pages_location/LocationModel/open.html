@@ -84,23 +84,78 @@ void open(
   MyListTileData tiledata,
 ) {
   currentlyChosenChildData = Future.value(data);
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (context) {
-      switch (tiledata.title) {
-        case _nextViewTitle:
-          return nextModel&lt;CheckCategory, InspectionLocation, CategoryModel&gt;(
-              generateNextModel(data));
-        case &#39;Fotos&#39;:
-          return standard_statefulImageView(this, data);
-        case &#39;Docs&#39;:
-          return DokusList(dokus: data.dokuspaths);
-        default:
-          return LocationDetailPage(
-            locationdata: data,
+
+  switch (tiledata.title) {
+    case &#39;Prüfkategorien&#39;:
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (ctx) =&gt;
+              nextModel&lt;CheckCategory, InspectionLocation, CategoryModel&gt;(
+            generateNextModel(data),
+          ),
+        ),
+      );
+      &#47;&#47; 1) Check if this location is locked &#47; has defects
+      data.hasDefects.then((bool isLocked) {
+        if (isLocked) {
+          &#47;&#47; 3) Show dialog for locked location
+          showDialog&lt;void&gt;(
+            context: context,
+            builder: (BuildContext dialogContext) {
+              return AlertDialog(
+                title: const Text(&#39;Achtung, Standort ist gesperrt&#39;),
+                content: const Text(
+                  &#39;Dieser Standort hat bereits Mängel oder einen Lock. &#39;
+                  &#39;Möchtest du trotzdem in die Prüfkategorien?&#39;,
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      Navigator.of(dialogContext).pop(); &#47;&#47; close the dialog
+                    },
+                    child: const Text(&#39;Zurück&#39;),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(); &#47;&#47; close dialog
+                    },
+                    child: const Text(&#39;Weiter&#39;),
+                  ),
+                ],
+              );
+            },
           );
-      }
-    }),
-  );
+        }
+      });
+      break; &#47;&#47; IMPORTANT: break at the end of this case
+
+    case &#39;Fotos&#39;:
+      &#47;&#47; Your existing code
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (ctx) =&gt; standard_statefulImageView(this, data),
+        ),
+      );
+      break;
+
+    case &#39;Docs&#39;:
+      &#47;&#47; Your existing code
+      Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (ctx) =&gt; DokusList(dokus: data.dokuspaths)),
+      );
+      break;
+
+    default:
+      &#47;&#47; Fallback if not &quot;Prüfkategorien&quot;, &quot;Fotos&quot;, or &quot;Docs&quot;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (ctx) =&gt; LocationDetailPage(locationdata: data),
+        ),
+      );
+      break;
+  }
 }</code></pre>
 </section>
 

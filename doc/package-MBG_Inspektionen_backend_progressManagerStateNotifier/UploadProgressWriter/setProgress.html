@@ -71,7 +71,7 @@
   _progress = progress;
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(sync_progress_str, progress);
+    await prefs.setDouble(&#39;sync_progress_str&#39;, progress);
   } catch (e) {
     debugPrint(&#39;Error setting progress: $e&#39;);
   }
