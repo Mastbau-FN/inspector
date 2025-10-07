@@ -9,6 +9,7 @@ import 'package:MBG_Inspektionen/pages/login/loginView.dart';
 import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -201,3 +202,5 @@ class WebWrap extends StatelessWidget {
           );
   }
 }
+
+/// Angepasste HTTP-Einstellungen für die gesamte App

@@ -123,6 +123,10 @@ dependencies:
   fs: ^2.0.0
   io: ^1.0.4
   open_file: ^3.5.10
+  wakelock_plus: ^1.2.11
+  flutter_background_service: ^5.1.0
+  flutter_background_service_android: ^6.3.0
+  device_info_plus: ^11.3.0
 
   # for automatically generating the option toggles from the option class
   # reflectable: ^3.0.9
