@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:async';
-import 'dart:math';
 
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -20,20 +18,21 @@ import 'adder.dart';
 import 'camera/cameraModel.dart';
 import 'camera/views/cameraMainPreview.dart';
 
-/// Button zum Hinzufügen eines neuen Fotos mit Kamerasteuerung
 class PrePhotoAdder extends StatelessWidget {
   final CheckPoint parent;
-  final Future<Null> Function() onDone;
+  Future<Null> Function() onDone;
   final CheckPointDefectsModel model;
 
   PrePhotoAdder({
     required this.parent,
     required this.onDone,
     required this.model,
-  });
-
+  }) {
+    this.parent;
+  }
   @override
   Widget build(BuildContext context) {
+    //dialog with camera
     return FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
@@ -50,37 +49,50 @@ class PrePhotoAdder extends StatelessWidget {
   }
 }
 
-/// Dialog mit Kamera zur Aufnahme von Bildern für neue Defekte
+/// Renames the given [originalFile] to include a timestamp and a short hash.
+Future<File> renameCapturedImage(File originalFile) async {
+  // Get the current date and format it as desired.
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+
+  // Read the file bytes and compute an MD5 hash.
+  List<int> fileBytes = await originalFile.readAsBytes();
+  // Compute the full hash and then take the first 6 characters.
+  String fullHash = md5.convert(fileBytes).toString();
+  String shortHash = fullHash.substring(0, 4);
+
+  // Create the new file name.
+  String newFileName = '${formattedDate}_$shortHash.jpg';
+
+  // Construct the new file path (same directory as the original).
+  String newPath =
+      '${originalFile.parent.path}${Platform.pathSeparator}$newFileName';
+
+  // Rename (or move) the file.
+  return originalFile.rename(newPath);
+}
+
 class CameraForAdder extends StatefulWidget {
   final parent;
-  final Future<Null> Function() onDone;
-  final CheckPointDefectsModel model;
+  Future<Null> Function() onDone;
 
-  const CameraForAdder({
+  final CheckPointDefectsModel model;
+  @override
+  CameraForAdder({
     Key? key,
     this.parent,
     required this.onDone,
     required this.model,
   }) : super(key: key);
-
   @override
   State<CameraForAdder> createState() => _CameraForAdderState();
 }
 
 class _CameraForAdderState extends State<CameraForAdder>
     with SingleTickerProviderStateMixin {
-  // Animation-Controller
   static const animationDuration = Duration(milliseconds: 200);
   late Animation<double> animation;
   late AnimationController controller;
-
-  // Status-Variablen
-  bool firstOpen = true;
-  bool withCamera = false;
-  bool uploadingImage = false;
-  List<XFile> queue = [];
-
-  @override
   void initState() {
     super.initState();
     openCam();
@@ -88,24 +100,22 @@ class _CameraForAdderState extends State<CameraForAdder>
     animation = Tween<double>(begin: 0, end: 1).animate(controller)
       ..addListener(() {
         setState(() {
-          // Animation-Aktualisierung
+          // The state that has changed here is the animation object’s value.
         });
       });
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
+  bool firstOpen = true;
+  bool uploadingImage = false;
 
   @override
   Widget build(BuildContext context) {
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
-
     return Stack(
       children: [
+        //XXX: ich verstehe nicht was hier abgeht, wenn wir den container haben geht der touch im hintergrund nicht mehr
+        // Container(
+        //   color: Colors.black.withOpacity(0.1 * animation.value),
+        // ),
         Align(
           alignment: Alignment.bottomCenter,
           child: SafeArea(
@@ -118,68 +128,45 @@ class _CameraForAdderState extends State<CameraForAdder>
                   if (withCamera)
                     Expanded(
                       child: Padding(
-                        padding: isLandscape
-                            ? const EdgeInsets.fromLTRB(
-                                25, 0, 32, 0) // Mehr Abstand im Querformat
-                            : const EdgeInsets.fromLTRB(25, 0, 8, 0),
-                        child: Consumer<CameraModel>(
-                          builder: (context, model, child) =>
-                              model.latestPic == null
-                                  ? ChangeNotifierProvider.value(
-                                      value: model.zoomM,
-                                      child: Builder(builder: (context) {
-                                        return _buildCameraWithControls(model);
-                                      }),
-                                    )
-                                  : _buildCapturedImagePreview(model),
+                        padding: const EdgeInsets.fromLTRB(25, 0, 8, 0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Consumer<CameraModel>(
+                            builder: (context, model, child) =>
+                                model.latestPic == null
+                                    ? ChangeNotifierProvider.value(
+                                        value: model.zoomM,
+                                        child: Builder(builder: (context) {
+                                          return cameraWithControls(model);
+                                        }),
+                                      )
+                                    : Image.file(
+                                        File(model.latestPic!.path),
+                                        fit: BoxFit.fitWidth,
+                                      ),
+                          ),
                         ),
                       ),
                     ),
-                  Container(
-                    margin: isLandscape
-                        ? EdgeInsets.only(
-                            left: 32) // Mehr Abstand im Querformat
-                        : EdgeInsets.only(
-                            top:
-                                132), // Deutlich mehr vertikaler Abstand im Hochformat
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        // Bilderwarteschlange (nur anzeigen, wenn es Bilder in der Queue gibt)
-                        if (queue.isNotEmpty && withCamera)
-                          Positioned(
-                            right: isLandscape
-                                ? 70
-                                : 0, // Im Querformat: zwischen Buttons und Bild, im Hochformat: über Buttons
-                            bottom: isLandscape
-                                ? 0
-                                : 250, // Im Querformat: unten ausgerichtet, im Hochformat: mit deutlich mehr Abstand für Buttons
-                            child: Container(
-                              margin: EdgeInsets.only(bottom: 8),
-                              child: _buildImageQueueWidget(),
-                            ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Transform.translate(
+                        //transformHitTests: true,
+                        offset: Offset(0, animation.value * -70),
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top:
+                                  100), //needed for hitTesting to work after transform
+                          child: Consumer<CameraModel>(
+                            builder: (context, model, child) =>
+                                takeImage(context, model),
                           ),
-
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Transform.translate(
-                              offset: Offset(0, animation.value * -70),
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 100),
-                                child: Consumer<CameraModel>(
-                                  builder: (context, model, child) =>
-                                      _buildCameraControls(context, model),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            _buildCancelButton(context),
-                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(height: 5),
+                      addImgButton(context),
+                    ],
                   ),
                 ],
               ),
@@ -190,174 +177,126 @@ class _CameraForAdderState extends State<CameraForAdder>
     );
   }
 
-  // Kamerasteuerung mit Blitz- und Zoomkontrolle
-  Widget _buildCameraWithControls(CameraModel model) {
+  FloatingActionButton addImgButton(BuildContext context) =>
+      FloatingActionButton(
+          child: Icon(Icons.cancel),
+          onPressed: () {
+            if (queue.isEmpty) {
+              Provider.of<CameraModel>(context, listen: false).discardPic();
+              closeCam();
+              Navigator.of(context).pop();
+              return;
+            }
+            Provider.of<CameraModel>(context, listen: false).latestPic =
+                queue.last;
+            queue.removeLast();
+          });
+  Widget takeImage(BuildContext context, CameraModel model) =>
+      model.latestPic == null
+          ? FloatingActionButton(
+              child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
+              onPressed: withCamera ? () => shoot(context) : openCam,
+            )
+          : Column(
+              verticalDirection: VerticalDirection.up,
+              children: [
+                photoDone,
+                SizedBox(height: 5),
+                discardPhoto,
+                SizedBox(height: 5),
+                addToQueue,
+                Container(
+                  height: 300,
+                  child: Column(
+                      verticalDirection: VerticalDirection.up,
+                      children: [...queueButtonStuff]),
+                ),
+              ],
+            );
+  CameraPreviewOnly cameraWithControls(CameraModel model) {
+    var switchCameraButton = IconButton(
+        onPressed: model.nextCamera,
+        icon: Icon(
+          Icons.switch_camera,
+          color: Colors.white,
+        ));
+    var flashButton = FlashControlButton(model: model);
+    var zoomSlider = ZoomSlider(
+      model: model,
+    );
     return CameraPreviewOnly(
       children: [
-        // Kamera wechseln
-        Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.switch_camera, color: Colors.white),
-            onPressed: model.nextCamera,
-            tooltip: 'Kamera wechseln',
-          ),
-        ),
-
-        // Blitzsteuerung
-        Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: IconButton(
-            icon: Icon(
-              model.flashMode.icon,
-              color: Colors.white,
-            ),
-            onPressed: model.toggleFlash,
-            tooltip: 'Blitzmodus: ${model.flashMode.label}',
-          ),
-        ),
-
-        // Zoomregler
-        _buildZoomSlider(model),
+        // Text('he, hier !!'),
+        switchCameraButton,
+        flashButton,
+        zoomSlider,
       ],
     );
   }
 
-  // Zoomregler
-  Widget _buildZoomSlider(CameraModel model) {
-    return FutureBuilder<(double, double)>(
-      future: model.zoomRange,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return Container();
+  void shoot(BuildContext context) async {
+    CameraModel model = Provider.of<CameraModel>(context, listen: false);
+    await model.shoot(); // This captures the photo and sets model.latestPic
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          margin: const EdgeInsets.only(top: 8),
-          child: SizedBox(
-            height: 200,
-            width: 50,
-            child: RotatedBox(
-              quarterTurns: 1,
-              child: Consumer<ZoomModel>(
-                builder: (context, zoomModel, _) {
-                  return Slider(
-                    value: zoomModel.zoom,
-                    min: snapshot.data!.$1,
-                    max: snapshot.data!.$2,
-                    onChanged: (newZoom) => model.setZoom(newZoom),
-                    activeColor: Colors.white,
-                    inactiveColor: Colors.white.withOpacity(0.5),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Abbrechen-Button
-  Widget _buildCancelButton(BuildContext context) {
-    return FloatingActionButton(
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.cancel),
-        onPressed: () {
-          if (queue.isEmpty) {
-            Provider.of<CameraModel>(context, listen: false).discardPic();
-            closeCam();
-            Navigator.of(context).pop();
-            return;
-          }
-
-          // Letztes Bild aus der Warteschlange anzeigen
-          final model = Provider.of<CameraModel>(context, listen: false);
-          model.latestPic = queue.last;
-          setState(() {
-            queue.removeLast();
-          });
-        });
-  }
-
-  // Bild-Steuerungselemente
-  Widget _buildCameraControls(BuildContext context, CameraModel model) {
-    if (model.latestPic == null) {
-      return FloatingActionButton(
-        heroTag: 'takePhoto',
-        backgroundColor: Colors.amber,
-        child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
-        onPressed: withCamera ? () => _shoot(context) : openCam,
-        tooltip: withCamera ? 'Foto aufnehmen' : 'Kamera öffnen',
-      );
-    } else {
-      return Column(
-        verticalDirection: VerticalDirection.up,
-        children: [
-          _buildConfirmButton(),
-          const SizedBox(height: 10), // Reduzierter Abstand
-          _buildDiscardButton(),
-          const SizedBox(height: 10), // Reduzierter Abstand
-          _buildAddToQueueButton(),
-        ],
-      );
+    if (model.latestPic != null) {
+      // Convert the XFile to a File.
+      File originalFile = File(model.latestPic!.path);
+      // Rename the file.
+      File renamedFile = await renameCapturedImage(originalFile);
+      // Update the latestPic with the new file path.
+      model.latestPic = XFile(renamedFile.path);
     }
+    debugPrint("Photo taken and renamed");
   }
 
-  // Foto aufnehmen
-  void _shoot(BuildContext context) async {
-    try {
-      final model = Provider.of<CameraModel>(context, listen: false);
-      await model.shoot();
-    } catch (e) {
-      showToast("Fehler bei der Aufnahme: $e");
-    }
-  }
+  void discardShot(context) =>
+      Provider.of<CameraModel>(context, listen: false).discardPic();
 
-  // Bild verwerfen
-  void _discardShot(BuildContext context) {
-    Provider.of<CameraModel>(context, listen: false).discardPic();
-  }
+  List<XFile> queue = [];
 
-  // Bild zur Warteschlange hinzufügen
-  Future<void> _addLatestToQueue(BuildContext context) async {
-    final model = Provider.of<CameraModel>(context, listen: false);
-    final pic = model.latestPic;
-
+  Future<void> addLatestToQueue(context) async {
+    XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
     if (pic != null) {
-      setState(() {
-        queue.add(pic);
-      });
-      model.discardPic();
+      queue.add(pic);
+      debugPrint("added to queue");
+      discardShot(context);
     }
   }
 
-  // Bilder hochladen
-  Future<void> _onNewImages(List<XFile> queue, CheckPointDefect cp) async {
+  onNewImages(List<XFile> queue, CheckPointDefect cp) async {
+    //showToast(S.of(context).newImageSendingThisMayTakeASec);
+
+    //widget.model.currentlyChosenChildId = widget.parent.id;
+    // var value = await widget.model.updateCurrentChild(
+    //   (data) async {
+    //     var ret =
     await API().uploadNewImagesOrFiles(cp, queue,
         caller: widget.model.currentData, forceUpdate: true);
+    // await Future.delayed(Duration(seconds: 5));
+    //     return ret;
+    //   },
+    // );
+    // debugPrint("value: $value");
+    // return value;
   }
 
-  // Bilder hochladen und neuen Defekt erstellen
-  void _uploadShots(BuildContext context) async {
+  void uploadShots(context) async {
     setState(() {
       uploadingImage = true;
     });
 
+    // Navigator.of(context).pop();
+    // route to checkpointdefects.adders
+
+    // var model = Provider.of<CheckPointDefectsModel>(context);
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (ncontext) => Scaffold(
+        builder: (ncontext) =>
+            // ChangeNotifierProvider<CheckPointDefectsModel>.value(
+            // value: model,
+            // child:
+            Scaffold(
           body: Align(
             alignment: Alignment.bottomCenter,
             child: CheckPointDefectsModel.adder(
@@ -365,9 +304,11 @@ class _CameraForAdderState extends State<CameraForAdder>
               onDone: (defect) async {
                 CheckPointDefect? newDefect =
                     await API().setNew(defect, caller: widget.parent);
+                // CheckPointDefectsModel model =
+                //     Provider.of<CheckPointDefectsModel>(ncontext);
                 await API().update(newDefect!);
                 await widget.onDone();
-                await _onNewImages(queue, newDefect);
+                await onNewImages(queue, newDefect);
                 await widget.onDone();
                 queue = [];
               },
@@ -377,30 +318,18 @@ class _CameraForAdderState extends State<CameraForAdder>
             ),
           ),
         ),
+        // ),
       ),
     );
     closeCam();
   }
 
-  // Bildwarteschlange bauen
-  List<Widget> _buildImageQueue() {
-    return [
-      ...queue.asMap().entries.map((entry) {
-        int idx = entry.key;
-        XFile file = entry.value;
-        return Transform.translate(
-          offset: Offset(0, -(-25 + 30 * queue.length - (80.0) * idx)),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
+  List<Widget> get queueButtonStuff => [
+        ...queue.asMap().entries.map((entry) {
+          int idx = entry.key;
+          XFile file = entry.value;
+          return Transform.translate(
+            offset: Offset(0, -(-25 + 30 * queue.length - (80.0) * idx)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: SizedBox(
@@ -408,287 +337,52 @@ class _CameraForAdderState extends State<CameraForAdder>
                 width: 50,
                 child: Image.file(
                   File(file.path),
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fitWidth,
                 ),
               ),
-            ),
-          ),
-        );
-      }),
-    ];
-  }
-
-  // Neue Widget-Version der Bilderwarteschlange für bessere Positionierung
-  Widget _buildImageQueueWidget() {
-    int totalImages = queue.length;
-    if (totalImages == 0) return Container();
-
-    int imagesToShow = totalImages.clamp(0, 5);
-    List<XFile> visibleImages = queue.skip(totalImages - imagesToShow).toList();
-    int remainingImages = totalImages - imagesToShow;
-
-    return Container(
-      width: 50,
-      height: imagesToShow * 30 + 50,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Indikator für weitere Bilder
-          if (remainingImages > 0)
-            Positioned(
-              top: 0,
-              child: Container(
-                height: 50,
-                width: 50,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: Text(
-                  "+$remainingImages",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-
-          // Bilder in der Warteschlange
-          ...visibleImages.asMap().entries.map((entry) {
-            int idx = entry.key;
-            XFile file = entry.value;
-
-            return Positioned(
-              top: (idx + (remainingImages > 0 ? 1 : 0)) * 30.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 5,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: SizedBox(
-                    height: 50,
-                    width: 50,
-                    child: Image.file(
-                      File(file.path),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // Button zum Verwerfen des aktuellen Bildes
-  Widget _buildDiscardButton() {
-    return SizedBox(
-      width: 48, // Kleinere Größe
-      height: 48, // Kleinere Größe
-      child: FloatingActionButton(
-        heroTag: 'discardPhoto',
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.replay, size: 20), // Kleineres Icon
-        onPressed: () => _discardShot(context),
-        tooltip: 'Verwerfen und neu aufnehmen',
-      ),
-    );
-  }
-
-  // Button zum Bestätigen und Hochladen
-  Widget _buildConfirmButton() {
-    return SizedBox(
-      width: 48, // Kleinere Größe
-      height: 48, // Kleinere Größe
-      child: FloatingActionButton(
-        heroTag: 'confirmPhoto',
-        backgroundColor: Colors.green,
-        child: uploadingImage
-            ? const LoadingView()
-            : const Icon(Icons.check, size: 20), // Kleineres Icon
-        onPressed: () =>
-            _addLatestToQueue(context).then((_) => _uploadShots(context)),
-        tooltip: 'Bestätigen und hochladen',
-      ),
-    );
-  }
-
-  // Button zum Hinzufügen zur Warteschlange
-  Widget _buildAddToQueueButton() {
-    return uploadingImage
-        ? Container()
-        : SizedBox(
-            width: 48, // Kleinere Größe
-            height: 48, // Kleinere Größe
-            child: FloatingActionButton(
-              heroTag: 'addToQueue',
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.add_photo_alternate,
-                  size: 20), // Kleineres Icon
-              onPressed: () => _addLatestToQueue(context),
-              tooltip: 'Zur Warteschlange hinzufügen',
             ),
           );
-  }
+        }),
+        // SizedBox(height: 15),
+      ];
+  FloatingActionButton get discardPhoto => FloatingActionButton(
+      backgroundColor: Colors.red,
+      child: Icon(Icons.replay),
+      onPressed: () => discardShot(context));
 
-  // Kamera öffnen
+  FloatingActionButton get photoDone => FloatingActionButton(
+        backgroundColor: Colors.green,
+        child: uploadingImage ? LoadingView() : Icon(Icons.check),
+        onPressed: () =>
+            addLatestToQueue(context).then((value) => uploadShots(context)),
+      );
+
+  Widget get addToQueue => uploadingImage
+      ? Container()
+      : FloatingActionButton(
+          backgroundColor: Colors.blue,
+          child: Icon(Icons.add_photo_alternate),
+          onPressed: () => addLatestToQueue(context),
+        );
+
+  bool withCamera = false;
   void openCam() {
+    debugPrint("opened camera");
     setState(() {
       withCamera = true;
     });
   }
 
-  // Kamera schließen
   void closeCam() {
+    debugPrint("closed camera");
     setState(() {
       withCamera = false;
     });
   }
 
-  // Zweites Öffnen markieren
   void secondOpen() {
     setState(() {
       firstOpen = false;
     });
-  }
-
-  // Zeigt das aufgenommene Bild mit korrekter Ausrichtung an
-  Widget _buildCapturedImagePreview(CameraModel model) {
-    final file = File(model.latestPic!.path);
-    return FutureBuilder<Size>(
-      future: _getImageDimensions(file),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator(color: Colors.white));
-        }
-
-        final isLandscape =
-            MediaQuery.of(context).orientation == Orientation.landscape;
-        final imageWidth = snapshot.data!.width;
-        final imageHeight = snapshot.data!.height;
-        final imageRatio = imageWidth / imageHeight;
-
-        // Bildschirmmaße abrufen
-        final screenSize = MediaQuery.of(context).size;
-
-        // Größe des Vorschaufensters basierend auf Bildverhältnis berechnen
-        double displayWidth, displayHeight;
-
-        if (isLandscape) {
-          // Im Querformat - Höhe begrenzen
-          displayHeight = screenSize.height * 0.7;
-          displayWidth = displayHeight * imageRatio;
-          // Breite begrenzen, falls nötig
-          if (displayWidth > screenSize.width * 0.8) {
-            displayWidth = screenSize.width * 0.8;
-            displayHeight = displayWidth / imageRatio;
-          }
-        } else {
-          // Im Hochformat - Breite begrenzen
-          displayWidth = screenSize.width * 0.8;
-          displayHeight = displayWidth / imageRatio;
-          // Höhe begrenzen, falls nötig
-          if (displayHeight > screenSize.height * 0.7) {
-            displayHeight = screenSize.height * 0.7;
-            displayWidth = displayHeight * imageRatio;
-          }
-        }
-
-        // Überprüfen, ob das Bild falsch ausgerichtet ist
-        final shouldRotate =
-            (isLandscape && imageRatio < 1) || (!isLandscape && imageRatio > 1);
-
-        // Berechnen des korrekten Rotationswinkels basierend auf der Ausrichtung
-        double rotationAngle;
-        if (isLandscape) {
-          // Im Querformat-Modus
-          rotationAngle = shouldRotate ? pi / 2 : 0;
-        } else {
-          // Im Hochformat-Modus
-          rotationAngle = shouldRotate ? pi / 2 : 0;
-        }
-
-        return Container(
-          width: displayWidth,
-          height: displayHeight,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Bildanzeige mit Drehung bei Bedarf
-                Center(
-                  child: Transform.rotate(
-                    angle: rotationAngle,
-                    child: AspectRatio(
-                      aspectRatio: shouldRotate ? 1 / imageRatio : imageRatio,
-                      child: Image.file(
-                        file,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Kleine Infoanzeige
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      'Vorschau',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Hilfsfunktion zum Abrufen der Bildabmessungen
-  Future<Size> _getImageDimensions(File imageFile) async {
-    final Completer<Size> completer = Completer();
-    final Image image = Image.file(imageFile);
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(ImageStreamListener((ImageInfo info, bool _) {
-      completer.complete(Size(
-        info.image.width.toDouble(),
-        info.image.height.toDouble(),
-      ));
-    }));
-    return completer.future;
   }
 }

@@ -1,151 +1,83 @@
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-/// Hauptklasse zur Verwaltung der Kamerafunktionen
 class CameraModel extends ChangeNotifier {
-  // Kamera-Controller
-  CameraController? _controller;
-  CameraController? get controller => _controller;
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   // App state changed before we got the chance to initialize.
+  //   if (controller == null || !controller.value.isInitialized) {
+  //     return;
+  //   }
+  //   if (state == AppLifecycleState.inactive) {
+  //     controller?.dispose();
+  //   } else if (state == AppLifecycleState.resumed) {
+  //     if (controller != null) {
+  //       onNewCameraSelected(controller.description);
+  //     }
+  //   }
+  // }
 
-  // Zoom-Modell
-  final ZoomModel _zoomModel = ZoomModel();
-  ZoomModel get zoomM => _zoomModel;
-  double get zoom => _zoomModel.zoom;
+  Future<CameraController?> get newController async =>
+      switch (await currentCamera) {
+        null => null,
+        CameraDescription cd => CameraController(
+            // Get a specific camera from the list of available cameras.
+            cd,
+            // Define the resolution to use.
+            ResolutionPreset.max,
+          )
+      };
 
-  // Kamera-Index und Status
-  int _currentCameraIndex = 0;
-  bool _isProcessing = false;
-  bool get isProcessing => _isProcessing;
+  CameraController? controller;
 
-  // Blitzmodus
-  FlashMode _flashMode = FlashMode.off;
-  FlashMode get flashMode => _flashMode;
-
-  // Letztes aufgenommenes Bild
-  XFile? _latestPic;
-  XFile? get latestPic => _latestPic;
-
-  // Controller-Erstellung
-  Future<CameraController?> get newController async {
-    final camera = await currentCamera;
-    if (camera == null) return null;
-
-    return CameraController(
-      camera,
-      ResolutionPreset.max,
-      enableAudio: false,
-      imageFormatGroup: ImageFormatGroup.jpeg,
-    );
-  }
-
-  // Kamera starten
   Future<CameraController> start({bool reuse = true}) async {
-    // Vorhandenen Controller wiederverwenden, wenn möglich
-    if (reuse && _controller != null && _controller!.value.isInitialized) {
-      return _controller!;
+    if (reuse && controller != null && controller!.value.isInitialized) {
+      return controller!;
     }
-
-    // Neuen Controller erstellen
-    _controller = await newController;
-    if (_controller == null) {
-      throw Exception("Kamerainitialisierung fehlgeschlagen");
+    controller = await newController;
+    if (controller == null) {
+      throw Exception("Failed to initialize camera");
     }
-
-    // Controller initialisieren und Blitzmodus setzen
-    await _controller!.initialize();
-    await _setFlashMode(_flashMode);
-    await _getZoomRange();
-
-    // Bildschirm hell halten während die Kamera aktiv ist
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: [SystemUiOverlay.bottom],
-    );
-
-    return _controller!;
+    await controller!.initialize();
+    return controller!;
   }
 
-  // Bild aufnehmen
-  Future<XFile> shoot() async {
-    if (_isProcessing) {
-      throw Exception("Kamera arbeitet noch");
-    }
+  XFile? _latestPic;
 
-    if (_controller == null || !_controller!.value.isInitialized) {
-      debugPrint("Controller nicht initialisiert, starte Kamera...");
-      await start();
-    }
-
-    try {
-      _isProcessing = true;
-      notifyListeners();
-
-      // Haptisches Feedback bei Aufnahme
-      HapticFeedback.mediumImpact();
-
-      _latestPic = await _controller!.takePicture();
-
-      _isProcessing = false;
-      notifyListeners();
-      return _latestPic!;
-    } catch (e) {
-      _isProcessing = false;
-      notifyListeners();
-      debugPrint("Fehler beim Aufnehmen des Bildes: $e");
-      throw Exception("Fehler beim Aufnehmen des Bildes");
-    }
-  }
-
-  // Bild verwerfen
-  void discardPic() {
-    debugPrint("Bild verworfen");
-    _latestPic = null;
-    notifyListeners();
-  }
-
-  // Manuelles Setzen des letzten Bilds (für spezielle Anwendungsfälle)
+  /// only use on weird edge cases, this normally gets set by [shoot]
   set latestPic(XFile? value) {
     _latestPic = value;
     notifyListeners();
   }
 
-  // Blitzmodus umschalten
-  Future<void> toggleFlash() async {
-    final availableFlashModes = [
-      FlashMode.off,
-      FlashMode.auto,
-      FlashMode.always
-    ];
-
-    int currentIndex = availableFlashModes.indexOf(_flashMode);
-    int nextIndex = (currentIndex + 1) % availableFlashModes.length;
-    await setFlashMode(availableFlashModes[nextIndex]);
-  }
-
-  // Blitzmodus setzen
-  Future<void> setFlashMode(FlashMode mode) async {
-    _flashMode = mode;
-    await _setFlashMode(mode);
+  XFile? get latestPic => _latestPic;
+  void discardPic() {
+    debugPrint("discarded picture");
+    _latestPic = null;
     notifyListeners();
   }
 
-  // Internen Blitzmodus setzen
-  Future<void> _setFlashMode(FlashMode mode) async {
-    if (_controller != null && _controller!.value.isInitialized) {
-      await _controller!.setFlashMode(mode).catchError((e) {
-        debugPrint("Fehler beim Setzen des Blitzmodus: $e");
-      });
+  Future<XFile> shoot() async {
+    if (controller == null || !controller!.value.isInitialized) {
+      debugPrint("Controller nicht initialisiert, starte Kamera...");
+      await start();
+    }
+    try {
+      _latestPic = await controller!.takePicture();
+      notifyListeners();
+      return latestPic!;
+    } catch (e) {
+      debugPrint("Fehler beim Aufnehmen des Bildes: $e");
+      throw Exception("Fehler beim Aufnehmen des Bildes");
     }
   }
 
-  // Alle verfügbaren Kameras abrufen
   Future<List<CameraDescription>> get allCameras async {
     try {
       final cams = await availableCameras();
       if (cams.isEmpty) {
-        throw Exception("Keine Kameras verfügbar");
+        throw Exception("no cameras available");
       }
       return cams;
     } catch (e) {
@@ -155,182 +87,95 @@ class CameraModel extends ChangeNotifier {
     return [];
   }
 
-  // Hauptkamera abrufen (normalerweise die erste)
   Future<CameraDescription?> get mainCamera async =>
       (await allCameras).firstOrNull;
 
-  // Rückseitige Kamera finden
-  Future<CameraDescription?> get backCamera async {
-    final cameras = await allCameras;
-    return cameras.firstWhere(
-      (camera) => camera.lensDirection == CameraLensDirection.back,
-      orElse: () => cameras.first,
-    );
-  }
-
-  // Frontkamera finden
-  Future<CameraDescription?> get frontCamera async {
-    final cameras = await allCameras;
-    return cameras.firstWhere(
-      (camera) => camera.lensDirection == CameraLensDirection.front,
-      orElse: () => cameras.first,
-    );
-  }
-
-  // Aktuelle Kamera abrufen
-  Future<CameraDescription?> get currentCamera async {
-    try {
-      return (await allCameras)[_currentCameraIndex];
-    } catch (e) {
-      debugPrint("Fehler beim Abrufen der aktuellen Kamera: $e");
-    }
-
-    return await mainCamera;
-  }
-
-  // Zur nächsten Kamera wechseln
+  int _currentCameraIndex = 0;
   Future<void> nextCamera() async {
     final cameras = await allCameras;
     if (cameras.isEmpty) {
       showToast("Keine Kameras verfügbar");
       return;
     }
-
-    _isProcessing = true;
-    notifyListeners();
-
     _currentCameraIndex = (_currentCameraIndex + 1) % cameras.length;
-    _controller = await newController;
-
-    _isProcessing = false;
+    controller = await newController;
     notifyListeners();
   }
 
-  // Zur vorherigen Kamera wechseln
   Future<void> prevCamera() async {
     final cameras = await allCameras;
     if (cameras.isEmpty) {
       showToast("Keine Kameras verfügbar");
       return;
     }
-
-    _isProcessing = true;
-    notifyListeners();
-
     _currentCameraIndex =
         (_currentCameraIndex - 1 + cameras.length) % cameras.length;
-    _controller = await newController;
-
-    _isProcessing = false;
+    controller = await newController;
     notifyListeners();
   }
 
-  // Zoom-Bereich abrufen
-  Future<(double, double)> get zoomRange async => await _getZoomRange();
-
-  // Internen Zoom-Bereich abrufen
-  Future<(double, double)> _getZoomRange() async {
-    _controller ??= await start();
-    final maxZoom = await _controller!.getMaxZoomLevel();
-    final minZoom = await _controller!.getMinZoomLevel();
-    _zoomModel.zoomRange = (minZoom, maxZoom);
+  Future<(double, double)> get zoomRange async {
+    // return (1.0, 2.0);
+    controller = await start();
+    final maxZoom = await controller!.getMaxZoomLevel();
+    final minZoom = await controller!.getMinZoomLevel();
+    zoomM.zoomRange = (minZoom, maxZoom);
     return (minZoom, maxZoom);
   }
 
-  // Zoom setzen
-  Future<void> setZoom(double newVal) async {
-    _zoomModel.zoom = newVal;
-    _controller ??= await start();
-    await _controller!.setZoomLevel(newVal);
+  final zoomM = ZoomModel();
+  double get zoom => zoomM.zoom;
+
+  Future<void> setZoom(newVal) async {
+    zoomM.zoom = newVal;
+    controller ??= await start();
+    controller!.setZoomLevel(newVal);
+    // notifyListeners();
   }
 
-  // Fokuspunkt setzen
-  Future<void> focus(Offset focusPoint) async {
-    _controller ??= await start();
-    try {
-      await _controller!.setFocusPoint(focusPoint);
-      await _controller!.setExposurePoint(focusPoint);
-    } catch (e) {
-      debugPrint("Fehler beim Fokussieren: $e");
-    }
-  }
-
-  // Automatisch fokussieren
-  Future<void> autoFocus() async {
-    _controller ??= await start();
-    try {
-      // In der Mitte fokussieren
-      await _controller!.setFocusPoint(const Offset(0.5, 0.5));
-      await _controller!.setExposurePoint(const Offset(0.5, 0.5));
-    } catch (e) {
-      debugPrint("Fehler beim automatischen Fokussieren: $e");
-    }
-  }
-
-  // Ressourcen freigeben
   @override
   void dispose() {
     disposeCamera();
-    // Bildschirmeinstellungen wiederherstellen
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
     super.dispose();
   }
 
-  // Kamera-Ressourcen freigeben
   void disposeCamera() {
-    if (_controller != null) {
-      _controller!.setFlashMode(FlashMode.off).catchError((e) {
+    if (controller != null) {
+      controller!.setFlashMode(FlashMode.off).catchError((e) {
         debugPrint("Fehler beim Ausschalten des Blitzes: $e");
       });
-      _controller!.dispose();
-      _controller = null;
+      controller!.dispose();
+      controller = null;
     }
   }
+
+  Future<void> focus(Offset focusPoint) async {
+    controller ??= await start();
+    controller!.setFocusPoint(focusPoint);
+    controller!.setExposurePoint(focusPoint);
+  }
+
+  Future<CameraDescription?> get currentCamera async {
+    try {
+      return (await allCameras)[_currentCameraIndex];
+    } catch (e) {}
+
+    return await mainCamera; //XXX (related to #202) use other lenses
+  }
 }
 
-/// Modell zur Verwaltung der Zoom-Funktionalität
 class ZoomModel extends ChangeNotifier {
-  // Standard-Zoom-Bereich
-  (double, double) _zoomRange = (1.0, 2.0);
-
-  // Aktueller Zoom-Wert
+  (double, double) zoomRange = (1.0, 2.0);
   double _zoom = 1.0;
-
-  // Getter und Setter
   double get zoom => _zoom;
-  (double, double) get zoomRange => _zoomRange;
-
-  set zoom(double newVal) {
+  set zoom(newVal) {
     _zoom = newVal;
-    debugPrint("Zoom: $newVal");
+    debugPrint("zoom: $newVal");
     notifyListeners();
-  }
-
-  set zoomRange((double, double) range) {
-    _zoomRange = range;
-    notifyListeners();
+    // Future.delayed(Duration(milliseconds: 100), () => notifyListeners());
   }
 }
 
-/// Hilfserweiterung für die Konvertierung von Tupeln zu RangeValues
 extension ToRangeValues on (double, double) {
   RangeValues toRangeValues() => RangeValues(this.$1, this.$2);
-}
-
-/// Erweiterung für FlashMode, um Icons und Text zu erhalten
-extension FlashModeExtension on FlashMode {
-  IconData get icon => switch (this) {
-        FlashMode.off => Icons.flash_off,
-        FlashMode.auto => Icons.flash_auto,
-        FlashMode.always => Icons.flash_on,
-        FlashMode.torch => Icons.highlight,
-      };
-
-  String get label => switch (this) {
-        FlashMode.off => 'Aus',
-        FlashMode.auto => 'Auto',
-        FlashMode.always => 'An',
-        FlashMode.torch => 'Licht',
-      };
 }

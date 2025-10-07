@@ -3,13 +3,11 @@ part of 'controller.dart';
 class ChannelController {
   List<NotificationChannel> channels = [
     NotificationChannel(
-        channelKey: 'mbg_all_notifications',
-        channelName: 'MBG App Benachrichtigungen',
-        channelDescription: 'Alle Benachrichtigungen der MBG App',
+        channelGroupKey: 'mbg_retryfailed_group',
+        channelKey: 'progress',
+        channelName: 'Progress',
+        channelDescription: 'Shows the progress of the upload sync',
         defaultColor: mbgpalette0,
-        importance: NotificationImportance.Max,
-        playSound: true,
-        enableVibration: true,
-        ledColor: Colors.blue),
+        ledColor: Colors.white)
   ];
 }

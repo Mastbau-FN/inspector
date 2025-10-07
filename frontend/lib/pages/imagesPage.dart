@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
-import 'dart:math';
-import 'dart:async';
-
+import 'package:crypto/crypto.dart';
+import 'package:intl/intl.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
@@ -19,23 +18,14 @@ import 'package:MBG_Inspektionen/fragments/imageWrap.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-/// Hauptseite für die Bilderverwaltung
 class ImagesPage<T extends Object> extends StatelessWidget {
-  // Streams für die Bilddaten
   late final List<Stream<ImageData<T>?>> _images;
-
-  // Callback-Funktionen
   final Future<String?> Function(List<XFile>) onNewImages;
-  final Function(T) onDelete;
-  final Function(T) onStar;
-  final Function(T) onShare;
-
-  // Konfigurationsoptionen
   final int columnCount;
   final bool hasMainImage;
+
   final bool intendsToAddPicture;
 
-  // Standard-Callback-Funktionen
   static Future<String?> _defaultAdd(List<XFile> list) async {
     showToast(S.current!.notAvailable);
     return "";
@@ -43,7 +33,19 @@ class ImagesPage<T extends Object> extends StatelessWidget {
 
   static _default(Object _) => showToast(S.current!.notAvailable);
 
-  /// Konstruktor für direkte Bildlisten
+  // static _defaultDelete(Object id) async {
+  //   try {
+  //     if (kDebugMode)
+  //       showToast((await API().deleteImageByHash(id.toString())).toString());
+  //   } catch (e) {
+  //     showToast(e.toString());
+  //   }
+  // }
+
+  final Function(T) onDelete;
+  final Function(T) onStar;
+  final Function(T) onShare;
+
   ImagesPage.constant({
     List<ImageData<T>?>? images = const [],
     this.columnCount = 4,
@@ -59,7 +61,6 @@ class ImagesPage<T extends Object> extends StatelessWidget {
         images?.whereNotNull().map((e) => Stream.value(e)).toList() ?? [];
   }
 
-  /// Konstruktor für Future-basierte Bildlisten
   ImagesPage.futured({
     List<Future<ImageData<T>?>>? futureImages = const [],
     this.columnCount = 4,
@@ -75,7 +76,6 @@ class ImagesPage<T extends Object> extends StatelessWidget {
         futureImages?.map((e) => Stream.fromFuture(e)).toList() ?? [];
   }
 
-  /// Konstruktor für Stream-basierte Bildlisten
   ImagesPage.streamed({
     List<Stream<ImageData<T>?>>? imageStreams = const [],
     this.columnCount = 4,
@@ -96,80 +96,26 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Hauptscaffold mit Bildergalerie
         Scaffold(
           endDrawer: MainDrawer(),
           appBar: AppBar(
             title: Text('Bilder'),
-            elevation: 0,
-            actions: [
-              Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  onPressed: () => Scaffold.of(context).openEndDrawer(),
-                  tooltip: 'Menü öffnen',
-                ),
-              ),
-            ],
           ),
-          body: Column(
-            children: [
-              // Hinweis zur Bilderverwaltung
-              if (_images.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.photo_library_outlined,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Keine Bilder vorhanden',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Fotos aufnehmen oder aus der Galerie hinzufügen',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                // Bildergalerie
-                Expanded(
-                  child: ImageWrap<T>.streamed(
-                    images: _images,
-                    onDelete: onDelete,
-                    onShare: onShare,
-                    onStar: onStar,
-                    hasFav: hasMainImage,
-                  ),
-                ),
-            ],
+          body: ImageWrap<T>.streamed(
+            images: _images,
+            onDelete: onDelete,
+            onShare: onShare,
+            onStar: onStar,
+            hasFav: hasMainImage,
           ),
         ),
-
-        // Kamera-Provider und Bildaufnahme-Button
         ChangeNotifierProvider(
-          create: (context) => CameraModel(),
+          create: (ocontext) => CameraModel(),
           child: Builder(builder: (context) {
-            return ImageCapturePanel(
+            return ImageAddButton(
               picker: _picker,
               onNewImages: onNewImages,
-              autoExpand: intendsToAddPicture,
+              intended: intendsToAddPicture,
             );
           }),
         ),
@@ -178,75 +124,78 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   }
 }
 
-/// Panel für die Bildaufnahme und -verwaltung
-class ImageCapturePanel extends StatefulWidget {
-  final bool autoExpand;
-  final ImagePicker _picker;
-  final Future<String?> Function(List<XFile>) onNewImages;
+class ImageAddButton extends StatefulWidget {
+  final bool intended;
 
-  const ImageCapturePanel({
+  const ImageAddButton({
     Key? key,
     required ImagePicker picker,
     required this.onNewImages,
-    this.autoExpand = false,
+    this.intended = false,
   })  : _picker = picker,
         super(key: key);
 
+  final ImagePicker _picker;
+  final Future<String?> Function(List<XFile> p1) onNewImages;
+
   @override
-  State<ImageCapturePanel> createState() => _ImageCapturePanelState();
+  State<ImageAddButton> createState() => _ImageAddButtonState();
 }
 
-class _ImageCapturePanelState extends State<ImageCapturePanel>
+int _imageCounter = 0;
+Future<File> renameCapturedImage(File originalFile) async {
+  _imageCounter++;
+  // Get the current date and format it as desired.
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('yyyyMMdd_HHmm').format(now);
+
+  // Read the file bytes and compute an MD5 hash.
+  List<int> fileBytes = await originalFile.readAsBytes();
+  // Compute the full hash and then take the first 6 characters.
+  String fullHash = md5.convert(fileBytes).toString();
+  String shortHash = fullHash.substring(0, 4);
+
+  // Create the new file name.
+  String newFileName = '${formattedDate}_${_imageCounter}${shortHash}.jpg';
+
+  // Construct the new file path (same directory as the original).
+  String newPath =
+      '${originalFile.parent.path}${Platform.pathSeparator}$newFileName';
+
+  // Rename (or move) the file.
+  return originalFile.rename(newPath);
+}
+
+class _ImageAddButtonState extends State<ImageAddButton>
     with SingleTickerProviderStateMixin {
-  // Animation-Controller
-  static const animationDuration = Duration(milliseconds: 250);
+  static const animationDuration = Duration(milliseconds: 200);
+
   late Animation<double> animation;
   late AnimationController controller;
-
-  // Panel-Zustand
-  bool expanded = false;
-  bool withCamera = false;
-  bool uploadingImage = false;
-  List<XFile> queue = [];
 
   @override
   void initState() {
     super.initState();
     controller = AnimationController(duration: animationDuration, vsync: this);
-    animation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-      parent: controller,
-      curve: Curves.easeInOut,
-    ))
+    animation = Tween<double>(begin: 0, end: 1).animate(controller)
       ..addListener(() {
         setState(() {
-          // Animation-Aktualisierung
+          // The state that has changed here is the animation object’s value.
         });
       });
 
-    if (widget.autoExpand) {
-      // Automatisch öffnen, wenn intendsToAddPicture true ist
-      Future.microtask(() => expand());
-    }
+    if (widget.intended) expand();
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  // Panel-Steuerungsfunktionen
   void expand() {
     controller.forward();
-    setState(() {
-      expanded = true;
-    });
+    expanded = true;
   }
 
   void collapse() {
     controller.reverse();
-    closeCam();
 
+    closeCam();
     Future.delayed(animationDuration, () {
       setState(() {
         expanded = false;
@@ -256,183 +205,101 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
   }
 
   void openCam() {
+    debugPrint("opened camera");
     setState(() {
       withCamera = true;
     });
   }
 
   void closeCam() {
+    debugPrint("closed camera");
     setState(() {
       withCamera = false;
     });
   }
 
-  // Kamera-Funktionen
-  void shoot(BuildContext context) async {
-    try {
-      final model = Provider.of<CameraModel>(context, listen: false);
-      await model.shoot();
-    } catch (e) {
-      showToast("Fehler bei der Aufnahme: $e");
-    }
-  }
-
-  void discardShot(BuildContext context) {
-    Provider.of<CameraModel>(context, listen: false).discardPic();
-  }
-
-  Future<void> addLatestToQueue(BuildContext context) async {
-    final model = Provider.of<CameraModel>(context, listen: false);
-    final pic = model.latestPic;
-
-    if (pic != null) {
-      setState(() {
-        queue.add(pic);
-      });
-      model.discardPic();
-    }
-  }
-
-  void uploadShots(BuildContext context) async {
-    if (queue.isEmpty) return;
-
-    setState(() {
-      uploadingImage = true;
-    });
-
-    try {
-      final result = await widget.onNewImages(queue);
-      if (kDebugMode) {
-        showToast(result ??
-            S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
-      }
-      setState(() {
-        queue = [];
-      });
-    } catch (e) {
-      showToast("Fehler beim Hochladen: $e");
-    } finally {
-      collapse();
-    }
-  }
+  bool expanded = false;
+  bool withCamera = false;
+  bool uploadingImage = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext ocontext) {
     return BackdropFilter(
       filter: ImageFilter.blur(
-        sigmaX: 5.0 * animation.value,
-        sigmaY: 5.0 * animation.value,
-        tileMode: TileMode.mirror,
-      ),
-      child: _buildCapturePanel(),
+          sigmaX: 5.0 * animation.value,
+          sigmaY: 5.0 * animation.value,
+          tileMode: TileMode.mirror),
+      child: addImageButton(),
     );
   }
 
-  Widget _buildCapturePanel() {
-    final isLandscape =
+  Widget addImageButton() {
+    var isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Stack(
       children: [
-        // Hintergrund für erweiterten Zustand
-        if (expanded)
-          GestureDetector(
-            onTap: () {
-              // Nur schließen, wenn nicht aktiv mit der Kamera arbeitet
-              if (!withCamera) {
-                collapse();
-              }
-            },
-            child: Container(
-              color: Colors.black.withOpacity(0.3 * animation.value),
-              width: double.infinity,
-              height: double.infinity,
-            ),
-          ),
-
-        // Hauptpanel
         Align(
           alignment: Alignment.bottomCenter,
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(18.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // Kamera-Vorschau
                   if (withCamera)
                     Expanded(
                       child: Padding(
                         padding: isLandscape
-                            ? const EdgeInsets.fromLTRB(20, 0, 32, 0)
-                            : const EdgeInsets.fromLTRB(20, 0, 8, 0),
-                        child: Consumer<CameraModel>(
-                          builder: (context, model, child) => model.latestPic ==
-                                  null
-                              ? ChangeNotifierProvider.value(
-                                  value: model.zoomM,
-                                  child: _buildCameraWithControls(model),
-                                )
-                              : _buildCapturedImagePreview(model, isLandscape),
+                            ? const EdgeInsets.fromLTRB(
+                                25, 0, 20, 0) // More right padding in landscape
+                            : const EdgeInsets.fromLTRB(
+                                25, 0, 8, 0), // Default padding in portrait
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Consumer<CameraModel>(
+                            builder: (context, model, child) =>
+                                model.latestPic == null
+                                    ? ChangeNotifierProvider.value(
+                                        value: model.zoomM,
+                                        child: Builder(builder: (context) {
+                                          return cameraWithControls(model);
+                                        }),
+                                      )
+                                    : Image.file(
+                                        File(model.latestPic!.path),
+                                        fit: BoxFit
+                                            .fitWidth, // Full width in portrait
+                                      ),
+                          ),
                         ),
                       ),
                     ),
-
-                  // Steuerungs-Buttons mit zusätzlichem Container für mehr Abstand
-                  Container(
-                    margin: isLandscape
-                        ? EdgeInsets.only(
-                            left: 32) // Mehr Abstand im Querformat
-                        : EdgeInsets.only(
-                            top:
-                                132), // Deutlich mehr vertikaler Abstand im Hochformat
-                    child: Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        // Bilderwarteschlange (nur anzeigen, wenn es Bilder in der Queue gibt)
-                        if (queue.isNotEmpty && withCamera)
-                          Transform.translate(
-                            offset: isLandscape
-                                ? Offset(-60,
-                                    0) // Im Querformat: links neben den Buttons
-                                : Offset(0,
-                                    -300), // Im Hochformat: deutlich weiter über den Buttons
-                            child: Container(
-                              margin: isLandscape
-                                  ? EdgeInsets.only(bottom: 8)
-                                  : EdgeInsets.only(right: 8),
-                              child: _buildImageQueue(),
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      if (expanded && !withCamera)
+                        Transform.translate(
+                          offset: Offset(0, animation.value * -130),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 160),
+                            child: uploadFromSystem,
+                          ),
+                        ),
+                      if (expanded)
+                        Transform.translate(
+                          offset: Offset(0, animation.value * -70),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 100),
+                            child: Consumer<CameraModel>(
+                              builder: (context, model, child) =>
+                                  takeImage(context, model),
                             ),
                           ),
-
-                        // Systembilder-Button
-                        if (expanded && !withCamera)
-                          Transform.translate(
-                            offset: Offset(0, animation.value * -130),
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 160),
-                              child: _buildSystemImagesButton(),
-                            ),
-                          ),
-
-                        // Kamerasteuerung
-                        if (expanded)
-                          Transform.translate(
-                            offset: Offset(0, animation.value * -70),
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 100),
-                              child: Consumer<CameraModel>(
-                                builder: (context, model, child) =>
-                                    _buildImageCaptureControls(model),
-                              ),
-                            ),
-                          ),
-
-                        // Hauptaktionsbutton
-                        _buildMainActionButton(),
-                      ],
-                    ),
+                        ),
+                      addImgButton(context),
+                    ],
                   ),
                 ],
               ),
@@ -443,408 +310,203 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
     );
   }
 
-  // Kamerasteuerung mit UI-Elementen
-  Widget _buildCameraWithControls(CameraModel model) {
+  CameraPreviewOnly cameraWithControls(CameraModel model) {
+    var switchCameraButton = IconButton(
+        onPressed: model.nextCamera,
+        icon: Icon(
+          Icons.switch_camera,
+          color: Colors.white,
+        ));
+    var flashButton = FlashControlButton(model: model);
+    var zoomSlider = ZoomSlider(
+      model: model,
+    );
     return CameraPreviewOnly(
       children: [
-        // Kamera wechseln
-        Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.switch_camera, color: Colors.white),
-            onPressed: model.nextCamera,
-            tooltip: 'Kamera wechseln',
-          ),
-        ),
-
-        // Blitzsteuerung
-        Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: _buildFlashButton(model),
-        ),
-
-        // Zoomregler
-        _buildZoomSlider(model),
+        // Text('he, hier !!'),
+        switchCameraButton,
+        flashButton,
+        zoomSlider,
       ],
     );
   }
 
-  // Blitzsteuerung
-  Widget _buildFlashButton(CameraModel model) {
-    return IconButton(
-      icon: Icon(
-        model.flashMode.icon,
-        color: Colors.white,
-      ),
-      onPressed: model.toggleFlash,
-      tooltip: 'Blitzmodus: ${model.flashMode.label}',
-    );
+  void shoot(BuildContext context) async {
+    CameraModel model = Provider.of<CameraModel>(context, listen: false);
+    await model.shoot(); // This captures the photo and sets model.latestPic
+
+    if (model.latestPic != null) {
+      // Convert the XFile to a File.
+      File originalFile = File(model.latestPic!.path);
+      // Rename the file.
+      File renamedFile = await renameCapturedImage(originalFile);
+      // Update the latestPic with the new file path.
+      model.latestPic = XFile(renamedFile.path);
+    }
+    debugPrint("Photo taken and renamed");
   }
 
-  // Zoomregler
-  Widget _buildZoomSlider(CameraModel model) {
-    return FutureBuilder<(double, double)>(
-        future: model.zoomRange,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return Container();
+  void discardShot(context) =>
+      Provider.of<CameraModel>(context, listen: false).discardPic();
 
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            margin: const EdgeInsets.only(top: 8),
-            child: SizedBox(
-              height: 200,
-              width: 50,
-              child: RotatedBox(
-                quarterTurns: 1,
-                child: Consumer<ZoomModel>(builder: (context, zoomModel, _) {
-                  return Slider(
-                    value: zoomModel.zoom,
-                    min: snapshot.data!.$1,
-                    max: snapshot.data!.$2,
-                    onChanged: (newZoom) => model.setZoom(newZoom),
-                    activeColor: Colors.white,
-                    inactiveColor: Colors.white.withOpacity(0.5),
-                  );
-                }),
-              ),
-            ),
-          );
-        });
+  List<XFile> queue = [];
+
+  Future<void> addLatestToQueue(context) async {
+    XFile? pic = Provider.of<CameraModel>(context, listen: false).latestPic;
+    if (pic != null) {
+      queue.add(pic);
+      debugPrint("added to queue");
+      discardShot(context);
+    }
   }
 
-  // Button zum Auswählen von Bildern aus dem System
-  Widget _buildSystemImagesButton() {
-    return FloatingActionButton(
-      heroTag: 'systemImages',
-      backgroundColor: Colors.deepPurple,
-      child: const Icon(Icons.photo_library),
-      onPressed: () async {
-        try {
-          final newImages = await widget._picker.pickMultiImage();
-          if (newImages != null && newImages.isNotEmpty) {
-            final result = await widget.onNewImages(newImages);
-            if (kDebugMode) {
-              showToast(result ??
-                  S
-                      .of(context)
-                      .uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
-            }
-          }
-          collapse();
-        } catch (e) {
-          showToast("Fehler beim Laden der Bilder: $e");
-        }
-      },
-      tooltip: 'Bilder aus Galerie hinzufügen',
-    );
+  void uploadShots(context) async {
+    setState(() {
+      uploadingImage = true;
+    });
+    String? resstring = await widget.onNewImages(queue);
+    debugPrint(resstring);
+    if (kDebugMode)
+      showToast(resstring ??
+          S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
+    queue = [];
+    collapse();
   }
 
-  // Hauptaktionsbutton (Öffnen/Schließen des Panels)
-  Widget _buildMainActionButton() {
-    return FloatingActionButton(
-      heroTag: 'mainAction',
-      backgroundColor: expanded ? Colors.red : Colors.blue,
-      child: Icon(expanded ? Icons.close : Icons.add_a_photo),
-      onPressed: expanded
-          ? () {
-              if (queue.isEmpty) {
-                Provider.of<CameraModel>(context, listen: false).discardPic();
-                collapse();
-                return;
-              }
-
-              // Letztes Bild aus der Warteschlange anzeigen
-              final model = Provider.of<CameraModel>(context, listen: false);
-              model.latestPic = queue.last;
-              setState(() {
+  FloatingActionButton addImgButton(BuildContext context) =>
+      FloatingActionButton(
+        child: Icon(expanded ? Icons.cancel : Icons.add_a_photo),
+        onPressed: expanded
+            ? () {
+                if (queue.isEmpty) {
+                  Provider.of<CameraModel>(context, listen: false).discardPic();
+                  collapse();
+                  return;
+                }
+                Provider.of<CameraModel>(context, listen: false).latestPic =
+                    queue.last;
                 queue.removeLast();
-              });
-            }
-          : expand,
-      tooltip: expanded ? 'Abbrechen' : 'Bilder hinzufügen',
-    );
-  }
+              }
+            : expand,
+      );
 
-  // Bildaufnahmesteuerung
-  Widget _buildImageCaptureControls(CameraModel model) {
-    final isLandscape =
+  Widget takeImage(BuildContext context, CameraModel model) {
+    var isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
-    // Wenn keine Kamera geöffnet oder kein Bild aufgenommen
-    if (!withCamera || model.latestPic == null) {
-      return FloatingActionButton(
-        heroTag: 'cameraControl',
-        backgroundColor: Colors.amber,
-        child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
-        onPressed: withCamera ? () => shoot(context) : openCam,
-        tooltip: withCamera ? 'Foto aufnehmen' : 'Kamera öffnen',
-      );
-    }
-
-    // Layout für die Bildvorschau und Steuerelemente
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // Buttons immer vertikal anordnen
-        _buildAcceptButton(),
-        const SizedBox(height: 10), // Reduzierter Abstand zwischen Buttons
-        _buildDiscardButton(),
-        const SizedBox(height: 10), // Reduzierter Abstand zwischen Buttons
-        _buildAddToQueueButton(),
-      ],
-    );
-  }
-
-  // Button zum Akzeptieren und Hochladen
-  Widget _buildAcceptButton() {
-    return SizedBox(
-      width: 48, // Kleinere Größe
-      height: 48, // Kleinere Größe
-      child: FloatingActionButton(
-        heroTag: 'accept',
-        backgroundColor: Colors.green,
-        child: uploadingImage
-            ? const CircularProgressIndicator(
-                color: Colors.white, strokeWidth: 3)
-            : const Icon(Icons.check, size: 20), // Kleineres Icon
-        onPressed: () {
-          addLatestToQueue(context).then((_) {
-            Provider.of<CameraModel>(context, listen: false).disposeCamera();
-            uploadShots(context);
-          });
-        },
-        tooltip: 'Bestätigen und hochladen',
-      ),
-    );
-  }
-
-  // Button zum Verwerfen des aktuellen Bildes
-  Widget _buildDiscardButton() {
-    return SizedBox(
-      width: 48, // Kleinere Größe
-      height: 48, // Kleinere Größe
-      child: FloatingActionButton(
-        heroTag: 'discard',
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.refresh, size: 20), // Kleineres Icon
-        onPressed: () => discardShot(context),
-        tooltip: 'Verwerfen und neu aufnehmen',
-      ),
-    );
-  }
-
-  // Button zum Hinzufügen zur Warteschlange
-  Widget _buildAddToQueueButton() {
-    return uploadingImage
-        ? Container()
-        : SizedBox(
-            width: 48, // Kleinere Größe
-            height: 48, // Kleinere Größe
-            child: FloatingActionButton(
-              heroTag: 'addToQueue',
-              backgroundColor: Colors.blue,
-              child: const Icon(Icons.add_photo_alternate,
-                  size: 20), // Kleineres Icon
-              onPressed: () => addLatestToQueue(context),
-              tooltip: 'Zur Warteschlange hinzufügen',
-            ),
-          );
-  }
-
-  // Zeigt das aufgenommene Bild mit korrekter Ausrichtung an
-  Widget _buildCapturedImagePreview(CameraModel model, bool isLandscape) {
-    final file = File(model.latestPic!.path);
-    return FutureBuilder<Size>(
-      future: _getImageDimensions(file),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator(color: Colors.white));
-        }
-
-        final imageWidth = snapshot.data!.width;
-        final imageHeight = snapshot.data!.height;
-        final imageRatio = imageWidth / imageHeight;
-
-        // Bildschirmmaße abrufen
-        final screenSize = MediaQuery.of(context).size;
-
-        // Größe des Vorschaufensters basierend auf Bildverhältnis berechnen
-        double displayWidth, displayHeight;
-
-        if (isLandscape) {
-          // Im Querformat - Höhe begrenzen
-          displayHeight = screenSize.height * 0.8;
-          displayWidth = displayHeight * imageRatio;
-          // Breite begrenzen, falls nötig
-          if (displayWidth > screenSize.width * 0.6) {
-            displayWidth = screenSize.width * 0.6;
-            displayHeight = displayWidth / imageRatio;
-          }
-        } else {
-          // Im Hochformat - Breite begrenzen
-          displayWidth = screenSize.width * 0.9;
-          displayHeight = displayWidth / imageRatio;
-          // Höhe begrenzen, falls nötig
-          if (displayHeight > screenSize.height * 0.6) {
-            displayHeight = screenSize.height * 0.6;
-            displayWidth = displayHeight * imageRatio;
-          }
-        }
-
-        // Überprüfen, ob das Bild falsch ausgerichtet ist
-        final shouldRotate =
-            (isLandscape && imageRatio < 1) || (!isLandscape && imageRatio > 1);
-
-        // Berechnen des korrekten Rotationswinkels basierend auf der Ausrichtung
-        double rotationAngle;
-        if (isLandscape) {
-          // Im Querformat-Modus
-          rotationAngle = shouldRotate ? pi / 2 : 0;
-        } else {
-          // Im Hochformat-Modus
-          rotationAngle = shouldRotate ? pi / 2 : 0;
-        }
-
-        return Container(
-          width: displayWidth,
-          height: displayHeight,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Bildanzeige mit Drehung bei Bedarf
-                Center(
-                  child: Transform.rotate(
-                    angle: rotationAngle,
-                    child: AspectRatio(
-                      aspectRatio: shouldRotate ? 1 / imageRatio : imageRatio,
-                      child: Image.file(
-                        file,
-                        fit: BoxFit.contain,
-                      ),
+    return !withCamera || model.latestPic == null
+        ? FloatingActionButton(
+            child: Icon(withCamera ? Icons.camera : Icons.camera_alt),
+            onPressed: withCamera ? () => shoot(context) : openCam,
+          )
+        : isLandscape
+            ? Row(
+                children: [
+                  Container(
+                    height: 200,
+                    child: Column(
+                      verticalDirection: VerticalDirection.down,
+                      children:
+                          queueButtonStuff, // Ensures list is handled properly
                     ),
                   ),
-                ),
+                  SizedBox(width: 20),
+                  SizedBox(
+                    child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min, // Prevents unnecessary expansion
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        photoDone,
+                        SizedBox(height: 10),
+                        discardPhoto,
+                        SizedBox(height: 10),
+                        addToQueue,
+                      ],
+                    ),
+                  ),
+                  // Fixed spacing between buttons and images
 
-                // Kleine Infoanzeige
-                Positioned(
-                  top: 8,
-                  right: 8,
+                  // Image Queue on the Right with Consistent Spacing
+                ],
+              )
+            : Column(
+                mainAxisSize:
+                    MainAxisSize.min, // Prevents unnecessary expansion
+                children: [
+                  // Image Queue Above Buttons with Fixed Space
+                  Container(
+                    height: 200,
+                    child: Column(
+                      verticalDirection: VerticalDirection.up,
+                      children:
+                          queueButtonStuff, // Ensures list is handled properly
+                    ),
+                  ),
+                  SizedBox(height: 160),
+                  // Buttons Below
+                  Column(
+                    verticalDirection: VerticalDirection.up,
+                    children: [
+                      photoDone,
+                      SizedBox(height: 10),
+                      discardPhoto,
+                      SizedBox(height: 10),
+                      addToQueue,
+                      SizedBox(height: 20),
+                    ],
+                  ),
+                ],
+              );
+  }
+
+  List<Widget> get queueButtonStuff {
+    int totalImages = queue.length;
+    int imagesToShow = totalImages > 5 ? 5 : totalImages;
+    List<XFile> latestImages =
+        queue.skip(totalImages - imagesToShow).toList(); // Get last 5 images
+    int remainingImages = totalImages - imagesToShow; // Count remaining images
+
+    return [
+      Container(
+        width: 50, // Ensures the stack has enough space for overlapping
+        height: 50, // Set height to match image size
+        child: Stack(
+          clipBehavior: Clip.none, // Allow images to overflow
+          children: [
+            // "+X More" indicator if there are more than 5 images
+            if (remainingImages > 0)
+              Positioned(
+                left: 0, // Keeps the indicator at the front
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    height: 50,
+                    width: 50,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      'Vorschau',
+                    child: Text(
+                      "+$remainingImages",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 12,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Hilfsfunktion zum Abrufen der Bildabmessungen
-  Future<Size> _getImageDimensions(File imageFile) async {
-    final Completer<Size> completer = Completer();
-    final Image image = Image.file(imageFile);
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(ImageStreamListener((ImageInfo info, bool _) {
-      completer.complete(Size(
-        info.image.width.toDouble(),
-        info.image.height.toDouble(),
-      ));
-    }));
-    return completer.future;
-  }
-
-  // Anzeige der Bild-Warteschlange
-  Widget _buildImageQueue() {
-    int totalImages = queue.length;
-    if (totalImages == 0) return Container();
-
-    int imagesToShow = totalImages.clamp(0, 5);
-    List<XFile> visibleImages = queue.skip(totalImages - imagesToShow).toList();
-    int remainingImages = totalImages - imagesToShow;
-
-    return Container(
-      width: 50,
-      height: imagesToShow * 30 + 50,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Indikator für weitere Bilder
-          if (remainingImages > 0)
-            Positioned(
-              top: 0,
-              child: Container(
-                height: 50,
-                width: 50,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: Text(
-                  "+$remainingImages",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
-            ),
 
-          // Bilder in der Warteschlange
-          ...visibleImages.asMap().entries.map((entry) {
-            int idx = entry.key;
-            XFile file = entry.value;
+            // Display the last 5 images in an overlapping fashion
+            ...latestImages.asMap().entries.map((entry) {
+              int idx = entry.key;
+              XFile file = entry.value;
 
-            return Positioned(
-              top: (idx + (remainingImages > 0 ? 1 : 0)) * 30.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 5,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
+              return Positioned(
+                top: (idx + 1) * 30.0, // Overlapping effect (shift right)
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: SizedBox(
@@ -856,11 +518,128 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                     ),
                   ),
                 ),
-              ),
-            );
-          }),
-        ],
+              );
+            }),
+          ],
+        ),
       ),
-    );
+    ];
+  }
+
+  FloatingActionButton get uploadFromSystem => FloatingActionButton(
+      child: Icon(Icons.folder),
+      onPressed: () async {
+        // multipicker ist eine großartige Lösung, kann aber noch verbessert werden (vielleicht über einen Adder-Fragment)
+        final List<XFile>? newImages = await widget._picker.pickMultiImage();
+
+        if (newImages == null || newImages.isEmpty) return;
+
+        // Für jedes ausgewählte Bild: Umwandeln in File, umbenennen und wieder in XFile packen
+        List<XFile> renamedImages = [];
+        for (final xfile in newImages) {
+          File originalFile = File(xfile.path);
+          // renameImage ist die Funktion, die Datum, Uhrzeit und einen kurzen Hash anhängt.
+          File renamedFile = await renameCapturedImage(originalFile);
+          renamedImages.add(XFile(renamedFile.path));
+        }
+
+        // Übergib die umbenannten Bilder an deine onNewImages-Funktion
+        var resstring = await widget.onNewImages(renamedImages);
+        if (kDebugMode) {
+          showToast(
+            resstring ??
+                S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho,
+          );
+        }
+      });
+
+  FloatingActionButton get discardPhoto => FloatingActionButton(
+      backgroundColor: Colors.red,
+      child: Icon(Icons.replay),
+      onPressed: () => discardShot(context));
+
+  FloatingActionButton get photoDone => FloatingActionButton(
+        backgroundColor: Colors.green,
+        child: uploadingImage ? LoadingView() : Icon(Icons.check),
+        onPressed: () => addLatestToQueue(context).then((value) {
+          Provider.of<CameraModel>(context, listen: false).disposeCamera();
+          uploadShots(context);
+        }),
+      );
+
+  Widget get addToQueue => uploadingImage
+      ? Container()
+      : FloatingActionButton(
+          backgroundColor: Colors.blue,
+          child: Icon(Icons.add_photo_alternate),
+          onPressed: () => addLatestToQueue(context),
+        );
+}
+
+class FlashControlButton extends StatefulWidget {
+  final CameraModel model;
+  const FlashControlButton({
+    super.key,
+    required this.model,
+  });
+
+  @override
+  State<FlashControlButton> createState() => _FlashControlButtonState();
+}
+
+class _FlashControlButtonState extends State<FlashControlButton> {
+  var flash = false;
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+        onPressed: () {
+          flash
+              ? widget.model.controller!.setFlashMode(FlashMode.torch)
+              : widget.model.controller!.setFlashMode(FlashMode.off);
+          setState(() => flash ^= true);
+        },
+        icon: Icon(
+          !flash ? Icons.lightbulb : Icons.flash_off,
+          color: Colors.white,
+        ));
+  }
+}
+
+class ZoomSlider extends StatelessWidget {
+  final CameraModel model;
+  const ZoomSlider({
+    super.key,
+    required this.model,
+  });
+
+  // double zoom = 1;
+  zoomChanged(double newZoom) {
+    // setState(() => zoom = newZoom);
+    model.setZoom(newZoom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<(double, double)>(
+        future: model.zoomRange,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return Container();
+          return SizedBox(
+            height: 200,
+            width: 50,
+            child: RotatedBox(
+              quarterTurns: 1,
+              child: Consumer<ZoomModel>(builder:
+                  (BuildContext context, ZoomModel value, Widget? child) {
+                return Slider(
+                  value: value.zoom,
+                  min: snapshot.data!.$1,
+                  max: snapshot.data!.$2,
+                  onChanged: zoomChanged,
+                );
+              }),
+            ),
+          );
+        });
   }
 }

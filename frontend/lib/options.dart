@@ -27,15 +27,6 @@ class Options {
 
   var useSystemTheme = false;
 
-  bool _debugMode = false;
-  bool _backupBeforeSync = true;
-
-  bool get debugMode => _debugMode;
-  set debugMode(bool value) => _debugMode = value;
-
-  bool get backupBeforeSync => _backupBeforeSync;
-  set backupBeforeSync(bool value) => _backupBeforeSync = value;
-
   // @JsonKey(ignore: true)//is a getter anyway
   Map<String, (bool Function(), void Function(bool))> setteableBools() => {
         S.current!.option_canbeoffline: (
@@ -71,26 +62,7 @@ class Options {
             compactDownload = value;
           }
         ),
-        'debugMode': (() => _debugMode, (bool v) => _debugMode = v),
-        'backupBeforeSync': (
-          () => _backupBeforeSync,
-          (bool v) => _backupBeforeSync = v
-        ),
       };
-
-  Map<String, dynamic> toJson() {
-    return {
-      'useSystemTheme': useSystemTheme,
-      'debugMode': _debugMode,
-      'backupBeforeSync': _backupBeforeSync,
-    };
-  }
-
-  void fromJson(Map<String, dynamic> json) {
-    useSystemTheme = json['useSystemTheme'] ?? false;
-    _debugMode = json['debugMode'] ?? false;
-    _backupBeforeSync = json['backupBeforeSync'] ?? true;
-  }
 
   static final String _id = '__options__';
   static Options _instance = Options._internal();

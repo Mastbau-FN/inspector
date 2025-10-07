@@ -63,8 +63,6 @@ class Remote {
     // init
   }
 
-  final http.Client _client = http.Client();
-
   User? _user;
   injectUser(User? user) => _user = user;
 
@@ -108,43 +106,11 @@ class Remote {
     Duration? timeout,
     bool returnsBinary = false,
   }) async {
-    try {
-      // Setze Verbindungstimeouts für die Verbindung
+    final req = request.send();
+    final res = (timeout == null) ? await req : await req.timeout(timeout);
 
-      // Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
-      timeout ??= Duration(minutes: 2);
-
-      final req = _client.send(request);
-      final res = await req.timeout(timeout, onTimeout: () {
-        debugPrint('HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden');
-        throw TimeoutException('HTTP Request Timeout', timeout);
-      });
-
-      try {
-        final ret = await http.Response.fromStream(res);
-        return ret;
-      } catch (e) {
-        debugPrint('Fehler beim Verarbeiten des Response-Streams: $e');
-        // Versuche es noch einmal mit einem neuen Request, wenn der Stream beschädigt ist
-        if (e is IOException) {
-          debugPrint(
-              'IO-Fehler beim Lesen des Streams, möglicherweise Netzwerkunterbrechung');
-        }
-        rethrow;
-      }
-    } on SocketException catch (e) {
-      debugPrint('Socket-Fehler beim Senden des Requests: ${e.message}');
-      // Spezielle Behandlung für bestimmte Socket-Fehler
-      if (e.message.contains('Software caused connection abort') ||
-          e.message.contains('Write failed')) {
-        debugPrint(
-            'App wahrscheinlich im Hintergrund, Socket wurde vom System geschlossen');
-      }
-      rethrow;
-    } catch (e) {
-      debugPrint('Fehler beim Senden des Requests: $e');
-      rethrow;
-    }
+    final ret = await http.Response.fromStream(res); // res.forceRes();
+    return ret;
   }
 
   /// make an actual API request to a route, and always append the API_KEY as authorization-header
@@ -166,7 +132,7 @@ class Remote {
   /// post_JSON to our backend as the user
   Future<http.BaseResponse?> postJSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
-    rd.json ??= {};
+    rd.json = rd.json ?? {};
     rd.json!['user'] = _user?.toJson();
     try {
       if (rd.multipartFiles.isNotEmpty) {
@@ -202,129 +168,33 @@ class Remote {
                         .toString()))); // this causes #279, but that is fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
-              ? await _client.send(mreq)
-              : await _client.send(mreq).timeout(rd.timeout!);
+              ? await mreq.send()
+              : await mreq.send().timeout(rd.timeout!);
           return res;
-        } on SocketException catch (e) {
-          debugPrint('Socket-Fehler bei Multipart-Request: ${e.message}');
-          if (e.message.contains('Write failed') ||
-              e.message.contains('connection abort') ||
-              e.message.contains('Connection refused') ||
-              e.message.contains('Software caused connection abort')) {
-            debugPrint(
-                'Hintergrund-Socket-Fehler erkannt, App möglicherweise im Hintergrund');
-          }
-          rethrow;
         } on Exception catch (e) {
-          debugPrint('multipartRequest, failed: $e');
-          rethrow;
+          //if (rd.////logIfFailed) OP.logFailedReq(rd);
+          debugPrint('multipartRequest, failed');
+          throw e;
         }
       } else {
         final req =
             makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
         try {
-          // Erhöhe die Robustheit des Requests speziell für Hintergrundausführung
-          final response = await send(
+          return await send(
             req,
-            timeout:
-                rd.timeout ?? Duration(minutes: 2), // Längerer Standard-Timeout
+            timeout: rd.timeout,
             returnsBinary: rd.returnsBinary,
           );
-
-          return response;
-        } on SocketException catch (e) {
-          debugPrint('Socket-Fehler bei HTTP-Request: ${e.message}');
-          if (e.message.contains('Write failed') ||
-              e.message.contains('connection abort') ||
-              e.message.contains('Connection refused') ||
-              e.message.contains('Software caused connection abort')) {
-            debugPrint(
-                'Hintergrund-Socket-Fehler erkannt, App möglicherweise im Hintergrund');
-          }
-          rethrow;
         } catch (e) {
-          debugPrint('request failed: $e');
-          rethrow;
+          //if (rd.////logIfFailed) OP.logFailedReq(rd);
+          //debugPrint('request failed');
+          throw e;
         }
       }
     } catch (e) {
       //debugPrint("request failed, cause : $e");
       return null;
     }
-  }
-
-  /// Erweiterte Version von postJSON mit robuster Behandlung von Socket-Fehlern
-  /// Besonders wichtig für Hintergrundprozesse, bei denen die App in den Hintergrund wechselt
-  Future<http.BaseResponse?> postJSONWithSocketRetry(
-    RequestData rd, {
-    int maxRetries = 3,
-    Duration initialDelay = const Duration(seconds: 2),
-    bool exponentialBackoff = true,
-  }) async {
-    int attempts = 0;
-    SocketException? lastSocketException;
-    Duration currentDelay = initialDelay;
-
-    while (attempts < maxRetries) {
-      try {
-        // Verwende die ursprüngliche postJSON-Methode
-        final response = await postJSON(rd);
-        if (response != null) {
-          return response;
-        } else {
-          // Wenn null zurückkommt, war ein Fehler aufgetreten
-          attempts++;
-          debugPrint('Null-Antwort bei Versuch $attempts/$maxRetries');
-        }
-      } on SocketException catch (e) {
-        lastSocketException = e;
-        attempts++;
-
-        debugPrint(
-            'Socket-Fehler bei Versuch $attempts/$maxRetries: ${e.message}');
-
-        // Spezielle Behandlung für typische Hintergrund-Socket-Fehler
-        if (e.message.contains('Write failed') ||
-            e.message.contains('connection abort') ||
-            e.message.contains('Connection refused') ||
-            e.message.contains('Software caused connection abort')) {
-          debugPrint(
-              'Erkannter Socket-Fehler im Hintergrund, warte vor Wiederversuch...');
-
-          // Versuche die Verbindung zurückzusetzen
-          try {
-            final client = HttpClient();
-            client.connectionTimeout = Duration(seconds: 30);
-            client.idleTimeout = Duration(minutes: 2);
-            client.close(force: true);
-            debugPrint('HTTP-Client zurückgesetzt');
-          } catch (resetError) {
-            debugPrint(
-                'Fehler beim Zurücksetzen des HTTP-Clients: $resetError');
-          }
-        }
-      } catch (e) {
-        attempts++;
-        debugPrint(
-            'Allgemeiner Fehler bei HTTP-Request (Versuch $attempts/$maxRetries): $e');
-      }
-
-      // Warte vor dem nächsten Versuch
-      await Future.delayed(currentDelay);
-
-      // Erhöhe die Wartezeit bei exponentiellem Backoff
-      if (exponentialBackoff) {
-        currentDelay *= 2;
-      }
-    }
-
-    if (lastSocketException != null) {
-      // Werfe den letzten Socket-Fehler, wenn wir hier angekommen sind
-      throw lastSocketException;
-    }
-
-    debugPrint('Alle Wiederholungsversuche ausgeschöpft ohne Erfolg');
-    return null; // Konsistent mit dem Rückgabewert von postJSON bei Fehlern
   }
 
   //final _imageStreamController = BehaviorSubject<String>();

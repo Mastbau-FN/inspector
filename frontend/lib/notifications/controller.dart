@@ -42,6 +42,7 @@ class NotificationController {
       // set the icon to null if you want to use the default app icon
       'resource://drawable/ic_icon',
       ChannelController().channels,
+      debug: kDebugMode,
     );
   }
 
@@ -78,13 +79,15 @@ class NotificationController {
   @pragma("vm:entry-point")
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
-    // Debugging-Ausgabe zur Nachverfolgung
-    debugPrint(
-        'Notification Action received: ID=${receivedAction.id}, Channel=${receivedAction.channelKey}, Button=${receivedAction.buttonKeyPressed}');
+    // Your code goes here
 
-    // Zur DefaultNotificationPage navigieren
+    // Navigate into pages, avoiding to open the notification details page over another details page already opened
     MyApp.navigatorKey.currentState
-        ?.pushNamed('/default-notification-page', arguments: receivedAction);
+        ?.pushNamed /*AndRemoveUntil*/ ('/default-notification-page',
+            // (route) =>
+            //     (route.settings.name != '/default-notification-page') ||
+            //     route.isFirst,
+            arguments: receivedAction);
   }
 }
 
