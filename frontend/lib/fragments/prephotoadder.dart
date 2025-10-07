@@ -9,8 +9,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:crypto/crypto.dart';
-import 'package:intl/intl.dart';
+
 import '../backend/api.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';

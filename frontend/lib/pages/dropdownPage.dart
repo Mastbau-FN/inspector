@@ -225,32 +225,3 @@ Widget offlineIndicator<ChildData extends WithLangText>(ChildData data) {
     width: 8,
   );
 }
-
-Widget lockIndicator<ChildData extends WithLangText>(
-    ChildData data, bool withDefects) {
-  try {
-    if (withDefects)
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Icon(
-          Icons.description,
-          color: Colors.black,
-          size: 20,
-        ),
-      );
-    else
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Icon(
-          Icons.lock_open,
-          color: Colors.green,
-          size: 20,
-        ),
-      );
-  } catch (e) {
-    debugPrint(e.toString());
-  }
-  return SizedBox(
-    width: 8,
-  );
-}

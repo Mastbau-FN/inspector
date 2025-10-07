@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
-import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -12,7 +11,6 @@ import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
-import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
@@ -419,30 +417,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                                 previewImage: cd.previewImage,
                               ),
                             ),
-                            Column(
-                              mainAxisSize: MainAxisSize
-                                  .min, // Ensures the column only takes up as much space as needed
-                              children: [
-                                offlineIndicator(cd),
-                                if (cd is InspectionLocation)
-                                  FutureBuilder<bool>(
-                                      future:
-                                          (cd as InspectionLocation).hasDefects,
-                                      builder: (context, snapshot) {
-                                        // Optionally handle waiting state.
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return SizedBox(
-                                              width:
-                                                  0); // or a loading spinner if desired
-                                        }
-                                        bool hasDefects =
-                                            snapshot.data ?? false;
-
-                                        return lockIndicator(cd, hasDefects);
-                                      }),
-                              ],
-                            ),
+                            offlineIndicator(cd),
                             Expanded(
                               child: Hero(
                                 tag: cd.title +

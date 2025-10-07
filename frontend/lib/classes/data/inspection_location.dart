@@ -2,14 +2,9 @@
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
-import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
-import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
-import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
-import 'package:MBG_Inspektionen/pages/checkpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -40,22 +35,6 @@ class InspectionLocation extends Data
   final String? plz;
   @JsonKey(name: 'Ort')
   final String? ort;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  bool? _hasDefectsCache;
-  Future<bool> get hasDefects async {
-    // If already known, return immediately
-    if (_hasDefectsCache != null) return _hasDefectsCache!;
-
-    // Otherwise compute once, store in cache, then return
-    final bool foundDefects = await inspectionHasDefects(this);
-    _hasDefectsCache = foundDefects;
-    return foundDefects;
-  }
-
-  Future<void> refreshHasDefects() async {
-    _hasDefectsCache = null;
-    _hasDefectsCache = await inspectionHasDefects(this);
-  }
 
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
@@ -99,9 +78,6 @@ class InspectionLocation extends Data
 
   @JsonKey(name: 'DokusPaths')
   List<DocumentData>? dokuspaths;
-
-  @JsonKey(name: 'imagelink')
-  String? imagelink;
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   WeatherData get weatherData => WeatherData(
@@ -148,7 +124,6 @@ class InspectionLocation extends Data
     this.strasse,
     this.fallback_coords,
     this.dokuspaths,
-    this.imagelink,
   });
 
   @override
@@ -195,31 +170,6 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic>? map) {
   } catch (e) {
     return null;
   }
-}
-
-Future<bool> inspectionHasDefects(InspectionLocation location) async {
-  // Create a model to load the check categories for the given inspection.
-  final categoryModel = CategoryModel(location);
-
-  // Retrieve all check categories; this assumes that `all()` returns a stream where
-  // the last event contains the full list.
-  final List<CheckCategory> categories = await categoryModel.all().last;
-
-  // Iterate over each check category and its check points.
-  for (final category in categories) {
-    final checkPointsModel = CheckPointsModel(category);
-    final List<CheckPoint> checkpoints = await checkPointsModel.all().last;
-    // Assuming each category has a list of check points.
-    for (final checkPoint in checkpoints) {
-      // If this check point contains defects, return true.
-      final defectsModel = CheckPointDefectsModel(checkPoint);
-      final List<CheckPointDefect> checkdefects = await defectsModel.all().last;
-      if (checkdefects.isNotEmpty) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 class _RecursiveDownloadButton extends StatefulWidget {

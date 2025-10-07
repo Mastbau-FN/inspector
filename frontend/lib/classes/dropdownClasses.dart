@@ -79,6 +79,7 @@ mixin WithLangText on Data {
 mixin WithAuthor on Data {
   String? get author;
 }
+
 mixin WithOffline on Data {
   @JsonKey(name: 'offline')
   // ignore: non_constant_identifier_names
@@ -307,61 +308,27 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         onStar: (hash) {
                           showToast(
                               S.of(context).settingMainImageThisMayTakeASec);
-                          if (data is InspectionLocation) {
-                            model.updateCurrentChild((child) {
-                              final inspection = child as InspectionLocation;
-                              return API().setMainImageByHash(
-                                inspection.imagelink!,
-                                inspection,
-                                hash.toString(),
-                                caller: model.currentData,
-                                forceUpdate: true,
-                              );
-                            }).then((value) {
-                              _maybeShowToast(value);
-                              return value;
-                            });
-                          } else {
-                            model
-                                .updateCurrentChild((data) => API()
-                                    .setMainImageByHash(
-                                        "", data, hash.toString(),
-                                        caller: model.currentData,
-                                        forceUpdate: true))
-                                .then((value) {
-                              _maybeShowToast(value);
-                              return value;
-                            });
-                          }
+                          model
+                              .updateCurrentChild((data) => API()
+                                  .setMainImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
+                              .then((value) {
+                            _maybeShowToast(value);
+                            return value;
+                          });
                         },
                         onDelete: (hash) {
                           showToast(S.of(context).deletingImageThisMayTakeASec);
-                          if (data is InspectionLocation) {
-                            model.updateCurrentChild((child) {
-                              final inspection = child as InspectionLocation;
-                              return API().deleteImageByHash(
-                                inspection.imagelink!,
-                                inspection,
-                                hash.toString(),
-                                caller: model.currentData,
-                                forceUpdate: true,
-                              );
-                            }).then((value) {
-                              _maybeShowToast(value);
-                              return value;
-                            });
-                          } else {
-                            model
-                                .updateCurrentChild((data) => API()
-                                    .deleteImageByHash(
-                                        "", data, hash.toString(),
-                                        caller: model.currentData,
-                                        forceUpdate: true))
-                                .then((value) {
-                              _maybeShowToast(value);
-                              return value;
-                            });
-                          }
+                          model
+                              .updateCurrentChild((data) => API()
+                                  .deleteImageByHash(data, hash.toString(),
+                                      caller: model.currentData,
+                                      forceUpdate: true))
+                              .then((value) {
+                            _maybeShowToast(value);
+                            return value;
+                          });
                         },
                         onShare: (hash) async {
                           var files = await Future.wait(
