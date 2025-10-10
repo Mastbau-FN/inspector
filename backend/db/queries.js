@@ -234,7 +234,7 @@ const update = async (body) => {
       params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
       params3 = [ld.PjNr, ld.User];
       await queryFileWithParams(queryfile + "_part2", params2);
-      await queryFileWithParams(queryfile + "_part3", params3);
+      //await queryFileWithParams(queryfile + "_part3", params3);
       break;
 
     default:
