@@ -37,6 +37,8 @@ class InspectionLocation extends Data
   final String? ort;
   @JsonKey(name: "User")
   String? user;
+  @JsonKey(name: "Login_ID_Pruefer")
+  String? login_id_pruefer;
   @JsonKey(name: "Eigentuemer")
   String? eigentuemer;
   @JsonKey(name: "Bauwerkhoehe")
@@ -148,10 +150,18 @@ class InspectionLocation extends Data
       ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
+    final normalized = _normalizeInspectionLocationJson(json);
+    if (normalized['PjNr'] == null || normalized['StONr'] == null) {
+      debugPrint(
+          'Skipping InspectionLocation because of missing identifiers: $json');
+      return null;
+    }
+
     try {
-      return _$InspectionLocationFromJson(json);
+      return _$InspectionLocationFromJson(normalized);
     } catch (e) {
-      //debugPrint(e.toString());
+      debugPrint(
+          'Decoding InspectionLocation failed: $e\njson: $json\nnormalized: $normalized');
     }
     return null;
   }
@@ -173,6 +183,105 @@ LatLng? _toplevelhelperLatLng_fromJson(Map<String, dynamic>? map) {
   } catch (e) {
     return null;
   }
+}
+
+Map<String, dynamic> _normalizeInspectionLocationJson(
+    Map<String, dynamic> json) {
+  final normalized = Map<String, dynamic>.from(json);
+
+  int? toInt(dynamic value) {
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  double? toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value.replaceAll(',', '.'));
+    return null;
+  }
+
+  bool? toBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final lower = value.toLowerCase();
+      if (lower == 'true' || lower == '1') return true;
+      if (lower == 'false' || lower == '0') return false;
+    }
+    return null;
+  }
+
+  void normalizeInt(String key) {
+    if (!normalized.containsKey(key)) return;
+    final parsed = toInt(normalized[key]);
+    if (parsed != null) {
+      normalized[key] = parsed;
+    } else {
+      normalized.remove(key);
+    }
+  }
+
+  void normalizeDouble(String key) {
+    if (!normalized.containsKey(key)) return;
+    final parsed = toDouble(normalized[key]);
+    if (parsed != null) {
+      normalized[key] = parsed;
+    } else {
+      normalized.remove(key);
+    }
+  }
+
+  void normalizeBool(String key) {
+    if (!normalized.containsKey(key)) return;
+    final parsed = toBool(normalized[key]);
+    if (parsed != null) {
+      normalized[key] = parsed;
+    } else {
+      normalized.remove(key);
+    }
+  }
+
+  void normalizeString(String key) {
+    if (!normalized.containsKey(key)) return;
+    normalized[key] = normalized[key]?.toString();
+  }
+
+  normalizeInt('PjNr');
+  normalizeInt('StONr');
+  normalizeInt('Baujahr');
+  normalizeInt('Temperatur');
+  normalizeDouble('Bauwerkhoehe');
+
+  for (final key in [
+    'Steckdosen',
+    'WC',
+    'Lagerraeume',
+    'Schluessel',
+    'ASP_required',
+    'offline',
+  ]) {
+    normalizeBool(key);
+  }
+
+  final latLng = normalized['latLng'];
+  if (latLng is Map) {
+    final lat = toDouble(latLng['lat']);
+    final lng = toDouble(latLng['lng']);
+    if (lat != null && lng != null) {
+      normalized['latLng'] = {'lat': lat, 'lng': lng};
+    } else {
+      normalized.remove('latLng');
+    }
+  } else {
+    normalized.remove('latLng');
+  }
+
+  for (final key in ['Login_ID_Pruefer', 'X', 'Y']) {
+    normalizeString(key);
+  }
+
+  return normalized;
 }
 
 class _RecursiveDownloadButton extends StatefulWidget {

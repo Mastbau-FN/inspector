@@ -9,6 +9,7 @@ part of 'inspection_location.dart';
 InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
     InspectionLocation(
       bauleitung: json['Bauleitung'] as String?,
+      user: json['User'] as String?,
       ort: json['Ort'] as String?,
       pjInfo: json['PjInfo'] as String?,
       pjName: json['PjName'] as String?,
@@ -29,8 +30,8 @@ InspectionLocation _$InspectionLocationFromJson(Map<String, dynamic> json) =>
       ..langText = json['langText'] as String?
       ..forceOffline_nullable = json['offline'] as bool?
       ..parentId = json['parent_local_id'] as String?
+      ..login_id_pruefer = json['Login_ID_Pruefer'] as String?
       ..eigentuemer = json['Eigentuemer'] as String?
-      ..user = json['User'] as String?
       ..bauwerkhoehe = (json['Bauwerkhoehe'] as num?)?.toDouble()
       ..baujahr = (json['Baujahr'] as num?)?.toInt()
       ..ansprechpartner = json['Ansprechpartner'] as String?
@@ -68,9 +69,10 @@ Map<String, dynamic> _$InspectionLocationToJson(InspectionLocation instance) =>
       'Straße': instance.strasse,
       'PLZ': instance.plz,
       'Ort': instance.ort,
-      'Eigentuemer': instance.eigentuemer,              
-      'User': instance.user,                        
-      'Bauwerkhoehe': instance.bauwerkhoehe,                
+      'User': instance.user,
+      'Login_ID_Pruefer': instance.login_id_pruefer,
+      'Eigentuemer': instance.eigentuemer,
+      'Bauwerkhoehe': instance.bauwerkhoehe,
       'Baujahr': instance.baujahr,
       'Ansprechpartner': instance.ansprechpartner,
       'Steigwegtyp': instance.steigwegtyp,
