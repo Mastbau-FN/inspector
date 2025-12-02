@@ -104,6 +104,9 @@ String? _deriveScopeFromJson(Map<String, dynamic>? json) {
   }
   if (data == null) return null;
 
+  final parentId = data['parent_local_id']?.toString();
+  if (parentId != null && parentId.isNotEmpty) return parentId;
+
   final type = json['type']?.toString();
   final pj = data['PjNr']?.toString();
   if (pj == null || pj.isEmpty) return null;

@@ -177,9 +177,10 @@ class LocalMirror {
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> getImageByHash(String hash,
       {bool compressed = false, Data? owner}) async {
+    final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
     List<String> candidates = [];
-    if (scope.isNotEmpty) {
+    if (!isPath && scope.isNotEmpty) {
       final scoped = '$scope/$hash';
       candidates.add(compressed
           ? '$scope/${OP.convertToCompressedHashName(hash)}'

@@ -192,7 +192,7 @@ class LocationDetailPage extends StatelessWidget {
             //Issue-236
             Divider(),
             EditableText(
-              label: "Prüfer",
+              label: "Prüfer_ID",
               text: locationdata.login_id_pruefer,
               onChanged: (val) {
                 locationdata.login_id_pruefer = val;

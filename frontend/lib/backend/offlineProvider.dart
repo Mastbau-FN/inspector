@@ -42,6 +42,12 @@ Future<File> localFile(String name, [String? doc]) async {
 
   if (await p0.exists()) return p0;
   if (hasFolder) {
+    // if the file has no extension, prefer a .jpg to keep it recognizable
+    final baseName = p0.uri.pathSegments.last;
+    if (!baseName.contains('.')) {
+      final withExt = File('$basePath/$name.jpg');
+      return withExt;
+    }
     await p0.parent.create(recursive: true);
     return p0;
   }

@@ -330,6 +330,7 @@ class Remote {
   //final _imageStreamController = BehaviorSubject<String>();
   RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
       {bool compressed = false, Data? owner}) {
+    final isPathHash = hash.contains('/');
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
       false => RequestData(
@@ -358,7 +359,7 @@ class Remote {
           final name =
               compressed ? OP.convertToCompressedHashName(hash) : hash;
           final scopedName =
-              scope.isNotEmpty ? '$scope/$name' : name;
+              (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
           await API().local.storeImage(res.bodyBytes, scopedName);
           return ImageData(
             (await API().local.readImage(scopedName,
