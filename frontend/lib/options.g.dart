@@ -13,7 +13,9 @@ Options _$OptionsFromJson(Map<String, dynamic> json) => Options()
   ..useMobileNetworkForDownload = json['useMobileNetworkForDownload'] as bool
   ..compactDownload = json['compactDownload'] as bool
   ..no_image_placeholder_name = json['no_image_placeholder_name'] as String
-  ..useSystemTheme = json['useSystemTheme'] as bool;
+  ..useSystemTheme = json['useSystemTheme'] as bool
+  ..debugMode = json['debugMode'] as bool
+  ..backupBeforeSync = json['backupBeforeSync'] as bool;
 
 Map<String, dynamic> _$OptionsToJson(Options instance) => <String, dynamic>{
       'canBeOffline': instance.canBeOffline,
@@ -23,4 +25,6 @@ Map<String, dynamic> _$OptionsToJson(Options instance) => <String, dynamic>{
       'compactDownload': instance.compactDownload,
       'no_image_placeholder_name': instance.no_image_placeholder_name,
       'useSystemTheme': instance.useSystemTheme,
+      'debugMode': instance.debugMode,
+      'backupBeforeSync': instance.backupBeforeSync,
     };

@@ -118,7 +118,8 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
               builder: (context) {
                 return AlertDialog(
                   title: Text("Gefundene Mängel"),
-                  content: Text("Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?"),
+                  content: Text(
+                      "Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?"),
                   actions: [
                     TextButton(
                       onPressed: () {
@@ -191,10 +192,10 @@ class LocationDetailPage extends StatelessWidget {
             //Issue-236
             Divider(),
             EditableText(
-              label: "Prüfer",
-              text: locationdata.user,
+              label: "Prüfer_ID",
+              text: locationdata.login_id_pruefer,
               onChanged: (val) {
-                locationdata.user = val;
+                locationdata.login_id_pruefer = val;
                 updateData(locationdata);
               },
             ),

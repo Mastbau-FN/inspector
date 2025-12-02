@@ -8,6 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '../classes/documentData.dart';
@@ -21,6 +23,43 @@ const LOCALLY_ADDED_PREFIX = '__loc__';
 
 const CACHESIZE = 128;
 
+String _scopeForData(Data? data, {Data? caller}) {
+  if (data == null) return '';
+  // Prefer an explicitly set parent folder if available
+  try {
+    final parentId = (data as WithOffline).parentId;
+    if (parentId != null && parentId.isNotEmpty) return parentId;
+  } catch (_) {}
+
+  String? inspection;
+  String seg2 = 'undefined';
+  String seg3 = 'undefined';
+  String seg4 = 'undefined';
+
+  if (data is CheckPointDefect) {
+    inspection = data.pjNr.toString();
+    seg2 = data.category_index.toString();
+    seg3 = data.check_index.toString();
+    seg4 = data.index.toString();
+  } else if (data is CheckPoint) {
+    inspection = data.pjNr.toString();
+    seg2 = data.category_index.toString();
+    seg3 = data.index.toString();
+    seg4 = data.e3?.toString() ?? 'undefined';
+  } else if (data is InspectionLocation) {
+    inspection = data.pjNr.toString();
+  } else if (caller is InspectionLocation) {
+    inspection = caller.pjNr.toString();
+  }
+
+  if (inspection == null && caller is WithOffline) inspection = caller.parentId;
+  inspection ??= data.id;
+
+  if (inspection == null || inspection.isEmpty) return '';
+  return [inspection, seg2, seg3, seg4].join('-');
+}
+
+
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
   // MARK: internals
@@ -31,6 +70,10 @@ class LocalMirror {
   LocalMirror._internal() {
     // init
   }
+
+  /// Returns folder scope for given data (e.g. pjNr-E1-E2-E3)
+  String scopeFor(Data? data, {Data? caller}) =>
+      _scopeForData(data, caller: caller);
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   Future<List<ChildData>?>
@@ -133,17 +176,27 @@ class LocalMirror {
 
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> getImageByHash(String hash,
-      {bool compressed = false}) async {
+      {bool compressed = false, Data? owner}) async {
+    final isPath = hash.contains('/');
+    final scope = _scopeForData(owner);
+    List<String> candidates = [];
+    if (!isPath && scope.isNotEmpty) {
+      final scoped = '$scope/$hash';
+      candidates.add(compressed
+          ? '$scope/${OP.convertToCompressedHashName(hash)}'
+          : scoped);
+    }
     if (compressed) {
-      final img = await readImage(OP.convertToCompressedHashName(hash),
-          cacheSize: compressed ? CACHESIZE : null);
+      candidates.add(OP.convertToCompressedHashName(hash));
+    }
+    candidates.add(hash);
+
+    for (final name in candidates) {
+      final img =
+          await readImage(name, cacheSize: compressed ? CACHESIZE : null);
       if (img != null) return ImageData(img, id: hash);
     }
-    final img = await readImage(hash, cacheSize: compressed ? CACHESIZE : null);
-    if (img == null) throw Exception("no img cached");
-    // return null;
-
-    return ImageData(img, id: hash);
+    throw Exception("no img cached");
   }
 
   Future<File?> getDocument(String docPath) async {
@@ -212,9 +265,12 @@ class LocalMirror {
     bool forceUpdate = false,
   }) async {
     List<String> newLocalImageNames = [];
+    final scope = _scopeForData(data, caller: caller);
+    String _scoped(String base) =>
+        scope.isNotEmpty ? '$scope/$base' : base;
     await Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
-      final imageName = '$LOCALLY_ADDED_PREFIX${file.name}';
+      final imageName = _scoped('$LOCALLY_ADDED_PREFIX${file.name}');
       await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));

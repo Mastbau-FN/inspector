@@ -15,6 +15,7 @@ import '../backend/api.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';
 import '../l10n/locales.dart';
+import '../options.dart';
 import '../pages/imagesPage.dart';
 import 'adder.dart';
 import 'camera/cameraModel.dart';
@@ -354,8 +355,22 @@ class _CameraForAdderState extends State<CameraForAdder>
 
   // Bilder hochladen
   Future<void> _onNewImages(List<XFile> queue, CheckPointDefect cp) async {
+    final caller = widget.model.currentData;
+    final isOffline = Options().forceOffline ||
+        (caller?.forceOffline ?? false) ||
+        (cp.forceOffline) ||
+        (widget.parent?.forceOffline ?? false);
+
+    if (isOffline) {
+      // markiere Datensätze explizit als offline, damit API nicht direkt sendet
+      cp.forceOffline = true;
+      try {
+        caller?.forceOffline = true;
+      } catch (_) {}
+    }
+
     await API().uploadNewImagesOrFiles(cp, queue,
-        caller: widget.model.currentData, forceUpdate: true);
+        caller: caller ?? widget.parent, forceUpdate: true);
   }
 
   // Bilder hochladen und neuen Defekt erstellen
@@ -363,6 +378,11 @@ class _CameraForAdderState extends State<CameraForAdder>
     setState(() {
       uploadingImage = true;
     });
+
+    final caller = widget.model.currentData ?? widget.parent;
+    final offlineMode = Options().forceOffline ||
+        (caller?.forceOffline ?? false) ||
+        (widget.parent?.forceOffline ?? false);
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -372,9 +392,15 @@ class _CameraForAdderState extends State<CameraForAdder>
             child: CheckPointDefectsModel.adder(
               parent: widget.parent,
               onDone: (defect) async {
+                if (offlineMode) {
+                  defect.forceOffline = true;
+                  try {
+                    widget.parent.forceOffline = true;
+                  } catch (_) {}
+                }
                 CheckPointDefect? newDefect =
                     await API().setNew(defect, caller: widget.parent);
-                await API().update(newDefect!);
+                await API().update(newDefect!, caller: widget.parent);
                 await widget.onDone();
                 await _onNewImages(queue, newDefect);
                 await widget.onDone();

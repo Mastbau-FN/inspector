@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OfflineProvider;
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 
 import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
@@ -20,9 +21,13 @@ import 'package:flutter/services.dart';
 
 import '../notifications/controller.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 
 import 'package:MBG_Inspektionen/options.dart';
+import 'package:http/http.dart' as http;
 
 // Diese drei Konstanten nur hier zentral definieren.
 // Von hier aus werden sie dann auch in anderen Dateien importiert.
@@ -284,6 +289,142 @@ Future<T> _retryWithBackoff<T>({
   }
 }
 
+Future<void> _deleteLocalFileIfExists(String name) async {
+  try {
+    final file = await OfflineProvider.localFile(name);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  } catch (e) {
+    debugPrint('Could not delete file $name: $e');
+  }
+}
+
+Future<void> _deleteLocalFiles(Iterable<String> names) async {
+  final uniqueNames = names.where((n) => n.isNotEmpty).toSet();
+  for (final name in uniqueNames) {
+    await _deleteLocalFileIfExists(name);
+  }
+}
+
+Future<void> _cleanupMultipartFilesFromRequests(
+    List<(String, RequestData?)> requests) async {
+  final names = <String>{};
+  for (final (_, rd) in requests) {
+    if (rd?.multipartFileNames != null) {
+      names.addAll(rd!.multipartFileNames!);
+    }
+  }
+  await _deleteLocalFiles(names);
+}
+
+Future<void> _deleteFilesForData(WithImgHashes data) async {
+  final names = <String>{};
+  if (data.mainhash != null) names.add(data.mainhash!);
+  if (data.imagehashes != null) names.addAll(data.imagehashes!);
+  await _deleteLocalFiles(names);
+}
+
+Future<void> _deleteDefectsForCheckpoint(CheckPoint checkpoint) async {
+  final defects =
+      (await OfflineProvider.getAllChildrenFrom<CheckPointDefect>(checkpoint.id))
+              ?.whereType<CheckPointDefect>()
+              .toList() ??
+          [];
+
+  for (final defect in defects) {
+    await _deleteFilesForData(defect);
+    await OfflineProvider.deleteData<CheckPointDefect>(defect.id,
+        parentId: checkpoint.id);
+  }
+}
+
+Future<void> _deleteCheckpointsForCategory(CheckCategory category) async {
+  final checkpoints =
+      (await OfflineProvider.getAllChildrenFrom<CheckPoint>(category.id))
+              ?.whereType<CheckPoint>()
+              .toList() ??
+          [];
+
+  for (final checkpoint in checkpoints) {
+    await _deleteFilesForData(checkpoint);
+    await _deleteDefectsForCheckpoint(checkpoint);
+    await OfflineProvider.deleteData<CheckPoint>(checkpoint.id,
+        parentId: category.id);
+  }
+}
+
+Future<void> _deleteInspectionLocally(
+    InspectionLocation inspection, String rootId) async {
+  try {
+    await _deleteFilesForData(inspection);
+
+    final docNames = inspection.dokuspaths
+            ?.map((doc) => doc.docupath.split('/').last)
+            .where((name) => name.isNotEmpty) ??
+        [];
+    await _deleteLocalFiles(docNames);
+
+    final categories =
+        (await OfflineProvider.getAllChildrenFrom<CheckCategory>(inspection.id))
+                ?.whereType<CheckCategory>()
+                .toList() ??
+            [];
+
+    for (final category in categories) {
+      await _deleteFilesForData(category);
+      await _deleteCheckpointsForCategory(category);
+      await OfflineProvider.deleteData<CheckCategory>(category.id,
+          parentId: inspection.id);
+    }
+
+    await OfflineProvider.deleteData<InspectionLocation>(inspection.id,
+        parentId: rootId);
+  } catch (e) {
+    debugPrint('Failed to remove local inspection ${inspection.id}: $e');
+  }
+}
+
+Future<List<InspectionLocation>> _fetchRemoteInspectionsForCleanup() async {
+  try {
+    final rap = API()
+        .remote
+        .getNextDatapoint<InspectionLocation, WithOffline?>(null);
+    final response = await API().remote.postJSON(rap.rd);
+
+    if (response is http.StreamedResponse) {
+      final res = await http.Response.fromStream(response);
+      if (res.statusCode ~/ 100 != 2) return [];
+      return await rap.parser(res);
+    } else if (response is http.Response) {
+      if (response.statusCode ~/ 100 != 2) return [];
+      return await rap.parser(response);
+    }
+  } catch (e) {
+    debugPrint('Failed to fetch remote inspections: $e');
+  }
+  return [];
+}
+
+Future<void> _pruneLocalInspections() async {
+  try {
+    final remoteInspections = await _fetchRemoteInspectionsForCleanup();
+    final remoteIds = remoteInspections.map((insp) => insp.id).toSet();
+    final localInspections =
+        await API().local.getNextDatapoint<InspectionLocation, WithOffline?>(
+            null);
+    final rootId = await API().rootID;
+
+    for (final inspection in localInspections) {
+      if (!remoteIds.contains(inspection.id)) {
+        await _deleteInspectionLocally(inspection, rootId);
+      }
+    }
+  } catch (e) {
+    debugPrint('Failed pruning local inspections: $e');
+  }
+}
+
 /// Die eigentliche Isolate-Funktion mit Sortierung, Gruppierung, Fortschrittsanzeige & Benachrichtigung.
 _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   if (!kIsWeb) {
@@ -510,6 +651,15 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
     // Beende den Keepalive-Timer
     keepAliveTimer?.cancel();
+
+    if (success) {
+      try {
+        await _cleanupMultipartFilesFromRequests(failedReqs);
+        await _pruneLocalInspections();
+      } catch (e) {
+        debugPrint('Post-upload cleanup failed: $e');
+      }
+    }
 
     // Ende
     final finalOverall = progress.overallProgress;
