@@ -173,6 +173,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
                     // fn: _textfield_focusnode_list[i],
                     c: _textfieldControllerList[i],
                     validator: textfieldList[i].verify,
+                    dropdown: textfieldList[i].dropdown,
                   );
                 }),
               ],
@@ -228,71 +229,180 @@ class _PaddedButton extends StatelessWidget {
       );
 }
 
-class _Input extends StatelessWidget {
+class _Input extends StatefulWidget {
   const _Input({
     Key? key,
     this.isFirst = false,
     this.isLast = false,
     required this.hint,
     this.validator = InputData.nonempty,
-    // required this.onDone,
-    // required this.fn,
     required this.c,
-    // this.initialValue,
+    this.dropdown = const [],
   }) : super(key: key);
 
   final String? Function(String? text) validator;
-
-  // String? value;
-
-  // final String? initialValue;
   final bool isFirst;
   final bool isLast;
   final String hint;
-  // final Function(String p1) onDone;
-  // final FocusNode fn;
   final TextEditingController c;
+  final List<String> dropdown;
+
+  @override
+  State<_Input> createState() => _InputState();
+}
+
+class _InputState extends State<_Input> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  bool _isOpen = false;
+
+  void _toggleDropdown() {
+    if (_isOpen) {
+      _closeDropdown();
+    } else {
+      _openDropdown();
+    }
+  }
+
+  void _openDropdown() {
+    if (!mounted || _overlayEntry != null) return;
+
+    _overlayEntry = _buildOverlayEntry();
+    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
+    setState(() {
+      _isOpen = true;
+    });
+  }
+
+  void _closeDropdown() {
+    if (!_isOpen && _overlayEntry == null) return;
+
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+
+    if (mounted) {
+      setState(() {
+        _isOpen = false;
+      });
+    } else {
+      // falls z.B. von dispose() aus aufgerufen wird
+      _isOpen = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    // wichtig: hier KEIN setState mehr
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    super.dispose();
+  }
+
+  // ... build + _buildOverlayEntry bleiben wie gehabt ...
+
+  OverlayEntry _buildOverlayEntry() {
+    return OverlayEntry(
+      builder: (overlayContext) {
+        return Stack(
+          children: [
+            // Tap außerhalb schließt das Dropdown
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: _closeDropdown,
+              ),
+            ),
+            // Das eigentliche Dropdown-Menü
+            Positioned(
+              child: CompositedTransformFollower(
+                link: _layerLink,
+                showWhenUnlinked: false,
+                // Offset relativ zum Icon:
+                // x: etwas nach links (damit es über Input ragt)
+                // y: negativ = über dem Icon
+                offset: const Offset(-160, -250), // feintunen nach Bedarf
+                child: Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(8),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 200,
+                      maxWidth: 200,
+                      maxHeight: 250,
+                    ),
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      children: widget.dropdown
+                          .map(
+                            (value) => ListTile(
+                              dense: true,
+                              title: Text(
+                                value,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              onTap: () {
+                                widget.c.text = value;
+                                _closeDropdown();
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final bool hasSuggestions = widget.dropdown.isNotEmpty;
+
     return Container(
-      padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-      child: TextFormField(
-        // initialValue: initialValue,
-        // onSaved: (value) {
-        //   this.value = value;
-        // },
-        //expands: true,
-        textCapitalization: TextCapitalization.sentences,
-        // decoration: InputDecoration(
-        //   enabledBorder: UnderlineInputBorder(
-        //       borderSide: BorderSide(
-        //           color:
-        //               Theme.of(context).colorScheme.onBackground.withAlpha(50),
-        //           width: 1)),
-        //   hintText: hint,
-        //   hintStyle: TextStyle(
-        //     fontWeight: FontWeight.w100,
-        //     fontSize: 17,
-        //   ),
-        // ),
-        // style: TextStyle(
-        //   fontWeight: FontWeight.bold,
-        //   fontSize: 18,
-        // ),
-        // textAlign: TextAlign.center,
-        controller: c,
-        minLines: 1,
-        maxLines: 15,
-        validator: validator,
-        autofocus: isFirst,
-        decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: Design.mainBorderRadius,
+      padding: const EdgeInsets.only(top: 10, left: 20, right: 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: TextFormField(
+              controller: widget.c,
+              minLines: 1,
+              maxLines: 5,
+              validator: widget.validator,
+              autofocus: widget.isFirst,
+              textInputAction: widget.isLast ? null : TextInputAction.next,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: Design.mainBorderRadius,
+                ),
+                labelText: widget.hint,
+              ),
+            ),
           ),
-          labelText: hint,
-        ),
-        textInputAction: isLast ? null : TextInputAction.next,
+          if (hasSuggestions)
+            Padding(
+              padding: const EdgeInsets.only(left: 0, top: 2),
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: CompositedTransformTarget(
+                  link: _layerLink,
+                  child: IconButton(
+                    icon: Icon(
+                      _isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                    ),
+                    onPressed: _toggleDropdown,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -313,11 +423,14 @@ class InputData {
 
   final String? Function(String? text) postProcess;
 
+  final List<String> dropdown;
+
   InputData(this.varName,
       {this.postProcess = noSpacesAtEndAndNoSlashes,
       required this.hint,
       this.value,
-      this.verify = defaultVerification});
+      this.verify = defaultVerification,
+      this.dropdown = const []});
 
   static const defaultVerification = nonempty;
 
