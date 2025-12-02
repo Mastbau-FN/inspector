@@ -73,15 +73,13 @@
   <pre class="language-dart"><code class="language-dart">@pragma(&quot;vm:entry-point&quot;)
 static Future&lt;void&gt; onActionReceivedMethod(
     ReceivedAction receivedAction) async {
-  &#47;&#47; Your code goes here
+  &#47;&#47; Debugging-Ausgabe zur Nachverfolgung
+  debugPrint(
+      &#39;Notification Action received: ID=${receivedAction.id}, Channel=${receivedAction.channelKey}, Button=${receivedAction.buttonKeyPressed}&#39;);
 
-  &#47;&#47; Navigate into pages, avoiding to open the notification details page over another details page already opened
+  &#47;&#47; Zur DefaultNotificationPage navigieren
   MyApp.navigatorKey.currentState
-      ?.pushNamed &#47;*AndRemoveUntil*&#47; (&#39;&#47;default-notification-page&#39;,
-          &#47;&#47; (route) =&gt;
-          &#47;&#47;     (route.settings.name != &#39;&#47;default-notification-page&#39;) ||
-          &#47;&#47;     route.isFirst,
-          arguments: receivedAction);
+      ?.pushNamed(&#39;&#47;default-notification-page&#39;, arguments: receivedAction);
 }</code></pre>
 </section>
 

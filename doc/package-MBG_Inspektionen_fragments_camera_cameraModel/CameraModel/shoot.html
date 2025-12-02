@@ -67,15 +67,30 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;XFile&gt; shoot() async {
-  if (controller == null || !controller!.value.isInitialized) {
+  if (_isProcessing) {
+    throw Exception(&quot;Kamera arbeitet noch&quot;);
+  }
+
+  if (_controller == null || !_controller!.value.isInitialized) {
     debugPrint(&quot;Controller nicht initialisiert, starte Kamera...&quot;);
     await start();
   }
+
   try {
-    _latestPic = await controller!.takePicture();
+    _isProcessing = true;
     notifyListeners();
-    return latestPic!;
+
+    &#47;&#47; Haptisches Feedback bei Aufnahme
+    HapticFeedback.mediumImpact();
+
+    _latestPic = await _controller!.takePicture();
+
+    _isProcessing = false;
+    notifyListeners();
+    return _latestPic!;
   } catch (e) {
+    _isProcessing = false;
+    notifyListeners();
     debugPrint(&quot;Fehler beim Aufnehmen des Bildes: $e&quot;);
     throw Exception(&quot;Fehler beim Aufnehmen des Bildes&quot;);
   }

@@ -72,7 +72,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;http.BaseResponse?&gt; postJSON(RequestData rd) async {
   var headers = {HttpHeaders.contentTypeHeader: &#39;application&#47;json&#39;};
-  rd.json = rd.json ?? {};
+  rd.json ??= {};
   rd.json![&#39;user&#39;] = _user?.toJson();
   try {
     if (rd.multipartFiles.isNotEmpty) {
@@ -108,31 +108,53 @@
                       .toString()))); &#47;&#47; this causes #279, but that is fixed in backend, since the formrequests fields is Map&lt;String, String&gt; and not Map&lt;String, dynamic&gt;
         debugPrint(&quot;gonna send multipart-req with booty ${mreq.fields}&quot;);
         var res = (rd.timeout == null)
-            ? await mreq.send()
-            : await mreq.send().timeout(rd.timeout!);
+            ? await _client.send(mreq)
+            : await _client.send(mreq).timeout(rd.timeout!);
         return res;
+      } on SocketException catch (e) {
+        debugPrint(&#39;Socket-Fehler bei Multipart-Request: ${e.message}&#39;);
+        if (e.message.contains(&#39;Write failed&#39;) ||
+            e.message.contains(&#39;connection abort&#39;) ||
+            e.message.contains(&#39;Connection refused&#39;) ||
+            e.message.contains(&#39;Software caused connection abort&#39;)) {
+          debugPrint(
+              &#39;Hintergrund-Socket-Fehler erkannt, App möglicherweise im Hintergrund&#39;);
+        }
+        rethrow;
       } on Exception catch (e) {
-        &#47;&#47;if (rd.&#47;&#47;&#47;&#47;logIfFailed) OP.logFailedReq(rd);
-        debugPrint(&#39;multipartRequest, failed&#39;);
-        throw e;
+        debugPrint(&#39;multipartRequest, failed: $e&#39;);
+        rethrow;
       }
     } else {
       final req =
           makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
       try {
-        return await send(
+        &#47;&#47; Erhöhe die Robustheit des Requests speziell für Hintergrundausführung
+        final response = await send(
           req,
-          timeout: rd.timeout,
+          timeout:
+              rd.timeout ?? Duration(minutes: 2), &#47;&#47; Längerer Standard-Timeout
           returnsBinary: rd.returnsBinary,
         );
+
+        return response;
+      } on SocketException catch (e) {
+        debugPrint(&#39;Socket-Fehler bei HTTP-Request: ${e.message}&#39;);
+        if (e.message.contains(&#39;Write failed&#39;) ||
+            e.message.contains(&#39;connection abort&#39;) ||
+            e.message.contains(&#39;Connection refused&#39;) ||
+            e.message.contains(&#39;Software caused connection abort&#39;)) {
+          debugPrint(
+              &#39;Hintergrund-Socket-Fehler erkannt, App möglicherweise im Hintergrund&#39;);
+        }
+        rethrow;
       } catch (e) {
-        &#47;&#47;if (rd.&#47;&#47;&#47;&#47;logIfFailed) OP.logFailedReq(rd);
-        &#47;&#47;debugPrint(&#39;request failed&#39;);
-        throw e;
+        debugPrint(&#39;request failed: $e&#39;);
+        rethrow;
       }
     }
   } catch (e) {
-    &#47;&#47;debugPrint(&quot;request failed, cause : $e&quot;);
+    debugPrint(&quot;request failed, cause : $e&quot;);
     return null;
   }
 }</code></pre>

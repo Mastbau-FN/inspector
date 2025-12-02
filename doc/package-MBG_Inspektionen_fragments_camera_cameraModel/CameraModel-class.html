@@ -53,6 +53,9 @@
 </h1></div>
 
     
+<section class="desc markdown">
+  <p>Hauptklasse zur Verwaltung der Kamerafunktionen</p>
+</section>
 
 
     <section>
@@ -108,20 +111,56 @@
 
 </dd>
 
-        <dt id="controller" class="property">
-  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/controller.html">controller</a></span>
-  <span class="signature">&#8596; <a href="https://pub.dev/documentation/camera/0.11.0+2/camera/CameraController-class.html">CameraController</a>?</span>
+        <dt id="backCamera" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/backCamera.html">backCamera</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/CameraDescription-class.html">CameraDescription</a>?</span>&gt;</span></span>
   
 
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">getter/setter pair</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="controller" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/controller.html">controller</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/camera/0.11.0+2/camera/CameraController-class.html">CameraController</a>?</span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
         <dt id="currentCamera" class="property">
   <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/currentCamera.html">currentCamera</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/CameraDescription-class.html">CameraDescription</a>?</span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="flashMode" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/flashMode.html">flashMode</a></span>
+  <span class="signature">&#8594; <a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/FlashMode.html">FlashMode</a></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="frontCamera" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/frontCamera.html">frontCamera</a></span>
   <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/CameraDescription-class.html">CameraDescription</a>?</span>&gt;</span></span>
   
 
@@ -156,6 +195,18 @@
 
 </dd>
 
+        <dt id="isProcessing" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/isProcessing.html">isProcessing</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
         <dt id="latestPic" class="property">
   <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/latestPic.html">latestPic</a></span>
   <span class="signature">&#8596; <a href="https://pub.dev/documentation/cross_file/0.3.4+2/cross_file/XFile-class.html">XFile</a>?</span>
@@ -163,7 +214,7 @@
 
 </dt>
 <dd>
-  only use on weird edge cases, this normally gets set by <a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/shoot.html">shoot</a>
+  
   <div class="features"><span class="feature">getter/setter pair</span></div>
 
 </dd>
@@ -224,7 +275,7 @@
 </dt>
 <dd>
   
-  <div class="features"><span class="feature">final</span></div>
+  <div class="features"><span class="feature">no setter</span></div>
 
 </dd>
 
@@ -259,6 +310,19 @@
 <dd class="inherited">
   Register a closure to be called when the object changes.
   <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="autoFocus" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/autoFocus.html">autoFocus</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
 
 </dd>
 
@@ -382,8 +446,21 @@ notified when the object changes.
 
 </dd>
 
+        <dt id="setFlashMode" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/setFlashMode.html">setFlashMode</a></span><span class="signature">(<wbr><span class="parameter" id="setFlashMode-param-mode"><span class="type-annotation"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/FlashMode.html">FlashMode</a></span> <span class="parameter-name">mode</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
         <dt id="setZoom" class="callable">
-  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/setZoom.html">setZoom</a></span><span class="signature">(<wbr><span class="parameter" id="setZoom-param-newVal"><span class="type-annotation">dynamic</span> <span class="parameter-name">newVal</span></span>)
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/setZoom.html">setZoom</a></span><span class="signature">(<wbr><span class="parameter" id="setZoom-param-newVal"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">newVal</span></span>)
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
   </span>
   
@@ -411,6 +488,19 @@ notified when the object changes.
         <dt id="start" class="callable">
   <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/start.html">start</a></span><span class="signature">(<wbr>{<span class="parameter" id="start-param-reuse"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">reuse</span> = <span class="default-value">true</span></span>})
     <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera/0.11.0+2/camera/CameraController-class.html">CameraController</a></span>&gt;</span></span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="toggleFlash" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel/toggleFlash.html">toggleFlash</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
   </span>
   
 

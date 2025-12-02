@@ -54,7 +54,7 @@
 
     <section class="multi-line-signature">
         
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Stream-class.html">Stream</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../package-MBG_Inspektionen_pages_settings_settingsView/BackupProgress-class.html">BackupProgress</a></span>&gt;</span></span>
 <span class="name ">backup</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="backup-param-to"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">to</span></span></li>
 </ol>)
 
@@ -62,47 +62,57 @@
 
     </section>
     
+<section class="desc markdown">
+  <p>Backups everything in localPath as a zip, providing a progress stream.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Stream&lt;double&gt; backup(String to) async* {
+  <pre class="language-dart"><code class="language-dart">Stream&lt;BackupProgress&gt; backup(String to) async* {
   final encoder = ZipFileEncoder();
   encoder.create(to);
 
   try {
-    &#47;&#47; Directory for files to be backed up
     final directory = Directory(await localPath);
+    final entities = directory.listSync(recursive: true);
 
-    &#47;&#47; List all files and directories recursively
-    final List&lt;FileSystemEntity&gt; entities = directory.listSync(recursive: true);
-
-    &#47;&#47; Calculate the total size of all files for progress tracking
-    final int totalSize = entities
-        .whereType&lt;File&gt;()
-        .fold(0, (sum, file) =&gt; sum + file.lengthSync());
+    final totalSize = entities.whereType&lt;File&gt;().fold&lt;int&gt;(
+          0,
+          (sum, file) =&gt; sum + file.lengthSync(),
+        );
     int processedSize = 0;
+    DateTime startTime = DateTime.now();
 
-    &#47;&#47; Iterate over each entity
     for (final entity in entities) {
       if (entity is File) {
-        &#47;&#47; Get the relative path of the file
-        final String relativePath =
-            entity.path.replaceFirst(directory.path, &#39;&#39;);
-
-        &#47;&#47; Add file to the ZIP while preserving folder structure
+        final relativePath = entity.path.replaceFirst(directory.path, &#39;&#39;);
         encoder.addFile(entity, relativePath);
-
-        &#47;&#47; Update processed size
         processedSize += entity.lengthSync();
 
-        &#47;&#47; Yield progress as a percentage of total size
-        yield processedSize &#47; totalSize;
+        &#47;&#47; Berechne ETA
+        final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+        final speed = processedSize &#47; elapsed;
+        final remaining = totalSize - processedSize;
+        var etaMs = remaining &#47; speed;
+        if (etaMs.isInfinite || etaMs.isNaN) {
+          etaMs =
+              0; &#47;&#47; Skip if                               ETA calculation is invalid
+        }
+        final etaDuration = Duration(milliseconds: etaMs.round());
+        final etaStr = etaDuration.inMinutes &gt;= 1
+            ? &#39;${etaDuration.inMinutes} min&#39;
+            : &#39;${etaDuration.inSeconds} s&#39;;
+
+        yield BackupProgress(
+          progress: processedSize &#47; totalSize,
+          currentFile: relativePath,
+          eta: etaStr,
+        );
       }
     }
   } finally {
-    &#47;&#47; Ensure the encoder is closed properly
     encoder.close();
   }
 }</code></pre>

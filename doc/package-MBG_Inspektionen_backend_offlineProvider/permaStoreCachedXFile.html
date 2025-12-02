@@ -69,8 +69,17 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;String&gt; permaStoreCachedXFile(XFile file, [String? _name]) async {
-  final name = _name ?? file.name;
-  await file.saveTo((await localFile(file.name)).path);
+  final basePath = await localPath;
+  &#47;&#47; prefer keeping relative folder if the file already lives in our app dir
+  String? relativeName;
+  if (file.path.startsWith(basePath)) {
+    relativeName = file.path.substring(basePath.length + 1);
+  }
+  final name = _name ?? relativeName ?? file.name;
+  final target = await localFile(name);
+  await target.parent.create(recursive: true);
+  await file.saveTo(target.path);
+  debugPrint(&#39;Persisted cached file to ${target.path}&#39;);
   return name;
 }</code></pre>
 </section>

@@ -55,9 +55,9 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="../../package-MBG_Inspektionen_backend_remote/RequestAndParser-class.html">RequestAndParser</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/1.2.2/http/BaseResponse-class.html">BaseResponse</a></span>, <span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_imageData/ImageData-class.html">ImageData</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span>&gt;</span>?</span>&gt;</span></span>
-<span class="name ">getImageByHash</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="getImageByHash-param-link"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">link</span>, </span></li>
-<li><span class="parameter" id="getImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, {</span></li>
+<span class="name ">getImageByHash</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="getImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, {</span></li>
 <li><span class="parameter" id="getImageByHash-param-compressed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">compressed</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="getImageByHash-param-owner"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">owner</span>, </span></li>
 </ol>})
 
       
@@ -69,16 +69,14 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">RequestAndParser&lt;http.BaseResponse, ImageData?&gt; getImageByHash(
-    String link, String hash,
-    {bool compressed = false}) {
-  &#47;&#47;debugPrint(&quot;hash: $hash&quot;);
+  <pre class="language-dart"><code class="language-dart">RequestAndParser&lt;http.BaseResponse, ImageData?&gt; getImageByHash(String hash,
+    {bool compressed = false, Data? owner}) {
+  final isPathHash = hash.contains(&#39;&#47;&#39;);
   final rd = switch (kIsWeb) {
     true =&gt; RequestData(&#39;&#47;login&#39;),
     false =&gt; RequestData(
         _getImageFromHash_r,
         json: {
-          &#39;link&#39;: link,
           &#39;hash&#39;: hash,
           &#39;compressed&#39;: compressed,
         },
@@ -98,15 +96,19 @@
       return null;
     else {
       try {
-        await API().local.storeImage(res.bodyBytes, hash);
+        final scope = owner != null ? API().local.scopeFor(owner) : &#39;&#39;;
+        final name =
+            compressed ? OP.convertToCompressedHashName(hash) : hash;
+        final scopedName =
+            (!isPathHash &amp;&amp; scope.isNotEmpty) ? &#39;$scope&#47;$name&#39; : name;
+        await API().local.storeImage(res.bodyBytes, scopedName);
         return ImageData(
-          (await API()
-              .local
-              .readImage(hash, cacheSize: compressed ? CACHESIZE : null))!,
+          (await API().local.readImage(scopedName,
+              cacheSize: compressed ? CACHESIZE : null))!,
           id: hash,
         );
       } catch (e) {
-        &#47;&#47;debugPrint(&quot;failed to load webimg: &quot; + e.toString());
+        debugPrint(&quot;failed to load webimg: &quot; + e.toString());
       }
     }
   }

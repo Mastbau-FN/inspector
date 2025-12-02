@@ -54,7 +54,7 @@
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
 <span class="name ">logout</span>(<wbr>)
 
       
@@ -69,10 +69,20 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future logout() async {
-  (await _c_user)?.unstore();
-  _user = null;
-  debugPrint(&#39;user logged out&#39;);
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; logout() async {
+  try {
+    final currentUser = await _c_user;
+    if (currentUser != null) {
+      await currentUser.unstore();
+      debugPrint(&#39;User-Daten gelöscht&#39;);
+    }
+    _user = null;
+    debugPrint(&#39;User ausgeloggt&#39;);
+  } catch (e) {
+    debugPrint(&#39;Fehler beim Ausloggen: $e&#39;);
+    &#47;&#47; Trotz Fehler zurücksetzen, um UI-Update zu ermöglichen
+    _user = null;
+  }
 }</code></pre>
 </section>
 

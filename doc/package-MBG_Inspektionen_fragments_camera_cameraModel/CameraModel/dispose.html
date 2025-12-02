@@ -83,6 +83,9 @@ listeners or not immediately before disposal.</p>
   <pre class="language-dart"><code class="language-dart">@override
 void dispose() {
   disposeCamera();
+  &#47;&#47; Bildschirmeinstellungen wiederherstellen
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+      overlays: SystemUiOverlay.values);
   super.dispose();
 }</code></pre>
 </section>

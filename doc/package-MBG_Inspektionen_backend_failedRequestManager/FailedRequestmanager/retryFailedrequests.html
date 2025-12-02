@@ -56,7 +56,11 @@
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>&gt;</span></span>
 <span class="name ">retryFailedrequests</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="retryFailedrequests-param-context"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, </span></li>
-<li><span class="parameter" id="retryFailedrequests-param-onProgress"><span class="type-annotation">void</span> <span class="parameter-name">onProgress</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span></span></li>
+<li><span class="parameter" id="retryFailedrequests-param-onProgress"><span class="type-annotation">void</span> <span class="parameter-name">onProgress</span>(<ol class="parameter-list"> <li><span class="parameter" id="param-overallProgress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">overallProgress</span>, </span></li>
+<li><span class="parameter" id="param-success"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">success</span>, </span></li>
+<li><span class="parameter" id="param-currentInspId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">currentInspId</span>, </span></li>
+<li><span class="parameter" id="param-currentInspProgress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">currentInspProgress</span>, </span></li>
+<li><span class="parameter" id="param-etaString"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">etaString</span>, </span></li>
 </ol>)?, </span></li>
 </ol>})
 
@@ -64,58 +68,76 @@
 
     </section>
     
+<section class="desc markdown">
+  <p>Startet den Upload, ggf. mit fortlaufender Progress-Callback.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;bool&gt; retryFailedrequests(
-    {required BuildContext context,
-    void Function(double)? onProgress}) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;bool&gt; retryFailedrequests({
+  required BuildContext context,
+  void Function(double overallProgress, bool? success, String? currentInspId,
+          double currentInspProgress, String etaString)?
+      onProgress,
+}) async {
   debugPrint(&#39;retry failed requests started&#39;);
-  try {
-    await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
-  } catch (e) {
-    showToast(S.current!.noViableInternetConnection);
+
+  &#47;&#47; Prüfe zuerst alle Berechtigungen
+  if (!await _checkPermissions(context)) {
     return false;
   }
 
+  try {
+    &#47;&#47; Check Internet
+    await API().tryNetwork(requestType: Helper.SimulatedRequestType.PUT);
+  } catch (e) {
+    showToast(&#39;Keine funktionierende Internetverbindung&#39;);
+    return false;
+  }
+
+  &#47;&#47; Notifications erlauben?
   bool notificationsAllowed = await allowNotificationGuard(
     context,
-    S.of(context).weCanSendYouANotificationAboutTheSyncProgress,
+    &#39;Wir können dir eine Benachrichtigung über den Sync-Fortschritt senden.&#39;,
   );
 
-  bool success = false;
-  ReceivePort progressReceiver = ReceivePort();
-  var isolateInputData = _RetryFailedRequestsIsolateInput(
+  bool finalSuccess = false;
+  final progressReceiver = ReceivePort();
+
+  final isolateInputData = _RetryFailedRequestsIsolateInput(
     rootIsolateToken: RootIsolateToken.instance!,
     progressSender: progressReceiver.sendPort,
     notificationsAllowed: notificationsAllowed,
   );
 
-  final ss = progressReceiver.listen((msg) {
-    final (progress, _success) = msg as (double, bool?);
-    if (_success != null) {
-      success = _success;
+  final subscription = progressReceiver.listen((msg) {
+    &#47;&#47; msg: (double overall, bool? succ, String? inspId, double inspProg, String eta)
+    final (overall, maybeSuccess, inspId, inspProg, etaStr) =
+        msg as (double, bool?, String?, double, String);
+
+    if (maybeSuccess != null) {
+      &#47;&#47; =&gt; Upload beendet
+      finalSuccess = maybeSuccess;
       progressReceiver.close();
     } else {
-      onProgress?.call(progress);
+      &#47;&#47; =&gt; Zwischenschritt
+      onProgress?.call(overall, null, inspId, inspProg, etaStr);
     }
-  }); &#47;&#47; as StreamSubscription&lt;(double, bool)&gt;;
+  });
 
-  final runInIsolate = false &amp;&amp;
-      !kIsWeb &#47;*FIXME: fix running in isolates and then remove: *&#47; &amp;&amp;
-      false;
+  &#47;&#47; Statt über ein echtes Isolate (spawn) auszulagern,
+  &#47;&#47; rufen wir hier direkt die Upload-Logik asynchron auf:
+  await _retryFailedRequestsIsolate(isolateInputData);
 
-  &#47;&#47; ss.
-  if (runInIsolate)
-    await Isolate.spawn(_retryFailedRequestsIsolate, isolateInputData);
-  else
-    await _retryFailedRequestsIsolate(isolateInputData);
+  &#47;&#47; Warten, bis sämtliche Nachrichten gelesen wurden:
+  await subscription.asFuture();
 
-  await ss.asFuture();
+  &#47;&#47; Letztes &quot;onProgress&quot;, um finalen Erfolg zu signalisieren:
+  onProgress?.call(1.0, finalSuccess, null, 1.0, &#39;&#39;);
 
-  return success;
+  return finalSuccess;
 }</code></pre>
 </section>
 

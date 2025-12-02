@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the getGroupedFailedRequests method from the FailedRequestmanager class, for the Dart programming language.">
+  <title>getGroupedFailedRequests method - FailedRequestmanager class - failedRequestManager library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/">backend&#47;failedRequestManager.dart</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/FailedRequestmanager-class.html">FailedRequestmanager</a></li>
+    <li class="self-crumb">getGroupedFailedRequests method</li>
+  </ol>
+  <div class="self-name">getGroupedFailedRequests</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="package-MBG_Inspektionen_backend_failedRequestManager&#47;FailedRequestmanager-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+<h1><span class="kind-method">getGroupedFailedRequests</span> method 
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/GroupedInspection-class.html">GroupedInspection</a></span>&gt;</span></span>&gt;</span></span>
+<span class="name ">getGroupedFailedRequests</span>(<wbr>)
+
+      
+
+    </section>
+    
+<section class="desc markdown">
+  <p>Gruppiert die fehlgeschlagenen Requests nach PJNr</p>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;GroupedInspection&gt;&gt; getGroupedFailedRequests() async {
+  debugPrint(&#39;getGroupedFailedRequests: Starte...&#39;);
+  final failedReqs = await API().local.getAllFailedRequests() ?? [];
+  debugPrint(&#39;getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden&#39;);
+
+  Map&lt;String, Map&lt;String, dynamic&gt;&gt; groupedRequests = {};
+
+  for (var (id, requestData) in failedReqs) {
+    try {
+      if (requestData != null) {
+        final jsonData = requestData.json;
+        if (jsonData != null) {
+          final data = jsonData[&#39;data&#39;];
+          Map&lt;String, dynamic&gt; parsedData;
+
+          if (data is String) {
+            parsedData = Map&lt;String, dynamic&gt;.from(json.decode(data));
+          } else {
+            parsedData = Map&lt;String, dynamic&gt;.from(data);
+          }
+
+          final pjNr = parsedData[&#39;PjNr&#39;]?.toString() ?? &#39;Unbekannt&#39;;
+          final route = requestData.route;
+          final timestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
+
+          if (!groupedRequests.containsKey(pjNr)) {
+            groupedRequests[pjNr] = {
+              &#39;requests&#39;: &lt;String&gt;[],
+              &#39;total&#39;: 0,
+              &#39;completed&#39;: 0,
+              &#39;progress&#39;: 0.0,
+              &#39;requestTypes&#39;: &lt;String, int&gt;{},
+              &#39;totalSize&#39;: 0, &#47;&#47; Set to 0 or skip for large batches
+              &#39;lastModified&#39;: timestamp,
+            };
+          }
+
+          &#47;&#47; Aktualisiere die Map mit den Request-Informationen
+          final group = groupedRequests[pjNr]!;
+          (group[&#39;requests&#39;] as List&lt;String&gt;).add(route);
+          group[&#39;total&#39;] = (group[&#39;total&#39;] as int) + 1;
+
+          &#47;&#47; Zähle die Request-Typen
+          final requestType = route.split(&#39;&#47;&#39;).first;
+          group[&#39;requestTypes&#39;][requestType] =
+              (group[&#39;requestTypes&#39;][requestType] ?? 0) + 1;
+
+          &#47;&#47; Do NOT serialize the full request, just estimate or skip size
+          &#47;&#47; group[&#39;totalSize&#39;] = (group[&#39;totalSize&#39;] as int) + 0;
+
+          &#47;&#47; Aktualisiere den Zeitstempel der letzten Änderung
+          if (timestamp.isAfter(group[&#39;lastModified&#39;] as DateTime)) {
+            group[&#39;lastModified&#39;] = timestamp;
+          }
+
+          if (parsedData[&#39;offline&#39;] == false) {
+            group[&#39;completed&#39;] = (group[&#39;completed&#39;] as int) + 1;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint(&#39;Error parsing request: $e&#39;);
+    }
+  }
+
+  debugPrint(&#39;getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden&#39;);
+
+  &#47;&#47; Berechne den Fortschritt für jede Inspektion
+  for (var pjNr in groupedRequests.keys) {
+    final total = groupedRequests[pjNr]![&#39;total&#39;] as int;
+    final completed = groupedRequests[pjNr]![&#39;completed&#39;] as int;
+    groupedRequests[pjNr]![&#39;progress&#39;] = total &gt; 0 ? completed &#47; total : 0.0;
+  }
+
+  &#47;&#47; Konvertiere die Map in eine Liste von GroupedInspection Objekten
+  final result = groupedRequests.entries
+      .map((entry) =&gt; GroupedInspection(
+            pjNr: entry.key,
+            requests: List&lt;String&gt;.from(entry.value[&#39;requests&#39;] as List),
+            total: entry.value[&#39;total&#39;] as int,
+            completed: entry.value[&#39;completed&#39;] as int,
+            progress: entry.value[&#39;progress&#39;] as double,
+            requestTypes:
+                Map&lt;String, int&gt;.from(entry.value[&#39;requestTypes&#39;] as Map),
+            totalSize: entry.value[&#39;totalSize&#39;] as int,
+            lastModified: entry.value[&#39;lastModified&#39;] as DateTime,
+          ))
+      .toList();
+
+  debugPrint(&#39;getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben&#39;);
+  return result;
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/">failedRequestManager</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_failedRequestManager/FailedRequestmanager-class.html">FailedRequestmanager</a></li>
+    <li class="self-crumb">getGroupedFailedRequests method</li>
+</ol>
+
+    <h5>FailedRequestmanager class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    MBG_Inspektionen
+      1.2.8+58
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

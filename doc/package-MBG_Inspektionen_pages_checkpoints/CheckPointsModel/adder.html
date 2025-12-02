@@ -81,6 +81,7 @@
     &#39;checkpoint&#39;,
     onSet: (json) {
       Map&lt;String, dynamic&gt; checkpoint = json[&#39;checkpoint&#39;];
+
       if (currentCheckpoint != null) {
         checkpoint = currentCheckpoint.toJson()..addAll(checkpoint);
       } else {
@@ -96,6 +97,7 @@
         &quot;KurzText&quot;,
         hint: S.current!.kurzTextHint,
         value: currentCheckpoint?.kurzText,
+        dropdown: getPredefinedCategory(parent.kurzText!),
       ),
       InputData(
         &quot;LangText&quot;,

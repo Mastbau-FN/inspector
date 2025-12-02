@@ -82,7 +82,7 @@
       
       set
       <span class="name ">zoom</span>
-      <span class="signature">(<wbr><span class="parameter" id="zoom=-param-newVal"><span class="type-annotation">dynamic</span> <span class="parameter-name">newVal</span></span>)</span>
+      <span class="signature">(<wbr><span class="parameter" id="zoom=-param-newVal"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">newVal</span></span>)</span>
       
 
     </section>
@@ -91,11 +91,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">set zoom(newVal) {
+  <pre class="language-dart"><code class="language-dart">set zoom(double newVal) {
   _zoom = newVal;
-  debugPrint(&quot;zoom: $newVal&quot;);
+  debugPrint(&quot;Zoom: $newVal&quot;);
   notifyListeners();
-  &#47;&#47; Future.delayed(Duration(milliseconds: 100), () =&gt; notifyListeners());
 }</code></pre>
 </section>
 

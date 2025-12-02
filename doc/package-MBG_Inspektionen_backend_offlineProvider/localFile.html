@@ -69,15 +69,39 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;File&gt; localFile(String name, [String? doc]) async {
-  var p0 = File(&#39;${await localPath}&#47;${name}&#39;);
-  if (doc != null) return p0 = File(&#39;${await localPath}&#47;${name}&#39;);
+  &#47;&#47; allow nested relative paths (e.g. per inspection) and create dirs if needed
+  final basePath = await localPath;
+  var p0 = File(&#39;$basePath&#47;$name&#39;);
+  &#47;&#47; keep legacy behaviour only for flat names; otherwise preserve folders
+  final hasFolder = name.contains(&#39;&#47;&#39;);
+
+  if (doc != null) {
+    await p0.parent.create(recursive: true);
+    return p0;
+  }
 
   if (await p0.exists()) return p0;
-  final p1 =
-      File(&#39;${await localPath}&#47;${name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;)}.img&#39;);
-  if (await p1.exists() || useOldImgEncoding) return p1;
-  return File(
-      &#39;${await localPath}&#47;${name}&#39;);
+  if (hasFolder) {
+    &#47;&#47; if the file has no extension, prefer a .jpg to keep it recognizable
+    final baseName = p0.uri.pathSegments.last;
+    if (!baseName.contains(&#39;.&#39;)) {
+      final withExt = File(&#39;$basePath&#47;$name.jpg&#39;);
+      return withExt;
+    }
+    await p0.parent.create(recursive: true);
+    return p0;
+  }
+
+  final sanitized =
+      name.replaceAll(RegExp(r&#39;[^\w]+&#39;), &#39;_&#39;); &#47;&#47; legacy naming fallback
+  final p1 = File(&#39;$basePath&#47;$sanitized.img&#39;);
+  if (await p1.exists() || useOldImgEncoding) {
+    await p1.parent.create(recursive: true);
+    return p1;
+  }
+  final p2 = File(&#39;$basePath&#47;$sanitized.maybe.jpg&#39;);
+  await p2.parent.create(recursive: true);
+  return p2;
 }</code></pre>
 </section>
 

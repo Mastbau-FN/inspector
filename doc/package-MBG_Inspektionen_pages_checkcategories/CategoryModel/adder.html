@@ -95,12 +95,14 @@
         &quot;KurzText&quot;,
         hint: S.current!.kurzTextHint,
         value: currentCategory?.kurzText,
+        dropdown: predefinedCategories,
       ),
       InputData(
         &quot;LangText&quot;,
         hint: S.current!.langTextHint,
         verify: InputData.alwaysCorrect,
         value: currentCategory?.langText,
+
       ),
     ],
   );

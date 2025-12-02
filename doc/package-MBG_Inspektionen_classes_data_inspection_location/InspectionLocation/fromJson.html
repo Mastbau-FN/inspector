@@ -68,10 +68,18 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">static InspectionLocation? fromJson(Map&lt;String, dynamic&gt; json) {
+  final normalized = _normalizeInspectionLocationJson(json);
+  if (normalized[&#39;PjNr&#39;] == null || normalized[&#39;StONr&#39;] == null) {
+    debugPrint(
+        &#39;Skipping InspectionLocation because of missing identifiers: $json&#39;);
+    return null;
+  }
+
   try {
-    return _$InspectionLocationFromJson(json);
+    return _$InspectionLocationFromJson(normalized);
   } catch (e) {
-    debugPrint(e.toString());
+    debugPrint(
+        &#39;Decoding InspectionLocation failed: $e\njson: $json\nnormalized: $normalized&#39;);
   }
   return null;
 }</code></pre>

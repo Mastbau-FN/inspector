@@ -26,7 +26,7 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../package-MBG_Inspektionen_backend_api/">backend&#47;api.dart</a></li>
-    <li class="self-crumb">injectImages&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt; function</li>
+    <li class="self-crumb">injectImages&lt;<wbr><span class="type-parameter">D extends Data</span>&gt; function</li>
   </ol>
   <div class="self-name">injectImages</div>
   <form class="search navbar-right" role="search">
@@ -48,15 +48,15 @@
       data-above-sidebar="package-MBG_Inspektionen_backend_api&#47;package-MBG_Inspektionen_backend_api-library-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-function">injectImages&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt;</span> function 
+<h1><span class="kind-function">injectImages&lt;<wbr><span class="type-parameter">D extends Data</span>&gt;</span> function 
  
 </h1></div>
 
     <section class="multi-line-signature">
         
 <span class="returntype">D</span>
-<span class="name ">injectImages</span>&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="injectImages-param-data"><span class="type-annotation">D</span> <span class="parameter-name">data</span>, {</span></li>
-<li><span class="parameter" id="injectImages-param-preloadFull"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">preloadFull</span> = <span class="default-value">true</span>, </span></li>
+<span class="name ">injectImages</span>&lt;<wbr><span class="type-parameter">D extends Data</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="injectImages-param-data"><span class="type-annotation">D</span> <span class="parameter-name">data</span>, {</span></li>
+<li><span class="parameter" id="injectImages-param-preloadFull"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">preloadFull</span> = <span class="default-value">false</span>, </span></li>
 </ol>})
 
         
@@ -68,58 +68,37 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends WithImgHashes&gt;(D data, {bool preloadFull = true}) {
-  if (data is InspectionLocation) {
-    Future&lt;ImageData?&gt; getImgDataFromHash(String? hash) {
-      if (!hash!.endsWith(&quot;.jpg&quot;) &amp;&amp;
-          !hash.endsWith(&quot;.jpeg&quot;) &amp;&amp;
-          !hash.endsWith(&quot;.JPG&quot;) &amp;&amp;
-          !hash.endsWith(&quot;.png&quot;)) debugPrint(&#39;hash $hash is not an image&#39;);
-      return API()
-          .getImageByHash(data.imagelink!, hash!, compressed: true)
-          .then((value) =&gt; value
-            ?..fullImageGetter = () =&gt; API()
-                .getImageByHash(data.imagelink!, hash, compressed: false)
-                .then((value) =&gt; value?.thumbnail));
-    }
+  <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends Data&gt;(D data, {bool preloadFull = false}) {
+  Future&lt;ImageData?&gt; getImgDataFromHash(String? hash) {
+    if (preloadFull)
+      API().getImageByHash(hash!, compressed: false, owner: data);
+    return API().getImageByHash(hash!, compressed: false, owner: data).then(
+        (value) =&gt; value
+          ?..fullImageGetter = () =&gt; API()
+              .getImageByHash(hash, compressed: false, owner: data)
+              .then((value) =&gt; value?.thumbnail));
+  }
 
-    if (data.mainhash != null &amp;&amp;
-        data.mainhash != Options().no_image_placeholder_name) {
-      if (data.mainhash!.endsWith(&quot;jpg&quot;) ||
-          data.mainhash!.endsWith(&quot;JPG&quot;) ||
-          data.mainhash!.endsWith(&quot;jpeg&quot;) ||
-          data.mainhash!.endsWith(&quot;png&quot;))
-        data.mainImage = getImgDataFromHash(data.mainhash);
-      var mainImage = getImgDataFromHash(data.mainhash);
-      data.imageFutures = data.imagehashes
-          ?.where((hash) =&gt;
-              hash.endsWith(&quot;jpg&quot;) ||
-              hash.endsWith(&quot;JPG&quot;) ||
-              hash.endsWith(&quot;jpeg&quot;) ||
-              hash.endsWith(&quot;png&quot;))
-          .map((hash) =&gt; getImgDataFromHash(hash))
-          .toList();
-      data.mainImage = mainImage;
-      data.previewImage = mainImage;
-    } else {
-      &#47;&#47;no main image set
-      if (data.imagehashes == null ||
-          data.imagehashes!.length == 0) &#47;&#47;the second check *could* be omitted
-        return data;
-      data.previewImage = Future.value(null);
-      if (data.imagehashes != null &amp;&amp; data.imagehashes!.length &gt; 0) {
-        data.imageFutures = data.imagehashes
-            ?.where((hash) =&gt;
-                hash.endsWith(&quot;jpg&quot;) ||
-                hash.endsWith(&quot;JPG&quot;) ||
-                hash.endsWith(&quot;jpeg&quot;) ||
-                hash.endsWith(&quot;png&quot;))
-            .map((hash) =&gt; getImgDataFromHash(hash))
-            .toList();
-        data.previewImage = data.imageFutures!.first;
-      }
+  if (data.mainhash != null &amp;&amp;
+      data.mainhash != Options().no_image_placeholder_name) {
+    var mainImage = getImgDataFromHash(data.mainhash);
+    data.imageFutures =
+        data.imagehashes?.map((hash) =&gt; getImgDataFromHash(hash)).toList();
+    data.mainImage = mainImage;
+    data.previewImage = mainImage;
+  } else {
+    &#47;&#47;no main image set
+    if (data.imagehashes == null ||
+        data.imagehashes!.length == 0) &#47;&#47;the second check *could* be omitted
+      return data;
+    data.previewImage = Future.value(null);
+    if (data.imagehashes != null &amp;&amp; data.imagehashes!.length &gt; 0) {
+      data.imageFutures =
+          data.imagehashes?.map((hash) =&gt; getImgDataFromHash(hash)).toList();
+      data.previewImage = data.imageFutures!.first;
     }
   }
+
   return data;
 }</code></pre>
 </section>
@@ -136,7 +115,7 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../package-MBG_Inspektionen_backend_api/">api</a></li>
-    <li class="self-crumb">injectImages&lt;<wbr><span class="type-parameter">D extends WithImgHashes</span>&gt; function</li>
+    <li class="self-crumb">injectImages&lt;<wbr><span class="type-parameter">D extends Data</span>&gt; function</li>
 </ol>
 
     <h5>api library</h5>

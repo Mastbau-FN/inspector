@@ -72,6 +72,7 @@
   &#47;&#47; Write the file
   try {
     var file = await localFile(name, &quot;jaman&quot;);
+    await file.parent.create(recursive: true);
     file = await file.writeAsBytes(imgBytes); &#47;&#47;u good?
     return file;
   } catch (e) {

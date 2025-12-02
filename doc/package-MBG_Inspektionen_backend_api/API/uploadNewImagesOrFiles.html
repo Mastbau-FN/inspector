@@ -79,6 +79,33 @@
   Data? caller,
   bool forceUpdate = false,
 }) async {
+  &#47;&#47; Wenn forceOffline aktiv ist: nur lokal speichern und Request zum Retry vormerken
+  bool prefersOffline = _dataPrefersCache(
+            caller, type: Helper.SimulatedRequestType.PUT) ??
+      false;
+  &#47;&#47; fallback: nutze Daten-Flag oder globale Option
+  try {
+    prefersOffline =
+        prefersOffline || (caller as WithOffline).forceOffline;
+  } catch (_) {}
+  try {
+    prefersOffline =
+        prefersOffline || (data as WithOffline).forceOffline;
+  } catch (_) {}
+  prefersOffline = prefersOffline || Options().forceOffline;
+
+  if (prefersOffline) {
+    final rap = remote.uploadNewImagesOrFiles&lt;DataT&gt;(data, files);
+    await local.uploadNewImagesOrFiles(
+      data,
+      files,
+      caller: caller,
+      forceUpdate: forceUpdate,
+    );
+    await local.logFailedReq(rap.rd);
+    return &#39;added files offline (queued)&#39;;
+  }
+
   final requestType = Helper.SimulatedRequestType.PUT;
   return _run(
     itPrefersCache: _dataPrefersCache(data, type: requestType),

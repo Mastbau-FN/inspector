@@ -68,15 +68,29 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;CameraController&gt; start({bool reuse = true}) async {
-  if (reuse &amp;&amp; controller != null &amp;&amp; controller!.value.isInitialized) {
-    return controller!;
+  &#47;&#47; Vorhandenen Controller wiederverwenden, wenn möglich
+  if (reuse &amp;&amp; _controller != null &amp;&amp; _controller!.value.isInitialized) {
+    return _controller!;
   }
-  controller = await newController;
-  if (controller == null) {
-    throw Exception(&quot;Failed to initialize camera&quot;);
+
+  &#47;&#47; Neuen Controller erstellen
+  _controller = await newController;
+  if (_controller == null) {
+    throw Exception(&quot;Kamerainitialisierung fehlgeschlagen&quot;);
   }
-  await controller!.initialize();
-  return controller!;
+
+  &#47;&#47; Controller initialisieren und Blitzmodus setzen
+  await _controller!.initialize();
+  await _setFlashMode(_flashMode);
+  await _getZoomRange();
+
+  &#47;&#47; Bildschirm hell halten während die Kamera aktiv ist
+  await SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.bottom],
+  );
+
+  return _controller!;
 }</code></pre>
 </section>
 

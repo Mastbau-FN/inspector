@@ -57,6 +57,7 @@
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_imageData/ImageData-class.html">ImageData</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span>&gt;</span>?</span>&gt;</span></span>
 <span class="name ">getImageByHash</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="getImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, {</span></li>
 <li><span class="parameter" id="getImageByHash-param-compressed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">compressed</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="getImageByHash-param-owner"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">owner</span>, </span></li>
 </ol>})
 
       
@@ -69,17 +70,27 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;ImageData?&gt; getImageByHash(String hash,
-    {bool compressed = false}) async {
+    {bool compressed = false, Data? owner}) async {
+  final isPath = hash.contains(&#39;&#47;&#39;);
+  final scope = _scopeForData(owner);
+  List&lt;String&gt; candidates = [];
+  if (!isPath &amp;&amp; scope.isNotEmpty) {
+    final scoped = &#39;$scope&#47;$hash&#39;;
+    candidates.add(compressed
+        ? &#39;$scope&#47;${OP.convertToCompressedHashName(hash)}&#39;
+        : scoped);
+  }
   if (compressed) {
-    final img = await readImage(OP.convertToCompressedHashName(hash),
-        cacheSize: compressed ? CACHESIZE : null);
+    candidates.add(OP.convertToCompressedHashName(hash));
+  }
+  candidates.add(hash);
+
+  for (final name in candidates) {
+    final img =
+        await readImage(name, cacheSize: compressed ? CACHESIZE : null);
     if (img != null) return ImageData(img, id: hash);
   }
-  final img = await readImage(hash, cacheSize: compressed ? CACHESIZE : null);
-  if (img == null) throw Exception(&quot;no img cached&quot;);
-  &#47;&#47; return null;
-
-  return ImageData(img, id: hash);
+  throw Exception(&quot;no img cached&quot;);
 }</code></pre>
 </section>
 

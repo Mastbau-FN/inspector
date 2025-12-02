@@ -75,10 +75,14 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;Map&lt;String, dynamic&gt;&gt; get serialized async {
   &#47;&#47;when storing files we have to make sure they are permanently stored, not only in cache
+  final scope = _deriveScopeFromJson(json);
+  String scoped(String base) =&gt;
+      scope != null &amp;&amp; scope.isNotEmpty ? &#39;$scope&#47;$base&#39; : base;
+
   this.multipartFileNames ??= await Future.wait(
       _multipartFiles! &#47;&#47;either names or files are set
           .map((file) async =&gt; await OP.permaStoreCachedXFile(
-              file, LOCALLY_ADDED_PREFIX + file.name)));
+              file, scoped(LOCALLY_ADDED_PREFIX + file.name))));
   return _$RequestDataToJson(this);
 }</code></pre>
 </section>

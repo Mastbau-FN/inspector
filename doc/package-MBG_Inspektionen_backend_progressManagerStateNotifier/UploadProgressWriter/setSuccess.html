@@ -55,7 +55,7 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">setSuccess</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="setSuccess-param-success"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">success</span></span></li>
+<span class="name ">setSuccess</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="setSuccess-param-success"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">success</span></span></li>
 </ol>)
 
       
@@ -67,23 +67,13 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setSuccess(bool? success) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setSuccess(bool success) async {
   _success = success;
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(
-        &#39;sync_success_str&#39;,
-        success == true
-            ? 1
-            : success == false
-                ? 0
-                : -1);
-
-    if (success == true) {
-      await _performBackupAndCleanup();
-    }
+    await prefs.setInt(sync_success_str, success ? 1 : 0);
   } catch (e) {
-    debugPrint(&#39;Error setting success: $e&#39;);
+    debugPrint(&#39;Error setting success state: $e&#39;);
   }
 }</code></pre>
 </section>

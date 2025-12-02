@@ -145,30 +145,7 @@ Widget build(BuildContext context) {
                               previewImage: cd.previewImage,
                             ),
                           ),
-                          Column(
-                            mainAxisSize: MainAxisSize
-                                .min, &#47;&#47; Ensures the column only takes up as much space as needed
-                            children: [
-                              offlineIndicator(cd),
-                              if (cd is InspectionLocation)
-                                FutureBuilder&lt;bool&gt;(
-                                    future:
-                                        (cd as InspectionLocation).hasDefects,
-                                    builder: (context, snapshot) {
-                                      &#47;&#47; Optionally handle waiting state.
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return SizedBox(
-                                            width:
-                                                0); &#47;&#47; or a loading spinner if desired
-                                      }
-                                      bool hasDefects =
-                                          snapshot.data ?? false;
-
-                                      return lockIndicator(cd, hasDefects);
-                                    }),
-                            ],
-                          ),
+                          offlineIndicator(cd),
                           Expanded(
                             child: Hero(
                               tag: cd.title +
