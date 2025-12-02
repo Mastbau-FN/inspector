@@ -350,13 +350,26 @@ class API {
 
   /// gets image specified by its hash
   Future<ImageData?> getImageByHash(String hash,
-      {bool compressed = false}) async {
+      {bool compressed = false, Data? owner}) async {
+    // Scoped/local hashes (with folders or local prefix) must not trigger remote fetches
+    final isLocalScoped =
+        hash.contains('/') || hash.startsWith(LOCALLY_ADDED_PREFIX);
+    if (isLocalScoped) {
+      try {
+        return await local.getImageByHash(hash,
+            compressed: compressed, owner: owner);
+      } catch (_) {
+        // fallback to normal flow below if not found locally
+      }
+    }
     final requestType = Helper.SimulatedRequestType.GET;
     return _run(
       itPrefersCache:
-          false, //! wir nehmen immer lieber lokale bilder, bandbreite und so
-      offline: () => local.getImageByHash(hash, compressed: compressed),
-      online: () => remote.getImageByHash(hash, compressed: compressed),
+          isLocalScoped, //! wir nehmen immer lieber lokale bilder, bandbreite und so
+      offline: () =>
+          local.getImageByHash(hash, compressed: compressed, owner: owner),
+      online: () =>
+          remote.getImageByHash(hash, compressed: compressed, owner: owner),
       requestType: requestType,
     ).last;
   }
@@ -530,13 +543,15 @@ class API {
   }
 }
 
-D injectImages<D extends WithImgHashes>(D data, {bool preloadFull = false}) {
+D injectImages<D extends Data>(D data, {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {
-    if (preloadFull) API().getImageByHash(hash!, compressed: false);
-    return API().getImageByHash(hash!, compressed: false).then((value) => value
-      ?..fullImageGetter = () => API()
-          .getImageByHash(hash, compressed: false)
-          .then((value) => value?.thumbnail));
+    if (preloadFull)
+      API().getImageByHash(hash!, compressed: false, owner: data);
+    return API().getImageByHash(hash!, compressed: false, owner: data).then(
+        (value) => value
+          ?..fullImageGetter = () => API()
+              .getImageByHash(hash, compressed: false, owner: data)
+              .then((value) => value?.thumbnail));
   }
 
   if (data.mainhash != null &&

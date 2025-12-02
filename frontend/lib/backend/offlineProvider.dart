@@ -29,15 +29,33 @@ Future<String> get localPath async {
 }
 
 Future<File> localFile(String name, [String? doc]) async {
-  var p0 = File('${await localPath}/${name}');
-  if (doc != null) return p0 = File('${await localPath}/${name}');
+  // allow nested relative paths (e.g. per inspection) and create dirs if needed
+  final basePath = await localPath;
+  var p0 = File('$basePath/$name');
+  // keep legacy behaviour only for flat names; otherwise preserve folders
+  final hasFolder = name.contains('/');
+
+  if (doc != null) {
+    await p0.parent.create(recursive: true);
+    return p0;
+  }
 
   if (await p0.exists()) return p0;
-  final p1 =
-      File('${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.img');
-  if (await p1.exists() || useOldImgEncoding) return p1;
-  return File(
-      '${await localPath}/${name.replaceAll(RegExp(r'[^\w]+'), '_')}.maybe.jpg');
+  if (hasFolder) {
+    await p0.parent.create(recursive: true);
+    return p0;
+  }
+
+  final sanitized =
+      name.replaceAll(RegExp(r'[^\w]+'), '_'); // legacy naming fallback
+  final p1 = File('$basePath/$sanitized.img');
+  if (await p1.exists() || useOldImgEncoding) {
+    await p1.parent.create(recursive: true);
+    return p1;
+  }
+  final p2 = File('$basePath/$sanitized.maybe.jpg');
+  await p2.parent.create(recursive: true);
+  return p2;
 }
 
 /// stores the [imgBytes] as an image given by the [name], returns the new [File]
@@ -45,10 +63,12 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   // Write the file
   try {
     var file = await localFile(name);
+    await file.parent.create(recursive: true);
     // if (kIsWeb) {
     //TODO: support storing images/file in indexedDb or something for web
     // } else
     file = await file.writeAsBytes(imgBytes); //u good?
+    debugPrint('Stored image at ${file.path}');
     return file;
   } catch (e) {
     debugPrint("!!! failed to store image: " + e.toString());
@@ -60,6 +80,7 @@ Future<File?> storeDoc(Uint8List imgBytes, String name) async {
   // Write the file
   try {
     var file = await localFile(name, "jaman");
+    await file.parent.create(recursive: true);
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -318,8 +339,17 @@ extension SerializableMultiPartReq on http.MultipartRequest {
 }
 
 Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
-  final name = _name ?? file.name;
-  await file.saveTo((await localFile(file.name)).path);
+  final basePath = await localPath;
+  // prefer keeping relative folder if the file already lives in our app dir
+  String? relativeName;
+  if (file.path.startsWith(basePath)) {
+    relativeName = file.path.substring(basePath.length + 1);
+  }
+  final name = _name ?? relativeName ?? file.name;
+  final target = await localFile(name);
+  await target.parent.create(recursive: true);
+  await file.saveTo(target.path);
+  debugPrint('Persisted cached file to ${target.path}');
   return name;
 }
 
