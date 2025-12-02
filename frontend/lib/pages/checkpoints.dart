@@ -11,6 +11,159 @@ import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
+const predefinedCategories1 = [
+  "Kennzeichnung Zuwegung",
+  "Ausführung",
+  "sonstiges"
+];
+const predefinedCategories2 = [
+  "Steckerbrücke",
+  "Potentialausgleich",
+  "Kabelweg",
+  "Kabeleinführung",
+  "Brandschutz",
+  "sonstiges"
+];
+const predefinedCategories3 = [
+  "Typ",
+  "Verbinder",
+  "Auflager Stütze Halterung",
+  "Kantenschutz",
+  "Korrosion",
+  "Vandalismusschutz",
+  "Deckel Eisschutz",
+  "Erdung",
+  "sonstiges"
+];
+const predefinedCategories4 = [
+  "Tragkonstruktion",
+  "Gitterroste",
+  "Gitterrostklemmen",
+  "Verbindungsmittel",
+  "Geländer",
+  "Klappen",
+  "Fußleisten Trittschutzeinrichtungen",
+  "sonstiges"
+];
+const predefinedCategories5 = [
+  "Art Typ",
+  "Zustand",
+  "Kennzeichnung",
+  "Eindichtung",
+  "Verbindungsmittel",
+  "sonstiges"
+];
+const predefinedCategories6 = [
+  "Allgemeiner Zustand",
+  "Bewuchs",
+  "Beschichtung",
+  "Risse Abplatzungen",
+  "Wasserablauf",
+  "sonstiges"
+];
+const predefinedCategories7 = [
+  "Anschlüsse",
+  "Auffangeinrichtung",
+  "Ableitung",
+  "Erdung",
+  "Potentialausgleich",
+  "Isolierter Aufbau",
+  "HVI",
+  "sonstiges"
+];
+const predefinedCategories8 = [
+  "Überspannungsableiter",
+  "Tragwerk",
+  "Verbindungsmittel",
+  "Konstruktion",
+  "Beschichtung",
+  "Stoßverbindungen",
+  "Schweißnähte",
+  "Wassserabläufe, Zinklöcher o.ä.",
+  "Eindichtungen",
+  "sonstiges"
+];
+const predefinedCategories9 = [
+  "Verbindungsmittel",
+  "Halterung",
+  "Korrosion",
+  "Antenne",
+  "Verteiler",
+  "Wassserabläufe, Zinklöcher o.ä.",
+  "sonstiges"
+];
+const predefinedCategories10 = [
+  "Verbindungsmittel",
+  "Hersteller Typ",
+  "Endsperre",
+  "Steigsperre",
+  "Aussparung",
+  "Kennzeichnungsschild",
+  "Spaltmaße",
+  "Leiterhalterungen",
+  "Drehkreuz",
+  "Besteigschutz",
+  "Biegung",
+  "Ausstiegsvorrichtung",
+  "Ruhepodeste",
+  "Steigschutzschlüssel",
+  "Antritt",
+  "Tritttiefen Hindernisse",
+  "Mobile Steigleitern",
+  "sonstiges"
+];
+const predefinedCategories11 = [
+  "Verbindungsmittel",
+  "Kabel",
+  "Erdung",
+  "Kabelschellen",
+  "Kabelbahn",
+  "Kabeleinführung",
+  "Jumper",
+  "Stecker",
+  "sonstiges"
+];
+const predefinedCategories12 = [
+  "Beschichtung",
+  "Vorspannung",
+  "Seilschuhe",
+  "Spanneinrichtungen",
+  "sonstiges"
+];
+const predefinedCategories13 = ["Leuchten", "Kabel", "Halterung", "sonstiges"];
+const predefinedCategories14 = [
+  "Typ",
+  "Zustand",
+  "Sicherung, Siegel, Plombe",
+  "Kennzeichnung",
+  "Befestigung",
+  "sonstiges"
+];
+const predefinedCategories15 = [
+  "Tresor",
+];
+final Map<String, List<String>> predefinedCategoryMap = {
+  "Weg zum Mast": predefinedCategories1,
+  "Funkraum Container": predefinedCategories2,
+  "Kabelrinne": predefinedCategories3,
+  "Bühnen": predefinedCategories4,
+  "Anschlagpunkte": predefinedCategories5,
+  "Fundamente": predefinedCategories6,
+  "Blitzschutz Erdung": predefinedCategories7,
+  "Tragwerk": predefinedCategories8,
+  "Antennen & Antennenhalterungen": predefinedCategories9,
+  "Steigweg": predefinedCategories10,
+  "Kabel & Kabelweg": predefinedCategories11,
+  "Abspannungen Pardunen": predefinedCategories12,
+  "Flugfeuer": predefinedCategories13,
+  "Rettungsgerät": predefinedCategories14,
+  "Standortschließung Tresor": predefinedCategories15,
+};
+List<String> getPredefinedCategory(String key) {
+  // Return the list if the key exists, otherwise an empty list
+  return predefinedCategoryMap[key] ?? [];
+}
+
 class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
     implements KnowsNext<CheckPoint> {
   CheckPointsModel(CheckCategory p) : super(p);
@@ -88,6 +241,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
       'checkpoint',
       onSet: (json) {
         Map<String, dynamic> checkpoint = json['checkpoint'];
+
         if (currentCheckpoint != null) {
           checkpoint = currentCheckpoint.toJson()..addAll(checkpoint);
         } else {
@@ -103,6 +257,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
           "KurzText",
           hint: S.current!.kurzTextHint,
           value: currentCheckpoint?.kurzText,
+          dropdown: getPredefinedCategory(parent.kurzText!),
         ),
         InputData(
           "LangText",

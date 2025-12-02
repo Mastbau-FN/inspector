@@ -15,6 +15,23 @@ import 'package:MBG_Inspektionen/l10n/locales.dart';
 class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     implements KnowsNext<CheckCategory> {
   static const _nextViewTitle = "Prüfpunkte";
+  static const predefinedCategories = [
+    "Weg zum Mast",
+    "Funkraum Container",                    
+    "Kabelrinne",
+    "Bühnen",               
+    "Anschlagpunkte",  
+    "Fundamente",
+    "Blitzschutz Erdung",
+    "Tragwerk",
+    "Antennen & Antennenhalterungen",
+    "Steigweg",
+    "Kabel & Kabelweg",
+    "Abspannungen Pardunen",
+    "Flugfeuer",
+    "Rettungsgerät",
+    "Standortschließung Tresor"
+  ];                                                
 
   CategoryModel(InspectionLocation location) : super(location);
 
@@ -103,12 +120,14 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
           "KurzText",
           hint: S.current!.kurzTextHint,
           value: currentCategory?.kurzText,
+          dropdown: predefinedCategories, 
         ),
         InputData(
           "LangText",
           hint: S.current!.langTextHint,
           verify: InputData.alwaysCorrect,
           value: currentCategory?.langText,
+          
         ),
       ],
     );
