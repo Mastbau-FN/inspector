@@ -164,11 +164,13 @@ const getCheckPointDefects = (pjNr, category_index, check_point_index) =>
  * @param KZL das kürzel des monteurs der diesen datenpunkt erstellt 
  * @returns a Promise resolving to the new ID (E1..E3)
  */
-const addNew = async (data, KZL) => {
+const addNew = async (data, KZL, Def_Login_ID) => {
   const folder = "set";
   let ld = data.data;
   let params;
   let queryfile;
+  params3 = [ld.PjNr, Def_Login_ID];
+  await queryFileWithParams("update/update_Pruefer", params3);
   switch (data.type) {
     case identifiers.category:
       queryfile = folder + "/check_categories";
@@ -204,11 +206,14 @@ const addNew = async (data, KZL) => {
  * @param body consisting of type and data
  * @returns  an empty  Promise
  */
-const update = async (body) => {
+const update = async (body, Def_Login_ID) => {
+  console.log("updating", Def_Login_ID);
   const folder = "update";
   let ld = body.data;
   let params;
   let queryfile;
+  params3 = [ld.PjNr, Def_Login_ID];
+  await queryFileWithParams("update/update_Pruefer", params3);
   switch (body.type) {
     case identifiers.category:
       //console.log("updating category")
@@ -232,11 +237,13 @@ const update = async (body) => {
       ld.Wind,
       ld.Windrichtung]
       params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
-      params3 = [ld.PjNr, ld.User];
-      await queryFileWithParams(queryfile + "_part2", params2);
-      //await queryFileWithParams(queryfile + "_part3", params3);
-      break;
 
+      await queryFileWithParams(queryfile + "_part2", params2);
+      console.log("🚀 ~ file: db/queries.js:326 ~ update ~ params3", params3);
+      console.log("🚀 ~ file: db/queries.js:326 ~ update ~ queryfile", queryfile);
+      await queryFileWithParams(queryfile + "_part3", params3);
+      break;
+    
     default:
       console.log(`someone tried to update ${body.type}`);
       return;

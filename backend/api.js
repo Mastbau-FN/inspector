@@ -39,6 +39,7 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
 const login = (req, res) => {
   let json_response = { success: true };
   json_response.user = req.user;
+  console.log("user logged in:", req.user.KZL);
   res.status(200).json(json_response);
 };
 
@@ -131,7 +132,7 @@ const getCheckPointDefects = (req, res, next) =>
  */
 const addNew = (req, res, next) =>
   errsafejson(
-    async () => (await queries.addNew(req.body, req.user.KZL))[0],
+    async () => (await queries.addNew(req.body, req.user.KZL, req.user.Def_Login_ID))[0],
     (json) => { return { message: "added the entry", query_result: json } },
     res,
     next
@@ -142,7 +143,7 @@ const addNew = (req, res, next) =>
  */
 const update = (req, res, next) =>
   errsafejson(
-    async () => (await queries.update(req.body))[0],
+    async () => (await queries.update(req.body, req.user.Def_Login_ID))[0],
     (json) => ({ message: "updated the entry", query_result: json }),
     res,
     next
