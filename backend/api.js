@@ -51,12 +51,11 @@ const getProjects = (req, res, next) =>
     async () => {
       const inspections = await queries.getInspectionsForUser(req.user);
 
-
+      
       let processedData = await (async (_x) => { 
         let x = await _x;
         return options.useReverseLocationAPI ? await location.addCoords(x) : x;
       })(inspections.hashImagesAndCreateIds());
-
       return processedData;
     },
     async (x) => {

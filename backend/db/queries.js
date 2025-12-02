@@ -207,7 +207,6 @@ const addNew = async (data, KZL, Def_Login_ID) => {
  * @returns  an empty  Promise
  */
 const update = async (body, Def_Login_ID) => {
-  console.log("updating", Def_Login_ID);
   const folder = "update";
   let ld = body.data;
   let params;
@@ -239,9 +238,6 @@ const update = async (body, Def_Login_ID) => {
       params2 = [ld.PjNr, ld.LangText, ld.Link, ld.LinkOrdner, ld.Zusatz_Info, new Date()];
 
       await queryFileWithParams(queryfile + "_part2", params2);
-      console.log("🚀 ~ file: db/queries.js:326 ~ update ~ params3", params3);
-      console.log("🚀 ~ file: db/queries.js:326 ~ update ~ queryfile", queryfile);
-      await queryFileWithParams(queryfile + "_part3", params3);
       break;
     
     default:

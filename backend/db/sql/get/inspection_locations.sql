@@ -3,7 +3,7 @@ SELECT "MGAUFTR"."PjNr", -- Mastbau Projektnummer
 	"MGAUFTR"."PjName",
 	"MGAUFTR"."PjInfo",
 	"MGAUFTR"."Bauleitung", -- Monteur
-	"MGAUFTR"."Login_ID_Pruefer", -- Auftragsdatum
+	"MGAUFTR"."Login_ID_Pruefer", 
 	"STANDORT"."StONr",
 	"STANDORT"."Straße",
 	"STANDORT"."PLZ",
