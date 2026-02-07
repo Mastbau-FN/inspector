@@ -824,17 +824,6 @@ Future<bool> _requestNotificationPermission() async {
   return true;
 }
 
-/// Öffnet die Speichereinstellungen direkt
-Future<void> _openStorageSettings() async {
-  try {
-    // Für alle Plattformen - öffnet die App-Einstellungen, meist direkt zur Speicherseite
-    await openAppSettings();
-    debugPrint('Speichereinstellungen geöffnet');
-  } catch (e) {
-    debugPrint('Fehler beim Öffnen der Speichereinstellungen: $e');
-  }
-}
-
 /// Prüft alle notwendigen Berechtigungen für die Synchronisierung
 Future<bool> _checkPermissions(BuildContext context) async {
   debugPrint('Prüfe Berechtigungen...');

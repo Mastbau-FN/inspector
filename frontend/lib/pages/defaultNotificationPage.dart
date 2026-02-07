@@ -15,14 +15,11 @@ class DefaultNotificationPage extends StatelessWidget {
         'DefaultNotificationPage: Received action with ID=${action.id}, Channel=${action.channelKey}');
     debugPrint('Payload: ${action.payload}');
 
-    // Bestimme den Benachrichtigungstyp basierend auf ID und Kanal
-    String notificationType;
     String title;
     Widget contentWidget;
 
     if (action.id == 900) {
       // Sync Start Benachrichtigung
-      notificationType = 'progress';
       title = '🔄 Upload Sync gestartet';
       contentWidget = Column(
         children: [
@@ -33,7 +30,6 @@ class DefaultNotificationPage extends StatelessWidget {
       );
     } else if (action.id == 999) {
       // Sync Success Benachrichtigung
-      notificationType = 'done';
       title = '✅ Upload Sync Done';
       contentWidget = Column(
         children: [
@@ -44,7 +40,6 @@ class DefaultNotificationPage extends StatelessWidget {
       );
     } else if (action.id == 997) {
       // Sync Error Benachrichtigung
-      notificationType = 'error';
       title = '❌ Upload Sync Failed';
       contentWidget = Column(
         children: [
@@ -55,7 +50,6 @@ class DefaultNotificationPage extends StatelessWidget {
       );
     } else if (action.id == 888) {
       // Progress Benachrichtigung
-      notificationType = 'progress';
       title = 'Upload Sync läuft...';
 
       // Hier den aktuellen Fortschritt aus dem Provider anzeigen
@@ -86,7 +80,6 @@ class DefaultNotificationPage extends StatelessWidget {
       );
     } else {
       // Standard-Fallback für andere Benachrichtigungen
-      notificationType = action.payload?['type'] ?? 'unknown';
       title = action.payload?['title'] ?? 'Benachrichtigung';
 
       // Ursprüngliche Logik beibehalten

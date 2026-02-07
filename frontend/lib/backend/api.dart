@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
-import '../classes/documentData.dart';
 import '../classes/imageData.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';

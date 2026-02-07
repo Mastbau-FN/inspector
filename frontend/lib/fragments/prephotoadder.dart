@@ -5,19 +5,15 @@ import 'dart:math';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
-import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../backend/api.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';
-import '../l10n/locales.dart';
 import '../options.dart';
-import '../pages/imagesPage.dart';
-import 'adder.dart';
 import 'camera/cameraModel.dart';
 import 'camera/views/cameraMainPreview.dart';
 
@@ -268,7 +264,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                     max: snapshot.data!.$2,
                     onChanged: (newZoom) => model.setZoom(newZoom),
                     activeColor: Colors.white,
-                    inactiveColor: Colors.white.withOpacity(0.5),
+                    inactiveColor: Colors.white.withValues(alpha: 0.5),
                   );
                 },
               ),
@@ -357,20 +353,18 @@ class _CameraForAdderState extends State<CameraForAdder>
   Future<void> _onNewImages(List<XFile> queue, CheckPointDefect cp) async {
     final caller = widget.model.currentData;
     final isOffline = Options().forceOffline ||
-        (caller?.forceOffline ?? false) ||
-        (cp.forceOffline) ||
-        (widget.parent?.forceOffline ?? false);
+        caller.forceOffline ||
+        cp.forceOffline ||
+        widget.parent.forceOffline;
 
     if (isOffline) {
       // markiere Datensätze explizit als offline, damit API nicht direkt sendet
       cp.forceOffline = true;
-      try {
-        caller?.forceOffline = true;
-      } catch (_) {}
+      caller.forceOffline = true;
     }
 
     await API().uploadNewImagesOrFiles(cp, queue,
-        caller: caller ?? widget.parent, forceUpdate: true);
+        caller: caller, forceUpdate: true);
   }
 
   // Bilder hochladen und neuen Defekt erstellen
@@ -379,10 +373,10 @@ class _CameraForAdderState extends State<CameraForAdder>
       uploadingImage = true;
     });
 
-    final caller = widget.model.currentData ?? widget.parent;
+    final caller = widget.model.currentData;
     final offlineMode = Options().forceOffline ||
-        (caller?.forceOffline ?? false) ||
-        (widget.parent?.forceOffline ?? false);
+        caller.forceOffline ||
+        widget.parent.forceOffline;
 
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -417,42 +411,6 @@ class _CameraForAdderState extends State<CameraForAdder>
     closeCam();
   }
 
-  // Bildwarteschlange bauen
-  List<Widget> _buildImageQueue() {
-    return [
-      ...queue.asMap().entries.map((entry) {
-        int idx = entry.key;
-        XFile file = entry.value;
-        return Transform.translate(
-          offset: Offset(0, -(-25 + 30 * queue.length - (80.0) * idx)),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 5,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: Image.file(
-                  File(file.path),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-    ];
-  }
-
   // Neue Widget-Version der Bilderwarteschlange für bessere Positionierung
   Widget _buildImageQueueWidget() {
     int totalImages = queue.length;
@@ -477,7 +435,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                 width: 50,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.white, width: 2),
                 ),
@@ -504,7 +462,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
                       blurRadius: 5,
                       spreadRadius: 1,
                     ),
@@ -692,7 +650,7 @@ class _CameraForAdderState extends State<CameraForAdder>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,11 +18,9 @@ import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
     show
         FailedRequestmanager,
         sync_in_progress_str,
-        sync_success_str,
         GroupedInspection;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/options.dart';
@@ -1128,8 +1125,6 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     final progress = updater.progress ?? 0.0;
     final success = updater.success;
     final inspId = updater.currentInspection ?? '';
-    final inspPct = ((updater.currentInspectionProgress ?? 0) * 100).round();
-    final eta = updater.eta ?? '';
 
     ////debugPrint(
     // 'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
@@ -1327,9 +1322,6 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
                               final currentProgress = inspectionData
                                       .inspectionProgress[inspection.pjNr] ??
                                   inspection.progress;
-                              final isCompleted = inspectionData
-                                  .completedInspections
-                                  .contains(inspection.pjNr);
                               final currentRequest =
                                   (inspection.total * currentProgress).round();
 

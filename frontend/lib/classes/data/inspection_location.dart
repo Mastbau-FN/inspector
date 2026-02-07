@@ -286,10 +286,7 @@ Map<String, dynamic> _normalizeInspectionLocationJson(
 
 class _RecursiveDownloadButton extends StatefulWidget {
   // ignore: unused_element
-  _RecursiveDownloadButton({required this.caller, this.depth = 3, Key? key})
-      : super(key: key);
-
-  final int depth;
+  _RecursiveDownloadButton({required this.caller, Key? key}) : super(key: key);
   final CategoryModel
       caller; //XXX: if other ebenen should be downloadeable too (finer granularity), this must be a generic
 
@@ -309,7 +306,7 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
     //also edit this for finer granularity
     var rootid = await API().rootID;
     FailedRequestmanager()
-        .loadAndCacheAll(widget.caller, widget.depth,
+        .loadAndCacheAll(widget.caller, 3,
             name: widget.caller.title, parentID: rootid)
         .then((succs) => setState(() {
               this.success = succs;

@@ -95,7 +95,10 @@ class MainDrawerHeader extends StatelessWidget {
         child: SvgPicture.asset(
           'lib/assets/icon_smooth.svg',
           semanticsLabel: 'MBG Logo',
-          color: Theme.of(context).colorScheme.primary,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.primary,
+            BlendMode.srcIn,
+          ),
         ),
       ),
       // decoration: BoxDecoration(

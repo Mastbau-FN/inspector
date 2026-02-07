@@ -16,10 +16,8 @@ import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:blur/blur.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sliver_app_bar_builder/sliver_app_bar_builder.dart';
 
@@ -84,7 +82,7 @@ class DropDownPageB<
                           boxShadow: [
                             if (img != null)
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                                 offset: Offset(0, 5),
@@ -166,7 +164,7 @@ class DropDownPageB<
                                             color: Theme.of(context)
                                                 .colorScheme
                                                 .surface
-                                                .withOpacity(0.5),
+                                                .withValues(alpha: 0.5),
                                             // alignment: Alignment.center,
                                             padding: EdgeInsets.symmetric(
                                               horizontal: 25,
@@ -324,7 +322,7 @@ class DropDownPageB<
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
               alignment: Alignment.centerLeft,
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
               height: barHeight - 20,
               child: IconButton(
                 icon: Icon(Icons.menu),
@@ -350,7 +348,7 @@ class DropDownPageB<
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
               alignment: Alignment.centerLeft,
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
               height: barHeight - 20,
               child: (ModalRoute.of(context)?.canPop ?? false)
                   ? BackButton(

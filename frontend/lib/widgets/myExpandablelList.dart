@@ -36,16 +36,16 @@ class ExpandableCard2 extends ExpandablesRadio {
         this.opacity = 1;
 
   ExpandableCard2._({
-    this.lowDensity = false,
     required this.opacity,
     required this.title,
-    this.subtitle,
-    this.extra,
-    this.previewImg,
-    this.children = const [],
     this.color,
     Key? key,
-  }) : this.key = key ?? UniqueKey();
+  })  : lowDensity = false,
+        subtitle = null,
+        extra = null,
+        previewImg = null,
+        children = const [],
+        this.key = key ?? UniqueKey();
 
   factory ExpandableCard2.fake({Color? color}) {
     return ExpandableCard2._(

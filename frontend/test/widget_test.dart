@@ -96,7 +96,7 @@ Future main() async {
 
   ///test backend
   test('backend', () {
-    var b = API();
+    API();
     // TO DO
   });
 }

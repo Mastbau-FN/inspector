@@ -10,7 +10,6 @@ import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:map_launcher/map_launcher.dart';
 
 import 'package:flutter_map/flutter_map.dart' as FM;
@@ -22,7 +21,6 @@ import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'detailsPage.dart';
 
@@ -90,7 +88,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     );
   }
 
-  Future<Widget?> checkFilesAndShowToast(
+  Future<void> checkFilesAndShowToast(
       int PjNr, InspectionLocation data, BuildContext context) async {
     // Holen des App-Dokumentenverzeichnisses
     final directory = await getApplicationDocumentsDirectory();
@@ -98,10 +96,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
 
     // Alle Ordner im Verzeichnis auflisten
     final baseDir = Directory(basePath);
-    if (!await baseDir.exists())
-      return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
-          generateNextModel(data));
-    ;
+    if (!await baseDir.exists()) return;
 
     final folders = baseDir.listSync().whereType<Directory>();
     for (var folder in folders) {
@@ -113,7 +108,7 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
         final file = folder.listSync().whereType<File>();
         if (file.isNotEmpty) {
           debugPrint("Found files in folder: ${folderName}");
-          return showDialog(
+          await showDialog(
               context: context,
               builder: (context) {
                 return AlertDialog(
@@ -141,8 +136,6 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
         break;
       }
     }
-
-    ;
   }
 }
 
@@ -340,12 +333,9 @@ class LocationDetailPage extends StatelessWidget {
 }
 
 class _Map extends StatefulWidget {
-  final bool showsMapPerDefault;
   const _Map({
     Key? key,
     required this.locationdata,
-    // ignore: unused_element
-    this.showsMapPerDefault = false,
   }) : super(key: key);
 
   final InspectionLocation locationdata;
@@ -358,7 +348,6 @@ class _MapState extends State<_Map> {
   bool showsMap = false;
   @override
   void initState() {
-    showsMap = widget.showsMapPerDefault;
     super.initState();
   }
 

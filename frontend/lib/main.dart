@@ -9,7 +9,6 @@ import 'package:MBG_Inspektionen/pages/login/loginView.dart';
 import 'package:MBG_Inspektionen/theme.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:io';
 
 import 'l10n/app_localizations.dart';
 
@@ -61,22 +60,22 @@ class _MyAppState extends State<MyApp> {
                 backgroundColor: Colors.white,
               ),
           switchTheme: SwitchThemeData(
-            thumbColor: MaterialStateProperty.resolveWith<Color>(
-                (Set<MaterialState> states) {
-              if (states.contains(MaterialState.disabled)) {
-                return Colors.orange.withOpacity(.48);
+            thumbColor:
+                WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+              if (states.contains(WidgetState.disabled)) {
+                return Colors.orange.withValues(alpha: 0.48);
               }
-              if (states.contains(MaterialState.selected)) {
+              if (states.contains(WidgetState.selected)) {
                 return Colors.white;
               }
               return mbgpalette0;
             }),
-            trackColor: MaterialStateProperty.resolveWith<Color>(
-                (Set<MaterialState> states) {
-              if (states.contains(MaterialState.disabled)) {
-                return Colors.orange.withOpacity(.48);
+            trackColor:
+                WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+              if (states.contains(WidgetState.disabled)) {
+                return Colors.orange.withValues(alpha: 0.48);
               }
-              if (states.contains(MaterialState.selected)) {
+              if (states.contains(WidgetState.selected)) {
                 return mbgpalette0;
               }
               return Colors.grey;
@@ -92,9 +91,9 @@ class _MyAppState extends State<MyApp> {
                 brightness: Brightness.dark,
                 backgroundColor: Colors.black,
                 cardColor: Colors.grey[900],
-              ),
+          ),
           appBarTheme: AppBarTheme(
-            color: Colors.black,
+            backgroundColor: Colors.black,
           ),
           brightness: Brightness.dark,
         ),

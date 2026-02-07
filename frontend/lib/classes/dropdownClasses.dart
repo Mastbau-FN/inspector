@@ -116,9 +116,7 @@ class DropDownModel<ChildData extends WithLangText,
     notifyListeners();
   }
 
-  Stream<ChildData?> _getCurrentlyChosenChildData(
-      // ignore: unused_element
-      {int? remainingTries}) async* {
+  Stream<ChildData?> _getCurrentlyChosenChildData() async* {
     // int reloadTries = (remainingTries ?? Options().reloadTries) - 1;
     debugPrint('getting $currentlyChosenChildId');
     await for (var a in all()) {
@@ -137,8 +135,9 @@ class DropDownModel<ChildData extends WithLangText,
     }
   }
 
-  Future<ChildData?> get currentlyChosenChildData => _getCurrentlyChosenChildData()
-      .last; //XXX: locally mirrored (.first) should suffice, but as this doenst work perfectly rn we rather use .last to override with online data
+  Future<ChildData?> get currentlyChosenChildData =>
+      _getCurrentlyChosenChildData()
+          .last; //XXX: locally mirrored (.first) should suffice, but as this doenst work perfectly rn we rather use .last to override with online data
   // int? _currentlyChosenChildDataIndex;
   // // ChildData? _currentlyChosenChildData;
   // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;

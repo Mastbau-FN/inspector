@@ -12,7 +12,6 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
-import '../classes/documentData.dart';
 import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
@@ -31,7 +30,7 @@ String _scopeForData(Data? data, {Data? caller}) {
     if (parentId != null && parentId.isNotEmpty) return parentId;
   } catch (_) {}
 
-  String? inspection;
+  String inspection = data.id;
   String seg2 = 'undefined';
   String seg3 = 'undefined';
   String seg4 = 'undefined';
@@ -52,10 +51,11 @@ String _scopeForData(Data? data, {Data? caller}) {
     inspection = caller.pjNr.toString();
   }
 
-  if (inspection == null && caller is WithOffline) inspection = caller.parentId;
-  inspection ??= data.id;
+  if (caller is WithOffline && caller.parentId != null) {
+    inspection = caller.parentId!;
+  }
 
-  if (inspection == null || inspection.isEmpty) return '';
+  if (inspection.isEmpty) return '';
   return [inspection, seg2, seg3, seg4].join('-');
 }
 
