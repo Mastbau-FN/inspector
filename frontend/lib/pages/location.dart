@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -71,7 +72,9 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
           case _nextViewTitle:
-            checkFilesAndShowToast(data.pjNr, data, context);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              unawaited(checkFilesAndShowToast(data.pjNr, data, context));
+            });
 
             return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
                 generateNextModel(data));
@@ -89,54 +92,74 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
   }
 
   Future<void> checkFilesAndShowToast(
-      int PjNr, InspectionLocation data, BuildContext context) async {
+      int pjNr, InspectionLocation data, BuildContext context) async {
     // Holen des App-Dokumentenverzeichnisses
     final directory = await getApplicationDocumentsDirectory();
-    final basePath = directory.path;
 
     // Alle Ordner im Verzeichnis auflisten
-    final baseDir = Directory(basePath);
+    final baseDir = Directory(directory.path);
     if (!await baseDir.exists()) return;
 
-    final folders = baseDir.listSync().whereType<Directory>();
-    for (var folder in folders) {
-      final folderName = folder.path.split(Platform.pathSeparator).last;
-      debugPrint("Checking folder: ${folderName}");
-      final regex = RegExp('^${PjNr}' + r'-[1-9]*-[1-9]*-0$');
-      debugPrint("Checking folder: ${regex}");
-      if (folderName.startsWith(regex)) {
-        final file = folder.listSync().whereType<File>();
-        if (file.isNotEmpty) {
-          debugPrint("Found files in folder: ${folderName}");
-          await showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text("Gefundene Mängel"),
-                  content: Text(
-                      "Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("Abbrechen"),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("Trotzdem fortfahren"),
-                    ),
-                  ],
-                );
-              });
-        }
-        break;
+    final prefix = '$pjNr-';
+    final regex =
+        RegExp('^${RegExp.escape(prefix)}\\d+-\\d+-0\$'); // pjNr-e1-e2-0
+
+    int scannedFolders = 0;
+    await for (final entity in baseDir.list(followLinks: false)) {
+      if (entity is! Directory) continue;
+      scannedFolders++;
+      if (scannedFolders % 25 == 0) {
+        await Future<void>.delayed(Duration.zero);
       }
+
+      final folderName = entity.path.split(Platform.pathSeparator).last;
+      if (!folderName.startsWith(prefix)) continue;
+      if (!regex.hasMatch(folderName)) continue;
+
+      final hasAnyFile = await _directoryHasAnyFile(entity);
+      if (hasAnyFile) {
+        if (kDebugMode) {
+          debugPrint('Found existing defect files in folder: $folderName');
+        }
+        if (!context.mounted) return;
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Gefundene Mängel"),
+              content: Text(
+                  "Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Abbrechen"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("Trotzdem fortfahren"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+      break;
     }
   }
+}
+
+Future<bool> _directoryHasAnyFile(Directory directory) async {
+  try {
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is File) return true;
+    }
+  } catch (_) {}
+  return false;
 }
 
 class LocationDetailPage extends StatelessWidget {
