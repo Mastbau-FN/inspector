@@ -32,6 +32,7 @@ class API {
   }
 
   User? _user;
+  final Set<int> _touchedPrueferForProjects = <int>{};
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
@@ -202,6 +203,56 @@ class API {
 
   Future<String> get rootID async => (await user)!.name;
 
+  int? _extractPjNr({Data? data, Data? caller}) {
+    try {
+      final pjNr = data?.toSmallJson()['PjNr'];
+      if (pjNr is int) return pjNr;
+      if (pjNr is num) return pjNr.toInt();
+      if (pjNr is String) return int.tryParse(pjNr);
+    } catch (_) {}
+    try {
+      final pjNr = caller?.toSmallJson()['PjNr'];
+      if (pjNr is int) return pjNr;
+      if (pjNr is num) return pjNr.toInt();
+      if (pjNr is String) return int.tryParse(pjNr);
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _touchPrueferIfNeeded({
+    required Helper.SimulatedRequestType requestType,
+    Data? data,
+    Data? caller,
+  }) async {
+    final pjNr = _extractPjNr(data: data, caller: caller);
+    if (pjNr == null) return;
+    if (_touchedPrueferForProjects.contains(pjNr)) return;
+
+    bool prefersOffline =
+        (_dataPrefersCache(caller, type: requestType) ?? false) ||
+            Options().forceOffline;
+    try {
+      prefersOffline = prefersOffline || (caller as WithOffline).forceOffline;
+    } catch (_) {}
+    try {
+      prefersOffline = prefersOffline || (data as WithOffline).forceOffline;
+    } catch (_) {}
+    if (prefersOffline) return;
+
+    // Mark as touched before awaiting to prevent duplicate concurrent calls.
+    _touchedPrueferForProjects.add(pjNr);
+    try {
+      await tryNetwork(requestType: requestType);
+      final rap = remote.touchPruefer(pjNr);
+      final baseRes = await remote.postJSON(rap.rd);
+      if (baseRes is http.Response) {
+        await rap.parser(baseRes);
+      }
+    } catch (_) {
+      // Best-effort; don't block other mutations.
+    }
+  }
+
   // MARK: API
 
   /// checks whether the given user is currently logged in
@@ -235,11 +286,13 @@ class API {
         debugPrint('User-Daten gelöscht');
       }
       _user = null;
+      _touchedPrueferForProjects.clear();
       debugPrint('User ausgeloggt');
     } catch (e) {
       debugPrint('Fehler beim Ausloggen: $e');
       // Trotz Fehler zurücksetzen, um UI-Update zu ermöglichen
       _user = null;
+      _touchedPrueferForProjects.clear();
     }
   }
 
@@ -292,6 +345,11 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    await _touchPrueferIfNeeded(
+      requestType: requestType,
+      data: data,
+      caller: caller,
+    );
     try {
       (data as WithOffline).parentId = caller?.id ?? await rootID;
     } catch (e) {}
@@ -325,6 +383,11 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    await _touchPrueferIfNeeded(
+      requestType: requestType,
+      data: data,
+      caller: caller,
+    );
     return _run(
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.update(data, caller: caller),
@@ -339,6 +402,11 @@ class API {
     Data? caller,
   }) async {
     final requestType = Helper.SimulatedRequestType.DELETE;
+    await _touchPrueferIfNeeded(
+      requestType: requestType,
+      data: data,
+      caller: caller,
+    );
     return _run(
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.delete(data, caller: caller),
@@ -391,6 +459,11 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    await _touchPrueferIfNeeded(
+      requestType: requestType,
+      data: data,
+      caller: caller,
+    );
     if (hash == data?.mainhash) {
       data?.mainhash = null;
       debugPrint('deleted mainhash');
@@ -419,6 +492,11 @@ class API {
     bool forceUpdate = false,
   }) async {
     final requestType = Helper.SimulatedRequestType.PUT;
+    await _touchPrueferIfNeeded(
+      requestType: requestType,
+      data: data,
+      caller: caller,
+    );
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () => local.setMainImageByHash(
@@ -468,6 +546,12 @@ class API {
       await local.logFailedReq(rap.rd);
       return 'added files offline (queued)';
     }
+
+    await _touchPrueferIfNeeded(
+      requestType: Helper.SimulatedRequestType.PUT,
+      data: data,
+      caller: caller,
+    );
 
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(

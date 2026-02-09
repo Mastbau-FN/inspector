@@ -149,6 +149,27 @@ const update = (req, res, next) =>
   );
 
 /**
+ * Updates MGAUFTR.Login_ID_Pruefer to the currently logged-in user, but only if it differs.
+ * Intended to be called separately from other mutations.
+ */
+const touchPruefer = (req, res, next) =>
+  errsafejson(
+    async () => {
+      const pjNr = req.body?.PjNr ?? req.body?.data?.PjNr;
+      const out = await queries.touchPruefer(pjNr, req.user.Def_Login_ID);
+      if (out?.updated) {
+        console.log(
+          `touchPruefer: PjNr=${pjNr} old=${out.old_login_id_pruefer} new=${out.login_id_pruefer} (KZL=${req.user?.KZL}, Def_Login_ID=${req.user?.Def_Login_ID})`
+        );
+      }
+      return out;
+    },
+    (json) => ({ message: "touched pruefer", ...json }),
+    res,
+    next
+  );
+
+/**
  * deletes a data entry
  */
 const delete_ = (req, res, next) =>
@@ -261,6 +282,7 @@ module.exports = {
 
   addNew,
   update,
+  touchPruefer,
   delete_,
 
   deleteImgByHash,

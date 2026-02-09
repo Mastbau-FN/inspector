@@ -31,6 +31,8 @@ const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete"; // issue #36
 
+const _touchPruefer_r = "/pruefer/touch";
+
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 const _setMainImageByHash_r = "/setMainImgH"; // issue #20
 
@@ -570,6 +572,26 @@ class Remote {
         parser: (x) async {
           return (await rap.parser(x))?.body;
         });
+  }
+
+  /// updates the pruefer-id for a project to the currently logged-in user, but only if it differs.
+  RequestAndParser<http.Response, bool> touchPruefer(int pjNr) {
+    final rd = RequestData(
+      _touchPruefer_r,
+      json: {'PjNr': pjNr},
+    );
+
+    parser(http.Response res) {
+      final body = res.body;
+      try {
+        final decoded = jsonDecode(body);
+        return decoded['updated'] == true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    return RequestAndParser(rd: rd, parser: parser);
   }
 
   /// deletes an image specified by its hash and returns the response

@@ -8,6 +8,8 @@ const _addNew_r = "/set";
 const _update_r = "/update";
 const _delete_r = "/delete";
 
+const _touchPruefer_r = "/pruefer/touch";
+
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 const _setMainImageByHash_r = "/setMainImgH"; // issue #20
 
@@ -117,6 +119,7 @@ app.post("/api/secure" + _addNew_r, api.addNew);
 
 
 app.post("/api/secure" + _update_r, api.update);
+app.post("/api/secure" + _touchPruefer_r, api.touchPruefer);
 app.post("/api/secure" + _delete_r, api.delete_);
 
 

@@ -169,8 +169,6 @@ const addNew = async (data, KZL, Def_Login_ID) => {
   let ld = data.data;
   let params;
   let queryfile;
-  params3 = [ld.PjNr, Def_Login_ID];
-  await queryFileWithParams("update/update_Pruefer", params3);
   switch (data.type) {
     case identifiers.category:
       queryfile = folder + "/check_categories";
@@ -211,8 +209,6 @@ const update = async (body, Def_Login_ID) => {
   let ld = body.data;
   let params;
   let queryfile;
-  params3 = [ld.PjNr, Def_Login_ID];
-  await queryFileWithParams("update/update_Pruefer", params3);
   switch (body.type) {
     case identifiers.category:
       //console.log("updating category")
@@ -248,6 +244,43 @@ const update = async (body, Def_Login_ID) => {
   res.success = true;
   return res;
 }
+
+/**
+ * Updates MGAUFTR.Login_ID_Pruefer to the currently logged-in user, but only if it differs.
+ * This is intentionally separate from other update/add requests.
+ *
+ * @param {Number} pjNr project number
+ * @param {Number} Def_Login_ID current worker's login id
+ * @returns {Promise<{updated: boolean}>}
+ */
+const touchPruefer = async (pjNr, Def_Login_ID) => {
+  if (!(pjNr > 0)) throw new Error("pjNr missing/invalid");
+  if (!(Def_Login_ID > 0)) throw new Error("Def_Login_ID missing/invalid");
+  const oldRow = (
+    await pool.asyncQuery(
+      `SELECT "Login_ID_Pruefer" FROM "MGAUFTR" WHERE "PjNr" = $1;`,
+      [pjNr]
+    )
+  ).rows?.[0];
+  const oldLoginIdPruefer = oldRow?.Login_ID_Pruefer ?? null;
+
+  const rows = await queryFileWithParams(
+    "update/update_Pruefer",
+    [pjNr, Def_Login_ID],
+    false
+  );
+  const updated = (rows?.length ?? 0) > 0;
+
+  const newLoginIdPruefer = updated
+    ? (rows?.[0]?.Login_ID_Pruefer ?? Def_Login_ID)
+    : oldLoginIdPruefer;
+
+  return {
+    updated,
+    old_login_id_pruefer: oldLoginIdPruefer,
+    login_id_pruefer: newLoginIdPruefer,
+  };
+};
 
 /**
  *
@@ -433,6 +466,7 @@ module.exports = {
 
   addNew,
   update,
+  touchPruefer,
   delete_,
 
   deleteImgByHash,

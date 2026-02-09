@@ -207,13 +207,16 @@ class LocationDetailPage extends StatelessWidget {
             //ASP(locationdata, updateData: updateData),
             //Issue-236
             Divider(),
-            EditableText(
-              label: "Prüfer_ID",
-              text: locationdata.login_id_pruefer,
-              onChanged: (val) {
-                locationdata.login_id_pruefer = val;
-                updateData(locationdata);
-              },
+            Row(
+              children: [
+                Text(
+                  'Prüfer_ID: ',
+                  style: TextStyle(fontWeight: FontWeight.w300),
+                ),
+                Flexible(
+                  child: Text(locationdata.login_id_pruefer ?? '--'),
+                ),
+              ],
             ),
             //Divider(),
             //ASP(locationdata, updateData: updateData),
