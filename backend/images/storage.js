@@ -15,7 +15,7 @@ const {
 const LOCALLY_ADDED_PREFIX = '__locally_added__';
 const SHORT_LOCALLY_ADDED_PREFIX = '__loc__';
 
-const {ftb_ftb_id, update_hash_map } = require("../misc/frontend_wrapper_middleware");
+const { decorateDataFromLocalId } = require("../misc/local_id");
 
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
@@ -46,9 +46,11 @@ const mstorage = multer.diskStorage({
       //might fail if the body was already parsed
       req.body.data = JSON.parse(req.body.data);
     } catch (_) {}
-    
-    ftb_ftb_id(req).then((req) => {
-      // console.log("🚀 ~ file: storage.js:30 ~ ftb_ftb_id ~ req", req.body);
+
+    try {
+      req.body.data = decorateDataFromLocalId(req.body.data);
+    } catch (_) {}
+
     return rootfolder(req.body.data).then((rf) => {
         // console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
         
@@ -56,34 +58,37 @@ const mstorage = multer.diskStorage({
         const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
         fs.mkdirSync(path, { recursive: true });
         let prev_filename = rf.filename;
-        fs.readdir(path, {}, (err, files) => {
-            rf.filename = file.originalname;
-            //lil race condition workaround: if file already added length is increased by 1
-    
-            // if (files.length < 1 + files.includes(prev_filename)) {
-    
-            let hash = memorize_link(rf);
-    
-            if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)|| rf.filename.startsWith(SHORT_LOCALLY_ADDED_PREFIX)) {
-            update_hash_map({hash: rf.filename}, hash);
-            }
-    
-    
-            //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
-            if (
+
+        // compute the hash for the stored filename immediately
+        const rfForHash = { ...rf, filename: file.originalname };
+        const hash = memorize_link(rfForHash);
+        rf.filename = file.originalname;
+
+        if (!req.__uploaded_images) req.__uploaded_images = [];
+        req.__uploaded_images.push({
+          client_filename: frontendname,
+          stored_filename: file.originalname,
+          hash,
+        });
+
+        fs.readdir(path, {}, (_err, _files) => {
+          // if destination is empty -> set the new image as main (aka as req.body.Link; update)
+          if (
             set_first_image_as_main &&
-            !prev_filename || prev_filename == no_image_placeholder_name
-            ) {
+            (!prev_filename || prev_filename == no_image_placeholder_name)
+          ) {
             req.body.hash = hash;
-            setMainImgByHash(req, { status: (_) => {return {json:(_)=>{}}} }, (err, res) => { });
-            }
-            // }
-    
-    
+            setMainImgByHash(
+              req,
+              { status: (_) => {
+                return { json: (_) => { } };
+              } },
+              (_err2, _res) => { }
+            );
+          }
         });
         cb(null, path);
     
-        });
     });
   },
   filename: (req, file, cb) => {

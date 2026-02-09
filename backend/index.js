@@ -28,8 +28,7 @@ const multer = require("multer");
 const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
-
-const ftb = require("./misc/frontend_wrapper_middleware");
+const { decorateReqFromLocalId } = require("./misc/local_id");
 
 const identifiers = require('./misc/identifiers').identifiers;
 
@@ -81,7 +80,7 @@ app.post(
   "/api/secure" + _uploadImage_r,
   auth.api_wall,
   generateFieldParser(["data"]),//req.body.data = JSON.parse(req.body.data)
-  ftb.ftb_id,
+  decorateReqFromLocalId,
   upload.any(),
   //auth.login_wall, //TODO: reenable
   api.fileUpload
@@ -109,7 +108,7 @@ app.use("/", logger.logreq);
 
 app.post("/api/secure/login", api.login);
 
-app.use("/api/secure/", ftb.ftb_id,ftb.ftb_hash);
+app.use("/api/secure/", decorateReqFromLocalId);
 
 datapointRoutes.forEach((datapointRoute) =>
   app.post("/api/secure" + datapointRoute.route, datapointRoute.api)

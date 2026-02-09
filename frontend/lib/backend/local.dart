@@ -179,6 +179,23 @@ class LocalMirror {
       {bool compressed = false, Data? owner}) async {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
+
+    // Prefer the backend filename-based cache if present.
+    if (!isPath) {
+      try {
+        final indexed = await OP.lookupImageNameForHash(
+          hash,
+          compressed: compressed,
+          scope: scope,
+        );
+        if (indexed != null && indexed.isNotEmpty) {
+          final img =
+              await readImage(indexed, cacheSize: compressed ? CACHESIZE : null);
+          if (img != null) return ImageData(img, id: hash);
+        }
+      } catch (_) {}
+    }
+
     List<String> candidates = [];
     if (!isPath && scope.isNotEmpty) {
       final scoped = '$scope/$hash';

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
@@ -698,6 +699,51 @@ class API {
         data,
         files,
       ),
+      onlineSuccessCB: (body) async {
+        // If the backend returns hashes for uploaded images, replace any local placeholders.
+        try {
+          final decoded = jsonDecode(body ?? '');
+          final uploaded = (decoded is Map) ? decoded['uploaded_images'] : null;
+          if (uploaded is List) {
+            final map = <String, String>{};
+            for (final e in uploaded) {
+              if (e is Map) {
+                final client = e['client_filename']?.toString();
+                final hash = e['hash']?.toString();
+                if (client != null &&
+                    client.isNotEmpty &&
+                    hash != null &&
+                    hash.isNotEmpty) {
+                  map[client] = hash;
+                }
+              }
+            }
+            if (map.isNotEmpty) {
+              String? rewrite(String? v) {
+                if (v == null) return null;
+                // match scoped values like "<scope>/<client_filename>"
+                final base = v.contains('/') ? v.split('/').last : v;
+                final repl = map[base] ?? map[v];
+                return repl ?? v;
+              }
+
+              data.mainhash = rewrite(data.mainhash);
+              if (data.imagehashes != null) {
+                data.imagehashes =
+                    data.imagehashes!.map((h) => rewrite(h) ?? h).toList();
+              }
+
+              // Persist updated hashes locally so subsequent requests use backend hashes.
+              try {
+                await local.storeData(
+                  data,
+                  forId: caller?.id ?? await rootID,
+                );
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      },
       // onlineSuccessCB: (response) async {},
       onlineFailedCB: (onlineRes, rap) {
         debugPrint('failed to upload images, ' +

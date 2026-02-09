@@ -1,5 +1,4 @@
 ////const bcrypt = require("bcrypt");
-const ftb = require('../misc/frontend_wrapper_middleware');
 const options = require("../options");
 
 const useNewID = true //&& false;
@@ -250,13 +249,20 @@ const addNew = async (data, KZL, Def_Login_ID) => {
   }
   let res = await queryFileWithParams(queryfile, params);
   const newdata = { ...(data.data), ...(res[0]) }
-  _addfoldername(newdata);
-  if(newdata.local_id!=null){
-    ftb.update_id_map(newdata);
-  }
- 
+  try {
+    await _addfoldername(newdata);
+  } catch (_) {}
 
-  return res;
+  // standardize local_id scheme to match backend responses
+  try {
+    newdata.local_id = `${newdata.PjNr}-${newdata.E1}-${newdata.E2}-${newdata.E3}`;
+  } catch (_) {}
+
+  // keep payload consistent with other endpoints
+  delete newdata.Link;
+  delete newdata.LinkOrdner;
+
+  return [newdata];
 }
 
 /**

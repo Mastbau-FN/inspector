@@ -502,12 +502,26 @@ class Remote {
       else {
         try {
           final scope = owner != null ? API().local.scopeFor(owner) : '';
-          final name = compressed ? OP.convertToCompressedHashName(hash) : hash;
-          final scopedName =
-              (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
-          await API().local.storeImage(res.bodyBytes, scopedName);
+          final filename = _extractBackendFilename(res.headers);
+
+          String storedName;
+          if (!isPathHash && filename != null && filename.isNotEmpty) {
+            final base = compressed ? 'compressed/$filename' : filename;
+            storedName = (scope.isNotEmpty) ? '$scope/$base' : base;
+            await API().local.storeImage(res.bodyBytes, storedName);
+            await OP.indexImageHash(
+              hash: hash,
+              storedName: storedName,
+              compressed: compressed,
+              scope: scope,
+            );
+          } else {
+            final name = compressed ? OP.convertToCompressedHashName(hash) : hash;
+            storedName = (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
+            await API().local.storeImage(res.bodyBytes, storedName);
+          }
           return ImageData(
-            (await API().local.readImage(scopedName,
+            (await API().local.readImage(storedName,
                 cacheSize: compressed ? CACHESIZE : null))!,
             id: hash,
           );
@@ -518,6 +532,38 @@ class Remote {
     }
 
     return RequestAndParser(rd: rd, parser: parser);
+  }
+
+  String? _extractBackendFilename(Map<String, String> headers) {
+    // Node/Express lowercases header keys.
+    final direct = headers['x-image-filename'] ??
+        headers['x-filename'] ??
+        headers['x-image-name'];
+    if (direct != null && direct.trim().isNotEmpty) return direct.trim();
+
+    final cd = headers['content-disposition'];
+    if (cd == null) return null;
+
+    // Minimal RFC 6266 support (filename / filename*=UTF-8'')
+    final filenameStar = RegExp(r"filename\*\s*=\s*UTF-8''([^;]+)",
+            caseSensitive: false)
+        .firstMatch(cd)
+        ?.group(1);
+    if (filenameStar != null && filenameStar.trim().isNotEmpty) {
+      try {
+        return Uri.decodeFull(filenameStar.trim());
+      } catch (_) {
+        return filenameStar.trim();
+      }
+    }
+
+    final filename = RegExp(r'filename\s*=\s*"([^"]+)"', caseSensitive: false)
+            .firstMatch(cd)
+            ?.group(1) ??
+        RegExp(r'filename\s*=\s*([^;]+)', caseSensitive: false)
+            .firstMatch(cd)
+            ?.group(1);
+    return filename?.trim();
   }
 
   Future<DataT?> Function(Map<String, dynamic>)
@@ -710,7 +756,19 @@ class Remote {
     return RequestAndParser(
         rd: rap.rd,
         parser: (x) async {
-          return (await rap.parser(x))?.body != null ? data : null;
+          final res = await rap.parser(x);
+          final body = res?.body;
+          if (body == null || body.isEmpty) return null;
+          try {
+            final decoded = jsonDecode(body);
+            final qr = (decoded is Map) ? decoded['query_result'] : null;
+            if (qr is Map) {
+              final parsed =
+                  Data.fromJson<DataT>(Map<String, dynamic>.from(qr));
+              if (parsed != null) return parsed;
+            }
+          } catch (_) {}
+          return data;
         });
   }
 

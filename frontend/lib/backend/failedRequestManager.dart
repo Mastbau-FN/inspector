@@ -586,6 +586,10 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       progress.currentInspectionTotal = requests.length;
       progress.currentInspectionDone = 0;
 
+      // Maps for this inspection to replace local placeholders with backend identifiers.
+      final localIdMap = <String, String>{};
+      final imageHashMap = <String, String>{};
+
       String? pjNr;
       try {
         if (inspId != 'Backup') {
@@ -632,24 +636,140 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
           bool requestSuccess = false;
 
+          void patchRequestInPlace(RequestData req) {
+            final jsonData = req.json;
+            if (jsonData == null) return;
+
+            String rewriteLocalId(String v) {
+              return localIdMap[v] ?? v;
+            }
+
+            String rewriteHash(String v) {
+              // local hashes might be scoped like "<scope>/__loc__foo.jpg"
+              final base = v.contains('/') ? v.split('/').last : v;
+              return imageHashMap[base] ?? imageHashMap[v] ?? v;
+            }
+
+            // Patch top-level hash param if present.
+            final hash = jsonData['hash'];
+            if (hash is String && hash.isNotEmpty) {
+              jsonData['hash'] = rewriteHash(hash);
+            }
+
+            // Patch embedded data payload (Map or JSON string).
+            final dataField = jsonData['data'];
+            Map<String, dynamic>? dataMap;
+            bool wasString = false;
+            if (dataField is String) {
+              wasString = true;
+              try {
+                final decoded = json.decode(dataField);
+                if (decoded is Map) {
+                  dataMap = Map<String, dynamic>.from(decoded);
+                }
+              } catch (_) {}
+            } else if (dataField is Map) {
+              dataMap = Map<String, dynamic>.from(dataField);
+            }
+
+            if (dataMap != null) {
+              final lid = dataMap['local_id'];
+              if (lid is String && lid.isNotEmpty) {
+                dataMap['local_id'] = rewriteLocalId(lid);
+              }
+              final plid = dataMap['parent_local_id'];
+              if (plid is String && plid.isNotEmpty) {
+                dataMap['parent_local_id'] = rewriteLocalId(plid);
+              }
+              // If mainhash uses local placeholder names, translate it too.
+              final mh = dataMap['mainhash'];
+              if (mh is String && mh.isNotEmpty) {
+                dataMap['mainhash'] = rewriteHash(mh);
+              }
+              final imgs = dataMap['images'];
+              if (imgs is List) {
+                dataMap['images'] =
+                    imgs.map((e) => e is String ? rewriteHash(e) : e).toList();
+              }
+
+              jsonData['data'] = wasString ? json.encode(dataMap) : dataMap;
+            }
+          }
+
           // Verbesserte Wiederholungsstrategie mit exponentiellem Backoff
           await _retryWithBackoff(
             operation: () async {
               // Verwende die verbesserte Methode für Socket-Fehler
-              final res = await API().remote.postJSONWithSocketRetry(
+              patchRequestInPlace(rd);
+              final baseRes = await API().remote.postJSONWithSocketRetry(
                     rd,
                     maxRetries: 3,
                     initialDelay: Duration(seconds: 2),
                     exponentialBackoff: true,
                   );
 
+              http.Response? res;
+              try {
+                if (baseRes is http.Response) {
+                  res = baseRes;
+                } else if (baseRes is http.StreamedResponse) {
+                  res = await http.Response.fromStream(baseRes);
+                }
+              } catch (_) {}
+
               if (res != null && res.statusCode ~/ 100 == 2) {
+                // Learn mappings from successful responses to make later requests stateless.
+                try {
+                  if (rd.route == '/set') {
+                    final decoded = json.decode(res.body);
+                    final qr = (decoded is Map) ? decoded['query_result'] : null;
+                    if (qr is Map) {
+                      final newLocalId = qr['local_id']?.toString();
+                      final dataField = rd.json?['data'];
+                      String? oldLocalId;
+                      if (dataField is Map) {
+                        oldLocalId = dataField['local_id']?.toString();
+                      } else if (dataField is String) {
+                        try {
+                          final dm = json.decode(dataField);
+                          if (dm is Map) oldLocalId = dm['local_id']?.toString();
+                        } catch (_) {}
+                      }
+                      if (oldLocalId != null &&
+                          oldLocalId.isNotEmpty &&
+                          newLocalId != null &&
+                          newLocalId.isNotEmpty &&
+                          oldLocalId != newLocalId) {
+                        localIdMap[oldLocalId] = newLocalId;
+                      }
+                    }
+                  } else if (rd.route == '/image/set') {
+                    final decoded = json.decode(res.body);
+                    final uploaded =
+                        (decoded is Map) ? decoded['uploaded_images'] : null;
+                    if (uploaded is List) {
+                      for (final e in uploaded) {
+                        if (e is Map) {
+                          final client = e['client_filename']?.toString();
+                          final hash = e['hash']?.toString();
+                          if (client != null &&
+                              client.isNotEmpty &&
+                              hash != null &&
+                              hash.isNotEmpty) {
+                            imageHashMap[client] = hash;
+                          }
+                        }
+                      }
+                    }
+                  }
+                } catch (_) {}
+
                 API().local.failedRequestWasSuccessful(docID);
                 requestSuccess = true;
                 return true;
               } else {
                 debugPrint(
-                    'Request fehlgeschlagen mit Status: ${res?.statusCode ?? "null"}');
+                    'Request fehlgeschlagen mit Status: ${res?.statusCode ?? baseRes?.statusCode ?? "null"}');
                 return false;
               }
             },

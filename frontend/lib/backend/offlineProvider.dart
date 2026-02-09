@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/options.dart';
@@ -209,6 +210,55 @@ Future<void> deleteAll({
 //MARK: data-stuff
 
 final db = Localstore.instance;
+
+const IMAGE_INDEX_COLLECTION = 'image-index';
+final imageIndexCollection = (db).collection(IMAGE_INDEX_COLLECTION);
+
+String _imageIndexDocId(
+  String hash, {
+  required bool compressed,
+  String? scope,
+}) {
+  final s = (scope ?? '').trim();
+  final key = '${compressed ? 'c' : 'o'}|$s|$hash';
+  // Localstore doc ids are path-like; keep it filesystem-safe and reasonably short.
+  return base64UrlEncode(utf8.encode(key)).replaceAll('=', '');
+}
+
+Future<void> indexImageHash({
+  required String hash,
+  required String storedName,
+  required bool compressed,
+  String? scope,
+}) async {
+  final id = _imageIndexDocId(hash, compressed: compressed, scope: scope);
+  await imageIndexCollection.doc(id).set({
+    'hash': hash,
+    'storedName': storedName,
+    'compressed': compressed,
+    'scope': scope ?? '',
+    'ts': DateTime.now().millisecondsSinceEpoch,
+  });
+}
+
+Future<String?> lookupImageNameForHash(
+  String hash, {
+  required bool compressed,
+  String? scope,
+}) async {
+  final scopedId = _imageIndexDocId(hash, compressed: compressed, scope: scope);
+  final scoped = await imageIndexCollection.doc(scopedId).get();
+  final scopedName = scoped?['storedName']?.toString();
+  if (scopedName != null && scopedName.isNotEmpty) return scopedName;
+
+  // fallback: global entry (no scope)
+  final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
+  final global = await imageIndexCollection.doc(globalId).get();
+  final globalName = global?['storedName']?.toString();
+  if (globalName != null && globalName.isNotEmpty) return globalName;
+
+  return null;
+}
 
 /// @depricated, its now only the parentID
 /// ~~non-null wrapper for [Helper.getIdentifierFromData]~~

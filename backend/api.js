@@ -228,8 +228,16 @@ const setMainImgByHash = async (req, res, next) => {
  */
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
-    res.writeHead(200, { "Content-type": "image/jpg" });
+    const hash = req.body.hash;
+    const compressed = req.body.compressed;
+    const pathparts = imghasher.getPathFromHash(hash) ?? {};
+    const filename = pathparts.filename;
+
+    let img = await imghasher.getFileFromHash(hash, compressed);
+    res.writeHead(200, {
+      "Content-type": compressed ? "image/webp" : "image/jpg",
+      ...(filename ? { "x-image-filename": filename } : {}),
+    });
     res.end(img);
   } catch (e) {
     res.status(404).json({ reason: "image no longer available" });
@@ -254,13 +262,19 @@ const getDocFromPath = async (req, res) => {
  */
 const getFileFromHash_get = async (req, res) => {
   try {
+    const hash = req.params.hash;
+    const pathparts = imghasher.getPathFromHash(hash) ?? {};
+    const filename = pathparts.filename;
     let img/*;
     try {
       img*/ = await imghasher.getFileFromHash(req.params.hash, true); //serve compressed images only
     // } catch (e) {
     //   img = await imghasher.getFileFromHash(req.params.hash, false); //fallback to non-compressed
     // }
-    res.writeHead(200, { "Content-type": "image/jpg" });
+    res.writeHead(200, {
+      "Content-type": "image/webp",
+      ...(filename ? { "x-image-filename": filename } : {}),
+    });
     res.end(img);
   } catch (e) {
     console.warn('failed to get image:',  e);
@@ -272,12 +286,20 @@ const getFileFromHash_get = async (req, res) => {
 const fileUpload = async (req, res) => {
   console.log("uploading files..");
   if (!(req.files || req.file)) {
-    res.status(204).json({ reason: "no file uploaded" });
-    console.log("file failed")
-  } else {
-    res.status(204).json();
-    console.log("file succeeded")
+    res.status(400).json({ success: false, reason: "no file uploaded" });
+    console.log("file failed");
+    return;
   }
+
+  const uploaded = Array.isArray(req.__uploaded_images)
+    ? req.__uploaded_images
+    : [];
+
+  res.status(200).json({
+    success: true,
+    uploaded_images: uploaded,
+  });
+  console.log("file succeeded");
 };
 
 module.exports = {
