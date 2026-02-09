@@ -312,8 +312,6 @@ class Remote {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json ??= {};
     rd.json!['user'] = _user?.toJson();
-    debugPrint(
-        'Sending request ${rd.route} as KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}, hash=${_user.hashCode}');
     try {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
@@ -622,7 +620,6 @@ class Remote {
           returnsBinary: true,
         )
     };
-    debugPrint("fssgfsfsdf" + rd.toString());
 
     parser(http.BaseResponse _res) async {
       final res = _res.forceRes();

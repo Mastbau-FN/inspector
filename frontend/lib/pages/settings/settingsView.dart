@@ -15,10 +15,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
-    show
-        FailedRequestmanager,
-        sync_in_progress_str,
-        GroupedInspection;
+    show FailedRequestmanager, sync_in_progress_str, GroupedInspection;
 import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
@@ -1143,7 +1140,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       }
     } else {
       tileText =
-          isSynced ? 'Alles synchronisiert' : 'Synchronisierung\nmit Server';
+          isSynced ? 'Alles\nsynchronisiert' : 'Synchronisierung\nmit Server';
     }
 
     return Column(
