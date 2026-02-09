@@ -329,8 +329,12 @@ class API {
   Future<DisplayUser?> login(User user) async {
     if (await isUserLoggedIn(user)) return this.user;
     try {
-      final _user = await remote.login(user);
-      await _user!.store();
+      final loggedInUser = await remote.login(user);
+      debugPrint(
+          'API.login: logged in as KZL=${loggedInUser?.name}, Def_Login_ID=${loggedInUser?.defLoginId}');
+      _user = loggedInUser;
+      remote.injectUser(loggedInUser);
+      await loggedInUser!.store();
       return this.user;
     } catch (e) {
       logout();
@@ -587,17 +591,15 @@ class API {
     bool forceUpdate = false,
   }) async {
     // Wenn forceOffline aktiv ist: nur lokal speichern und Request zum Retry vormerken
-    bool prefersOffline = _dataPrefersCache(
-              caller, type: Helper.SimulatedRequestType.PUT) ??
-        false;
+    bool prefersOffline =
+        _dataPrefersCache(caller, type: Helper.SimulatedRequestType.PUT) ??
+            false;
     // fallback: nutze Daten-Flag oder globale Option
     try {
-      prefersOffline =
-          prefersOffline || (caller as WithOffline).forceOffline;
+      prefersOffline = prefersOffline || (caller as WithOffline).forceOffline;
     } catch (_) {}
     try {
-      prefersOffline =
-          prefersOffline || (data as WithOffline).forceOffline;
+      prefersOffline = prefersOffline || (data as WithOffline).forceOffline;
     } catch (_) {}
     prefersOffline = prefersOffline || Options().forceOffline;
 

@@ -95,7 +95,25 @@ class Remote {
   final http.Client _client = http.Client();
 
   User? _user;
-  injectUser(User? user) => _user = user;
+  injectUser(User? user) {
+    if (user == null) {
+      _user = null;
+      debugPrint('Remote.injectUser: user=null');
+      return;
+    }
+
+    // Preserve Def_Login_ID if we already know it and the incoming user doesn't have it yet.
+    if (_user != null &&
+        _user?.name == user.name &&
+        user.defLoginId == null &&
+        _user?.defLoginId != null) {
+      user.defLoginId = _user?.defLoginId;
+    }
+
+    _user = user;
+    debugPrint(
+        'Remote.injectUser: KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}, hash=${_user.hashCode}');
+  }
 
   final _baseurl = Env.mbgUrl;
   // ignore: non_constant_identifier_names
@@ -198,7 +216,7 @@ class Remote {
     rd.json ??= {};
     rd.json!['user'] = _user?.toJson();
     debugPrint(
-        'Sending request ${rd.route} as KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}');
+        'Sending request ${rd.route} as KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}, hash=${_user.hashCode}');
     try {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
@@ -528,8 +546,28 @@ class Remote {
         ?.forceRes();
     if (res != null && (res.statusCode ~/ 100 == 2)) {
       //success
-      var resb = jsonDecode(res.body)['user'];
-      _user?.fromMap(resb);
+      final resb = jsonDecode(res.body)['user'];
+      try {
+        final dbgMap = (resb is Map) ? resb : null;
+        debugPrint('login response user keys: ${dbgMap?.keys.toList()}');
+        debugPrint('login response Def_Login_ID: ${dbgMap?['Def_Login_ID']}');
+      } catch (_) {}
+
+      // Best-effort: set Def_Login_ID explicitly (some maps/keys differ across backends).
+      try {
+        final map = resb as Map?;
+        final v = map?['Def_Login_ID'] ??
+            map?['def_login_id'] ??
+            map?['Login_ID_Pruefer'] ??
+            map?['login_id_pruefer'];
+        if (v is int) _user?.defLoginId = v;
+        if (v is num) _user?.defLoginId = v.toInt();
+        if (v is String) _user?.defLoginId = int.tryParse(v);
+      } catch (_) {}
+
+      _user?.fromMap((resb is Map) ? resb.cast<String, dynamic>() : null);
+      debugPrint(
+          'login parsed user: KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}');
       return _user;
     }
     throw ResponseException(res);
