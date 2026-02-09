@@ -68,24 +68,52 @@ class ImageWrap<T extends Object> extends StatelessWidget {
             builder: (context, _) {
               final visibleImages =
                   _allImages.where((e) => !e.hidden).toList();
-              return GridView.builder(
-                padding: const EdgeInsets.all(2.0),
-                itemCount: visibleImages.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columnCount,
-                ),
-                itemBuilder: (context, i) => OpenableImageView<T>.scrollable(
-                  onDelete: onDelete,
-                  onShare: onShare,
-                  onStar: onStar,
-                  currentIndex: i,
-                  chosenIndex: (hasFav ?? true) && visibleImages.isNotEmpty
-                      ? 0
-                      : -1, //// make this dynamic on callback or something for #20
-                  // instead solve #36 and move chosen image to front
-                  allImages: visibleImages,
-                  approxWidth: MediaQuery.of(context).size.width / columnCount,
-                ),
+              final total = visibleImages.length;
+              final loaded =
+                  visibleImages.where((e) => e.image != null).length;
+              final fraction =
+                  (total == 0) ? 0.0 : (loaded / total).clamp(0.0, 1.0);
+
+              return Column(
+                children: [
+                  if (total > 0 && loaded < total)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                      child: Row(
+                        children: [
+                          Text('Bilder: $loaded/$total',
+                              style: Theme.of(context).textTheme.bodySmall),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: LinearProgressIndicator(value: fraction),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(2.0),
+                      itemCount: visibleImages.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columnCount,
+                      ),
+                      itemBuilder: (context, i) =>
+                          OpenableImageView<T>.scrollable(
+                        onDelete: onDelete,
+                        onShare: onShare,
+                        onStar: onStar,
+                        currentIndex: i,
+                        chosenIndex: (hasFav ?? true) && visibleImages.isNotEmpty
+                            ? 0
+                            : -1, //// make this dynamic on callback or something for #20
+                        // instead solve #36 and move chosen image to front
+                        allImages: visibleImages,
+                        approxWidth:
+                            MediaQuery.of(context).size.width / columnCount,
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           );

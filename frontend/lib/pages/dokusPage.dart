@@ -4,8 +4,9 @@ import 'DocumentViewerPage.dart';
 
 class DokusList extends StatelessWidget {
   final List<DocumentData>? dokus;
+  final String? scope;
 
-  const DokusList({Key? key, this.dokus}) : super(key: key);
+  const DokusList({Key? key, this.dokus, this.scope}) : super(key: key);
 
   Widget build(BuildContext context) {
     final docs = dokus ?? const [];
@@ -47,6 +48,7 @@ class DokusList extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => DocumentViewerPage(
                             docupath: docs[index].docupath,
+                            scope: scope,
                           ),
                         ),
                       );

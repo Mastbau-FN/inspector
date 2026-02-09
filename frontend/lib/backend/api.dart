@@ -606,12 +606,15 @@ class API {
     }
   }
 
-  Future<File?> getDocument(String path) async {
+  Future<File?> getDocument(String path, {Data? owner, String? scope}) async {
     final requestType = Helper.SimulatedRequestType.GET;
+    final effectiveScope = (scope != null && scope.isNotEmpty)
+        ? scope
+        : (owner != null ? local.scopeFor(owner) : null);
     return _run(
       itPrefersCache: false,
-      offline: () => local.getDocument(path),
-      online: () => remote.getDocument(path),
+      offline: () => local.getDocument(path, scope: effectiveScope),
+      online: () => remote.getDocument(path, scope: effectiveScope),
       requestType: requestType,
     ).last;
   }

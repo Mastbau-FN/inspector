@@ -1298,7 +1298,7 @@ class FailedRequestmanager {
             assert((await API().user) != null,
                 'Niemand eingeloggt'); // Using string directly instead of S.current
             for (var doc in docus) {
-              await API().getDocument(doc.docupath);
+              await API().getDocument(doc.docupath, owner: location);
             }
           }
         }

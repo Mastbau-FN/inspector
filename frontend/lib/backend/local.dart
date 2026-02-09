@@ -56,7 +56,8 @@ String _scopeForData(Data? data, {Data? caller}) {
   }
 
   if (inspection.isEmpty) return '';
-  return [inspection, seg2, seg3, seg4].join('-');
+  // never create legacy "undefined" scopes
+  return [inspection, seg2, seg3, seg4].join('-').replaceAll('undefined', 'null');
 }
 
 
@@ -179,6 +180,8 @@ class LocalMirror {
       {bool compressed = false, Data? owner}) async {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
+    final legacyScope =
+        scope.contains('null') ? scope.replaceAll('null', 'undefined') : scope;
 
     String displayNameFromStored(String storedName) {
       var base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
@@ -235,6 +238,12 @@ class LocalMirror {
           ? '$scope/${OP.convertToCompressedHashName(hash)}'
           : scoped);
     }
+    if (!isPath && legacyScope.isNotEmpty && legacyScope != scope) {
+      final scoped = '$legacyScope/$hash';
+      candidates.add(compressed
+          ? '$legacyScope/${OP.convertToCompressedHashName(hash)}'
+          : scoped);
+    }
     if (compressed) {
       candidates.add(OP.convertToCompressedHashName(hash));
     }
@@ -243,17 +252,58 @@ class LocalMirror {
     for (final name in candidates) {
       final img =
           await readImage(name, cacheSize: compressed ? CACHESIZE : null);
-      if (img != null) return ImageData(img, id: hash, name: displayNameFromStored(name));
+      if (img != null) {
+        // Best-effort migration: if we loaded from a legacy "undefined" folder, copy to the
+        // normalized "null" folder so we stop accumulating both.
+        if (!isPath &&
+            scope.isNotEmpty &&
+            legacyScope != scope &&
+            name.startsWith('$legacyScope/')) {
+          final migratedName = name.replaceFirst(legacyScope, scope);
+          try {
+            final src = await OP.localFile(name);
+            final dst = await OP.localFile(migratedName);
+            if (!dst.existsSync()) {
+              await dst.parent.create(recursive: true);
+              await src.copy(dst.path);
+            }
+            await OP.indexImageHash(
+              hash: hash,
+              storedName: migratedName,
+              compressed: compressed,
+              scope: scope,
+            );
+            final migratedImg = await readImage(migratedName,
+                cacheSize: compressed ? CACHESIZE : null);
+            if (migratedImg != null) {
+              return ImageData(migratedImg,
+                  id: hash, name: displayNameFromStored(migratedName));
+            }
+          } catch (_) {}
+        }
+        return ImageData(img, id: hash, name: displayNameFromStored(name));
+      }
     }
     throw Exception("no img cached");
   }
 
-  Future<File?> getDocument(String docPath) async {
-    final doc = await readDoc(docPath.split('/').last);
-    if (doc == null) throw Exception("no doc cached");
-    // return null;
-    // return Data!;
-    return doc;
+  Future<File?> getDocument(String docPath, {String? scope}) async {
+    final filename = docPath.split('/').last;
+    final s = (scope ?? '').trim();
+    final legacyScope = s.contains('null') ? s.replaceAll('null', 'undefined') : s;
+
+    final candidates = <String>[
+      if (s.isNotEmpty) '$s/Dokus/$filename',
+      if (legacyScope.isNotEmpty && legacyScope != s) '$legacyScope/Dokus/$filename',
+      // legacy: flat storage
+      filename,
+    ];
+
+    for (final name in candidates) {
+      final doc = await readDoc(name);
+      if (doc != null) return doc;
+    }
+    throw Exception("no doc cached");
   }
 
   /// deletes an image specified by its hash and returns the response

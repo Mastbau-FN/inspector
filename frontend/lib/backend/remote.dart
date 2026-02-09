@@ -610,7 +610,8 @@ class Remote {
     };
   }
 
-  RequestAndParser<http.BaseResponse, File?> getDocument(String docPath) {
+  RequestAndParser<http.BaseResponse, File?> getDocument(String docPath,
+      {String? scope}) {
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
       false => RequestData(
@@ -629,8 +630,11 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeDoc(res.bodyBytes, docPath.split('/').last);
-          return API().local.readDoc(docPath.split('/').last);
+          final filename = docPath.split('/').last;
+          final s = (scope ?? '').trim();
+          final storedName = s.isNotEmpty ? '$s/Dokus/$filename' : 'Dokus/$filename';
+          await API().local.storeDoc(res.bodyBytes, storedName);
+          return API().local.readDoc(storedName);
         } catch (e) {
           debugPrint("failed to load webimg: " + e.toString());
         }

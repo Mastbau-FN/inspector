@@ -94,6 +94,12 @@ Future<File?> storeDoc(Uint8List imgBytes, String name) async {
   try {
     var file = await localFile(name, "jaman");
     await file.parent.create(recursive: true);
+    // Avoid rewriting already valid cached files
+    if (file.existsSync()) {
+      try {
+        if (file.lengthSync() >= 5) return file;
+      } catch (_) {}
+    }
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -221,6 +227,17 @@ final db = Localstore.instance;
 const IMAGE_INDEX_COLLECTION = 'image-index';
 final imageIndexCollection = (db).collection(IMAGE_INDEX_COLLECTION);
 
+Future<void> _ensureCollectionDirExists(String collection) async {
+  if (kIsWeb) return;
+  try {
+    final basePath = await localPath;
+    final dir = Directory('$basePath/$collection');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+  } catch (_) {}
+}
+
 String _imageIndexDocId(
   String hash, {
   required bool compressed,
@@ -238,24 +255,30 @@ Future<void> indexImageHash({
   required bool compressed,
   String? scope,
 }) async {
-  final payload = {
-    'hash': hash,
-    'storedName': storedName,
-    'compressed': compressed,
-    'scope': scope ?? '',
-    'ts': DateTime.now().millisecondsSinceEpoch,
-  };
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
 
-  // scoped entry
-  final id = _imageIndexDocId(hash, compressed: compressed, scope: scope);
-  await imageIndexCollection.doc(id).set(payload);
+    final payload = {
+      'hash': hash,
+      'storedName': storedName,
+      'compressed': compressed,
+      'scope': scope ?? '',
+      'ts': DateTime.now().millisecondsSinceEpoch,
+    };
 
-  // global entry (scope-agnostic fallback)
-  final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
-  await imageIndexCollection.doc(globalId).set({
-    ...payload,
-    'scope': '',
-  });
+    // scoped entry
+    final id = _imageIndexDocId(hash, compressed: compressed, scope: scope);
+    await imageIndexCollection.doc(id).set(payload);
+
+    // global entry (scope-agnostic fallback)
+    final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
+    await imageIndexCollection.doc(globalId).set({
+      ...payload,
+      'scope': '',
+    });
+  } catch (e) {
+    debugPrint('indexImageHash failed: $e');
+  }
 }
 
 Future<String?> lookupImageNameForHash(
@@ -263,10 +286,30 @@ Future<String?> lookupImageNameForHash(
   required bool compressed,
   String? scope,
 }) async {
-  final scopedId = _imageIndexDocId(hash, compressed: compressed, scope: scope);
-  final scoped = await imageIndexCollection.doc(scopedId).get();
-  final scopedName = scoped?['storedName']?.toString();
-  if (scopedName != null && scopedName.isNotEmpty) return scopedName;
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+  } catch (_) {}
+
+  Future<String?> tryScope(String? s) async {
+    final scopedId = _imageIndexDocId(hash, compressed: compressed, scope: s);
+    final scoped = await imageIndexCollection.doc(scopedId).get();
+    final scopedName = scoped?['storedName']?.toString();
+    if (scopedName != null && scopedName.isNotEmpty) return scopedName;
+    return null;
+  }
+
+  final direct = await tryScope(scope);
+  if (direct != null) return direct;
+
+  // legacy migration: "null" scopes used to be stored as "undefined"
+  final s = (scope ?? '').trim();
+  if (s.contains('null')) {
+    final legacy = await tryScope(s.replaceAll('null', 'undefined'));
+    if (legacy != null) return legacy;
+  } else if (s.contains('undefined')) {
+    final normalized = await tryScope(s.replaceAll('undefined', 'null'));
+    if (normalized != null) return normalized;
+  }
 
   // fallback: global entry (no scope)
   final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
