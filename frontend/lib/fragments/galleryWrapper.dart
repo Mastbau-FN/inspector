@@ -44,6 +44,8 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   @override
   Widget build(BuildContext context) {
     String currentName() {
+      final explicit = widget.galleryItems[currentIndex].image?.name;
+      if (explicit != null && explicit.trim().isNotEmpty) return explicit.trim();
       final id = widget.galleryItems[currentIndex].image?.id.toString();
       if (id == null || id.isEmpty) return '';
       final parts = id.split('/').where((e) => e.isNotEmpty).toList();

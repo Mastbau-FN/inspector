@@ -36,6 +36,8 @@ class API {
   User? _user;
   final Set<int> _touchedPrueferForProjects = <int>{};
   final Map<int, String?> _prueferByPjNr = <int, String?>{};
+  final Map<String, Future<ImageData?>> _inflightImageFetches =
+      <String, Future<ImageData?>>{};
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
@@ -556,24 +558,52 @@ class API {
     // Scoped/local hashes (with folders or local prefix) must not trigger remote fetches
     final isLocalScoped =
         hash.contains('/') || hash.startsWith(LOCALLY_ADDED_PREFIX);
-    if (isLocalScoped) {
+
+    // Always prefer local cache first; if present, never hit network.
+    try {
+      return await local.getImageByHash(hash, compressed: compressed, owner: owner);
+    } catch (_) {
+      // not cached locally (or unreadable) -> continue
+    }
+
+    // For local-scoped names we never download remotely.
+    if (isLocalScoped) return null;
+
+    // Deduplicate in-flight downloads for the same hash to prevent repeated
+    // downloads on rebuild/opening views.
+    final key = '${compressed ? 1 : 0}|$hash';
+    final existing = _inflightImageFetches[key];
+    if (existing != null) return await existing;
+
+    Future<ImageData?> fetch() async {
       try {
-        return await local.getImageByHash(hash,
-            compressed: compressed, owner: owner);
+        await tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+        final rap =
+            remote.getImageByHash(hash, compressed: compressed, owner: owner);
+        final res = await remote.postJSON(rap.rd);
+        if (res == null) return null;
+        final parsed = await rap.parser(res);
+        if (parsed != null) return parsed;
+      } catch (_) {}
+      // last-chance local read (in case another concurrent fetch stored it)
+      try {
+        return await local.getImageByHash(
+          hash,
+          compressed: compressed,
+          owner: owner,
+        );
       } catch (_) {
-        // fallback to normal flow below if not found locally
+        return null;
       }
     }
-    final requestType = Helper.SimulatedRequestType.GET;
-    return _run(
-      itPrefersCache:
-          isLocalScoped, //! wir nehmen immer lieber lokale bilder, bandbreite und so
-      offline: () =>
-          local.getImageByHash(hash, compressed: compressed, owner: owner),
-      online: () =>
-          remote.getImageByHash(hash, compressed: compressed, owner: owner),
-      requestType: requestType,
-    ).last;
+
+    final future = fetch();
+    _inflightImageFetches[key] = future;
+    try {
+      return await future;
+    } finally {
+      _inflightImageFetches.remove(key);
+    }
   }
 
   Future<File?> getDocument(String path) async {

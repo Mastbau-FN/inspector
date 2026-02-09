@@ -6,8 +6,10 @@ class ImageData<T extends Object> {
       fullImageGetter?.call() ?? Future.value(thumbnail);
   late final Future<Image?> Function()? fullImageGetter;
   final T id;
+  final String? name;
   ImageData(
     this.thumbnail, {
     required this.id,
+    this.name,
   });
 }

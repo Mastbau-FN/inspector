@@ -495,7 +495,8 @@ class Remote {
             Image(
                 image: NetworkImage("$_baseurl/get/compressed/$hash",
                     headers: {HttpHeaders.authorizationHeader: _api_key})),
-            id: hash);
+            id: hash,
+            name: _stripImageExtension(hash.split('/').last));
       final res = _res.forceRes();
       if (res == null || res.statusCode ~/ 100 != 2)
         return null;
@@ -505,9 +506,11 @@ class Remote {
           final filename = _extractBackendFilename(res.headers);
 
           String storedName;
+          String? displayName;
           if (!isPathHash && filename != null && filename.isNotEmpty) {
             final base = compressed ? 'compressed/$filename' : filename;
             storedName = (scope.isNotEmpty) ? '$scope/$base' : base;
+            displayName = _stripImageExtension(filename);
             await API().local.storeImage(res.bodyBytes, storedName);
             await OP.indexImageHash(
               hash: hash,
@@ -518,12 +521,15 @@ class Remote {
           } else {
             final name = compressed ? OP.convertToCompressedHashName(hash) : hash;
             storedName = (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
+            // fall back to hash-derived name (best-effort)
+            displayName = _stripImageExtension(storedName.split('/').last);
             await API().local.storeImage(res.bodyBytes, storedName);
           }
           return ImageData(
             (await API().local.readImage(storedName,
                 cacheSize: compressed ? CACHESIZE : null))!,
             id: hash,
+            name: displayName,
           );
         } catch (e) {
           debugPrint("failed to load webimg: " + e.toString());
@@ -564,6 +570,32 @@ class Remote {
             .firstMatch(cd)
             ?.group(1);
     return filename?.trim();
+  }
+
+  String _stripImageExtension(String name) {
+    var n = name.trim();
+    if (n.isEmpty) return n;
+    // remove common suffixes produced by our storage variants
+    const suffixes = [
+      '.maybe.jpg',
+      '.img',
+      '.jpeg',
+      '.jpg',
+      '.webp',
+      '.heic',
+      '.png',
+    ];
+    for (final s in suffixes) {
+      if (n.toLowerCase().endsWith(s)) {
+        return n.substring(0, n.length - s.length);
+      }
+    }
+    // generic fallback: remove last extension if it looks like one
+    final dot = n.lastIndexOf('.');
+    if (dot > 0 && dot > n.length - 8) {
+      return n.substring(0, dot);
+    }
+    return n;
   }
 
   Future<DataT?> Function(Map<String, dynamic>)

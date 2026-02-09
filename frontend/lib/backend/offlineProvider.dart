@@ -70,6 +70,13 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   try {
     var file = await localFile(name);
     await file.parent.create(recursive: true);
+    // Avoid rewriting already valid cached files (prevents duplicate "Stored image at ..."
+    // logs and reduces UI-triggered redundant writes).
+    if (file.existsSync()) {
+      try {
+        if (file.lengthSync() >= 5) return file;
+      } catch (_) {}
+    }
     // if (kIsWeb) {
     //TODO: support storing images/file in indexedDb or something for web
     // } else
@@ -231,13 +238,23 @@ Future<void> indexImageHash({
   required bool compressed,
   String? scope,
 }) async {
-  final id = _imageIndexDocId(hash, compressed: compressed, scope: scope);
-  await imageIndexCollection.doc(id).set({
+  final payload = {
     'hash': hash,
     'storedName': storedName,
     'compressed': compressed,
     'scope': scope ?? '',
     'ts': DateTime.now().millisecondsSinceEpoch,
+  };
+
+  // scoped entry
+  final id = _imageIndexDocId(hash, compressed: compressed, scope: scope);
+  await imageIndexCollection.doc(id).set(payload);
+
+  // global entry (scope-agnostic fallback)
+  final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
+  await imageIndexCollection.doc(globalId).set({
+    ...payload,
+    'scope': '',
   });
 }
 

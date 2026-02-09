@@ -31,9 +31,9 @@ String _scopeForData(Data? data, {Data? caller}) {
   } catch (_) {}
 
   String inspection = data.id;
-  String seg2 = 'undefined';
-  String seg3 = 'undefined';
-  String seg4 = 'undefined';
+  String seg2 = 'null';
+  String seg3 = 'null';
+  String seg4 = 'null';
 
   if (data is CheckPointDefect) {
     inspection = data.pjNr.toString();
@@ -44,7 +44,7 @@ String _scopeForData(Data? data, {Data? caller}) {
     inspection = data.pjNr.toString();
     seg2 = data.category_index.toString();
     seg3 = data.index.toString();
-    seg4 = data.e3?.toString() ?? 'undefined';
+    seg4 = data.e3?.toString() ?? 'null';
   } else if (data is InspectionLocation) {
     inspection = data.pjNr.toString();
   } else if (caller is InspectionLocation) {
@@ -180,6 +180,37 @@ class LocalMirror {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
 
+    String displayNameFromStored(String storedName) {
+      var base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
+      // hide "compressed/" folder artifacts
+      if (base == 'compressed' && storedName.contains('/')) {
+        base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
+      }
+      // strip prefixes
+      if (base.startsWith(LOCALLY_ADDED_PREFIX)) {
+        base = base.substring(LOCALLY_ADDED_PREFIX.length);
+      }
+      // strip common extensions
+      final lower = base.toLowerCase();
+      const suffixes = [
+        '.maybe.jpg',
+        '.img',
+        '.jpeg',
+        '.jpg',
+        '.webp',
+        '.heic',
+        '.png',
+      ];
+      for (final s in suffixes) {
+        if (lower.endsWith(s)) {
+          return base.substring(0, base.length - s.length);
+        }
+      }
+      final dot = base.lastIndexOf('.');
+      if (dot > 0 && dot > base.length - 8) return base.substring(0, dot);
+      return base;
+    }
+
     // Prefer the backend filename-based cache if present.
     if (!isPath) {
       try {
@@ -191,7 +222,8 @@ class LocalMirror {
         if (indexed != null && indexed.isNotEmpty) {
           final img =
               await readImage(indexed, cacheSize: compressed ? CACHESIZE : null);
-          if (img != null) return ImageData(img, id: hash);
+          if (img != null)
+            return ImageData(img, id: hash, name: displayNameFromStored(indexed));
         }
       } catch (_) {}
     }
@@ -211,7 +243,7 @@ class LocalMirror {
     for (final name in candidates) {
       final img =
           await readImage(name, cacheSize: compressed ? CACHESIZE : null);
-      if (img != null) return ImageData(img, id: hash);
+      if (img != null) return ImageData(img, id: hash, name: displayNameFromStored(name));
     }
     throw Exception("no img cached");
   }
