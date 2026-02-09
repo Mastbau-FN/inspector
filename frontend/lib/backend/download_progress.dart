@@ -5,12 +5,16 @@ class DownloadProgressState {
   final int doneTasks;
   final String currentLabel;
   final double fraction; // monotonic [0..1]
+  final int stepIndex; // 1-based
+  final int stepCount;
 
   const DownloadProgressState({
     required this.totalTasks,
     required this.doneTasks,
     required this.currentLabel,
     required this.fraction,
+    required this.stepIndex,
+    required this.stepCount,
   });
 
   int get percent => (fraction * 100).clamp(0, 100).round();
@@ -18,44 +22,72 @@ class DownloadProgressState {
 
 class DownloadTaskToken {
   final int id;
-  const DownloadTaskToken(this.id);
+  final int step;
+  const DownloadTaskToken(this.id, this.step);
 }
 
 class DownloadProgressSession {
   final ValueNotifier<DownloadProgressState> notifier;
 
   int _nextId = 1;
-  int _total = 0;
-  int _done = 0;
+  final int _stepCount;
+  int _currentStep = 0;
+  final Map<int, int> _totalByStep = <int, int>{};
+  final Map<int, int> _doneByStep = <int, int>{};
+  final Set<int> _finishedSteps = <int>{};
   bool _finished = false;
   final Map<String, DownloadTaskToken> _reservedByKey =
       <String, DownloadTaskToken>{};
   final Set<int> _completedTaskIds = <int>{};
 
-  DownloadProgressSession({String initialLabel = ''})
-      : notifier = ValueNotifier<DownloadProgressState>(
+  DownloadProgressSession({String initialLabel = '', int stepCount = 3})
+      : _stepCount = stepCount,
+        notifier = ValueNotifier<DownloadProgressState>(
           DownloadProgressState(
             totalTasks: 0,
             doneTasks: 0,
             currentLabel: initialLabel,
             fraction: 0.0,
+            stepIndex: 0,
+            stepCount: stepCount,
           ),
         );
 
-  DownloadTaskToken reserveTask(String key, {String label = ''}) {
+  void setStep(int stepIndex, {String? label}) {
+    final next = stepIndex.clamp(0, _stepCount);
+    if (next > _currentStep) {
+      for (int s = _currentStep; s < next; s++) {
+        _finishedSteps.add(s);
+      }
+    }
+    _currentStep = next;
+    _emit(currentLabel: label);
+  }
+
+  DownloadTaskToken reserveTask(
+    String key, {
+    required int step,
+    String label = '',
+  }) {
     final existing = _reservedByKey[key];
     if (existing != null) {
       if (label.isNotEmpty) _emit(currentLabel: label);
       return existing;
     }
-    _total += 1;
-    final token = DownloadTaskToken(_nextId++);
+    final stepIndex = step.clamp(0, _stepCount);
+    _totalByStep[stepIndex] = (_totalByStep[stepIndex] ?? 0) + 1;
+    final token = DownloadTaskToken(_nextId++, stepIndex);
     _reservedByKey[key] = token;
     _emit(currentLabel: label);
     return token;
   }
 
-  DownloadTaskToken beginTask(String label, {String? key}) {
+  DownloadTaskToken beginTask(
+    String label, {
+    String? key,
+    required int step,
+  }) {
+    final stepIndex = step.clamp(0, _stepCount);
     if (key != null) {
       final reserved = _reservedByKey[key];
       if (reserved != null) {
@@ -64,32 +96,42 @@ class DownloadProgressSession {
       }
     }
 
-    _total += 1;
+    _totalByStep[stepIndex] = (_totalByStep[stepIndex] ?? 0) + 1;
     _emit(currentLabel: label);
-    return DownloadTaskToken(_nextId++);
+    return DownloadTaskToken(_nextId++, stepIndex);
   }
 
   void endTask(DownloadTaskToken token, {required bool success}) {
     if (!_completedTaskIds.add(token.id)) return;
-    _done = (_done + 1).clamp(0, _total);
+    final stepIndex = token.step.clamp(0, _stepCount);
+    _doneByStep[stepIndex] = (_doneByStep[stepIndex] ?? 0) + 1;
     _emit();
   }
 
   void markFinished() {
     _finished = true;
+    for (int s = 0; s <= _stepCount; s++) {
+      _finishedSteps.add(s);
+    }
     _emit();
   }
 
   void _emit({String? currentLabel}) {
-    final denom = _finished
-        ? (_total == 0 ? 1 : _total)
-        : (_total > (_done + 1) ? _total : (_done + 1));
-    final raw = denom == 0 ? 0.0 : (_done / denom);
+    final total = _totalByStep[_currentStep] ?? 0;
+    final done = _doneByStep[_currentStep] ?? 0;
+    final isStepFinished = _finishedSteps.contains(_currentStep) || _finished;
+
+    final denom = isStepFinished
+        ? (total == 0 ? 1 : total)
+        : (total > (done + 1) ? total : (done + 1));
+    final raw = denom == 0 ? 0.0 : (done / denom);
     notifier.value = DownloadProgressState(
-      totalTasks: _total,
-      doneTasks: _done,
+      totalTasks: total,
+      doneTasks: done,
       currentLabel: currentLabel ?? notifier.value.currentLabel,
       fraction: raw.clamp(0.0, 1.0),
+      stepIndex: _currentStep,
+      stepCount: _stepCount,
     );
   }
 

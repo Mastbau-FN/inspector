@@ -1143,7 +1143,11 @@ class FailedRequestmanager {
         } catch (_) {}
         if (!cached) {
           final key = '/image/get|$hash|c=$compressedThumbs';
-          progressSession.reserveTask(key, label: 'image/get');
+          progressSession.reserveTask(
+            key,
+            step: 3,
+            label: 'Step 3/3: Images',
+          );
         }
       }
     }

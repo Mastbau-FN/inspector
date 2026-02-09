@@ -366,23 +366,39 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
           return IconButton(
             onPressed: null,
             icon: SizedBox(
-              width: 28,
-              height: 28,
-              child: Stack(
-                alignment: Alignment.center,
+              width: 92,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(
-                    strokeWidth: 3,
-                    value: state.fraction,
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      value: state.fraction,
+                    ),
                   ),
-                  Text(
-                    '${state.percent}%',
-                    style: const TextStyle(fontSize: 10),
+                  const SizedBox(width: 6),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Step ${state.stepIndex}/${state.stepCount}',
+                        style: const TextStyle(fontSize: 9),
+                      ),
+                      Text(
+                        '${state.percent}%',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            tooltip: state.currentLabel.isEmpty ? null : state.currentLabel,
+            tooltip: state.currentLabel.isEmpty
+                ? 'Step ${state.stepIndex}/${state.stepCount}'
+                : state.currentLabel,
           );
         },
       );

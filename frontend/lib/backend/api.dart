@@ -129,6 +129,29 @@ class API {
                 await Future.delayed(Duration(milliseconds: 100));
                 final session = DownloadProgress.instance.active;
                 String? key;
+                final currentStep = session?.notifier.value.stepIndex ?? 0;
+                int step = currentStep;
+                String? stepLabel;
+                try {
+                  final r = rap.rd.route;
+                  if (r.contains('checkcategory') || r.contains('checkpoint')) {
+                    step = 1;
+                    stepLabel = 'Step 1/3: Checkpoints';
+                  } else if (r.contains('defect')) {
+                    step = 2;
+                    stepLabel = 'Step 2/3: Defects';
+                  } else if (r.contains('/image/get') || r.contains('/doc/get')) {
+                    // If image downloads start before we fetched any checkpoints/defects,
+                    // treat them as a pre-step "0/3" to make the UX clearer.
+                    if (currentStep == 0) {
+                      step = 0;
+                      stepLabel = 'Step 0/3: Inspection images';
+                    } else {
+                      step = 3;
+                      stepLabel = 'Step 3/3: Images';
+                    }
+                  }
+                } catch (_) {}
                 try {
                   if (rap.rd.route == '/image/get') {
                     final hash = rap.rd.json?['hash']?.toString();
@@ -144,7 +167,14 @@ class API {
                   }
                 } catch (_) {}
 
-                final token = session?.beginTask(rap.rd.route, key: key);
+                if (stepLabel != null) {
+                  session?.setStep(step, label: stepLabel);
+                }
+                final token = session?.beginTask(
+                  rap.rd.route,
+                  key: key,
+                  step: step,
+                );
                 try {
                   final res = await remote.postJSON(rap.rd);
                   onlineRes = await rap.parser(res as R);
