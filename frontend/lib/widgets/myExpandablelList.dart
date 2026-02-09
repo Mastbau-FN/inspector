@@ -106,7 +106,7 @@ class ExpandableCard2 extends ExpandablesRadio {
               child: FutureBuilder<ImageData?>(
                   future: previewImg,
                   builder: (context, snapshot) {
-                    var imagep = snapshot.data?.thumbnail.image;
+                    var imagep = snapshot.data?.image.image;
                     return (imagep != null
                             ? Image(image: imagep, fit: BoxFit.fill)
                             : null) ??

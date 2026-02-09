@@ -152,12 +152,12 @@ class FullImg extends StatelessWidget {
           }
           return (snapshot.data != null)
               ? _safe(snapshot.data!)
-              : (item.image?.thumbnail != null)
-                  ? _safe(item.image!.thumbnail)
+              : (item.image?.image != null)
+                  ? _safe(item.image!.image)
                   : Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (item.image != null) _safe(item.image!.thumbnail),
+                        if (item.image != null) _safe(item.image!.image),
                         const LoadingView(),
                       ],
                     );

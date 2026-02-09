@@ -5,7 +5,7 @@ const api_wall = (req, res, next) => {
   if (!req.headers.authorization) {
     return res.status(401).json({ error: "No auth header given" });
   }
-  if (!(req.headers.authorization == process.env.API_KEY_OLD || req.headers.authorization == process.env.API_KEY)) { //TODO: remove old key
+  if (!(req.headers.authorization == process.env.API_KEY)) {
     console.log("tried auth", req.headers.authorization);
     return res.status(403).json({ error: "NOT AUTHORIZED" });
   }
@@ -13,10 +13,8 @@ const api_wall = (req, res, next) => {
 };
 
 const login_wall = async (req, res, next) => {
-  const loginFreePaths = [/get\/compressed/];
-  //if any regex in loginFreePath matches, skip
-  // console.log(req.path, /get\/compressed/.test(req.path))
-  if (loginFreePaths.some(regex => regex.test(req.path))) return next();
+  // Allow image GETs (used by web/NetworkImage) without a login payload.
+  if (/^\/get\//.test(req.path)) return next();
 
   try {
     let user = await db.getValidUser(req.body.user);
@@ -33,4 +31,3 @@ module.exports = {
   api_wall,
   login_wall,
 };
-

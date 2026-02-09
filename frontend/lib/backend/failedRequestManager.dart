@@ -11,7 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
-import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OfflineProvider;
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart'
+    as OfflineProvider;
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
@@ -328,11 +329,11 @@ Future<void> _deleteFilesForData(WithImgHashes data) async {
 }
 
 Future<void> _deleteDefectsForCheckpoint(CheckPoint checkpoint) async {
-  final defects =
-      (await OfflineProvider.getAllChildrenFrom<CheckPointDefect>(checkpoint.id))
-              ?.whereType<CheckPointDefect>()
-              .toList() ??
-          [];
+  final defects = (await OfflineProvider.getAllChildrenFrom<CheckPointDefect>(
+              checkpoint.id))
+          ?.whereType<CheckPointDefect>()
+          .toList() ??
+      [];
 
   for (final defect in defects) {
     await _deleteFilesForData(defect);
@@ -389,9 +390,8 @@ Future<void> _deleteInspectionLocally(
 
 Future<List<InspectionLocation>> _fetchRemoteInspectionsForCleanup() async {
   try {
-    final rap = API()
-        .remote
-        .getNextDatapoint<InspectionLocation, WithOffline?>(null);
+    final rap =
+        API().remote.getNextDatapoint<InspectionLocation, WithOffline?>(null);
     final response = await API().remote.postJSON(rap.rd);
 
     if (response is http.StreamedResponse) {
@@ -412,9 +412,9 @@ Future<void> _pruneLocalInspections() async {
   try {
     final remoteInspections = await _fetchRemoteInspectionsForCleanup();
     final remoteIds = remoteInspections.map((insp) => insp.id).toSet();
-    final localInspections =
-        await API().local.getNextDatapoint<InspectionLocation, WithOffline?>(
-            null);
+    final localInspections = await API()
+        .local
+        .getNextDatapoint<InspectionLocation, WithOffline?>(null);
     final rootId = await API().rootID;
 
     for (final inspection in localInspections) {
@@ -589,6 +589,11 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       // Maps for this inspection to replace local placeholders with backend identifiers.
       final localIdMap = <String, String>{};
       final imageHashMap = <String, String>{};
+      try {
+        final stored = await OfflineProvider.getSyncMaps(inspId);
+        localIdMap.addAll(stored.localIdMap);
+        imageHashMap.addAll(stored.imageHashMap);
+      } catch (_) {}
 
       String? pjNr;
       try {
@@ -722,17 +727,24 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                 try {
                   if (rd.route == '/set') {
                     final decoded = json.decode(res.body);
-                    final qr = (decoded is Map) ? decoded['query_result'] : null;
+                    final qr =
+                        (decoded is Map) ? decoded['query_result'] : null;
                     if (qr is Map) {
                       final newLocalId = qr['local_id']?.toString();
                       final dataField = rd.json?['data'];
                       String? oldLocalId;
+                      String? parentLocalId;
                       if (dataField is Map) {
                         oldLocalId = dataField['local_id']?.toString();
+                        parentLocalId =
+                            dataField['parent_local_id']?.toString();
                       } else if (dataField is String) {
                         try {
                           final dm = json.decode(dataField);
-                          if (dm is Map) oldLocalId = dm['local_id']?.toString();
+                          if (dm is Map) {
+                            oldLocalId = dm['local_id']?.toString();
+                            parentLocalId = dm['parent_local_id']?.toString();
+                          }
                         } catch (_) {}
                       }
                       if (oldLocalId != null &&
@@ -741,6 +753,20 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                           newLocalId.isNotEmpty &&
                           oldLocalId != newLocalId) {
                         localIdMap[oldLocalId] = newLocalId;
+                        try {
+                          await OfflineProvider.applyLocalIdMapping(
+                            oldLocalId: oldLocalId,
+                            newLocalId: newLocalId,
+                            parentLocalId: parentLocalId,
+                          );
+                        } catch (_) {}
+                        try {
+                          await OfflineProvider.storeSyncMaps(
+                            inspId,
+                            localIdMap: localIdMap,
+                            imageHashMap: imageHashMap,
+                          );
+                        } catch (_) {}
                       }
                     }
                   } else if (rd.route == '/image/set') {
@@ -760,6 +786,13 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                           }
                         }
                       }
+                      try {
+                        await OfflineProvider.storeSyncMaps(
+                          inspId,
+                          localIdMap: localIdMap,
+                          imageHashMap: imageHashMap,
+                        );
+                      } catch (_) {}
                     }
                   }
                 } catch (_) {}
@@ -1061,7 +1094,8 @@ class FailedRequestmanager {
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
     debugPrint('getGroupedFailedRequests: Starte...');
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    debugPrint('getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
+    debugPrint(
+        'getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
 
     Map<String, Map<String, dynamic>> groupedRequests = {};
 
@@ -1081,7 +1115,8 @@ class FailedRequestmanager {
 
             final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
             final route = requestData.route;
-            final timestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
+            final timestamp =
+                DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
 
             if (!groupedRequests.containsKey(pjNr)) {
               groupedRequests[pjNr] = {
@@ -1123,7 +1158,8 @@ class FailedRequestmanager {
       }
     }
 
-    debugPrint('getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
+    debugPrint(
+        'getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
 
     // Berechne den Fortschritt für jede Inspektion
     for (var pjNr in groupedRequests.keys) {
@@ -1147,7 +1183,8 @@ class FailedRequestmanager {
             ))
         .toList();
 
-    debugPrint('getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
+    debugPrint(
+        'getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
     return result;
   }
 
@@ -1242,7 +1279,6 @@ class FailedRequestmanager {
 
     Future<void> reserveImagesForData(Data data) async {
       if (progressSession == null) return;
-      final compressedThumbs = Options().compactDownload;
 
       final hashes = <String>{};
       if (data.mainhash != null &&
@@ -1257,12 +1293,11 @@ class FailedRequestmanager {
         // Only reserve tasks for images that are not already cached locally.
         bool cached = false;
         try {
-          await API().local.getImageByHash(hash,
-              compressed: compressedThumbs, owner: data);
+          await API().local.getImageByHash(hash, owner: data);
           cached = true;
         } catch (_) {}
         if (!cached) {
-          final key = '/image/get|$hash|c=$compressedThumbs';
+          final key = '/image/get|$hash';
           progressSession.reserveTask(
             key,
             step: 3,
@@ -1279,9 +1314,7 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
-      var children = await caller
-          .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
-          .last;
+      var children = await caller.all(preloadFullImages: true).last;
 
       // Ensure image downloads complete (and errors are absorbed) during manual download.
       for (final child in children) {

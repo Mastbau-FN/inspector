@@ -337,8 +337,6 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           final file = await resolveImageFileByHash(
                             hash.toString(),
                             scope: scope,
-                            compressed: false,
-                            allowCompressedFallback: true,
                           );
 
                           if (file == null) {

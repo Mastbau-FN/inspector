@@ -126,7 +126,7 @@ app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
 app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
-app.get("/api/secure/get/compressed/:hash", api.getFileFromHash_get);
+app.get("/api/secure/get/:hash", api.getFileFromHash_get);
 
 app.post("/api/secure" + _getDocFromPath_r, api.getDocFromPath);
 

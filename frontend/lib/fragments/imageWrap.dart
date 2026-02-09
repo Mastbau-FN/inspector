@@ -130,7 +130,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
   final Function(T) onStar;
   final Function(T) onShare;
 
-  ///expected width of thumbnail to determine resolution
+  ///expected width to determine resolution
   final num approxWidth;
 
   ///which index has the main image ; -1 means none is chosen
@@ -331,18 +331,14 @@ class FittedImageContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       builder: (context, child) => FutureBuilder<Image?>(
-          future: (item.image == null)
-              ? null
-              : ((approxWidth > 100)
-                  ? item.image!.fullImage()
-                  : Future.value(item.image!.thumbnail)),
+          future: item.image?.fullImage(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               SchedulerBinding.instance
                   .addPostFrameCallback((_) => item.markCorrupt());
               return item.fallBackWidget;
             }
-            final img = snapshot.data ?? item.image?.thumbnail;
+            final img = snapshot.data ?? item.image?.image;
             if (img == null) {
               return LoadingView();
             }

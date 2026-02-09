@@ -18,13 +18,12 @@ import 'package:localstore/localstore.dart';
 
 import './helpers.dart' as Helper;
 
-const useOldImgEncoding =
-    false; //TO-DO: reset after partiks incident was solved to false
+const useOldImgEncoding = false;
 
 // MARK: image stuff
 
 Future<String> get localPath async {
-  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/"; //TODO
+  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/";
   return (await getApplicationDocumentsDirectory()).path;
 }
 
@@ -77,9 +76,6 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
         if (file.lengthSync() >= 5) return file;
       } catch (_) {}
     }
-    // if (kIsWeb) {
-    //TODO: support storing images/file in indexedDb or something for web
-    // } else
     file = await file.writeAsBytes(imgBytes); //u good?
     debugPrint('Stored image at ${file.path}');
     return file;
@@ -114,12 +110,8 @@ class NoImagePlaceholderException implements Exception {
       'tried to read the placeholder image, which of course is not there';
 }
 
-String convertToCompressedHashName(String hash) => 'compressed/$hash';
-
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name, {int? cacheSize}) async {
-  //TODO: support reading images/file from indexedDb or something for web
-
   final file = (await localFile(
     name,
   ));
@@ -138,18 +130,13 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
 }
 
 /// Tries to resolve an existing on-disk image file for a given hash/name.
-/// Supports scoped paths (`<scope>/<hash>`), compressed variants, and legacy naming.
+/// Supports scoped paths (`<scope>/<hash>`) and legacy naming.
 Future<File?> resolveImageFileByHash(
   String hash, {
   String? scope,
-  bool compressed = false,
-  bool allowCompressedFallback = true,
 }) async {
   final isPath = hash.contains('/');
   final names = <String>[];
-
-  String baseName(String h, {required bool c}) =>
-      c ? convertToCompressedHashName(h) : h;
 
   void add(String n) {
     if (n.isEmpty) return;
@@ -157,17 +144,9 @@ Future<File?> resolveImageFileByHash(
   }
 
   if (!isPath && scope != null && scope.isNotEmpty) {
-    add('$scope/${baseName(hash, c: compressed)}');
+    add('$scope/$hash');
   }
-  add(baseName(hash, c: compressed));
   add(hash);
-
-  if (!compressed && allowCompressedFallback) {
-    if (!isPath && scope != null && scope.isNotEmpty) {
-      add('$scope/${baseName(hash, c: true)}');
-    }
-    add(baseName(hash, c: true));
-  }
 
   for (final name in names) {
     try {
@@ -179,8 +158,6 @@ Future<File?> resolveImageFileByHash(
 }
 
 Future<File?> readDoc(String name, {int? cacheSize}) async {
-  //TODO: support reading images/file from indexedDb or something for web
-
   final file = (await localFile(name, "jaman"));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
@@ -197,7 +174,6 @@ Future<File?> readDoc(String name, {int? cacheSize}) async {
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
-  //TODO: support web
   final file = (await localFile(name));
   if (!file.existsSync()) throw Exception("file $file doesnt exist");
 
@@ -240,11 +216,10 @@ Future<void> _ensureCollectionDirExists(String collection) async {
 
 String _imageIndexDocId(
   String hash, {
-  required bool compressed,
   String? scope,
 }) {
   final s = (scope ?? '').trim();
-  final key = '${compressed ? 'c' : 'o'}|$s|$hash';
+  final key = '$s|$hash';
   // Localstore doc ids are path-like; keep it filesystem-safe and reasonably short.
   return base64UrlEncode(utf8.encode(key)).replaceAll('=', '');
 }
@@ -252,7 +227,6 @@ String _imageIndexDocId(
 Future<void> indexImageHash({
   required String hash,
   required String storedName,
-  required bool compressed,
   String? scope,
 }) async {
   try {
@@ -261,17 +235,16 @@ Future<void> indexImageHash({
     final payload = {
       'hash': hash,
       'storedName': storedName,
-      'compressed': compressed,
       'scope': scope ?? '',
       'ts': DateTime.now().millisecondsSinceEpoch,
     };
 
     // scoped entry
-    final id = _imageIndexDocId(hash, compressed: compressed, scope: scope);
+    final id = _imageIndexDocId(hash, scope: scope);
     await imageIndexCollection.doc(id).set(payload);
 
     // global entry (scope-agnostic fallback)
-    final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
+    final globalId = _imageIndexDocId(hash, scope: '');
     await imageIndexCollection.doc(globalId).set({
       ...payload,
       'scope': '',
@@ -283,7 +256,6 @@ Future<void> indexImageHash({
 
 Future<String?> lookupImageNameForHash(
   String hash, {
-  required bool compressed,
   String? scope,
 }) async {
   try {
@@ -291,7 +263,7 @@ Future<String?> lookupImageNameForHash(
   } catch (_) {}
 
   Future<String?> tryScope(String? s) async {
-    final scopedId = _imageIndexDocId(hash, compressed: compressed, scope: s);
+    final scopedId = _imageIndexDocId(hash, scope: s);
     final scoped = await imageIndexCollection.doc(scopedId).get();
     final scopedName = scoped?['storedName']?.toString();
     if (scopedName != null && scopedName.isNotEmpty) return scopedName;
@@ -312,7 +284,7 @@ Future<String?> lookupImageNameForHash(
   }
 
   // fallback: global entry (no scope)
-  final globalId = _imageIndexDocId(hash, compressed: compressed, scope: '');
+  final globalId = _imageIndexDocId(hash, scope: '');
   final global = await imageIndexCollection.doc(globalId).get();
   final globalName = global?['storedName']?.toString();
   if (globalName != null && globalName.isNotEmpty) return globalName;
@@ -399,6 +371,137 @@ storeJson(String documentName, Map<String, dynamic> json) =>
 
 Future<Map<String, dynamic>?> getJson(String documentName) =>
     otherCollection.doc(documentName).get();
+
+String _syncMapsDocId(String pjNr) => '__sync_maps__$pjNr';
+
+Future<({Map<String, String> localIdMap, Map<String, String> imageHashMap})>
+    getSyncMaps(String pjNr) async {
+  try {
+    final raw = await getJson(_syncMapsDocId(pjNr));
+    if (raw == null) {
+      return (localIdMap: <String, String>{}, imageHashMap: <String, String>{});
+    }
+    Map<String, String> asStringMap(Object? v) {
+      if (v is Map) {
+        return v.map((k, val) => MapEntry(k.toString(), val.toString()));
+      }
+      return {};
+    }
+
+    return (
+      localIdMap: asStringMap(raw['localIdMap']),
+      imageHashMap: asStringMap(raw['imageHashMap']),
+    );
+  } catch (_) {
+    return (localIdMap: <String, String>{}, imageHashMap: <String, String>{});
+  }
+}
+
+Future<void> storeSyncMaps(
+  String pjNr, {
+  required Map<String, String> localIdMap,
+  required Map<String, String> imageHashMap,
+}) async {
+  try {
+    await storeJson(_syncMapsDocId(pjNr), {
+      'localIdMap': localIdMap,
+      'imageHashMap': imageHashMap,
+      'ts': DateTime.now().millisecondsSinceEpoch,
+    });
+  } catch (_) {}
+}
+
+String _docIdFromKey(String key) => key.split('/').last;
+
+({int pjNr, int? e1, int? e2, int? e3})? _parseNumericLocalId(String? localId) {
+  final s = (localId ?? '').trim();
+  if (s.isEmpty) return null;
+  final parts = s.split('-');
+  int? toInt(String? v) {
+    final t = (v ?? '').trim();
+    if (t.isEmpty || t == 'null' || t == 'undefined') return null;
+    return int.tryParse(t);
+  }
+
+  final pjNr = toInt(parts.isNotEmpty ? parts[0] : null);
+  if (pjNr == null || pjNr <= 0) return null;
+  return (
+    pjNr: pjNr,
+    e1: toInt(parts.length > 1 ? parts[1] : null),
+    e2: toInt(parts.length > 2 ? parts[2] : null),
+    e3: toInt(parts.length > 3 ? parts[3] : null),
+  );
+}
+
+bool _missingEventValue(Object? v) {
+  if (v == null) return true;
+  if (v is num) return !(v > 0);
+  final s = v.toString().trim();
+  if (s.isEmpty || s == 'null' || s == 'undefined') return true;
+  final n = int.tryParse(s);
+  return n == null || n <= 0;
+}
+
+void _fillFromParsedLocalId(
+  Map<String, dynamic> map,
+  ({int pjNr, int? e1, int? e2, int? e3}) parsed,
+) {
+  if (_missingEventValue(map['PjNr'])) map['PjNr'] = parsed.pjNr;
+  if (parsed.e1 != null && _missingEventValue(map['E1'])) map['E1'] = parsed.e1;
+  if (parsed.e2 != null && _missingEventValue(map['E2'])) map['E2'] = parsed.e2;
+  if (parsed.e3 != null && _missingEventValue(map['E3'])) map['E3'] = parsed.e3;
+}
+
+Future<void> applyLocalIdMapping({
+  required String oldLocalId,
+  required String newLocalId,
+  String? parentLocalId,
+}) async {
+  if (oldLocalId == newLocalId) return;
+  final parent = (parentLocalId ?? '').trim();
+
+  try {
+    // 1) Move the document itself inside its parent collection.
+    if (parent.isNotEmpty) {
+      final oldDoc = await db.collection(parent).doc(oldLocalId).get();
+      if (oldDoc != null) {
+        final map = Map<String, dynamic>.from(oldDoc);
+        map['local_id'] = newLocalId;
+        map['parent_local_id'] = parent;
+        final parsed = _parseNumericLocalId(newLocalId);
+        if (parsed != null) {
+          _fillFromParsedLocalId(map, parsed);
+        }
+        await db.collection(parent).doc(newLocalId).set(map);
+        await db.collection(parent).doc(oldLocalId).delete();
+      }
+    }
+  } catch (_) {}
+
+  try {
+    // 2) Move the children collection (collection name == parent local_id).
+    final children = await db.collection(oldLocalId).get();
+    if (children != null) {
+      final parsedParent = _parseNumericLocalId(newLocalId);
+      for (final entry in children.entries) {
+        final docId = _docIdFromKey(entry.key);
+        final raw = entry.value;
+        if (raw is! Map) continue;
+        final map = Map<String, dynamic>.from(raw);
+        map['local_id'] = docId;
+        final plid = map['parent_local_id']?.toString();
+        if (plid == null || plid.isEmpty || plid == oldLocalId) {
+          map['parent_local_id'] = newLocalId;
+        }
+        if (parsedParent != null) {
+          _fillFromParsedLocalId(map, parsedParent);
+        }
+        await db.collection(newLocalId).doc(docId).set(map);
+        await db.collection(oldLocalId).doc(docId).delete();
+      }
+    }
+  } catch (_) {}
+}
 
 const FAILEDCOLLECTION = 'failed-requests';
 const SKIPPEDCOLLECTION = 'skipped-requests';

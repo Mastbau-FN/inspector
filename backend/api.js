@@ -223,19 +223,29 @@ const setMainImgByHash = async (req, res, next) => {
   await update(req, res, next);
 };
 
+function guessImageContentType(filename) {
+  const name = (filename ?? '').toLowerCase();
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (name.endsWith('.gif')) return 'image/gif';
+  if (name.endsWith('.bmp')) return 'image/bmp';
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+  if (name.endsWith('.heic') || name.endsWith('.heif')) return 'image/heic';
+  return 'application/octet-stream';
+}
+
 /**
  * retrieves the file given by a hash and returns it to the client
  */
 const getFileFromHash = async (req, res) => {
   try {
     const hash = req.body.hash;
-    const compressed = req.body.compressed;
     const pathparts = imghasher.getPathFromHash(hash) ?? {};
     const filename = pathparts.filename;
 
-    let img = await imghasher.getFileFromHash(hash, compressed);
+    let img = await imghasher.getFileFromHash(hash);
     res.writeHead(200, {
-      "Content-type": compressed ? "image/webp" : "image/jpg",
+      "Content-type": guessImageContentType(filename),
       ...(filename ? { "x-image-filename": filename } : {}),
     });
     res.end(img);
@@ -265,14 +275,9 @@ const getFileFromHash_get = async (req, res) => {
     const hash = req.params.hash;
     const pathparts = imghasher.getPathFromHash(hash) ?? {};
     const filename = pathparts.filename;
-    let img/*;
-    try {
-      img*/ = await imghasher.getFileFromHash(req.params.hash, true); //serve compressed images only
-    // } catch (e) {
-    //   img = await imghasher.getFileFromHash(req.params.hash, false); //fallback to non-compressed
-    // }
+    let img = await imghasher.getFileFromHash(hash);
     res.writeHead(200, {
-      "Content-type": "image/webp",
+      "Content-type": guessImageContentType(filename),
       ...(filename ? { "x-image-filename": filename } : {}),
     });
     res.end(img);

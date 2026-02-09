@@ -158,9 +158,8 @@ class API {
                 try {
                   if (rap.rd.route == '/image/get') {
                     final hash = rap.rd.json?['hash']?.toString();
-                    final compressed = rap.rd.json?['compressed'] == true;
                     if (hash != null && hash.isNotEmpty) {
-                      key = '${rap.rd.route}|$hash|c=$compressed';
+                      key = '${rap.rd.route}|$hash';
                     }
                   } else if (rap.rd.route == '/doc/get') {
                     final docPath = rap.rd.json?['docPath']?.toString();
@@ -466,8 +465,7 @@ class API {
           await local.storeData(
             childData,
             forId: data?.id ?? await API().rootID,
-            //TODO: uncomment this as soon as offline can mirror everything well #211
-            // overrideMode: OverrideMode.abortIfExistent,
+            
           );
         }
       },
@@ -553,15 +551,14 @@ class API {
   }
 
   /// gets image specified by its hash
-  Future<ImageData?> getImageByHash(String hash,
-      {bool compressed = false, Data? owner}) async {
+  Future<ImageData?> getImageByHash(String hash, {Data? owner}) async {
     // Scoped/local hashes (with folders or local prefix) must not trigger remote fetches
     final isLocalScoped =
         hash.contains('/') || hash.startsWith(LOCALLY_ADDED_PREFIX);
 
     // Always prefer local cache first; if present, never hit network.
     try {
-      return await local.getImageByHash(hash, compressed: compressed, owner: owner);
+      return await local.getImageByHash(hash, owner: owner);
     } catch (_) {
       // not cached locally (or unreadable) -> continue
     }
@@ -571,15 +568,14 @@ class API {
 
     // Deduplicate in-flight downloads for the same hash to prevent repeated
     // downloads on rebuild/opening views.
-    final key = '${compressed ? 1 : 0}|$hash';
+    final key = hash;
     final existing = _inflightImageFetches[key];
     if (existing != null) return await existing;
 
     Future<ImageData?> fetch() async {
       try {
         await tryNetwork(requestType: Helper.SimulatedRequestType.GET);
-        final rap =
-            remote.getImageByHash(hash, compressed: compressed, owner: owner);
+        final rap = remote.getImageByHash(hash, owner: owner);
         final res = await remote.postJSON(rap.rd);
         if (res == null) return null;
         final parsed = await rap.parser(res);
@@ -587,11 +583,7 @@ class API {
       } catch (_) {}
       // last-chance local read (in case another concurrent fetch stored it)
       try {
-        return await local.getImageByHash(
-          hash,
-          compressed: compressed,
-          owner: owner,
-        );
+        return await local.getImageByHash(hash, owner: owner);
       } catch (_) {
         return null;
       }
@@ -865,36 +857,12 @@ class API {
 }
 
 D injectImages<D extends Data>(D data, {bool preloadFull = false}) {
-  final useCompressedThumbs = Options().compactDownload;
-
   Future<ImageData?> getImgDataFromHash(String? hash) {
     if (hash == null) return Future.value(null);
 
-    Future<ImageData?> safeFetch({required bool compressed}) {
-      return API()
-          .getImageByHash(hash, compressed: compressed, owner: data)
-          .catchError((e, st) {
-        debugPrint('getImageByHash failed ($hash): $e');
-        return null;
-      });
-    }
-
-    final thumbFuture = safeFetch(compressed: useCompressedThumbs);
-
-    // If thumbnails are compressed, allow fetching full-res on demand.
-    return thumbFuture.then((value) {
-      if (value == null) return null;
-      if (useCompressedThumbs) {
-        value.fullImageGetter = () => safeFetch(compressed: false)
-            .then((full) => full?.thumbnail)
-            .catchError((e, st) {
-          debugPrint('fullImageGetter failed ($hash): $e');
-          return null;
-        });
-      } else {
-        value.fullImageGetter = () => Future.value(value.thumbnail);
-      }
-      return value;
+    return API().getImageByHash(hash, owner: data).catchError((e, st) {
+      debugPrint('getImageByHash failed ($hash): $e');
+      return null;
     });
   }
 

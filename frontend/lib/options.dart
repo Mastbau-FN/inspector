@@ -20,9 +20,6 @@ class Options {
   var useMobileNetworkForDownload = true;
   //
 
-  bool get preloadFullImagesOnManualDownload => !compactDownload;
-  bool compactDownload = false;
-
   var no_image_placeholder_name = "no_default_picture_yet";
 
   var useSystemTheme = false;
@@ -64,12 +61,6 @@ class Options {
         S.current!.option_usesystemtheme: (
           () => useSystemTheme,
           (bool value) => useSystemTheme = value
-        ),
-        S.current!.option_compactDownload: (
-          () => compactDownload,
-          (bool value) {
-            compactDownload = value;
-          }
         ),
         'debugMode': (() => _debugMode, (bool v) => _debugMode = v),
         'backupBeforeSync': (

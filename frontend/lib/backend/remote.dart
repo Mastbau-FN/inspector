@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
@@ -473,7 +472,7 @@ class Remote {
 
   //final _imageStreamController = BehaviorSubject<String>();
   RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
-      {bool compressed = false, Data? owner}) {
+      {Data? owner}) {
     final isPathHash = hash.contains('/');
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
@@ -481,7 +480,6 @@ class Remote {
           _getImageFromHash_r,
           json: {
             'hash': hash,
-            'compressed': compressed,
           },
           returnsBinary: true,
         )
@@ -491,7 +489,7 @@ class Remote {
       if (kIsWeb)
         return ImageData(
             Image(
-                image: NetworkImage("$_baseurl/get/compressed/$hash",
+                image: NetworkImage("$_baseurl/get/$hash",
                     headers: {HttpHeaders.authorizationHeader: _api_key})),
             id: hash,
             name: _stripImageExtension(hash.split('/').last));
@@ -506,26 +504,25 @@ class Remote {
           String storedName;
           String? displayName;
           if (!isPathHash && filename != null && filename.isNotEmpty) {
-            final base = compressed ? 'compressed/$filename' : filename;
+            final base = filename;
             storedName = (scope.isNotEmpty) ? '$scope/$base' : base;
             displayName = _stripImageExtension(filename);
             await API().local.storeImage(res.bodyBytes, storedName);
             await OP.indexImageHash(
               hash: hash,
               storedName: storedName,
-              compressed: compressed,
               scope: scope,
             );
           } else {
-            final name = compressed ? OP.convertToCompressedHashName(hash) : hash;
-            storedName = (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
+            storedName =
+                (!isPathHash && scope.isNotEmpty) ? '$scope/$hash' : hash;
             // fall back to hash-derived name (best-effort)
             displayName = _stripImageExtension(storedName.split('/').last);
             await API().local.storeImage(res.bodyBytes, storedName);
           }
           return ImageData(
             (await API().local.readImage(storedName,
-                cacheSize: compressed ? CACHESIZE : null))!,
+                cacheSize: null))!,
             id: hash,
             name: displayName,
           );

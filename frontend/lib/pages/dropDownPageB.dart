@@ -70,142 +70,120 @@ class DropDownPageB<
           // expandedHeight: _appbarHeightBig,
           contentBuilder:
               (context, expandRatio, contentHeight, overlapsContent, isPinned) {
-            return FutureBuilder(
+            return FutureBuilder<ImageData?>(
               future: ddmodel.currentData?.previewImage,
               builder: (context, snapshot) {
-                final img = snapshot.data?.thumbnail
-                    .image; //todo show as bg (and switch to fullsize when loaded)
-                return FutureBuilder(
-                    future: snapshot.data?.fullImageGetter?.call(),
-                    builder: (context, fullImageSnapshot) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            if (img != null)
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                                offset: Offset(0, 5),
-                              ),
-                          ],
+                final img = snapshot.data?.image.image;
+                return Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      if (img != null)
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                          offset: Offset(0, 5),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(25 * expandRatio),
-                            bottomRight: Radius.circular(25 * expandRatio),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(25 * expandRatio),
+                      bottomRight: Radius.circular(25 * expandRatio),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // background image
+                        if (img != null)
+                          Positioned.fill(
+                            child: Blur(
+                              blurColor: Colors.transparent,
+                              child: Positioned.fill(
+                                child: Hero(
+                                  tag: ddmodel.title +
+                                      ".image" +
+                                      ddmodel.currentData.runtimeType.toString(),
+                                  child: Image(
+                                    image: img,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              //background image
-                              if (img != null)
-                                Positioned.fill(
-                                  child: fullImageSnapshot.data != null
-                                      ? Image(
-                                          image: fullImageSnapshot.data!.image,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Blur(
-                                          blurColor: Colors.transparent,
-                                          child: Positioned.fill(
-                                            child: Hero(
-                                              tag: ddmodel.title +
-                                                  ".image" +
-                                                  ddmodel
-                                                      .currentData.runtimeType
-                                                      .toString(),
-                                              child: Image(
-                                                image: img,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
+                        // title
+                        Container(
+                          alignment: Alignment.center,
+                          height: contentHeight,
+                          padding: EdgeInsets.only(
+                            left: 10 + (1 - expandRatio) * 40,
+                            right: 10 + (1 - expandRatio) * 40,
+                            bottom: 10,
+                            top: 10 + (expandRatio) * _appbarBarHeight,
+                          ),
+                          child: SafeArea(
+                            child: AnimatedContainer(
+                              height: expandRatio > _appbarExpansionSwitchValue
+                                  ? _appbarHeightBig
+                                  : _appbarHeightSmall,
+                              alignment: Alignment.center,
+                              curve: Curves.fastOutSlowIn,
+                              duration: const Duration(milliseconds: 200),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Container(
+                                  decoration: img == null
+                                      ? null
+                                      : BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(27),
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 2,
                                           ),
                                         ),
-                                ),
-                              //title
-                              Container(
-                                alignment: Alignment.center,
-                                height: contentHeight,
-                                padding: EdgeInsets.only(
-                                  left: 10 + (1 - expandRatio) * 40,
-                                  right: 10 + (1 - expandRatio) * 40,
-                                  bottom: 10,
-                                  top: 10 + (expandRatio) * _appbarBarHeight,
-                                ),
-                                child: SafeArea(
-                                  child: AnimatedContainer(
-                                    // padding: EdgeInsets.only(top: _appbarBarHeight),
-                                    height: expandRatio >
-                                            _appbarExpansionSwitchValue
-                                        ? _appbarHeightBig
-                                        : _appbarHeightSmall,
-                                    // color: Colors.amber,
-                                    alignment: Alignment.center,
-                                    curve: Curves.fastOutSlowIn,
-                                    duration: const Duration(milliseconds: 200),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
-                                      child: Container(
-                                        decoration: img == null
-                                            ? null
-                                            : BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(27),
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 2,
-                                                ),
-                                              ),
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                          child: Container(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .surface
-                                                .withValues(alpha: 0.5),
-                                            // alignment: Alignment.center,
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 25,
-                                              vertical: 10 * expandRatio,
-                                            ),
-                                            //blur background
-
-                                            child: BackdropFilter(
-                                              filter: ImageFilter.blur(
-                                                sigmaX: 5,
-                                                sigmaY: 5,
-                                              ),
-                                              child: Hero(
-                                                tag: ddmodel.title +
-                                                    ".title.text" +
-                                                    ddmodel
-                                                        .currentData.runtimeType
-                                                        .toString() +
-                                                    'disabled', //FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
-                                                child: Text(
-                                                  ddmodel.title,
-                                                  overflow: expandRatio >
-                                                          _appbarExpansionSwitchValue
-                                                      ? null
-                                                      : TextOverflow.ellipsis,
-                                                  softWrap: true,
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontSize: Theme.of(context)
-                                                            .textTheme
-                                                            .headlineMedium
-                                                            ?.fontSize +
-                                                        expandRatio * 5,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(25),
+                                    child: Container(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surface
+                                          .withValues(alpha: 0.5),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 25,
+                                        vertical: 10 * expandRatio,
+                                      ),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 5,
+                                          sigmaY: 5,
+                                        ),
+                                        child: Hero(
+                                          tag: ddmodel.title +
+                                              ".title.text" +
+                                              ddmodel.currentData.runtimeType
+                                                  .toString() +
+                                              'disabled',
+                                          child: Text(
+                                            ddmodel.title,
+                                            overflow: expandRatio >
+                                                    _appbarExpansionSwitchValue
+                                                ? null
+                                                : TextOverflow.ellipsis,
+                                            softWrap: true,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: Theme.of(context)
+                                                      .textTheme
+                                                      .headlineMedium
+                                                      ?.fontSize +
+                                                  expandRatio * 5,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ),
@@ -214,21 +192,23 @@ class DropDownPageB<
                                   ),
                                 ),
                               ),
-                              //maengelbutton
-                              Positioned(
-                                top: MediaQuery.of(context).padding.top *
-                                    (4 * expandRatio - 3),
-                                height: _appbarBarHeight,
-                                child: Opacity(
-                                  opacity: max(expandRatio * 2 - 1, 0),
-                                  child: Align(child: maengelDoneButton),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      );
-                    });
+                        // maengel button
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top *
+                              (4 * expandRatio - 3),
+                          height: _appbarBarHeight,
+                          child: Opacity(
+                            opacity: max(expandRatio * 2 - 1, 0),
+                            child: Align(child: maengelDoneButton),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
             );
           },
@@ -592,7 +572,7 @@ class PreviewImageCircle extends StatelessWidget {
         child: FutureBuilder(
             future: previewImage,
             builder: (context, snapshot) {
-              var imagep = snapshot.data?.thumbnail.image;
+              var imagep = snapshot.data?.image.image;
               return (imagep != null
                       ? Image(
                           image: imagep,

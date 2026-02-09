@@ -20,8 +20,6 @@ import 'api.dart';
 
 const LOCALLY_ADDED_PREFIX = '__loc__';
 
-const CACHESIZE = 128;
-
 String _scopeForData(Data? data, {Data? caller}) {
   if (data == null) return '';
   // Prefer an explicitly set parent folder if available
@@ -177,7 +175,7 @@ class LocalMirror {
 
   //final _imageStreamController = BehaviorSubject<String>();
   Future<ImageData?> getImageByHash(String hash,
-      {bool compressed = false, Data? owner}) async {
+      {Data? owner}) async {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
     final legacyScope =
@@ -185,10 +183,6 @@ class LocalMirror {
 
     String displayNameFromStored(String storedName) {
       var base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
-      // hide "compressed/" folder artifacts
-      if (base == 'compressed' && storedName.contains('/')) {
-        base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
-      }
       // strip prefixes
       if (base.startsWith(LOCALLY_ADDED_PREFIX)) {
         base = base.substring(LOCALLY_ADDED_PREFIX.length);
@@ -219,12 +213,10 @@ class LocalMirror {
       try {
         final indexed = await OP.lookupImageNameForHash(
           hash,
-          compressed: compressed,
           scope: scope,
         );
         if (indexed != null && indexed.isNotEmpty) {
-          final img =
-              await readImage(indexed, cacheSize: compressed ? CACHESIZE : null);
+          final img = await readImage(indexed, cacheSize: null);
           if (img != null)
             return ImageData(img, id: hash, name: displayNameFromStored(indexed));
         }
@@ -234,24 +226,16 @@ class LocalMirror {
     List<String> candidates = [];
     if (!isPath && scope.isNotEmpty) {
       final scoped = '$scope/$hash';
-      candidates.add(compressed
-          ? '$scope/${OP.convertToCompressedHashName(hash)}'
-          : scoped);
+      candidates.add(scoped);
     }
     if (!isPath && legacyScope.isNotEmpty && legacyScope != scope) {
       final scoped = '$legacyScope/$hash';
-      candidates.add(compressed
-          ? '$legacyScope/${OP.convertToCompressedHashName(hash)}'
-          : scoped);
-    }
-    if (compressed) {
-      candidates.add(OP.convertToCompressedHashName(hash));
+      candidates.add(scoped);
     }
     candidates.add(hash);
 
     for (final name in candidates) {
-      final img =
-          await readImage(name, cacheSize: compressed ? CACHESIZE : null);
+      final img = await readImage(name, cacheSize: null);
       if (img != null) {
         // Best-effort migration: if we loaded from a legacy "undefined" folder, copy to the
         // normalized "null" folder so we stop accumulating both.
@@ -270,11 +254,10 @@ class LocalMirror {
             await OP.indexImageHash(
               hash: hash,
               storedName: migratedName,
-              compressed: compressed,
               scope: scope,
             );
             final migratedImg = await readImage(migratedName,
-                cacheSize: compressed ? CACHESIZE : null);
+                cacheSize: null);
             if (migratedImg != null) {
               return ImageData(migratedImg,
                   id: hash, name: displayNameFromStored(migratedName));
@@ -317,7 +300,6 @@ class LocalMirror {
     if ((forceUpdate || caller != null) && data != null) {
       try {
         // data.id = /*'_oe_' + */ createLocalId(data);
-        // await OP.deleteImage(hash); //TODO: delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
         data.imagehashes!.remove(hash);
         await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
         // return 'successfully deleted image offline';

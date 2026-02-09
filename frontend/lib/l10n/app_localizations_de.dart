@@ -221,10 +221,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'probier online-Verfahren wenn es offline gescheitert ist';
 
   @override
-  String get option_compactDownload =>
-      'kompakten Download (stark komprimierte Bilder) nutzen';
-
-  @override
   String get option_tryonlinerequestincachedmode =>
       'probier online-Verfahren obwohl wir offline sind';
 

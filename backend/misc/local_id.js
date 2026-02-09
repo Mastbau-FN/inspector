@@ -28,21 +28,33 @@ function parseLocalId(localId) {
 function decorateDataFromLocalId(data) {
   if (!data || typeof data !== "object") return data;
 
+  function isMissingEvent(v) {
+    if (v == null) return true;
+    if (typeof v === "number") return !(v > 0);
+    if (typeof v === "string") {
+      const s = v.trim();
+      if (!s || s === "null" || s === "undefined") return true;
+      const n = Number.parseInt(s, 10);
+      return !(Number.isFinite(n) && n > 0);
+    }
+    return true;
+  }
+
   const parsed = parseLocalId(data.local_id);
   if (parsed) {
-    if (data.PjNr == null) data.PjNr = parsed.PjNr;
-    if (data.E1 == null) data.E1 = parsed.E1;
-    if (data.E2 == null) data.E2 = parsed.E2;
-    if (data.E3 == null) data.E3 = parsed.E3;
+    if (isMissingEvent(data.PjNr)) data.PjNr = parsed.PjNr;
+    if (isMissingEvent(data.E1)) data.E1 = parsed.E1;
+    if (isMissingEvent(data.E2)) data.E2 = parsed.E2;
+    if (isMissingEvent(data.E3)) data.E3 = parsed.E3;
   }
 
   // parent_local_id: fill in missing event levels from parent.
   const parentParsed = parseLocalId(data.parent_local_id);
   if (parentParsed) {
-    if (data.PjNr == null) data.PjNr = parentParsed.PjNr;
-    if (data.E1 == null) data.E1 = parentParsed.E1;
-    if (data.E2 == null) data.E2 = parentParsed.E2;
-    if (data.E3 == null) data.E3 = parentParsed.E3;
+    if (isMissingEvent(data.PjNr)) data.PjNr = parentParsed.PjNr;
+    if (isMissingEvent(data.E1)) data.E1 = parentParsed.E1;
+    if (isMissingEvent(data.E2)) data.E2 = parentParsed.E2;
+    if (isMissingEvent(data.E3)) data.E3 = parentParsed.E3;
   }
 
   return data;
@@ -62,4 +74,3 @@ module.exports = {
   decorateDataFromLocalId,
   decorateReqFromLocalId,
 };
-

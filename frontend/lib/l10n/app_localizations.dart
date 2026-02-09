@@ -512,12 +512,6 @@ abstract class AppLocalizations {
   /// **'probier online-Verfahren wenn es offline gescheitert ist'**
   String get option_tryOnlineIfOfflineFailed;
 
-  /// No description provided for @option_compactDownload.
-  ///
-  /// In de, this message translates to:
-  /// **'kompakten Download (stark komprimierte Bilder) nutzen'**
-  String get option_compactDownload;
-
   /// No description provided for @option_tryonlinerequestincachedmode.
   ///
   /// In de, this message translates to:
