@@ -38,8 +38,21 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
  */
 const login = (req, res) => {
   let json_response = { success: true };
-  json_response.user = req.user;
-  console.log("user logged in:", req.user.KZL);
+  const defLoginId =
+    req.user?.Def_Login_ID ??
+    req.user?.def_login_id ??
+    req.user?.Login_ID_Pruefer ??
+    req.user?.login_id_pruefer ??
+    null;
+  json_response.user = { ...req.user, Def_Login_ID: defLoginId };
+  console.log(
+    "user logged in:",
+    req.user?.KZL,
+    "Def_Login_ID:",
+    defLoginId,
+    "keys:",
+    Object.keys(req.user ?? {})
+  );
   res.status(200).json(json_response);
 };
 

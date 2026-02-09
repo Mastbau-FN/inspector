@@ -36,6 +36,33 @@ const _touchPruefer_r = "/pruefer/touch";
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 const _setMainImageByHash_r = "/setMainImgH"; // issue #20
 
+class TouchPrueferResult {
+  final bool updated;
+  final int? oldLoginIdPruefer;
+  final int? loginIdPruefer;
+
+  TouchPrueferResult({
+    required this.updated,
+    required this.oldLoginIdPruefer,
+    required this.loginIdPruefer,
+  });
+
+  static int? _parseInt(dynamic v) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v);
+    return null;
+  }
+
+  static TouchPrueferResult fromJson(Map<String, dynamic> json) {
+    return TouchPrueferResult(
+      updated: json['updated'] == true,
+      oldLoginIdPruefer: _parseInt(json['old_login_id_pruefer']),
+      loginIdPruefer: _parseInt(json['login_id_pruefer']),
+    );
+  }
+}
+
 class RequestAndParser<Response extends http.BaseResponse, T> {
   final RequestData rd;
   final FutureOr<T> Function(Response) parser;
@@ -170,6 +197,8 @@ class Remote {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json ??= {};
     rd.json!['user'] = _user?.toJson();
+    debugPrint(
+        'Sending request ${rd.route} as KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}');
     try {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
@@ -358,8 +387,7 @@ class Remote {
       else {
         try {
           final scope = owner != null ? API().local.scopeFor(owner) : '';
-          final name =
-              compressed ? OP.convertToCompressedHashName(hash) : hash;
+          final name = compressed ? OP.convertToCompressedHashName(hash) : hash;
           final scopedName =
               (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
           await API().local.storeImage(res.bodyBytes, scopedName);
@@ -575,19 +603,22 @@ class Remote {
   }
 
   /// updates the pruefer-id for a project to the currently logged-in user, but only if it differs.
-  RequestAndParser<http.Response, bool> touchPruefer(int pjNr) {
+  RequestAndParser<http.Response, TouchPrueferResult> touchPruefer(int pjNr) {
     final rd = RequestData(
       _touchPruefer_r,
       json: {'PjNr': pjNr},
     );
 
     parser(http.Response res) {
-      final body = res.body;
       try {
-        final decoded = jsonDecode(body);
-        return decoded['updated'] == true;
+        final decoded = jsonDecode(res.body);
+        return TouchPrueferResult.fromJson(decoded);
       } catch (_) {
-        return false;
+        return TouchPrueferResult(
+          updated: false,
+          oldLoginIdPruefer: null,
+          loginIdPruefer: null,
+        );
       }
     }
 

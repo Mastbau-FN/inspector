@@ -114,6 +114,67 @@ const getValidUser = async (user) => {
   if (userdata === undefined) {
     throw new Error("user credentials invalid");
   }
+  // Ensure we always have a numeric login id for the user, sourced from Def_Login via KZL.
+  // Some DBs return it as `def_login_id` (lowercased), others as `"Def_Login_ID"`, and some
+  // schemas may omit it entirely.
+  try {
+    const defLoginId =
+      userdata.Def_Login_ID ??
+      userdata.def_login_id ??
+      userdata.Login_ID_Pruefer ??
+      userdata.login_id_pruefer;
+
+    if (defLoginId == null && userdata.KZL) {
+      console.log(
+        `getValidUser: Def_Login_ID missing in auth_user result for KZL=${userdata.KZL}; attempting lookup in Def_Login`
+      );
+      const cols = (
+        await pool.asyncQuery(
+          `
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'Def_Login'
+              AND column_name IN ('Def_Login_ID','def_login_id');
+          `,
+          null
+        )
+      ).rows?.map((r) => r.column_name) ?? [];
+
+      const col = cols.includes("Def_Login_ID")
+        ? "Def_Login_ID"
+        : (cols.includes("def_login_id") ? "def_login_id" : null);
+
+      console.log(
+        `getValidUser: Def_Login columns present: [${cols.join(
+          ", "
+        )}], using: ${col ?? "none"}`
+      );
+      if (col) {
+        const row = (
+          await pool.asyncQuery(
+            `SELECT "${col}" AS "Def_Login_ID" FROM "Def_Login" WHERE "KZL" = $1;`,
+            [userdata.KZL]
+          )
+        ).rows?.[0];
+        if (row?.Def_Login_ID != null) {
+          console.log(
+            `getValidUser: resolved Def_Login_ID=${row.Def_Login_ID} for KZL=${userdata.KZL}`
+          );
+          userdata.Def_Login_ID = row.Def_Login_ID;
+        } else {
+          console.log(`getValidUser: no Def_Login_ID found for KZL=${userdata.KZL}`);
+        }
+      } else {
+        console.log(
+          `getValidUser: Def_Login has no Def_Login_ID/def_login_id column; cannot resolve for KZL=${userdata.KZL}`
+        );
+      }
+    }
+  } catch (e) {
+    // best-effort; login should still succeed even if the column isn't present
+    console.log(`getValidUser: Def_Login_ID lookup failed: ${e}`);
+  }
   userdata.PW = undefined; //remove PW hash, not needed actually
   return userdata;
 };

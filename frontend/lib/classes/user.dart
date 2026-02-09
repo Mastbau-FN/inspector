@@ -11,8 +11,9 @@ class DisplayUser {
 
   String? full_name;
   String? full_surname;
+  int? defLoginId;
 
-  DisplayUser(this.name, {this.full_name, this.full_surname});
+  DisplayUser(this.name, {this.full_name, this.full_surname, this.defLoginId});
 
   @override
   String toString() {
@@ -24,6 +25,15 @@ class DisplayUser {
   void fromMap(Map<String, dynamic>? map) {
     full_surname = map?['Name'];
     full_name = map?['Vorname'];
+    try {
+      final v = map?['Def_Login_ID'] ??
+          map?['def_login_id'] ??
+          map?['Login_ID_Pruefer'] ??
+          map?['login_id_pruefer'];
+      if (v is int) defLoginId = v;
+      if (v is num) defLoginId = v.toInt();
+      if (v is String) defLoginId = int.tryParse(v);
+    } catch (_) {}
   }
 }
 
@@ -53,6 +63,7 @@ class User extends DisplayUser {
   static final _prefs = SharedPreferences.getInstance();
   static const _full_name_store = "full_name";
   static const _full_surname_store = "full_surname";
+  static const _def_login_id_store = "def_login_id";
 
   /// stores the current user to the device
   Future store() async {
@@ -61,6 +72,12 @@ class User extends DisplayUser {
 
     (await _prefs).setString(_full_name_store, full_name ?? 'noname');
     (await _prefs).setString(_full_surname_store, full_surname ?? 'noname');
+    final prefs = await _prefs;
+    if (defLoginId != null) {
+      await prefs.setInt(_def_login_id_store, defLoginId!);
+    } else {
+      await prefs.remove(_def_login_id_store);
+    }
   }
 
   /// deletes user from device (used for logout)
@@ -74,6 +91,7 @@ class User extends DisplayUser {
       final prefs = await _prefs;
       await prefs.remove(_full_name_store);
       await prefs.remove(_full_surname_store);
+      await prefs.remove(_def_login_id_store);
 
       debugPrint('User-Daten vollständig gelöscht');
     } catch (e) {
@@ -89,6 +107,7 @@ class User extends DisplayUser {
     var _user = User(name, pass);
     _user.full_name = (await _prefs).getString(_full_name_store);
     _user.full_surname = (await _prefs).getString(_full_surname_store);
+    _user.defLoginId = (await _prefs).getInt(_def_login_id_store);
     return _user;
   }
 }

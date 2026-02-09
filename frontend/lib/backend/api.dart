@@ -33,6 +33,7 @@ class API {
 
   User? _user;
   final Set<int> _touchedPrueferForProjects = <int>{};
+  final Map<int, String?> _prueferByPjNr = <int, String?>{};
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
@@ -219,6 +220,49 @@ class API {
     return null;
   }
 
+  int? _parseInt(dynamic v) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v);
+    return null;
+  }
+
+  int? _extractOldPrueferId({Data? data, Data? caller, int? pjNr}) {
+    // First: try cached locations list
+    if (pjNr != null) {
+      final cached = _prueferByPjNr[pjNr];
+      final parsed = _parseInt(cached);
+      if (parsed != null) return parsed;
+    }
+
+    // Next: try if the current mutation involves a location object
+    try {
+      final v = (data?.toJson())?['Login_ID_Pruefer'];
+      final parsed = _parseInt(v);
+      if (parsed != null) return parsed;
+    } catch (_) {}
+    try {
+      final v = (caller?.toJson())?['Login_ID_Pruefer'];
+      final parsed = _parseInt(v);
+      if (parsed != null) return parsed;
+    } catch (_) {}
+
+    return null;
+  }
+
+  void _cachePrueferIdsFromLocations(List<Data> childDatas) {
+    for (final child in childDatas) {
+      try {
+        // Only InspectionLocation has Login_ID_Pruefer; use toJson for a light dependency.
+        final json = child.toJson();
+        final pjNr = _parseInt(json['PjNr']);
+        if (pjNr == null) continue;
+        final pruefer = json['Login_ID_Pruefer']?.toString();
+        _prueferByPjNr[pjNr] = pruefer;
+      } catch (_) {}
+    }
+  }
+
   Future<void> _touchPrueferIfNeeded({
     required Helper.SimulatedRequestType requestType,
     Data? data,
@@ -227,6 +271,17 @@ class API {
     final pjNr = _extractPjNr(data: data, caller: caller);
     if (pjNr == null) return;
     if (_touchedPrueferForProjects.contains(pjNr)) return;
+
+    // Only touch when old != current.
+    final currentUser = await _c_user;
+    final currentPrueferId = currentUser?.defLoginId;
+    if (currentPrueferId == null) return;
+    final oldPrueferId =
+        _extractOldPrueferId(data: data, caller: caller, pjNr: pjNr);
+    if (oldPrueferId != null && oldPrueferId == currentPrueferId) {
+      _touchedPrueferForProjects.add(pjNr);
+      return;
+    }
 
     bool prefersOffline =
         (_dataPrefersCache(caller, type: requestType) ?? false) ||
@@ -246,8 +301,14 @@ class API {
       final rap = remote.touchPruefer(pjNr);
       final baseRes = await remote.postJSON(rap.rd);
       if (baseRes is http.Response) {
-        await rap.parser(baseRes);
+        final result = await rap.parser(baseRes);
+        if (result.updated) {
+          debugPrint(
+            'Prüfer changed for PjNr=$pjNr: ${result.oldLoginIdPruefer} -> ${result.loginIdPruefer} (current=${currentPrueferId})',
+          );
+        }
       }
+      _prueferByPjNr[pjNr] = currentPrueferId.toString();
     } catch (_) {
       // Best-effort; don't block other mutations.
     }
@@ -287,12 +348,14 @@ class API {
       }
       _user = null;
       _touchedPrueferForProjects.clear();
+      _prueferByPjNr.clear();
       debugPrint('User ausgeloggt');
     } catch (e) {
       debugPrint('Fehler beim Ausloggen: $e');
       // Trotz Fehler zurücksetzen, um UI-Update zu ermöglichen
       _user = null;
       _touchedPrueferForProjects.clear();
+      _prueferByPjNr.clear();
     }
   }
 
@@ -326,14 +389,17 @@ class API {
       offline: () => local.getNextDatapoint(data),
       online: () =>
           remote.getNextDatapoint(data, preloadFullImages: preloadFullImages),
-      onlineSuccessCB: (childDatas) => childDatas.forEach((childData) async {
-        await local.storeData(
-          childData,
-          forId: data?.id ?? await API().rootID,
-          //TODO: uncomment this as soon as offline can mirror everything well #211
-          // overrideMode: OverrideMode.abortIfExistent,
-        );
-      }),
+      onlineSuccessCB: (childDatas) async {
+        _cachePrueferIdsFromLocations(childDatas);
+        for (final childData in childDatas) {
+          await local.storeData(
+            childData,
+            forId: data?.id ?? await API().rootID,
+            //TODO: uncomment this as soon as offline can mirror everything well #211
+            // overrideMode: OverrideMode.abortIfExistent,
+          );
+        }
+      },
       requestType: requestType,
       merge: merge,
     );
