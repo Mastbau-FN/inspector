@@ -540,7 +540,8 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           await AwesomeNotifications().createNotification(
             content: NotificationContent(
               id: 900,
-              channelKey: 'sync_complete', // Kanal mit Ton
+              channelKey:
+                  'mbg_all_notifications', // use the shared channel (avoids "channel does not exist")
               title: '🔄 Upload Sync gestartet',
               body:
                   'Die Synchronisierung von ${totalRequests} Requests beginnt...',

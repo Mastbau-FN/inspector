@@ -317,26 +317,6 @@ class Remote {
         try {
           var fullURL = Uri.parse(_baseurl + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
-            ..files.addAll(
-              List<http.MultipartFile>.from((await Future.wait(
-                rd.multipartFiles.map(
-                  (fxfile) async {
-                    final xfile = await fxfile;
-                    final name = xfile.name;
-                    var creation = 0;
-                    creation = FileStat.statSync(xfile.path)
-                        .changed
-                        .toUtc()
-                        .millisecondsSinceEpoch;
-                    final path = xfile.path;
-                    return http.MultipartFile.fromPath(
-                        creation.toString(), path,
-                        filename: name);
-                  },
-                ),
-              ))
-                  .whereType<http.MultipartFile>()),
-            )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
             ..fields.addAll(
               /*flatten()*/ rd.json!.map<String, String>((key, value) {
@@ -346,7 +326,25 @@ class Remote {
                 return MapEntry(key, value.toString());
               }),
             ); // send structured fields as JSON so the backend can parse them reliably
-          debugPrint("gonna send multipart-req with booty ${mreq.fields}");
+
+          // Build multipart files sequentially to keep peak memory lower.
+          for (final fxfile in rd.multipartFiles) {
+            final xfile = await fxfile;
+            final name = xfile.name;
+            final creation = FileStat.statSync(xfile.path)
+                .changed
+                .toUtc()
+                .millisecondsSinceEpoch;
+            final path = xfile.path;
+            mreq.files.add(await http.MultipartFile.fromPath(
+              creation.toString(),
+              path,
+              filename: name,
+            ));
+          }
+          // Avoid logging full fields (can be huge and contains credentials) and reduces memory churn.
+          debugPrint(
+              'sending multipart request ${rd.route} (files: ${mreq.files.length})');
           var res = (rd.timeout == null)
               ? await _client.send(mreq)
               : await _client.send(mreq).timeout(rd.timeout!);
@@ -394,6 +392,12 @@ class Remote {
         }
       }
     } catch (e) {
+      // Don't swallow OOM: returning null will trigger retries and worsen memory pressure.
+      if (e is OutOfMemoryError) rethrow;
+      final msg = e.toString();
+      if (msg.contains('Out of Memory') || msg.contains('Exhausted heap')) {
+        rethrow;
+      }
       debugPrint("request failed, cause : $e");
       return null;
     }
@@ -422,6 +426,9 @@ class Remote {
           attempts++;
           debugPrint('Null-Antwort bei Versuch $attempts/$maxRetries');
         }
+      } on OutOfMemoryError {
+        // Retrying will almost certainly fail again; surface the error.
+        rethrow;
       } on SocketException catch (e) {
         lastSocketException = e;
         attempts++;
