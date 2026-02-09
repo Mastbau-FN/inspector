@@ -641,6 +641,88 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
           bool requestSuccess = false;
 
+          Future<void> ensureParentLocalIdIfMissing(RequestData req) async {
+            final jsonData = req.json;
+            if (jsonData == null) return;
+            if (req.route != '/set') return;
+
+            final type = jsonData['type']?.toString();
+            final dataField = jsonData['data'];
+            Map<String, dynamic>? dataMap;
+            bool wasString = false;
+            if (dataField is String) {
+              wasString = true;
+              try {
+                final decoded = json.decode(dataField);
+                if (decoded is Map) {
+                  dataMap = Map<String, dynamic>.from(decoded);
+                }
+              } catch (_) {}
+            } else if (dataField is Map) {
+              dataMap = Map<String, dynamic>.from(dataField);
+            }
+            if (dataMap == null) return;
+
+            final hasParent = (dataMap['parent_local_id'] is String) &&
+                (dataMap['parent_local_id'] as String).trim().isNotEmpty;
+            if (hasParent) return;
+
+            final childId = dataMap['local_id']?.toString();
+            if (childId == null || childId.trim().isEmpty) return;
+
+            String? inferred;
+
+            // Category is always directly under the inspection.
+            if (type == 'category') {
+              inferred = inspId;
+            } else if (type == 'checkpoint') {
+              try {
+                final cats = await OfflineProvider.db.collection(inspId).get();
+                if (cats != null) {
+                  for (final key in cats.keys) {
+                    final catId = key.split('/').last;
+                    final doc = await OfflineProvider.db
+                        .collection(catId)
+                        .doc(childId)
+                        .get();
+                    if (doc != null) {
+                      inferred = catId;
+                      break;
+                    }
+                  }
+                }
+              } catch (_) {}
+            } else if (type == 'defect') {
+              try {
+                final cats = await OfflineProvider.db.collection(inspId).get();
+                if (cats != null) {
+                  for (final catKey in cats.keys) {
+                    final catId = catKey.split('/').last;
+                    final cps =
+                        await OfflineProvider.db.collection(catId).get();
+                    if (cps == null) continue;
+                    for (final cpKey in cps.keys) {
+                      final cpId = cpKey.split('/').last;
+                      final doc = await OfflineProvider.db
+                          .collection(cpId)
+                          .doc(childId)
+                          .get();
+                      if (doc != null) {
+                        inferred = cpId;
+                        break;
+                      }
+                    }
+                    if (inferred != null) break;
+                  }
+                }
+              } catch (_) {}
+            }
+
+            if (inferred == null || inferred.trim().isEmpty) return;
+            dataMap['parent_local_id'] = inferred;
+            jsonData['data'] = wasString ? json.encode(dataMap) : dataMap;
+          }
+
           void patchRequestInPlace(RequestData req) {
             final jsonData = req.json;
             if (jsonData == null) return;
@@ -705,6 +787,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           await _retryWithBackoff(
             operation: () async {
               // Verwende die verbesserte Methode für Socket-Fehler
+              await ensureParentLocalIdIfMissing(rd);
               patchRequestInPlace(rd);
               final baseRes = await API().remote.postJSONWithSocketRetry(
                     rd,

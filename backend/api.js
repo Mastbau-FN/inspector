@@ -296,6 +296,38 @@ const fileUpload = async (req, res) => {
     return;
   }
 
+  // If this upload is the first image for the datapoint, set it as main image.
+  // This has to happen here (after auth/login middleware) and not inside multer storage.
+  try {
+    const pendingHash = req.__pending_set_main_hash;
+    if (pendingHash && req.body && req.body.data) {
+      // Ensure body data is an object.
+      if (typeof req.body.data === "string") {
+        try {
+          req.body.data = JSON.parse(req.body.data);
+        } catch (_) {}
+      }
+      const pathparts = imghasher.getPathFromHash(pendingHash);
+      if (pathparts?.link != null && pathparts?.filename != null) {
+        req.body.hash = pendingHash;
+        req.body.data.Link = path.join(pathparts.link, pathparts.filename);
+        const defLoginId =
+          req.user?.Def_Login_ID ??
+          req.user?.def_login_id ??
+          req.user?.Login_ID_Pruefer ??
+          req.user?.login_id_pruefer ??
+          null;
+        if (defLoginId != null) {
+          await queries.update(req.body, defLoginId);
+        } else {
+          console.warn("fileUpload: missing Def_Login_ID on req.user");
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("fileUpload: failed to set main image:", e);
+  }
+
   const uploaded = Array.isArray(req.__uploaded_images)
     ? req.__uploaded_images
     : [];

@@ -4,7 +4,6 @@ const files = require("./filesystem");
 const rootfolder = require("../db/queries").getLink;
 
 const { memorize_link } = require("./hash");
-const { setMainImgByHash } = require("../api");
 
 const fs = require("fs");
 const multer = require("multer");
@@ -71,22 +70,15 @@ const mstorage = multer.diskStorage({
           hash,
         });
 
-        fs.readdir(path, {}, (_err, _files) => {
-          // if destination is empty -> set the new image as main (aka as req.body.Link; update)
-          if (
-            set_first_image_as_main &&
-            (!prev_filename || prev_filename == no_image_placeholder_name)
-          ) {
-            req.body.hash = hash;
-            setMainImgByHash(
-              req,
-              { status: (_) => {
-                return { json: (_) => { } };
-              } },
-              (_err2, _res) => { }
-            );
-          }
-        });
+        // If destination was empty -> set the new image as main (aka as req.body.Link; update).
+        // Defer this until after multer finished and auth/login wall ran, otherwise req.user is not available yet.
+        if (
+          set_first_image_as_main &&
+          (!prev_filename || prev_filename == no_image_placeholder_name) &&
+          !req.__pending_set_main_hash
+        ) {
+          req.__pending_set_main_hash = hash;
+        }
         cb(null, path);
     
     });

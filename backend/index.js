@@ -79,10 +79,10 @@ app.get("/", (request, response) => {
 app.post(
   "/api/secure" + _uploadImage_r,
   auth.api_wall,
-  generateFieldParser(["data"]),//req.body.data = JSON.parse(req.body.data)
-  decorateReqFromLocalId,
   upload.any(),
-  //auth.login_wall, //TODO: reenable
+  generateFieldParser(["data","user"]),//req.body.data/user = JSON.parse(...)
+  decorateReqFromLocalId,
+  auth.login_wall,
   api.fileUpload
 );
 

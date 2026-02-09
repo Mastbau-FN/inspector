@@ -338,11 +338,14 @@ class Remote {
                   .whereType<http.MultipartFile>()),
             )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-            ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
-                (key, value) => MapEntry(
-                    key,
-                    value
-                        .toString()))); // this causes #279, but that is fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
+            ..fields.addAll(
+              /*flatten()*/ rd.json!.map<String, String>((key, value) {
+                if (value is Map || value is List) {
+                  return MapEntry(key, jsonEncode(value));
+                }
+                return MapEntry(key, value.toString());
+              }),
+            ); // send structured fields as JSON so the backend can parse them reliably
           debugPrint("gonna send multipart-req with booty ${mreq.fields}");
           var res = (rd.timeout == null)
               ? await _client.send(mreq)
@@ -521,8 +524,7 @@ class Remote {
             await API().local.storeImage(res.bodyBytes, storedName);
           }
           return ImageData(
-            (await API().local.readImage(storedName,
-                cacheSize: null))!,
+            (await API().local.readImage(storedName, cacheSize: null))!,
             id: hash,
             name: displayName,
           );
@@ -546,10 +548,10 @@ class Remote {
     if (cd == null) return null;
 
     // Minimal RFC 6266 support (filename / filename*=UTF-8'')
-    final filenameStar = RegExp(r"filename\*\s*=\s*UTF-8''([^;]+)",
-            caseSensitive: false)
-        .firstMatch(cd)
-        ?.group(1);
+    final filenameStar =
+        RegExp(r"filename\*\s*=\s*UTF-8''([^;]+)", caseSensitive: false)
+            .firstMatch(cd)
+            ?.group(1);
     if (filenameStar != null && filenameStar.trim().isNotEmpty) {
       try {
         return Uri.decodeFull(filenameStar.trim());
@@ -626,7 +628,8 @@ class Remote {
         try {
           final filename = docPath.split('/').last;
           final s = (scope ?? '').trim();
-          final storedName = s.isNotEmpty ? '$s/Dokus/$filename' : 'Dokus/$filename';
+          final storedName =
+              s.isNotEmpty ? '$s/Dokus/$filename' : 'Dokus/$filename';
           await API().local.storeDoc(res.bodyBytes, storedName);
           return API().local.readDoc(storedName);
         } catch (e) {
@@ -683,7 +686,6 @@ class Remote {
     var jsonData = data!.toJson();
     // Never upload local-only flags.
     jsonData.remove('offline');
-    jsonData.remove('parent_local_id');
     final rd = RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': jsonData,
