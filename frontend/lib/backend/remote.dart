@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
@@ -18,6 +20,40 @@ import '/classes/user.dart';
 
 import './helpers.dart' as Helper;
 import 'api.dart';
+
+class _AsyncSemaphore {
+  int _available;
+  final Queue<Completer<void>> _waiters = Queue<Completer<void>>();
+
+  _AsyncSemaphore(int maxPermits) : _available = maxPermits;
+
+  Future<T> withPermit<T>(Future<T> Function() fn) async {
+    await _acquire();
+    try {
+      return await fn();
+    } finally {
+      _release();
+    }
+  }
+
+  Future<void> _acquire() {
+    if (_available > 0) {
+      _available -= 1;
+      return Future.value();
+    }
+    final c = Completer<void>();
+    _waiters.add(c);
+    return c.future;
+  }
+
+  void _release() {
+    if (_waiters.isNotEmpty) {
+      _waiters.removeFirst().complete();
+      return;
+    }
+    _available += 1;
+  }
+}
 
 String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
@@ -93,6 +129,7 @@ class Remote {
   }
 
   final http.Client _client = http.Client();
+  final _AsyncSemaphore _binaryDownloadSemaphore = _AsyncSemaphore(4);
 
   User? _user;
   injectUser(User? user) {
@@ -155,33 +192,74 @@ class Remote {
     Duration? timeout,
     bool returnsBinary = false,
   }) async {
-    try {
-      // Setze Verbindungstimeouts für die Verbindung
-
-      // Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
-      timeout ??= Duration(minutes: 2);
-
-      final req = _client.send(request);
-      final res = await req.timeout(timeout, onTimeout: () {
+    Future<http.Response?> doSendOnce(http.Request req) async {
+      final streamed = await _client.send(req).timeout(timeout!, onTimeout: () {
         debugPrint('HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden');
         throw TimeoutException('HTTP Request Timeout', timeout);
       });
 
-      try {
-        final ret = await http.Response.fromStream(res);
-        return ret;
-      } catch (e) {
-        debugPrint('Fehler beim Verarbeiten des Response-Streams: $e');
-        // Versuche es noch einmal mit einem neuen Request, wenn der Stream beschädigt ist
-        if (e is IOException) {
-          debugPrint(
-              'IO-Fehler beim Lesen des Streams, möglicherweise Netzwerkunterbrechung');
-        }
-        rethrow;
+      if (!returnsBinary) {
+        return http.Response.fromStream(streamed);
       }
+
+      // For binary responses (images/docs): read manually to reduce stream errors
+      // and avoid unhandled exceptions from partially closed connections.
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in streamed.stream) {
+        builder.add(chunk);
+      }
+      return http.Response.bytes(
+        builder.takeBytes(),
+        streamed.statusCode,
+        headers: streamed.headers,
+        request: streamed.request,
+        isRedirect: streamed.isRedirect,
+        persistentConnection: streamed.persistentConnection,
+        reasonPhrase: streamed.reasonPhrase,
+      );
+    }
+
+    http.Request clone(http.Request req) {
+      final r = http.Request(req.method, req.url);
+      r.headers.addAll(req.headers);
+      r.bodyBytes = req.bodyBytes;
+      r.encoding = req.encoding;
+      r.followRedirects = req.followRedirects;
+      r.maxRedirects = req.maxRedirects;
+      r.persistentConnection = req.persistentConnection;
+      return r;
+    }
+
+    bool isRetryableStreamError(Object e) {
+      if (e is http.ClientException) {
+        final msg = e.message.toLowerCase();
+        return msg.contains('connection closed') ||
+            msg.contains('connection reset') ||
+            msg.contains('broken pipe');
+      }
+      if (e is IOException) return true;
+      return false;
+    }
+
+    // Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
+    timeout ??= Duration(minutes: 2);
+
+    final runner = returnsBinary
+        ? _binaryDownloadSemaphore.withPermit<http.Response?>(() async {
+            return _sendWithRetries(
+              () => doSendOnce(clone(request)),
+              isRetryable: isRetryableStreamError,
+            );
+          })
+        : _sendWithRetries(
+            () => doSendOnce(clone(request)),
+            isRetryable: isRetryableStreamError,
+          );
+
+    try {
+      return await runner;
     } on SocketException catch (e) {
       debugPrint('Socket-Fehler beim Senden des Requests: ${e.message}');
-      // Spezielle Behandlung für bestimmte Socket-Fehler
       if (e.message.contains('Software caused connection abort') ||
           e.message.contains('Write failed')) {
         debugPrint(
@@ -191,6 +269,25 @@ class Remote {
     } catch (e) {
       debugPrint('Fehler beim Senden des Requests: $e');
       rethrow;
+    }
+  }
+
+  Future<T> _sendWithRetries<T>(
+    Future<T> Function() attempt, {
+    required bool Function(Object e) isRetryable,
+    int maxRetries = 2,
+  }) async {
+    int tries = 0;
+    while (true) {
+      try {
+        return await attempt();
+      } catch (e) {
+        tries += 1;
+        if (tries > maxRetries || !isRetryable(e)) rethrow;
+        final backoffMs = 300 * tries;
+        debugPrint('Retrying request after error ($tries/$maxRetries): $e');
+        await Future<void>.delayed(Duration(milliseconds: backoffMs));
+      }
     }
   }
 
@@ -508,6 +605,9 @@ class Remote {
   }) {
     assert(data != null, 'we cant send no data, data needs to be supplied');
     var jsonData = data!.toJson();
+    // Never upload local-only flags.
+    jsonData.remove('offline');
+    jsonData.remove('parent_local_id');
     final rd = RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': jsonData,
@@ -586,7 +686,13 @@ class Remote {
       route: routesFromData<ChildData>(null),
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
-      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      fromJson: (json) {
+        // "offline" (forceOffline) is a local-only flag; never trust/propagate it from server payloads.
+        final scrubbed = Map<String, dynamic>.from(json);
+        scrubbed.remove('offline');
+        scrubbed.remove('parent_local_id');
+        return Data.fromJson<ChildData>(scrubbed);
+      },
       preloadFullImages: preloadFullImages,
     );
   }

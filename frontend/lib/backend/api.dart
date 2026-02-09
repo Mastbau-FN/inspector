@@ -17,6 +17,7 @@ import '/classes/user.dart';
 import 'package:MBG_Inspektionen/options.dart';
 
 import './helpers.dart' as Helper;
+import 'download_progress.dart';
 
 /// backend Singleton to provide all functionality related to the backend
 class API {
@@ -92,10 +93,12 @@ class API {
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     late T onlineRes;
+    bool offlineHadValue = false;
     Future<bool> doOffline({bool orDontIf = false}) async {
       if (orDontIf) return false;
       return Future<T>(offline).then((value) {
         offlineRes = value;
+        offlineHadValue = true;
         controller.add(offlineRes);
         return true;
       }, onError: (err) {
@@ -124,11 +127,38 @@ class API {
                   (requestType != Helper.SimulatedRequestType.GET);
               if (wantsonline || wantsmerged) {
                 await Future.delayed(Duration(milliseconds: 100));
-                final res = await remote.postJSON(rap.rd);
-                onlineRes = await rap.parser(res as R);
-                if (wantsonline) controller.add(onlineRes);
-                if (wantsmerged)
-                  controller.add(await merge(offlineRes, onlineRes));
+                final session = DownloadProgress.instance.active;
+                String? key;
+                try {
+                  if (rap.rd.route == '/image/get') {
+                    final hash = rap.rd.json?['hash']?.toString();
+                    final compressed = rap.rd.json?['compressed'] == true;
+                    if (hash != null && hash.isNotEmpty) {
+                      key = '${rap.rd.route}|$hash|c=$compressed';
+                    }
+                  } else if (rap.rd.route == '/doc/get') {
+                    final docPath = rap.rd.json?['docPath']?.toString();
+                    if (docPath != null && docPath.isNotEmpty) {
+                      key = '${rap.rd.route}|$docPath';
+                    }
+                  }
+                } catch (_) {}
+
+                final token = session?.beginTask(rap.rd.route, key: key);
+                try {
+                  final res = await remote.postJSON(rap.rd);
+                  onlineRes = await rap.parser(res as R);
+                  if (wantsonline) {
+                    controller.add(onlineRes);
+                  }
+                  if (wantsmerged) {
+                    controller.add(await merge(offlineRes, onlineRes));
+                  }
+                  if (token != null) session?.endTask(token, success: true);
+                } catch (e) {
+                  if (token != null) session?.endTask(token, success: false);
+                  rethrow;
+                }
               } else
                 return null;
             } catch (e) {
@@ -141,9 +171,9 @@ class API {
           onlineFailedProcedure() async {
             bool log = rap.rd.logIfFailed ??
                 (requestType != Helper.SimulatedRequestType.GET);
-            if (onlineFailedCB != null)
+            if (onlineFailedCB != null && offlineHadValue) {
               await onlineFailedCB(offlineRes, rap);
-            else if (log) {
+            } else if (log) {
               await local.logFailedReq(rap.rd);
             }
           }
@@ -396,6 +426,10 @@ class API {
       onlineSuccessCB: (childDatas) async {
         _cachePrueferIdsFromLocations(childDatas);
         for (final childData in childDatas) {
+          // "offline" is a local-only flag; online data should clear it to avoid stale UI indicators.
+          try {
+            (childData as WithOffline).forceOffline = false;
+          } catch (_) {}
           await local.storeData(
             childData,
             forId: data?.id ?? await API().rootID,
@@ -722,14 +756,37 @@ class API {
 }
 
 D injectImages<D extends Data>(D data, {bool preloadFull = false}) {
+  final useCompressedThumbs = Options().compactDownload;
+
   Future<ImageData?> getImgDataFromHash(String? hash) {
-    if (preloadFull)
-      API().getImageByHash(hash!, compressed: false, owner: data);
-    return API().getImageByHash(hash!, compressed: false, owner: data).then(
-        (value) => value
-          ?..fullImageGetter = () => API()
-              .getImageByHash(hash, compressed: false, owner: data)
-              .then((value) => value?.thumbnail));
+    if (hash == null) return Future.value(null);
+
+    Future<ImageData?> safeFetch({required bool compressed}) {
+      return API()
+          .getImageByHash(hash, compressed: compressed, owner: data)
+          .catchError((e, st) {
+        debugPrint('getImageByHash failed ($hash): $e');
+        return null;
+      });
+    }
+
+    final thumbFuture = safeFetch(compressed: useCompressedThumbs);
+
+    // If thumbnails are compressed, allow fetching full-res on demand.
+    return thumbFuture.then((value) {
+      if (value == null) return null;
+      if (useCompressedThumbs) {
+        value.fullImageGetter = () => safeFetch(compressed: false)
+            .then((full) => full?.thumbnail)
+            .catchError((e, st) {
+          debugPrint('fullImageGetter failed ($hash): $e');
+          return null;
+        });
+      } else {
+        value.fullImageGetter = () => Future.value(value.thumbnail);
+      }
+      return value;
+    });
   }
 
   if (data.mainhash != null &&

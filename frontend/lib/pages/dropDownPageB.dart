@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -241,55 +242,58 @@ class DropDownPageB<
               // physics: BouncingScrollPhysics(),
               slivers: <Widget>[
                 sliverAppBar,
-                FutureBuilder(
-                  future: ddmodel.all().last,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SliverFillRemaining(
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    if (snapshot.hasError) {
-                      return SliverFillRemaining(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ErrorText(S.of(context).somethingWentWrong +
-                                ':\n${snapshot.error ?? ''} \n\n' +
-                                S.of(context).pleaseDragDownToReloadThisPage),
+                ValueListenableBuilder<int>(
+                  valueListenable: SyncEvents.instance.revision,
+                  builder: (context, _, __) => FutureBuilder(
+                    future: ddmodel.all().last,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return SliverFillRemaining(
+                          child: Center(
+                            child: CircularProgressIndicator(),
                           ),
-                        ),
-                      );
-                    }
-                    final childrenData = snapshot.data as List<ChildData>;
-                    if (ddmodel.runtimeType == CheckPointDefectsModel) {
-                      return generateCheckPointDefectsSliverList(
-                          context, childrenData as List<CheckPointDefect>);
-                    }
-                    return SliverList.list(
-                      children: childrenData.map((cd) {
-                        return DropDownElementB(
-                          cd: cd,
-                          actions: ddmodel.actions,
-                          onAction: (actionTileData) {
-                            ddmodel.open(context, cd, actionTileData);
-                          },
-                          onDelete: () => API()
-                              .delete<ChildData>(cd,
-                                  caller: ddmodel.currentData)
-                              .then((value) => value != null
-                                  ? () {
-                                      (kDebugMode ? showToast(value) : (_) {});
-                                      ddmodel.refresh(); //quickfix for #336
-                                    }()
-                                  : showToast(
-                                      S.of(context).deleteUnseccessful)),
                         );
-                      }).toList(),
-                    );
-                  },
+                      }
+                      if (snapshot.hasError) {
+                        return SliverFillRemaining(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ErrorText(S.of(context).somethingWentWrong +
+                                  ':\n${snapshot.error ?? ''} \n\n' +
+                                  S.of(context).pleaseDragDownToReloadThisPage),
+                            ),
+                          ),
+                        );
+                      }
+                      final childrenData = snapshot.data as List<ChildData>;
+                      if (ddmodel.runtimeType == CheckPointDefectsModel) {
+                        return generateCheckPointDefectsSliverList(
+                            context, childrenData as List<CheckPointDefect>);
+                      }
+                      return SliverList.list(
+                        children: childrenData.map((cd) {
+                          return DropDownElementB(
+                            cd: cd,
+                            actions: ddmodel.actions,
+                            onAction: (actionTileData) {
+                              ddmodel.open(context, cd, actionTileData);
+                            },
+                            onDelete: () => API()
+                                .delete<ChildData>(cd,
+                                    caller: ddmodel.currentData)
+                                .then((value) => value != null
+                                    ? () {
+                                        (kDebugMode ? showToast(value) : (_) {});
+                                        ddmodel.refresh(); //quickfix for #336
+                                      }()
+                                    : showToast(
+                                        S.of(context).deleteUnseccessful)),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
                 ),
                 SliverToBoxAdapter(
                   child: SizedBox(height: 30),
@@ -590,7 +594,13 @@ class PreviewImageCircle extends StatelessWidget {
             builder: (context, snapshot) {
               var imagep = snapshot.data?.thumbnail.image;
               return (imagep != null
-                      ? Image(image: imagep, fit: BoxFit.fill)
+                      ? Image(
+                          image: imagep,
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            fallbackIcon,
+                          ),
+                        )
                       : null) ??
                   Icon(
                     fallbackIcon,

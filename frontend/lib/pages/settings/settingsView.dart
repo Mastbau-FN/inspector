@@ -19,6 +19,7 @@ import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
         FailedRequestmanager,
         sync_in_progress_str,
         GroupedInspection;
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -786,9 +787,13 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
 
   Future<void> _checkSyncStatus() async {
     final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    final nextIsSynced = failedReqs.isEmpty;
     setState(() {
-      isSynced = failedReqs.isEmpty;
+      isSynced = nextIsSynced;
     });
+    if (nextIsSynced) {
+      SyncEvents.instance.notifyLocalDataChanged();
+    }
   }
 
   Future<void> _analyzeRequests() async {

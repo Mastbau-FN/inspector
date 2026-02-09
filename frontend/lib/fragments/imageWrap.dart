@@ -2,8 +2,7 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
-
-import 'package:MBG_Inspektionen/extension/image.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:provider/provider.dart';
 
@@ -64,27 +63,32 @@ class ImageWrap<T extends Object> extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Builder(
         builder: (context) {
-          return GridView.builder(
-              padding: const EdgeInsets.all(2.0),
-              itemCount: images.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columnCount,
-              ),
-              itemBuilder: (context, i) => /*(i == 0)
-              ? */
-                  OpenableImageView<T>.scrollable(
-                    onDelete: onDelete,
-                    onShare: onShare,
-                    onStar: onStar,
-                    currentIndex: i,
-                    chosenIndex: (hasFav ?? true)
-                        ? 0
-                        : -1, //// make this dynamic on callback or something for #20
-                    // instead solve #36 and move chosen image to front
-                    allImages: _allImages,
-                    approxWidth:
-                        MediaQuery.of(context).size.width / columnCount,
-                  ));
+          return AnimatedBuilder(
+            animation: Listenable.merge(_allImages),
+            builder: (context, _) {
+              final visibleImages =
+                  _allImages.where((e) => !e.hidden).toList();
+              return GridView.builder(
+                padding: const EdgeInsets.all(2.0),
+                itemCount: visibleImages.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columnCount,
+                ),
+                itemBuilder: (context, i) => OpenableImageView<T>.scrollable(
+                  onDelete: onDelete,
+                  onShare: onShare,
+                  onStar: onStar,
+                  currentIndex: i,
+                  chosenIndex: (hasFav ?? true) && visibleImages.isNotEmpty
+                      ? 0
+                      : -1, //// make this dynamic on callback or something for #20
+                  // instead solve #36 and move chosen image to front
+                  allImages: visibleImages,
+                  approxWidth: MediaQuery.of(context).size.width / columnCount,
+                ),
+              );
+            },
+          );
         },
       );
 }
@@ -132,6 +136,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
           child: Stack(
             children: [
               Consumer<ImageItem>(builder: (context, imgModel, _) {
+                if (imgModel.hidden) return const SizedBox.shrink();
                 return _heroImg(context, imgModel);
               }),
               if (chosenIndex == currentIndex)
@@ -168,22 +173,28 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
         ),
       ),
       onLongPress: () => _onLongPress(context, tag),
-      onPressed: () => _onShortPress(context, tag),
+      onPressed: () => _onShortPress(context, img),
     );
   }
 
-  void _onShortPress(context, tag) => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (c) => GalleryPhotoViewWrapper(
-            galleryItems: allImages,
-            backgroundDecoration:
-                BoxDecoration(color: Theme.of(context).canvasColor),
-            initialIndex: currentIndex,
-            scrollDirection: Axis.horizontal,
-          ),
+  void _onShortPress(BuildContext context, ImageItem current) {
+    if (current.hidden) return;
+    final visible = allImages.where((e) => !e.hidden).toList();
+    final visibleIndex = visible.indexWhere((e) => identical(e, current));
+    if (visibleIndex < 0) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (c) => GalleryPhotoViewWrapper(
+          galleryItems: visible,
+          backgroundDecoration:
+              BoxDecoration(color: Theme.of(context).canvasColor),
+          initialIndex: visibleIndex,
+          scrollDirection: Axis.horizontal,
         ),
-      );
+      ),
+    );
+  }
 
   Future<void> _onLongPress(context, tag) async {
     switch (await showDialog<ImageOptions>(
@@ -298,8 +309,27 @@ class FittedImageContainer extends StatelessWidget {
                   ? item.image!.fullImage()
                   : Future.value(item.image!.thumbnail)),
           builder: (context, snapshot) {
-            return (snapshot.data ?? item.image?.thumbnail)?.refit(fit) ??
-                ((snapshot.hasError) ? item.fallBackWidget : LoadingView());
+            if (snapshot.hasError) {
+              SchedulerBinding.instance
+                  .addPostFrameCallback((_) => item.markCorrupt());
+              return item.fallBackWidget;
+            }
+            final img = snapshot.data ?? item.image?.thumbnail;
+            if (img == null) {
+              return LoadingView();
+            }
+            return Image(
+              image: img.image,
+              fit: fit,
+              filterQuality: img.filterQuality,
+              isAntiAlias: img.isAntiAlias,
+              gaplessPlayback: img.gaplessPlayback,
+              errorBuilder: (context, error, stackTrace) {
+                SchedulerBinding.instance
+                    .addPostFrameCallback((_) => item.markCorrupt());
+                return item.fallBackWidget;
+              },
+            );
           }),
       animation: item,
     );

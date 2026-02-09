@@ -330,23 +330,36 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                           });
                         },
                         onShare: (hash) async {
-                          var files = await Future.wait(
-                              [await localFile(hash.toString())]
-                                  .map(
-                                    (e) async => XFile.fromData(
-                                      Uint8List.fromList(
-                                        imglib.encodePng(
-                                          imglib.decodeImage(
-                                              await e.readAsBytes())!,
-                                        ),
-                                      ),
-                                      name:
-                                          'mbg_${hash.hashCode.toRadixString(36)}.png',
-                                      mimeType: 'image/png',
-                                    ),
-                                  )
-                                  .toList());
-                          await Share.shareXFiles(files, text: 'Internes Bild');
+                          final owner = snapshot.data ?? data;
+                          final scope = API()
+                              .local
+                              .scopeFor(owner, caller: model.currentData);
+                          final file = await resolveImageFileByHash(
+                            hash.toString(),
+                            scope: scope,
+                            compressed: false,
+                            allowCompressedFallback: true,
+                          );
+
+                          if (file == null) {
+                            showToast(S.of(context).somethingWentWrong);
+                            return;
+                          }
+
+                          final decoded =
+                              imglib.decodeImage(await file.readAsBytes());
+                          if (decoded == null) {
+                            showToast(S.of(context).somethingWentWrong);
+                            return;
+                          }
+
+                          final xfile = XFile.fromData(
+                            Uint8List.fromList(imglib.encodePng(decoded)),
+                            name:
+                                'mbg_${hash.hashCode.toRadixString(36)}.png',
+                            mimeType: 'image/png',
+                          );
+                          await Share.shareXFiles([xfile], text: 'Internes Bild');
                         },
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)

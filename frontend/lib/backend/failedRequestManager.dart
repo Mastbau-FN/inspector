@@ -13,6 +13,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OfflineProvider;
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
+import 'package:MBG_Inspektionen/backend/download_progress.dart';
 
 import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -425,6 +427,51 @@ Future<void> _pruneLocalInspections() async {
   }
 }
 
+Future<void> _resetForceOfflineFlagsForAllLocalInspections() async {
+  try {
+    final rootId = await API().rootID;
+    Future<Map<String, dynamic>?> _asMap(dynamic v) async {
+      if (v is Map<String, dynamic>) return Map<String, dynamic>.from(v);
+      if (v is Map) return Map<String, dynamic>.from(v.cast<String, dynamic>());
+      return null;
+    }
+
+    String _docIdFromKey(String key) => key.split('/').last;
+
+    Future<List<String>> _resetCollection(String collectionName) async {
+      final raw = await OfflineProvider.db.collection(collectionName).get();
+      if (raw == null) return const [];
+      final docIds = <String>[];
+      for (final entry in raw.entries) {
+        final docId = _docIdFromKey(entry.key);
+        final map = await _asMap(entry.value);
+        if (map == null) continue;
+        map['local_id'] = docId; // normalize legacy docs
+        map['offline'] = false;
+        await OfflineProvider.db.collection(collectionName).doc(docId).set(map);
+        docIds.add(docId);
+      }
+      return docIds;
+    }
+
+    // Root level: inspections
+    final inspectionIds = await _resetCollection(rootId);
+
+    // Descend: categories -> checkpoints -> defects
+    for (final inspectionId in inspectionIds) {
+      final categoryIds = await _resetCollection(inspectionId);
+      for (final categoryId in categoryIds) {
+        final checkpointIds = await _resetCollection(categoryId);
+        for (final checkpointId in checkpointIds) {
+          await _resetCollection(checkpointId);
+        }
+      }
+    }
+  } catch (e) {
+    debugPrint('Failed resetting forceOffline flags: $e');
+  }
+}
+
 /// Die eigentliche Isolate-Funktion mit Sortierung, Gruppierung, Fortschrittsanzeige & Benachrichtigung.
 _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   if (!kIsWeb) {
@@ -656,6 +703,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       try {
         await _cleanupMultipartFilesFromRequests(failedReqs);
         await _pruneLocalInspections();
+        await _resetForceOfflineFlagsForAllLocalInspections();
       } catch (e) {
         debugPrint('Post-upload cleanup failed: $e');
       }
@@ -1045,6 +1093,11 @@ class FailedRequestmanager {
     // Letztes "onProgress", um finalen Erfolg zu signalisieren:
     onProgress?.call(1.0, finalSuccess, null, 1.0, '');
 
+    if (finalSuccess) {
+      // Ensure all open dropdown pages rebuild and re-fetch data so indicators update immediately.
+      SyncEvents.instance.notifyLocalDataChanged();
+    }
+
     return finalSuccess;
   }
 
@@ -1058,6 +1111,43 @@ class FailedRequestmanager {
     String? name,
     String? parentID,
   }) async {
+    final progressSession = DownloadProgress.instance.active;
+
+    Future<void> awaitAllImagesForData(Data data) async {
+      final futures = <Future>[];
+      futures.add(data.mainImage);
+      if (data.imageFutures != null) futures.addAll(data.imageFutures!);
+      await Future.wait(futures.map((f) => f.catchError((_) => null)));
+    }
+
+    Future<void> reserveImagesForData(Data data) async {
+      if (progressSession == null) return;
+      final compressedThumbs = Options().compactDownload;
+
+      final hashes = <String>{};
+      if (data.mainhash != null &&
+          data.mainhash != Options().no_image_placeholder_name) {
+        hashes.add(data.mainhash!);
+      }
+      if (data.imagehashes != null) {
+        hashes.addAll(data.imagehashes!.where((h) => h.isNotEmpty));
+      }
+
+      for (final hash in hashes) {
+        // Only reserve tasks for images that are not already cached locally.
+        bool cached = false;
+        try {
+          await API().local.getImageByHash(hash,
+              compressed: compressedThumbs, owner: data);
+          cached = true;
+        } catch (_) {}
+        if (!cached) {
+          final key = '/image/get|$hash|c=$compressedThumbs';
+          progressSession.reserveTask(key, label: 'image/get');
+        }
+      }
+    }
+
     // base-case: CheckPointDefects have no children
     if (depth == 0) return true;
     depth--;
@@ -1068,6 +1158,14 @@ class FailedRequestmanager {
       var children = await caller
           .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
           .last;
+
+      // Ensure image downloads complete (and errors are absorbed) during manual download.
+      for (final child in children) {
+        await reserveImagesForData(child);
+        await awaitAllImagesForData(child);
+        await Future<void>.delayed(Duration.zero);
+      }
+
       if (caller.currentData is InspectionLocation) {
         final location = caller.currentData as InspectionLocation;
         if (location.dokuspaths != null && location.dokuspaths!.isNotEmpty) {

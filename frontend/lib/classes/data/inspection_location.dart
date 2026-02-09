@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/download_progress.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -146,7 +147,10 @@ class InspectionLocation extends Data
   @override
   List<Widget> extras({BuildContext? context}) => [
         if (!forceOffline)
-          _RecursiveDownloadButton(caller: CategoryModel(this)),
+          _RecursiveDownloadButton(
+            key: ValueKey('recursive_download_${pjNr}_$stONr'),
+            caller: CategoryModel(this),
+          ),
       ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
@@ -298,19 +302,42 @@ class _RecursiveDownloadButton extends StatefulWidget {
 class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   bool wasPressed = false;
   bool? success;
+  DownloadProgressSession? _session;
   void press() async {
     setState(() {
       success = null;
       wasPressed = true;
     });
+    final session = DownloadProgress.instance.start(label: widget.caller.title);
+    _session?.dispose();
+    _session = session;
+    if (mounted) {
+      // Trigger rebuild so the percentage replaces the download icon immediately.
+      setState(() {});
+    }
+
     //also edit this for finer granularity
     var rootid = await API().rootID;
     FailedRequestmanager()
         .loadAndCacheAll(widget.caller, 3,
             name: widget.caller.title, parentID: rootid)
-        .then((succs) => setState(() {
-              this.success = succs;
-            }));
+        .then((succs) {
+      DownloadProgress.instance.finish(session);
+      session.dispose();
+      if (!mounted) return;
+      setState(() {
+        _session = null;
+        this.success = succs;
+      });
+    }).catchError((e) {
+      DownloadProgress.instance.finish(session);
+      session.dispose();
+      if (!mounted) return;
+      setState(() {
+        _session = null;
+        this.success = false;
+      });
+    });
   }
 
   @override
@@ -323,12 +350,41 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
           ));
     }
     if (success == null) {
-      return IconButton(
-        onPressed: (() {}),
-        icon: Opacity(
-          child: LoadingView(),
-          opacity: 0.5,
-        ),
+      final session = _session;
+      if (session == null) {
+        return IconButton(
+          onPressed: (() {}),
+          icon: Opacity(
+            child: LoadingView(),
+            opacity: 0.5,
+          ),
+        );
+      }
+      return ValueListenableBuilder<DownloadProgressState>(
+        valueListenable: session.notifier,
+        builder: (context, state, _) {
+          return IconButton(
+            onPressed: null,
+            icon: SizedBox(
+              width: 28,
+              height: 28,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    strokeWidth: 3,
+                    value: state.fraction,
+                  ),
+                  Text(
+                    '${state.percent}%',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
+            ),
+            tooltip: state.currentLabel.isEmpty ? null : state.currentLabel,
+          );
+        },
       );
     }
     if (success!) {

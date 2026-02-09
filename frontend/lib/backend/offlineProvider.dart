@@ -123,6 +123,47 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
       cacheHeight: cacheSize, cacheWidth: cacheSize);
 }
 
+/// Tries to resolve an existing on-disk image file for a given hash/name.
+/// Supports scoped paths (`<scope>/<hash>`), compressed variants, and legacy naming.
+Future<File?> resolveImageFileByHash(
+  String hash, {
+  String? scope,
+  bool compressed = false,
+  bool allowCompressedFallback = true,
+}) async {
+  final isPath = hash.contains('/');
+  final names = <String>[];
+
+  String baseName(String h, {required bool c}) =>
+      c ? convertToCompressedHashName(h) : h;
+
+  void add(String n) {
+    if (n.isEmpty) return;
+    names.add(n);
+  }
+
+  if (!isPath && scope != null && scope.isNotEmpty) {
+    add('$scope/${baseName(hash, c: compressed)}');
+  }
+  add(baseName(hash, c: compressed));
+  add(hash);
+
+  if (!compressed && allowCompressedFallback) {
+    if (!isPath && scope != null && scope.isNotEmpty) {
+      add('$scope/${baseName(hash, c: true)}');
+    }
+    add(baseName(hash, c: true));
+  }
+
+  for (final name in names) {
+    try {
+      final f = await localFile(name);
+      if (f.existsSync()) return f;
+    } catch (_) {}
+  }
+  return null;
+}
+
 Future<File?> readDoc(String name, {int? cacheSize}) async {
   //TODO: support reading images/file from indexedDb or something for web
 

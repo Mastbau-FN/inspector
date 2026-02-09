@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'loadingscreen/loadingView.dart';
 
@@ -42,6 +43,13 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    String currentName() {
+      final id = widget.galleryItems[currentIndex].image?.id.toString();
+      if (id == null || id.isEmpty) return '';
+      final parts = id.split('/').where((e) => e.isNotEmpty).toList();
+      return parts.isEmpty ? id : parts.last;
+    }
+
     return Scaffold(
       appBar: AppBar(),
       body: Container(
@@ -62,17 +70,31 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
               onPageChanged: onPageChanged,
               scrollDirection: widget.scrollDirection,
             ),
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                "Image ${currentIndex + 1}:${widget.galleryItems[currentIndex].image?.id.toString().split('/').last ?? ')'}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 17.0,
-                  decoration: null,
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    child: Text(
+                      currentName().isEmpty
+                          ? 'Bild ${currentIndex + 1}'
+                          : 'Bild ${currentIndex + 1}: ${currentName()}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                        decoration: null,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -84,7 +106,9 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
     return PhotoViewGalleryPageOptions.customChild(
       child: FullImg(item: item),
       initialScale: PhotoViewComputedScale.contained,
-      minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
+      // Keep consistent minimum scale. The previous index-based minScale could clamp initialScale
+      // and make some images appear zoomed-in by default.
+      minScale: PhotoViewComputedScale.contained * 0.8,
       maxScale: PhotoViewComputedScale.covered * 4.1,
       heroAttributes: PhotoViewHeroAttributes(tag: item.tag),
     );
@@ -95,24 +119,47 @@ class FullImg extends StatelessWidget {
   final ImageItem item;
   const FullImg({super.key, required this.item});
 
+  Widget _safe(Image img) {
+    return Image(
+      image: img.image,
+      fit: BoxFit.contain,
+      filterQuality: img.filterQuality,
+      isAntiAlias: img.isAntiAlias,
+      gaplessPlayback: img.gaplessPlayback,
+      errorBuilder: (context, error, stackTrace) {
+        // Mark corrupt/unreadable images so they disappear from the gallery.
+        // Defer notify to avoid setState during build.
+        SchedulerBinding.instance
+            .addPostFrameCallback((_) => item.markCorrupt());
+        return item.fallBackWidget;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: item,
       builder: (context, child) => FutureBuilder(
         future: item.image?.fullImage(),
-        builder: (context, AsyncSnapshot<Image?> snapshot) =>
-            snapshot.data ??
-            item.image?.thumbnail ??
-            ((snapshot.hasError)
-                ? item.fallBackWidget
-                : Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (item.image != null) item.image!.thumbnail,
-                      const LoadingView(),
-                    ],
-                  )),
+        builder: (context, AsyncSnapshot<Image?> snapshot) {
+          if (snapshot.hasError) {
+            SchedulerBinding.instance
+                .addPostFrameCallback((_) => item.markCorrupt());
+            return item.fallBackWidget;
+          }
+          return (snapshot.data != null)
+              ? _safe(snapshot.data!)
+              : (item.image?.thumbnail != null)
+                  ? _safe(item.image!.thumbnail)
+                  : Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (item.image != null) _safe(item.image!.thumbnail),
+                        const LoadingView(),
+                      ],
+                    );
+        },
       ),
     );
   }
@@ -122,6 +169,13 @@ class ImageItem<T extends Object> with ChangeNotifier {
   Widget fallBackWidget;
   ImageData? image;
   Object tag;
+  bool hidden = false;
+
+  void markCorrupt() {
+    if (hidden) return;
+    hidden = true;
+    notifyListeners();
+  }
 
   /* const */ ImageItem.fromImageData(ImageData<T>? imaged,
       {this.fallBackWidget =
@@ -136,7 +190,12 @@ class ImageItem<T extends Object> with ChangeNotifier {
         this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
     image.then((value) {
       this.image = value;
-      if (value != null) this.tag = value.id;
+      if (value != null) {
+        hidden = false;
+        this.tag = value.id;
+      } else {
+        hidden = true;
+      }
       // debugPrint(this.tag.toString());
       notifyListeners();
     });
@@ -149,10 +208,13 @@ class ImageItem<T extends Object> with ChangeNotifier {
         this.fallBackWidget = const LoadingView() {
     image.forEach((value) {
       this.image = value;
-      if (value != null)
+      if (value != null) {
+        hidden = false;
         this.tag = value.id;
-      else
+      } else {
+        hidden = true;
         this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      }
       // debugPrint(this.tag.toString());
       notifyListeners();
     });
