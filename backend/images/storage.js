@@ -81,6 +81,35 @@ function _resolveTargetDirectory(rootfolder, linkForFilesystem) {
   return files.formatpath(pathInput);
 }
 
+function _newUploadTraceId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function _uploadLog(req, event, payload = {}) {
+  console.log(
+    "[upload-trace]",
+    JSON.stringify({
+      event,
+      request_id: req.__request_id ?? null,
+      trace_id: req.__upload_trace_id ?? null,
+      ...payload,
+    })
+  );
+}
+
+function _uploadWarn(req, event, payload = {}) {
+  console.warn(
+    "[upload-trace]",
+    JSON.stringify({
+      level: "warn",
+      event,
+      request_id: req.__request_id ?? null,
+      trace_id: req.__upload_trace_id ?? null,
+      ...payload,
+    })
+  );
+}
+
 function getStoredFilename(file) {
   const clientName = _sanitizeUploadName(file.originalname);
   if (TIMESTAMP_JPG_PATTERN.test(clientName)) return _forceJpgExtension(clientName);
@@ -96,23 +125,43 @@ function getStoredFilename(file) {
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
+    if (!req.__upload_trace_id) {
+      req.__upload_trace_id = _newUploadTraceId();
+    }
+
     const frontendname = _sanitizeUploadName(file.originalname);
     const storedFilename = getStoredFilename(file);
     file.originalname = storedFilename;
 
-    console.info("file uploaded");
+    _uploadLog(req, "file-received", {
+      incoming_client_filename: frontendname,
+      incoming_stored_filename: storedFilename,
+      fieldname: file.fieldname,
+      mimetype: file.mimetype,
+    });
+
     //shouldnt be neccessary, since upload route used fieldparser as middleware
-    try {
-      //might fail if the body was already parsed
-      req.body.data = JSON.parse(req.body.data);
-    } catch (_) {}
+    if (typeof req.body?.data === "string") {
+      try {
+        //might fail if the body was already parsed
+        req.body.data = JSON.parse(req.body.data);
+      } catch (e) {
+        _uploadWarn(req, "parse-data-failed", {
+          reason: e?.message ?? String(e),
+        });
+      }
+    }
 
     try {
       req.body.data = decorateDataFromLocalId(req.body.data);
-    } catch (_) {}
+    } catch (e) {
+      _uploadWarn(req, "decorate-local-id-failed", {
+        reason: e?.message ?? String(e),
+      });
+    }
 
     return rootfolder(req.body.data).then((rf) => {
-        console.log("multi-upload", {
+        _uploadLog(req, "rootfolder-resolved", {
           rootfolder: rf?.rootfolder,
           link: rf?.link,
           existing_main_filename: rf?.filename,
@@ -143,33 +192,24 @@ const mstorage = multer.diskStorage({
           hash,
         });
 
-        try {
-          console.log(
-            "[upload-trace] destination-resolved",
-            JSON.stringify(
-              {
-                client_filename: frontendname,
-                stored_filename: file.originalname,
-                data_scope: {
-                  PjNr: req?.body?.data?.PjNr,
-                  E1: req?.body?.data?.E1,
-                  E2: req?.body?.data?.E2,
-                  E3: req?.body?.data?.E3,
-                },
-                rootfolder: rf.rootfolder,
-                link_raw: rf.link,
-                link_normalized: fsLink,
-                existing_main_filename: prev_filename,
-                target_directory: targetPath,
-                target_directory_is_absolute: pathm.isAbsolute(targetPath),
-                target_file: targetFilePath,
-                exists_before_write: fs.existsSync(targetFilePath),
-              },
-              null,
-              2
-            )
-          );
-        } catch (_) {}
+        _uploadLog(req, "destination-resolved", {
+          client_filename: frontendname,
+          stored_filename: file.originalname,
+          data_scope: {
+            PjNr: req?.body?.data?.PjNr,
+            E1: req?.body?.data?.E1,
+            E2: req?.body?.data?.E2,
+            E3: req?.body?.data?.E3,
+          },
+          rootfolder: rf.rootfolder,
+          link_raw: rf.link,
+          link_normalized: fsLink,
+          existing_main_filename: prev_filename,
+          target_directory: targetPath,
+          target_directory_is_absolute: pathm.isAbsolute(targetPath),
+          target_file: targetFilePath,
+          exists_before_write: fs.existsSync(targetFilePath),
+        });
 
         // If destination was empty -> set the new image as main (aka as req.body.Link; update).
         // Defer this until after multer finished and auth/login wall ran, otherwise req.user is not available yet.
@@ -184,9 +224,18 @@ const mstorage = multer.diskStorage({
             file.originalname
           );
           req.__pending_set_main_hash = hash;
+          _uploadLog(req, "pending-main-image-set", {
+            pending_link: req.__pending_set_main_link,
+            pending_hash: req.__pending_set_main_hash,
+          });
         }
         cb(null, targetPath);
     
+    }).catch((error) => {
+      _uploadWarn(req, "destination-error", {
+        reason: error?.message ?? String(error),
+      });
+      cb(error);
     });
   },
   filename: (req, file, cb) => {

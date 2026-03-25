@@ -6,7 +6,15 @@ const api_wall = (req, res, next) => {
     return res.status(401).json({ error: "No auth header given" });
   }
   if (!(req.headers.authorization == process.env.API_KEY)) {
-    console.log("tried auth", req.headers.authorization);
+    console.log(
+      "[auth] api-key-rejected",
+      JSON.stringify({
+        request_id: req.__request_id ?? null,
+        method: req.method,
+        path: req.originalUrl ?? req.url,
+        has_authorization: true,
+      })
+    );
     return res.status(403).json({ error: "NOT AUTHORIZED" });
   }
   return next();
@@ -20,9 +28,33 @@ const login_wall = async (req, res, next) => {
     let user = await db.getValidUser(req.body.user);
     //important s.t. we can use req.user in all api-calls that require a user to be logged in
     req.user = user;
+    console.log(
+      "[auth] login-ok",
+      JSON.stringify({
+        request_id: req.__request_id ?? null,
+        method: req.method,
+        path: req.originalUrl ?? req.url,
+        user: req.user?.KZL ?? req.body?.user?.name ?? null,
+        def_login_id:
+          req.user?.Def_Login_ID ??
+          req.user?.def_login_id ??
+          req.user?.Login_ID_Pruefer ??
+          req.user?.login_id_pruefer ??
+          null,
+      })
+    );
     return next();
   } catch (e) {
-    console.log(`someone tried access with`, req.body, e);
+    console.log(
+      "[auth] login-rejected",
+      JSON.stringify({
+        request_id: req.__request_id ?? null,
+        method: req.method,
+        path: req.originalUrl ?? req.url,
+        user: req.body?.user?.name ?? req.body?.user?.KZL ?? null,
+        reason: e?.message ?? String(e),
+      })
+    );
     return res.status(403).json({ error: "wrong credentials" });
   }
 };

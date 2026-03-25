@@ -9,6 +9,50 @@ const fs = require("fs");
 const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
+function _requestMeta(req) {
+  return {
+    request_id: req.__request_id ?? null,
+    trace_id: req.__upload_trace_id ?? null,
+    method: req.method,
+    path: req.originalUrl ?? req.url,
+  };
+}
+
+function _logRequest(level, req, event, payload = {}) {
+  const logger = console[level] ?? console.log;
+  logger(
+    "[backend]",
+    JSON.stringify({
+      event,
+      ..._requestMeta(req),
+      ...payload,
+    })
+  );
+}
+
+function _uploadTrace(req, event, payload = {}) {
+  console.log(
+    "[upload-trace]",
+    JSON.stringify({
+      event,
+      ..._requestMeta(req),
+      ...payload,
+    })
+  );
+}
+
+function _uploadWarn(req, event, payload = {}) {
+  console.warn(
+    "[upload-trace]",
+    JSON.stringify({
+      level: "warn",
+      event,
+      ..._requestMeta(req),
+      ...payload,
+    })
+  );
+}
+
 //errorhandling
 /**
  * 
@@ -22,10 +66,17 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
   try {
     const val = await statement();
     const jsonderulo = await jsonmaker(val);
-    // console.log(res)
     if (!res.headersSent) return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(error, "caler")
+    console.warn(
+      "[backend]",
+      JSON.stringify({
+        event: "errsafejson-failed",
+        method: res?.req?.method ?? null,
+        path: res?.req?.originalUrl ?? res?.req?.url ?? null,
+        reason: error?.message ?? String(error),
+      })
+    );
     return next({ error: { errsafejson_captured: error.toString() } });
   }
 };
@@ -45,14 +96,10 @@ const login = (req, res) => {
     req.user?.login_id_pruefer ??
     null;
   json_response.user = { ...req.user, Def_Login_ID: defLoginId };
-  console.log(
-    "user logged in:",
-    req.user?.KZL,
-    "Def_Login_ID:",
-    defLoginId,
-    "keys:",
-    Object.keys(req.user ?? {})
-  );
+  _logRequest("log", req, "login-success", {
+    user: req.user?.KZL ?? req.user?.name ?? null,
+    def_login_id: defLoginId,
+  });
   res.status(200).json(json_response);
 };
 
@@ -171,9 +218,13 @@ const touchPruefer = (req, res, next) =>
       const pjNr = req.body?.PjNr ?? req.body?.data?.PjNr;
       const out = await queries.touchPruefer(pjNr, req.user.Def_Login_ID);
       if (out?.updated) {
-        console.log(
-          `touchPruefer: PjNr=${pjNr} old=${out.old_login_id_pruefer} new=${out.login_id_pruefer} (KZL=${req.user?.KZL}, Def_Login_ID=${req.user?.Def_Login_ID})`
-        );
+        _logRequest("log", req, "touch-pruefer-updated", {
+          PjNr: pjNr,
+          old_login_id_pruefer: out.old_login_id_pruefer,
+          login_id_pruefer: out.login_id_pruefer,
+          user: req.user?.KZL ?? null,
+          def_login_id: req.user?.Def_Login_ID ?? null,
+        });
       }
       return out;
     },
@@ -202,8 +253,6 @@ const deleteImgByHash = (req, res, next) =>
   );
 
 const setMainImgByHash = async (req, res, next) => {
-  // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
-
   if(req.body.hash!=null){
     const pathparts = imghasher.getPathFromHash(req.body.hash);
     if(pathparts.link!=null && pathparts.filename!=null){
@@ -211,15 +260,13 @@ const setMainImgByHash = async (req, res, next) => {
       // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
       req.body.data.Link = newLink;
     }else {
-      console.log("hash ungültig oder null")
+      _logRequest("warn", req, "set-main-image-invalid-hash", {
+        hash: req.body.hash,
+      });
     } 
   }else{
-    console.log("kein hash übergeben")
+    _logRequest("warn", req, "set-main-image-missing-hash", {});
   }
-
-
-  // console.log("setmainimagehash api backend", req.body.hash, newLink);
-  // res.status(200).json({ reason: 'kein 404 bitte'}) //FIX-ME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);
 };
 
@@ -256,13 +303,15 @@ const getFileFromHash = async (req, res) => {
 
 const getDocFromPath = async (req, res) => {
   try {
-    console.log("docPath", req.body.docPath);
     let img = await fsp.readFile(req.body.docPath);
 
     res.writeHead(200, { "Content-type": "application/octet-stream" });
     res.end(img);
   } catch (e) {
-    console.log("FHleer")
+    _logRequest("warn", req, "doc-read-failed", {
+      docPath: req.body?.docPath ?? null,
+      reason: e?.message ?? String(e),
+    });
     res.status(404).json({ reason: "doc no longer available" });
   }
 };
@@ -289,10 +338,24 @@ const getFileFromHash_get = async (req, res) => {
 
 
 const fileUpload = async (req, res) => {
-  console.log("uploading files..");
+  const filesCount = Array.isArray(req.files)
+    ? req.files.length
+    : req.file
+      ? 1
+      : 0;
+  _uploadTrace(req, "request-received", {
+    files_count: filesCount,
+    data_scope: {
+      PjNr: req?.body?.data?.PjNr,
+      E1: req?.body?.data?.E1,
+      E2: req?.body?.data?.E2,
+      E3: req?.body?.data?.E3,
+    },
+  });
+
   if (!(req.files || req.file)) {
     res.status(400).json({ success: false, reason: "no file uploaded" });
-    console.log("file failed");
+    _uploadWarn(req, "request-rejected-no-files", {});
     return;
   }
 
@@ -320,8 +383,16 @@ const fileUpload = async (req, res) => {
           null;
         if (defLoginId != null) {
           await queries.update(req.body, defLoginId);
+          _uploadTrace(req, "main-image-updated", {
+            pending_hash: pendingHash,
+            link: pendingLink,
+            def_login_id: defLoginId,
+          });
         } else {
-          console.warn("fileUpload: missing Def_Login_ID on req.user");
+          _uploadWarn(req, "main-image-update-skipped-missing-def-login-id", {
+            pending_hash: pendingHash,
+            link: pendingLink,
+          });
         }
       } else if (pathparts?.link != null && pathparts?.filename != null) {
         req.body.hash = pendingHash;
@@ -334,13 +405,23 @@ const fileUpload = async (req, res) => {
           null;
         if (defLoginId != null) {
           await queries.update(req.body, defLoginId);
+          _uploadTrace(req, "main-image-updated-via-hash-path", {
+            pending_hash: pendingHash,
+            link: req.body.data.Link,
+            def_login_id: defLoginId,
+          });
         } else {
-          console.warn("fileUpload: missing Def_Login_ID on req.user");
+          _uploadWarn(req, "main-image-update-skipped-missing-def-login-id", {
+            pending_hash: pendingHash,
+            link: req.body.data.Link,
+          });
         }
       }
     }
   } catch (e) {
-    console.warn("fileUpload: failed to set main image:", e);
+    _uploadWarn(req, "main-image-update-failed", {
+      reason: e?.message ?? String(e),
+    });
   }
 
   const uploaded = Array.isArray(req.__uploaded_images)
@@ -357,36 +438,33 @@ const fileUpload = async (req, res) => {
           size = fs.statSync(absPath).size;
         } catch (_) {}
       }
-      console.log(
-        "[upload-trace] write-result",
-        JSON.stringify(
-          {
-            client_filename: entry?.client_filename,
-            stored_filename: entry?.stored_filename,
-            stored_link: entry?.stored_link,
-            stored_rootfolder: entry?.stored_rootfolder,
-            stored_link_raw: entry?.stored_link_raw,
-            stored_link_normalized: entry?.stored_link_normalized,
-            stored_directory_path: entry?.stored_directory_path,
-            stored_absolute_path: absPath,
-            file_exists_after_upload: exists,
-            file_size_bytes: size,
-            hash: entry?.hash,
-          },
-          null,
-          2
-        )
-      );
+      _uploadTrace(req, "write-result", {
+        client_filename: entry?.client_filename,
+        stored_filename: entry?.stored_filename,
+        stored_link: entry?.stored_link,
+        stored_rootfolder: entry?.stored_rootfolder,
+        stored_link_raw: entry?.stored_link_raw,
+        stored_link_normalized: entry?.stored_link_normalized,
+        stored_directory_path: entry?.stored_directory_path,
+        stored_absolute_path: absPath,
+        file_exists_after_upload: exists,
+        file_size_bytes: size,
+        hash: entry?.hash,
+      });
     }
   } catch (e) {
-    console.warn("[upload-trace] failed to emit write-result logs:", e);
+    _uploadWarn(req, "write-result-log-failed", {
+      reason: e?.message ?? String(e),
+    });
   }
 
+  _uploadTrace(req, "request-completed", {
+    uploaded_files: uploaded.length,
+  });
   res.status(200).json({
     success: true,
     uploaded_images: uploaded,
   });
-  console.log("file succeeded");
 };
 
 module.exports = {

@@ -29,6 +29,7 @@ const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
 const { decorateReqFromLocalId } = require("./misc/local_id");
+const logger = require("./misc/logger");
 
 const identifiers = require('./misc/identifiers').identifiers;
 
@@ -54,19 +55,13 @@ app.use(
   })
 );
 
-app.use(function(req, res, next) {
-  res.on('header', function() {
-    console.trace('HEADERS GOING TO BE WRITTEN');
-  });
-  return next();
-});
-
 app.use(express.json());
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
+app.use("/", logger.logreq);
 
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -99,11 +94,6 @@ app.use("/api/secure/", auth.api_wall);
 
 // needs a user to be logged in aka provided via the user param inside the post request
 app.use("/api/secure/", auth.login_wall);
-
-
-//log everything
-const logger = require("./misc/logger");
-app.use("/", logger.logreq);
 
 
 app.post("/api/secure/login", api.login);
