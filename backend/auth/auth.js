@@ -28,21 +28,6 @@ const login_wall = async (req, res, next) => {
     let user = await db.getValidUser(req.body.user);
     //important s.t. we can use req.user in all api-calls that require a user to be logged in
     req.user = user;
-    console.log(
-      "[auth] login-ok",
-      JSON.stringify({
-        request_id: req.__request_id ?? null,
-        method: req.method,
-        path: req.originalUrl ?? req.url,
-        user: req.user?.KZL ?? req.body?.user?.name ?? null,
-        def_login_id:
-          req.user?.Def_Login_ID ??
-          req.user?.def_login_id ??
-          req.user?.Login_ID_Pruefer ??
-          req.user?.login_id_pruefer ??
-          null,
-      })
-    );
     return next();
   } catch (e) {
     console.log(

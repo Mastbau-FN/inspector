@@ -96,10 +96,6 @@ const login = (req, res) => {
     req.user?.login_id_pruefer ??
     null;
   json_response.user = { ...req.user, Def_Login_ID: defLoginId };
-  _logRequest("log", req, "login-success", {
-    user: req.user?.KZL ?? req.user?.name ?? null,
-    def_login_id: defLoginId,
-  });
   res.status(200).json(json_response);
 };
 
@@ -217,15 +213,6 @@ const touchPruefer = (req, res, next) =>
     async () => {
       const pjNr = req.body?.PjNr ?? req.body?.data?.PjNr;
       const out = await queries.touchPruefer(pjNr, req.user.Def_Login_ID);
-      if (out?.updated) {
-        _logRequest("log", req, "touch-pruefer-updated", {
-          PjNr: pjNr,
-          old_login_id_pruefer: out.old_login_id_pruefer,
-          login_id_pruefer: out.login_id_pruefer,
-          user: req.user?.KZL ?? null,
-          def_login_id: req.user?.Def_Login_ID ?? null,
-        });
-      }
       return out;
     },
     (json) => ({ message: "touched pruefer", ...json }),
@@ -383,11 +370,6 @@ const fileUpload = async (req, res) => {
           null;
         if (defLoginId != null) {
           await queries.update(req.body, defLoginId);
-          _uploadTrace(req, "main-image-updated", {
-            pending_hash: pendingHash,
-            link: pendingLink,
-            def_login_id: defLoginId,
-          });
         } else {
           _uploadWarn(req, "main-image-update-skipped-missing-def-login-id", {
             pending_hash: pendingHash,
@@ -405,11 +387,6 @@ const fileUpload = async (req, res) => {
           null;
         if (defLoginId != null) {
           await queries.update(req.body, defLoginId);
-          _uploadTrace(req, "main-image-updated-via-hash-path", {
-            pending_hash: pendingHash,
-            link: req.body.data.Link,
-            def_login_id: defLoginId,
-          });
         } else {
           _uploadWarn(req, "main-image-update-skipped-missing-def-login-id", {
             pending_hash: pendingHash,

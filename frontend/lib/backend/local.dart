@@ -76,6 +76,16 @@ class LocalMirror {
   String scopeFor(Data? data, {Data? caller}) =>
       _scopeForData(data, caller: caller);
 
+  Future<List<String>> listScopedImageNames(Data? data, {Data? caller}) async {
+    final scope = _scopeForData(data, caller: caller).trim();
+    if (scope.isEmpty) return const [];
+    try {
+      return await OP.listScopedImageNames(scope);
+    } catch (_) {
+      return const [];
+    }
+  }
+
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   Future<List<ChildData>?>
       _getAllForNextLevel<ChildData extends Data, ParentData extends Data?>({

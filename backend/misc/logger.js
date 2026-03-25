@@ -50,27 +50,33 @@ const logreq = (req, res, next) => {
   req.__request_id = requestId;
 
   const path = req.originalUrl ?? req.url;
-  console.log(
-    "[request] start",
-    JSON.stringify({
-      request_id: requestId,
-      method: req.method,
-      path,
-      body: _summarizeBody(req.body),
-    })
-  );
+  const isUploadRoute = path.includes("/api/secure/image/set");
 
-  res.on("finish", () => {
+  if (isUploadRoute) {
     console.log(
-      "[request] end",
+      "[request] start",
       JSON.stringify({
         request_id: requestId,
         method: req.method,
         path,
-        status: res.statusCode,
-        duration_ms: Date.now() - startedAt,
+        body: _summarizeBody(req.body),
       })
     );
+  }
+
+  res.on("finish", () => {
+    if (isUploadRoute || res.statusCode >= 400) {
+      console.log(
+        "[request] end",
+        JSON.stringify({
+          request_id: requestId,
+          method: req.method,
+          path,
+          status: res.statusCode,
+          duration_ms: Date.now() - startedAt,
+        })
+      );
+    }
   });
 
   return next();

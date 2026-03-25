@@ -157,6 +157,60 @@ Future<File?> resolveImageFileByHash(
   return null;
 }
 
+bool _looksLikeImageFilename(String filename) {
+  final lower = filename.toLowerCase();
+  return lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.webp') ||
+      lower.endsWith('.heic') ||
+      lower.endsWith('.maybe.jpg') ||
+      lower.endsWith('.img');
+}
+
+Future<List<String>> listScopedImageNames(String scope) async {
+  final s = scope.trim();
+  if (s.isEmpty || kIsWeb) return const [];
+
+  final base = await localPath;
+  final byName = <String, DateTime>{};
+
+  void collectScope(String scopeName) {
+    final dir = Directory('$base/$scopeName');
+    if (!dir.existsSync()) return;
+
+    for (final entity in dir.listSync(followLinks: false)) {
+      if (entity is! File) continue;
+      final segments = entity.uri.pathSegments;
+      if (segments.isEmpty) continue;
+      final filename = segments.last;
+      if (filename.isEmpty || filename.startsWith('.')) continue;
+      if (!_looksLikeImageFilename(filename)) continue;
+
+      DateTime modified = DateTime.fromMillisecondsSinceEpoch(0);
+      try {
+        modified = entity.statSync().modified;
+      } catch (_) {}
+      byName['$scopeName/$filename'] = modified;
+    }
+  }
+
+  collectScope(s);
+  final legacyScope = s.contains('null') ? s.replaceAll('null', 'undefined') : s;
+  if (legacyScope != s) {
+    collectScope(legacyScope);
+  }
+
+  final out = byName.keys.toList()
+    ..sort((a, b) {
+      final am = byName[a] ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bm = byName[b] ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final cmp = am.compareTo(bm);
+      return cmp != 0 ? cmp : a.compareTo(b);
+    });
+  return out;
+}
+
 Future<File?> readDoc(String name, {int? cacheSize}) async {
   final file = (await localFile(name, "jaman"));
   // ignore: unused_local_variable

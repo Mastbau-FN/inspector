@@ -8,6 +8,7 @@ import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
 import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/env.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -662,7 +663,27 @@ class Remote {
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      return injectImages(data, preloadFull: preloadFullImages);
+      injectImages(data, preloadFull: preloadFullImages);
+
+      final hasMain = data.mainhash != null &&
+          data.mainhash != Options().no_image_placeholder_name &&
+          data.mainhash!.trim().isNotEmpty;
+      final hasImages = data.imagehashes?.isNotEmpty == true;
+
+      // Frontend fallback: when backend returns no image hashes but files are
+      // already present on the device in the scoped folder, show those files.
+      if (!hasMain && !hasImages) {
+        try {
+          final scopedLocalNames = await API().local.listScopedImageNames(data);
+          if (scopedLocalNames.isNotEmpty) {
+            data.mainhash = scopedLocalNames.first;
+            data.imagehashes = scopedLocalNames.skip(1).toList();
+            injectImages(data, preloadFull: preloadFullImages);
+          }
+        } catch (_) {}
+      }
+
+      return data;
     };
   }
 

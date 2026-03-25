@@ -133,13 +133,6 @@ const mstorage = multer.diskStorage({
     const storedFilename = getStoredFilename(file);
     file.originalname = storedFilename;
 
-    _uploadLog(req, "file-received", {
-      incoming_client_filename: frontendname,
-      incoming_stored_filename: storedFilename,
-      fieldname: file.fieldname,
-      mimetype: file.mimetype,
-    });
-
     //shouldnt be neccessary, since upload route used fieldparser as middleware
     if (typeof req.body?.data === "string") {
       try {
@@ -161,13 +154,6 @@ const mstorage = multer.diskStorage({
     }
 
     return rootfolder(req.body.data).then((rf) => {
-        _uploadLog(req, "rootfolder-resolved", {
-          rootfolder: rf?.rootfolder,
-          link: rf?.link,
-          existing_main_filename: rf?.filename,
-          incoming_client_filename: frontendname,
-          incoming_stored_filename: storedFilename,
-        });
         const fsLink = _normalizeLinkForFilesystem(rf.rootfolder, rf.link);
         const targetPath = _resolveTargetDirectory(rf.rootfolder, fsLink);
         const targetFilePath = pathm.join(targetPath, file.originalname);
@@ -224,10 +210,6 @@ const mstorage = multer.diskStorage({
             file.originalname
           );
           req.__pending_set_main_hash = hash;
-          _uploadLog(req, "pending-main-image-set", {
-            pending_link: req.__pending_set_main_link,
-            pending_hash: req.__pending_set_main_hash,
-          });
         }
         cb(null, targetPath);
     
