@@ -663,26 +663,54 @@ class Remote {
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      injectImages(data, preloadFull: preloadFullImages);
+      final mergedRefs = <String>[];
+      final scope = API().local.scopeFor(data);
 
-      final hasMain = data.mainhash != null &&
-          data.mainhash != Options().no_image_placeholder_name &&
-          data.mainhash!.trim().isNotEmpty;
-      final hasImages = data.imagehashes?.isNotEmpty == true;
+      Future<void> addRef(String? ref, {bool fromLocal = false}) async {
+        final v = ref?.trim();
+        if (v == null ||
+            v.isEmpty ||
+            v == Options().no_image_placeholder_name ||
+            mergedRefs.contains(v)) {
+          return;
+        }
 
-      // Frontend fallback: when backend returns no image hashes but files are
-      // already present on the device in the scoped folder, show those files.
-      if (!hasMain && !hasImages) {
-        try {
-          final scopedLocalNames = await API().local.listScopedImageNames(data);
-          if (scopedLocalNames.isNotEmpty) {
-            data.mainhash = scopedLocalNames.first;
-            data.imagehashes = scopedLocalNames.skip(1).toList();
-            injectImages(data, preloadFull: preloadFullImages);
-          }
-        } catch (_) {}
+        // If this is a backend hash and we already have its mapped local file
+        // in the list, skip duplicate rendering.
+        if (!fromLocal && !v.contains('/') && scope.isNotEmpty) {
+          try {
+            final mapped = await OP.lookupImageNameForHash(v, scope: scope);
+            if (mapped != null &&
+                mapped.isNotEmpty &&
+                mergedRefs.contains(mapped)) {
+              return;
+            }
+          } catch (_) {}
+        }
+
+        mergedRefs.add(v);
       }
 
+      // 1) Always local-first.
+      try {
+        final localNames = await API().local.listScopedImageNames(data);
+        for (final name in localNames) {
+          await addRef(name, fromLocal: true);
+        }
+      } catch (_) {}
+
+      // 2) Then backend refs (new online images).
+      await addRef(data.mainhash);
+      for (final hash in data.imagehashes ?? const <String>[]) {
+        await addRef(hash);
+      }
+
+      if (mergedRefs.isNotEmpty) {
+        data.mainhash = mergedRefs.first;
+        data.imagehashes = mergedRefs.skip(1).toList();
+      }
+
+      injectImages(data, preloadFull: preloadFullImages);
       return data;
     };
   }
