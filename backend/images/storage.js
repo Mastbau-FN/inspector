@@ -45,6 +45,35 @@ function _fallbackTimestampName(fieldname) {
   return formatTimestampJpg(d);
 }
 
+function _toPosixPath(input) {
+  return String(input ?? "").replace(/\\/g, "/").replace(/\/+/g, "/");
+}
+
+function _trimTrailingSlash(input) {
+  const s = _toPosixPath(input);
+  return s.endsWith("/") ? s.slice(0, -1) : s;
+}
+
+function _normalizeLinkForFilesystem(rootfolder, link) {
+  const root = _trimTrailingSlash(rootfolder);
+  const rawLink = _trimTrailingSlash(link);
+  if (!rawLink || rawLink === ".") return "";
+
+  if (!root) return rawLink;
+  if (rawLink === root) return "";
+  if (rawLink.startsWith(root + "/")) return rawLink.slice(root.length + 1);
+
+  const stripDrive = (p) => p.replace(/^[A-Za-z]:\//, "");
+  const rootNoDrive = stripDrive(root);
+  const linkNoDrive = stripDrive(rawLink);
+  if (linkNoDrive === rootNoDrive) return "";
+  if (linkNoDrive.startsWith(rootNoDrive + "/")) {
+    return linkNoDrive.slice(rootNoDrive.length + 1);
+  }
+
+  return linkNoDrive;
+}
+
 function getStoredFilename(file) {
   const clientName = _sanitizeUploadName(file.originalname);
   if (TIMESTAMP_JPG_PATTERN.test(clientName)) return _forceJpgExtension(clientName);
@@ -79,12 +108,13 @@ const mstorage = multer.diskStorage({
         // console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
         
         console.log("multi-upload", rf);
-        const targetPath = files.formatpath(pathm.join(rf.rootfolder, rf.link));
+        const fsLink = _normalizeLinkForFilesystem(rf.rootfolder, rf.link);
+        const targetPath = files.formatpath(pathm.join(rf.rootfolder, fsLink));
         fs.mkdirSync(targetPath, { recursive: true });
         let prev_filename = rf.filename;
 
         // compute the hash for the stored filename immediately
-        const rfForHash = { ...rf, filename: file.originalname };
+        const rfForHash = { ...rf, link: fsLink, filename: file.originalname };
         const hash = memorize_link(rfForHash);
         rf.filename = file.originalname;
 
@@ -92,6 +122,7 @@ const mstorage = multer.diskStorage({
         req.__uploaded_images.push({
           client_filename: frontendname,
           stored_filename: file.originalname,
+          stored_link: pathm.join(fsLink, file.originalname),
           hash,
         });
 
@@ -102,6 +133,11 @@ const mstorage = multer.diskStorage({
           (!prev_filename || prev_filename == no_image_placeholder_name) &&
           !req.__pending_set_main_hash
         ) {
+          const linkForDb = _toPosixPath(rf.link);
+          req.__pending_set_main_link = pathm.join(
+            linkForDb,
+            file.originalname
+          );
           req.__pending_set_main_hash = hash;
         }
         cb(null, targetPath);

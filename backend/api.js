@@ -300,6 +300,7 @@ const fileUpload = async (req, res) => {
   // This has to happen here (after auth/login middleware) and not inside multer storage.
   try {
     const pendingHash = req.__pending_set_main_hash;
+    const pendingLink = req.__pending_set_main_link;
     if (pendingHash && req.body && req.body.data) {
       // Ensure body data is an object.
       if (typeof req.body.data === "string") {
@@ -308,7 +309,21 @@ const fileUpload = async (req, res) => {
         } catch (_) {}
       }
       const pathparts = imghasher.getPathFromHash(pendingHash);
-      if (pathparts?.link != null && pathparts?.filename != null) {
+      if (pendingLink) {
+        req.body.hash = pendingHash;
+        req.body.data.Link = pendingLink;
+        const defLoginId =
+          req.user?.Def_Login_ID ??
+          req.user?.def_login_id ??
+          req.user?.Login_ID_Pruefer ??
+          req.user?.login_id_pruefer ??
+          null;
+        if (defLoginId != null) {
+          await queries.update(req.body, defLoginId);
+        } else {
+          console.warn("fileUpload: missing Def_Login_ID on req.user");
+        }
+      } else if (pathparts?.link != null && pathparts?.filename != null) {
         req.body.hash = pendingHash;
         req.body.data.Link = path.join(pathparts.link, pathparts.filename);
         const defLoginId =
