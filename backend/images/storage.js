@@ -11,34 +11,59 @@ const {
   set_first_image_as_main,
   no_image_placeholder_name,
 } = require("../options");
-const LOCALLY_ADDED_PREFIX = '__locally_added__';
-const SHORT_LOCALLY_ADDED_PREFIX = '__loc__';
 
 const { decorateDataFromLocalId } = require("../misc/local_id");
+
+const TIMESTAMP_JPG_PATTERN = /^\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.jpg$/i;
+
+const pad2 = (v) => String(v).padStart(2, "0");
+
+function formatTimestampJpg(date) {
+  return `${pad2(date.getDate())}_${pad2(date.getMonth() + 1)}_${date.getFullYear()}_${pad2(date.getHours())}_${pad2(date.getMinutes())}_${pad2(date.getSeconds())}.jpg`;
+}
+
+function _sanitizeUploadName(name) {
+  if (name == null) return "";
+  const normalized = String(name).replace(/\\/g, "/");
+  return pathm.basename(normalized).trim();
+}
+
+function _extractCanonicalTimestampName(name) {
+  const match = String(name).match(/\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.jpg/i);
+  return match ? match[0] : null;
+}
+
+function _forceJpgExtension(name) {
+  return String(name).replace(/\.[^.]+$/i, ".jpg");
+}
+
+function _fallbackTimestampName(fieldname) {
+  const asNumber = Number.parseInt(String(fieldname ?? ""), 10);
+  if (!Number.isFinite(asNumber)) return null;
+  const d = new Date(asNumber);
+  if (!Number.isFinite(d.getTime())) return null;
+  return formatTimestampJpg(d);
+}
+
+function getStoredFilename(file) {
+  const clientName = _sanitizeUploadName(file.originalname);
+  if (TIMESTAMP_JPG_PATTERN.test(clientName)) return _forceJpgExtension(clientName);
+
+  const embedded = _extractCanonicalTimestampName(clientName);
+  if (embedded && TIMESTAMP_JPG_PATTERN.test(embedded)) {
+    return _forceJpgExtension(embedded);
+  }
+
+  return _fallbackTimestampName(file.fieldname) ?? formatTimestampJpg(new Date());
+}
 
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
-    let frontendname = file.originalname;
-    const date = new Date(Number(file.fieldname));
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const frontendname = _sanitizeUploadName(file.originalname);
+    const storedFilename = getStoredFilename(file);
+    file.originalname = storedFilename;
 
-    // Format the date as "dd_MM_yyyy_HH_mm_ss"
-    const formattedDate = `${day}_${month}_${year}_${hours}_${minutes}_${seconds}`;
-    file.fieldname = formattedDate;
-    if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX) && !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
-        file.originalname = file.fieldname+".jpg";
-        file.fieldname = frontendname;
-    }else{
-        file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+(Math.random() + 1).toString(36).substring(8)+".jpg";
-        file.fieldname = frontendname;
-    }
-    
     console.info("file uploaded");
     //shouldnt be neccessary, since upload route used fieldparser as middleware
     try {
@@ -54,8 +79,8 @@ const mstorage = multer.diskStorage({
         // console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
         
         console.log("multi-upload", rf);
-        const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
-        fs.mkdirSync(path, { recursive: true });
+        const targetPath = files.formatpath(pathm.join(rf.rootfolder, rf.link));
+        fs.mkdirSync(targetPath, { recursive: true });
         let prev_filename = rf.filename;
 
         // compute the hash for the stored filename immediately
@@ -79,7 +104,7 @@ const mstorage = multer.diskStorage({
         ) {
           req.__pending_set_main_hash = hash;
         }
-        cb(null, path);
+        cb(null, targetPath);
     
     });
   },

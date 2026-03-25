@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart'
     as OfflineProvider;
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
@@ -37,6 +38,7 @@ import 'package:http/http.dart' as http;
 final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
 final sync_success_str = 'sync success';
+const _localImagePrefix = '__loc__';
 
 /// Hilfsklasse, um globale und Inspektions-spezifische Upload-Fortschritte
 /// samt ETA zu verwalten.
@@ -116,6 +118,131 @@ String _extractInspectionIdFromRequest(RequestData rd) {
     // debugPrint('Could not parse inspectionId: $e');
   }
   return 'unknown';
+}
+
+String _extractScopeFromRequest(RequestData rd) {
+  try {
+    final dataField = rd.json?['data'];
+    Map<String, dynamic>? data;
+    if (dataField is String) {
+      final decoded = json.decode(dataField);
+      if (decoded is Map) data = Map<String, dynamic>.from(decoded);
+    } else if (dataField is Map) {
+      data = Map<String, dynamic>.from(dataField);
+    }
+    if (data == null) return '';
+
+    final parent = data['parent_local_id']?.toString().trim();
+    if (parent != null && parent.isNotEmpty) return parent;
+
+    final pjNr = data['PjNr']?.toString().trim();
+    if (pjNr == null || pjNr.isEmpty || pjNr == 'null' || pjNr == 'undefined') {
+      return '';
+    }
+
+    String norm(dynamic v) {
+      final s = v?.toString().trim() ?? '';
+      if (s.isEmpty || s == 'undefined') return 'null';
+      return s;
+    }
+
+    return [pjNr, norm(data['E1']), norm(data['E2']), norm(data['E3'])]
+        .join('-');
+  } catch (_) {
+    return '';
+  }
+}
+
+String _pathBasename(String raw) {
+  final normalized = raw.replaceAll('\\', '/');
+  final parts = normalized.split('/');
+  return parts.isEmpty ? raw : parts.last;
+}
+
+String _pathDirname(String raw) {
+  final normalized = raw.replaceAll('\\', '/');
+  final idx = normalized.lastIndexOf('/');
+  if (idx <= 0) return '';
+  return normalized.substring(0, idx);
+}
+
+Future<void> _canonicalizeImageMultipartFilenames(RequestData req) async {
+  if (req.route != '/image/set') return;
+  final names = req.multipartFileNames;
+  if (names == null || names.isEmpty) return;
+
+  final scope = _extractScopeFromRequest(req);
+  final updated = <String>[];
+  final used = <String>{};
+
+  Future<String?> existingPath(String name) async {
+    final f = await OfflineProvider.localFile(name);
+    if (f.existsSync()) return name;
+    return null;
+  }
+
+  for (final raw in names) {
+    final cleaned = raw.trim();
+    final base = _pathBasename(cleaned);
+    final baseNoLocalPrefix = base.startsWith(_localImagePrefix)
+        ? base.substring(_localImagePrefix.length)
+        : base;
+    final dir = _pathDirname(cleaned);
+    final effectiveDir = dir.isNotEmpty ? dir : scope;
+
+    DateTime ts =
+        parseTimestampImageFilename(baseNoLocalPrefix) ?? DateTime.now();
+    if (!isTimestampImageFilename(baseNoLocalPrefix)) {
+      final altName = effectiveDir.isNotEmpty
+          ? '$effectiveDir/$baseNoLocalPrefix'
+          : baseNoLocalPrefix;
+      final src1 = await existingPath(cleaned);
+      final src2 = await existingPath(altName);
+      final srcName = src1 ?? src2;
+      if (srcName != null) {
+        try {
+          final f = await OfflineProvider.localFile(srcName);
+          ts = f.statSync().changed;
+        } catch (_) {}
+      }
+    }
+
+    String canonicalBase = formatTimestampImageFilename(ts);
+    while (used.contains(canonicalBase)) {
+      ts = ts.add(const Duration(seconds: 1));
+      canonicalBase = formatTimestampImageFilename(ts);
+    }
+    used.add(canonicalBase);
+
+    final canonicalName = effectiveDir.isNotEmpty
+        ? '$effectiveDir/$canonicalBase'
+        : canonicalBase;
+
+    if (canonicalName != cleaned) {
+      final candidates = <String>[
+        cleaned,
+        if (effectiveDir.isNotEmpty) '$effectiveDir/$baseNoLocalPrefix',
+        baseNoLocalPrefix,
+      ];
+      try {
+        final dst = await OfflineProvider.localFile(canonicalName);
+        if (!dst.existsSync()) {
+          for (final c in candidates) {
+            final src = await OfflineProvider.localFile(c);
+            if (src.existsSync()) {
+              await dst.parent.create(recursive: true);
+              await src.copy(dst.path);
+              break;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    updated.add(canonicalName);
+  }
+
+  req.multipartFileNames = updated;
 }
 
 /// Gruppiert die Requests nach extrahierter Inspection-ID, anschließend sortiert.
@@ -788,6 +915,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           await _retryWithBackoff(
             operation: () async {
               // Verwende die verbesserte Methode für Socket-Fehler
+              await _canonicalizeImageMultipartFilenames(rd);
               await ensureParentLocalIdIfMissing(rd);
               patchRequestInPlace(rd);
               final baseRes = await API().remote.postJSONWithSocketRetry(
@@ -857,6 +985,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                     final decoded = json.decode(res.body);
                     final uploaded =
                         (decoded is Map) ? decoded['uploaded_images'] : null;
+                    final scope = _extractScopeFromRequest(rd);
                     if (uploaded is List) {
                       for (final e in uploaded) {
                         if (e is Map) {
@@ -867,6 +996,41 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                               hash != null &&
                               hash.isNotEmpty) {
                             imageHashMap[client] = hash;
+                            final base = client.contains('/')
+                                ? client.split('/').last
+                                : client;
+                            final baseNoLocalPrefix =
+                                base.startsWith(_localImagePrefix)
+                                    ? base.substring(_localImagePrefix.length)
+                                    : base;
+                            final localPrefixedBase =
+                                '$_localImagePrefix$baseNoLocalPrefix';
+                            imageHashMap[base] = hash;
+                            imageHashMap[baseNoLocalPrefix] = hash;
+                            imageHashMap[localPrefixedBase] = hash;
+
+                            String scoped(String b) =>
+                                scope.isNotEmpty ? '$scope/$b' : b;
+
+                            final candidateStoredNames = <String>[
+                              scoped(baseNoLocalPrefix),
+                              scoped(base),
+                              scoped(localPrefixedBase),
+                            ];
+                            String storedName = candidateStoredNames.first;
+                            for (final candidate in candidateStoredNames) {
+                              final f =
+                                  await OfflineProvider.localFile(candidate);
+                              if (f.existsSync()) {
+                                storedName = candidate;
+                                break;
+                              }
+                            }
+                            await OfflineProvider.indexImageHash(
+                              hash: hash,
+                              storedName: storedName,
+                              scope: scope,
+                            );
                           }
                         }
                       }

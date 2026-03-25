@@ -16,6 +16,7 @@ import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
+import 'image_naming.dart';
 import 'api.dart';
 
 const LOCALLY_ADDED_PREFIX = '__loc__';
@@ -55,9 +56,10 @@ String _scopeForData(Data? data, {Data? caller}) {
 
   if (inspection.isEmpty) return '';
   // never create legacy "undefined" scopes
-  return [inspection, seg2, seg3, seg4].join('-').replaceAll('undefined', 'null');
+  return [inspection, seg2, seg3, seg4]
+      .join('-')
+      .replaceAll('undefined', 'null');
 }
-
 
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
@@ -174,8 +176,7 @@ class LocalMirror {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> getImageByHash(String hash,
-      {Data? owner}) async {
+  Future<ImageData?> getImageByHash(String hash, {Data? owner}) async {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
     final legacyScope =
@@ -218,7 +219,8 @@ class LocalMirror {
         if (indexed != null && indexed.isNotEmpty) {
           final img = await readImage(indexed, cacheSize: null);
           if (img != null)
-            return ImageData(img, id: hash, name: displayNameFromStored(indexed));
+            return ImageData(img,
+                id: hash, name: displayNameFromStored(indexed));
         }
       } catch (_) {}
     }
@@ -256,8 +258,7 @@ class LocalMirror {
               storedName: migratedName,
               scope: scope,
             );
-            final migratedImg = await readImage(migratedName,
-                cacheSize: null);
+            final migratedImg = await readImage(migratedName, cacheSize: null);
             if (migratedImg != null) {
               return ImageData(migratedImg,
                   id: hash, name: displayNameFromStored(migratedName));
@@ -273,11 +274,13 @@ class LocalMirror {
   Future<File?> getDocument(String docPath, {String? scope}) async {
     final filename = docPath.split('/').last;
     final s = (scope ?? '').trim();
-    final legacyScope = s.contains('null') ? s.replaceAll('null', 'undefined') : s;
+    final legacyScope =
+        s.contains('null') ? s.replaceAll('null', 'undefined') : s;
 
     final candidates = <String>[
       if (s.isNotEmpty) '$s/Dokus/$filename',
-      if (legacyScope.isNotEmpty && legacyScope != s) '$legacyScope/Dokus/$filename',
+      if (legacyScope.isNotEmpty && legacyScope != s)
+        '$legacyScope/Dokus/$filename',
       // legacy: flat storage
       filename,
     ];
@@ -347,11 +350,10 @@ class LocalMirror {
   }) async {
     List<String> newLocalImageNames = [];
     final scope = _scopeForData(data, caller: caller);
-    String _scoped(String base) =>
-        scope.isNotEmpty ? '$scope/$base' : base;
+    String _scoped(String base) => scope.isNotEmpty ? '$scope/$base' : base;
     await Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
-      final imageName = _scoped('$LOCALLY_ADDED_PREFIX${file.name}');
+      final imageName = _scoped(canonicalTimestampFilenameForXFile(file));
       await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));

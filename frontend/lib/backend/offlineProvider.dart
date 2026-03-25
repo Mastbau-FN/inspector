@@ -607,6 +607,11 @@ Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
   final name = _name ?? relativeName ?? file.name;
   final target = await localFile(name);
   await target.parent.create(recursive: true);
+  final srcAbs = File(file.path).absolute.path;
+  final dstAbs = target.absolute.path;
+  if (srcAbs == dstAbs && target.existsSync() && target.lengthSync() >= 5) {
+    return name;
+  }
   await file.saveTo(target.path);
   debugPrint('Persisted cached file to ${target.path}');
   return name;

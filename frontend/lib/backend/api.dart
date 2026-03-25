@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -143,7 +144,8 @@ class API {
                   } else if (r.contains('defect')) {
                     step = 2;
                     stepLabel = 'Step 2/3: Defects';
-                  } else if (r.contains('/image/get') || r.contains('/doc/get')) {
+                  } else if (r.contains('/image/get') ||
+                      r.contains('/doc/get')) {
                     // If image downloads start before we fetched any checkpoints/defects,
                     // treat them as a pre-step "0/3" to make the UX clearer.
                     if (currentStep == 0) {
@@ -280,6 +282,49 @@ class API {
       if (pjNr is String) return int.tryParse(pjNr);
     } catch (_) {}
     return null;
+  }
+
+  Future<List<XFile>> _normalizeUploadFilesForStorage<DataT extends Data>(
+    DataT data,
+    List<XFile> files, {
+    Data? caller,
+  }) async {
+    final scope = local.scopeFor(data, caller: caller);
+    final usedNames = <String>{};
+    final prepared = <XFile>[];
+
+    for (final file in files) {
+      DateTime baseTime = parseTimestampImageFilename(file.name) ??
+          parseTimestampImageFilename(
+              canonicalTimestampFilenameForXFile(file)) ??
+          DateTime.now();
+      String candidate = formatTimestampImageFilename(baseTime);
+
+      while (true) {
+        if (usedNames.contains(candidate)) {
+          baseTime = baseTime.add(const Duration(seconds: 1));
+          candidate = formatTimestampImageFilename(baseTime);
+          continue;
+        }
+
+        final scopedName = scope.isNotEmpty ? '$scope/$candidate' : candidate;
+        final target = await localFile(scopedName);
+        final samePath = File(file.path).absolute.path == target.absolute.path;
+        if (target.existsSync() && !samePath) {
+          baseTime = baseTime.add(const Duration(seconds: 1));
+          candidate = formatTimestampImageFilename(baseTime);
+          continue;
+        }
+        break;
+      }
+
+      usedNames.add(candidate);
+      final scopedName = scope.isNotEmpty ? '$scope/$candidate' : candidate;
+      final storedName = await permaStoreCachedXFile(file, scopedName);
+      prepared.add(await retrieveStoredXFile(storedName));
+    }
+
+    return prepared;
   }
 
   int? _parseInt(dynamic v) {
@@ -465,7 +510,6 @@ class API {
           await local.storeData(
             childData,
             forId: data?.id ?? await API().rootID,
-            
           );
         }
       },
@@ -553,8 +597,9 @@ class API {
   /// gets image specified by its hash
   Future<ImageData?> getImageByHash(String hash, {Data? owner}) async {
     // Scoped/local hashes (with folders or local prefix) must not trigger remote fetches
-    final isLocalScoped =
-        hash.contains('/') || hash.startsWith(LOCALLY_ADDED_PREFIX);
+    final isLocalScoped = hash.contains('/') ||
+        hash.startsWith(LOCALLY_ADDED_PREFIX) ||
+        isTimestampImageFilename(hash);
 
     // Always prefer local cache first; if present, never hit network.
     try {
@@ -680,6 +725,9 @@ class API {
     Data? caller,
     bool forceUpdate = false,
   }) async {
+    final preparedFiles =
+        await _normalizeUploadFilesForStorage(data, files, caller: caller);
+
     // Wenn forceOffline aktiv ist: nur lokal speichern und Request zum Retry vormerken
     bool prefersOffline =
         _dataPrefersCache(caller, type: Helper.SimulatedRequestType.PUT) ??
@@ -693,14 +741,17 @@ class API {
     } catch (_) {}
     prefersOffline = prefersOffline || Options().forceOffline;
 
+    // Always persist images locally first (even when online), so cache and
+    // on-device storage are immediately available with canonical filenames.
+    await local.uploadNewImagesOrFiles(
+      data,
+      preparedFiles,
+      caller: caller,
+      forceUpdate: forceUpdate,
+    );
+
     if (prefersOffline) {
-      final rap = remote.uploadNewImagesOrFiles<DataT>(data, files);
-      await local.uploadNewImagesOrFiles(
-        data,
-        files,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      );
+      final rap = remote.uploadNewImagesOrFiles<DataT>(data, preparedFiles);
       await local.logFailedReq(rap.rd);
       return 'added files offline (queued)';
     }
@@ -714,15 +765,10 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.uploadNewImagesOrFiles(
-        data,
-        files,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      ),
+      offline: () async => 'added files offline',
       online: () => remote.uploadNewImagesOrFiles(
         data,
-        files,
+        preparedFiles,
       ),
       onlineSuccessCB: (body) async {
         // If the backend returns hashes for uploaded images, replace any local placeholders.
@@ -740,6 +786,40 @@ class API {
                     hash != null &&
                     hash.isNotEmpty) {
                   map[client] = hash;
+                  final scope = local.scopeFor(data, caller: caller);
+                  final base =
+                      client.contains('/') ? client.split('/').last : client;
+                  final baseNoLocalPrefix =
+                      base.startsWith(LOCALLY_ADDED_PREFIX)
+                          ? base.substring(LOCALLY_ADDED_PREFIX.length)
+                          : base;
+                  final localPrefixedBase =
+                      '$LOCALLY_ADDED_PREFIX$baseNoLocalPrefix';
+                  map[base] = hash;
+                  map[baseNoLocalPrefix] = hash;
+                  map[localPrefixedBase] = hash;
+
+                  String scoped(String b) => scope.isNotEmpty ? '$scope/$b' : b;
+
+                  final candidateStoredNames = <String>[
+                    scoped(baseNoLocalPrefix),
+                    scoped(base),
+                    scoped(localPrefixedBase),
+                  ];
+                  String storedName = candidateStoredNames.first;
+                  for (final candidate in candidateStoredNames) {
+                    final f = await localFile(candidate);
+                    if (f.existsSync()) {
+                      storedName = candidate;
+                      break;
+                    }
+                  }
+
+                  await indexImageHash(
+                    hash: hash,
+                    storedName: storedName,
+                    scope: scope,
+                  );
                 }
               }
             }

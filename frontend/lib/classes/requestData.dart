@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
@@ -72,7 +73,10 @@ class RequestData {
     this.multipartFileNames ??= await Future.wait(
         _multipartFiles! //either names or files are set
             .map((file) async => await OP.permaStoreCachedXFile(
-                file, scoped(LOCALLY_ADDED_PREFIX + file.name))));
+                file,
+                scoped(route == '/image/set'
+                    ? canonicalTimestampFilenameForXFile(file)
+                    : file.name))));
     return _$RequestDataToJson(this);
   }
 
@@ -80,8 +84,7 @@ class RequestData {
     var rd = _$RequestDataFromJson(json);
     rd.multipartFileNames = rd.multipartFileNames?.map((element) {
       // fix for failed uploads in pratiks latest incident (02)
-      if (element.contains(LOCALLY_ADDED_PREFIX) &&
-          !element.contains('/')) {
+      if (element.contains(LOCALLY_ADDED_PREFIX) && !element.contains('/')) {
         //shouldnt be necessary but just in case, but keep folder paths intact
         element = element.substring(element.indexOf(LOCALLY_ADDED_PREFIX));
       }
@@ -111,9 +114,9 @@ String? _deriveScopeFromJson(Map<String, dynamic>? json) {
   final pj = data['PjNr']?.toString();
   if (pj == null || pj.isEmpty) return null;
 
-  String seg2 = 'undefined';
-  String seg3 = 'undefined';
-  String seg4 = 'undefined';
+  String seg2 = 'null';
+  String seg3 = 'null';
+  String seg4 = 'null';
 
   switch (type) {
     case 'defect':

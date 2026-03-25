@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -328,9 +329,22 @@ class Remote {
             ); // send structured fields as JSON so the backend can parse them reliably
 
           // Build multipart files sequentially to keep peak memory lower.
+          final usedUploadImageNames = <String>{};
           for (final fxfile in rd.multipartFiles) {
             final xfile = await fxfile;
-            final name = xfile.name;
+            String name = xfile.name;
+            if (rd.route == _uploadImage_r) {
+              DateTime ts = parseTimestampImageFilename(name) ??
+                  parseTimestampImageFilename(
+                      canonicalTimestampFilenameForXFile(xfile)) ??
+                  DateTime.now();
+              name = formatTimestampImageFilename(ts);
+              while (usedUploadImageNames.contains(name)) {
+                ts = ts.add(const Duration(seconds: 1));
+                name = formatTimestampImageFilename(ts);
+              }
+              usedUploadImageNames.add(name);
+            }
             final creation = FileStat.statSync(xfile.path)
                 .changed
                 .toUtc()
@@ -904,7 +918,8 @@ class Remote {
     DataT data,
     List<XFile> files,
   ) {
-    debugPrint('uploading images ${files.map((e) => e.name)}');
+    debugPrint(
+        'uploading images ${files.map((e) => canonicalTimestampFilenameForXFile(e))}');
     var jsonData = data.toJson();
     final rd = RequestData.fromFiles(
       _uploadImage_r,
