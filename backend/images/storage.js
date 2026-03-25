@@ -54,30 +54,31 @@ function _trimTrailingSlash(input) {
   return s.endsWith("/") ? s.slice(0, -1) : s;
 }
 
+function _isDrivePath(input) {
+  return /^[A-Za-z]:\//.test(String(input ?? ""));
+}
+
 function _normalizeLinkForFilesystem(rootfolder, link) {
   const root = _trimTrailingSlash(rootfolder);
   const rawLink = _trimTrailingSlash(link);
   if (!rawLink || rawLink === ".") return "";
 
-  if (!root) return rawLink;
+  // Keep absolute filesystem and drive-prefixed links unchanged.
+  if (pathm.isAbsolute(rawLink) || _isDrivePath(rawLink)) return rawLink;
+
+  if (!root || root === ".") return rawLink;
   if (rawLink === root) return "";
   if (rawLink.startsWith(root + "/")) return rawLink.slice(root.length + 1);
-
-  const stripDrive = (p) => p.replace(/^[A-Za-z]:\//, "");
-  const rootNoDrive = stripDrive(root);
-  const linkNoDrive = stripDrive(rawLink);
-  if (linkNoDrive === rootNoDrive) return "";
-  if (linkNoDrive.startsWith(rootNoDrive + "/")) {
-    return linkNoDrive.slice(rootNoDrive.length + 1);
-  }
-
-  return linkNoDrive;
+  return rawLink;
 }
 
 function _resolveTargetDirectory(rootfolder, linkForFilesystem) {
   const root = String(rootfolder ?? "").trim();
   const link = String(linkForFilesystem ?? "").trim();
-  const pathInput = pathm.isAbsolute(link) ? link : pathm.join(root || ".", link);
+  const pathInput =
+    pathm.isAbsolute(link) || _isDrivePath(link)
+      ? link
+      : pathm.join(root || ".", link);
   return files.formatpath(pathInput);
 }
 
