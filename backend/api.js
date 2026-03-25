@@ -9,47 +9,35 @@ const fs = require("fs");
 const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
-function _requestMeta(req) {
-  return {
-    request_id: req.__request_id ?? null,
-    trace_id: req.__upload_trace_id ?? null,
-    method: req.method,
-    path: req.originalUrl ?? req.url,
-  };
+function _shortPayload(payload = {}) {
+  const out = [];
+  for (const [k, v] of Object.entries(payload)) {
+    if (v == null) continue;
+    if (typeof v === "object") continue;
+    out.push(`${k}=${v}`);
+  }
+  return out.join(" ");
 }
 
 function _logRequest(level, req, event, payload = {}) {
   const logger = console[level] ?? console.log;
+  const details = _shortPayload(payload);
   logger(
-    "[backend]",
-    JSON.stringify({
-      event,
-      ..._requestMeta(req),
-      ...payload,
-    })
+    `[backend] ${event} ${req.method} ${req.originalUrl ?? req.url} req=${req.__request_id ?? "-"}${details ? ` ${details}` : ""}`
   );
 }
 
 function _uploadTrace(req, event, payload = {}) {
+  const details = _shortPayload(payload);
   console.log(
-    "[upload-trace]",
-    JSON.stringify({
-      event,
-      ..._requestMeta(req),
-      ...payload,
-    })
+    `[upload] ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${details ? ` ${details}` : ""}`
   );
 }
 
 function _uploadWarn(req, event, payload = {}) {
+  const details = _shortPayload(payload);
   console.warn(
-    "[upload-trace]",
-    JSON.stringify({
-      level: "warn",
-      event,
-      ..._requestMeta(req),
-      ...payload,
-    })
+    `[upload] WARN ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${details ? ` ${details}` : ""}`
   );
 }
 
@@ -68,15 +56,7 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
     const jsonderulo = await jsonmaker(val);
     if (!res.headersSent) return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(
-      "[backend]",
-      JSON.stringify({
-        event: "errsafejson-failed",
-        method: res?.req?.method ?? null,
-        path: res?.req?.originalUrl ?? res?.req?.url ?? null,
-        reason: error?.message ?? String(error),
-      })
-    );
+    console.warn(`[backend] errsafejson-failed ${res?.req?.method ?? "-"} ${res?.req?.originalUrl ?? res?.req?.url ?? "-"} reason=${error?.message ?? String(error)}`);
     return next({ error: { errsafejson_captured: error.toString() } });
   }
 };
@@ -330,19 +310,17 @@ const fileUpload = async (req, res) => {
     : req.file
       ? 1
       : 0;
-  _uploadTrace(req, "request-received", {
-    files_count: filesCount,
-    data_scope: {
-      PjNr: req?.body?.data?.PjNr,
-      E1: req?.body?.data?.E1,
-      E2: req?.body?.data?.E2,
-      E3: req?.body?.data?.E3,
-    },
+  _uploadTrace(req, "start", {
+    files: filesCount,
+    pj: req?.body?.data?.PjNr,
+    e1: req?.body?.data?.E1,
+    e2: req?.body?.data?.E2,
+    e3: req?.body?.data?.E3,
   });
 
   if (!(req.files || req.file)) {
     res.status(400).json({ success: false, reason: "no file uploaded" });
-    _uploadWarn(req, "request-rejected-no-files", {});
+    _uploadWarn(req, "no-files", {});
     return;
   }
 
@@ -371,10 +349,7 @@ const fileUpload = async (req, res) => {
         if (defLoginId != null) {
           await queries.update(req.body, defLoginId);
         } else {
-          _uploadWarn(req, "main-image-update-skipped-missing-def-login-id", {
-            pending_hash: pendingHash,
-            link: pendingLink,
-          });
+          _uploadWarn(req, "main-image-update-skipped", { hash: pendingHash });
         }
       } else if (pathparts?.link != null && pathparts?.filename != null) {
         req.body.hash = pendingHash;
@@ -388,16 +363,13 @@ const fileUpload = async (req, res) => {
         if (defLoginId != null) {
           await queries.update(req.body, defLoginId);
         } else {
-          _uploadWarn(req, "main-image-update-skipped-missing-def-login-id", {
-            pending_hash: pendingHash,
-            link: req.body.data.Link,
-          });
+          _uploadWarn(req, "main-image-update-skipped", { hash: pendingHash });
         }
       }
     }
   } catch (e) {
     _uploadWarn(req, "main-image-update-failed", {
-      reason: e?.message ?? String(e),
+      reason: e?.message ?? String(e)
     });
   }
 
@@ -415,18 +387,12 @@ const fileUpload = async (req, res) => {
           size = fs.statSync(absPath).size;
         } catch (_) {}
       }
-      _uploadTrace(req, "write-result", {
-        client_filename: entry?.client_filename,
-        stored_filename: entry?.stored_filename,
-        stored_link: entry?.stored_link,
-        stored_rootfolder: entry?.stored_rootfolder,
-        stored_link_raw: entry?.stored_link_raw,
-        stored_link_normalized: entry?.stored_link_normalized,
-        stored_directory_path: entry?.stored_directory_path,
-        stored_absolute_path: absPath,
-        file_exists_after_upload: exists,
-        file_size_bytes: size,
+      _uploadTrace(req, "saved", {
+        file: entry?.stored_filename,
         hash: entry?.hash,
+        bytes: size,
+        exists,
+        path: absPath,
       });
     }
   } catch (e) {
@@ -435,8 +401,8 @@ const fileUpload = async (req, res) => {
     });
   }
 
-  _uploadTrace(req, "request-completed", {
-    uploaded_files: uploaded.length,
+  _uploadTrace(req, "done", {
+    files: uploaded.length,
   });
   res.status(200).json({
     success: true,

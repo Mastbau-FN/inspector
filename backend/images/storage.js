@@ -86,28 +86,10 @@ function _newUploadTraceId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function _uploadLog(req, event, payload = {}) {
-  console.log(
-    "[upload-trace]",
-    JSON.stringify({
-      event,
-      request_id: req.__request_id ?? null,
-      trace_id: req.__upload_trace_id ?? null,
-      ...payload,
-    })
-  );
-}
-
 function _uploadWarn(req, event, payload = {}) {
+  const reason = payload?.reason ? ` reason=${payload.reason}` : "";
   console.warn(
-    "[upload-trace]",
-    JSON.stringify({
-      level: "warn",
-      event,
-      request_id: req.__request_id ?? null,
-      trace_id: req.__upload_trace_id ?? null,
-      ...payload,
-    })
+    `[upload] WARN ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${reason}`
   );
 }
 
@@ -177,25 +159,6 @@ const mstorage = multer.diskStorage({
           stored_directory_path: targetPath,
           stored_absolute_path: targetFilePath,
           hash,
-        });
-
-        _uploadLog(req, "destination-resolved", {
-          client_filename: frontendname,
-          stored_filename: file.originalname,
-          data_scope: {
-            PjNr: req?.body?.data?.PjNr,
-            E1: req?.body?.data?.E1,
-            E2: req?.body?.data?.E2,
-            E3: req?.body?.data?.E3,
-          },
-          rootfolder: rf.rootfolder,
-          link_raw: rf.link,
-          link_normalized: fsLink,
-          existing_main_filename: prev_filename,
-          target_directory: targetPath,
-          target_directory_is_absolute: pathm.isAbsolute(targetPath),
-          target_file: targetFilePath,
-          exists_before_write: fs.existsSync(targetFilePath),
         });
 
         // If destination was empty -> set the new image as main (aka as req.body.Link; update).
