@@ -347,6 +347,41 @@ const fileUpload = async (req, res) => {
     ? req.__uploaded_images
     : [];
 
+  try {
+    for (const entry of uploaded) {
+      const absPath = entry?.stored_absolute_path;
+      const exists = absPath ? fs.existsSync(absPath) : false;
+      let size = null;
+      if (exists) {
+        try {
+          size = fs.statSync(absPath).size;
+        } catch (_) {}
+      }
+      console.log(
+        "[upload-trace] write-result",
+        JSON.stringify(
+          {
+            client_filename: entry?.client_filename,
+            stored_filename: entry?.stored_filename,
+            stored_link: entry?.stored_link,
+            stored_rootfolder: entry?.stored_rootfolder,
+            stored_link_raw: entry?.stored_link_raw,
+            stored_link_normalized: entry?.stored_link_normalized,
+            stored_directory_path: entry?.stored_directory_path,
+            stored_absolute_path: absPath,
+            file_exists_after_upload: exists,
+            file_size_bytes: size,
+            hash: entry?.hash,
+          },
+          null,
+          2
+        )
+      );
+    }
+  } catch (e) {
+    console.warn("[upload-trace] failed to emit write-result logs:", e);
+  }
+
   res.status(200).json({
     success: true,
     uploaded_images: uploaded,

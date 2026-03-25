@@ -74,6 +74,13 @@ function _normalizeLinkForFilesystem(rootfolder, link) {
   return linkNoDrive;
 }
 
+function _resolveTargetDirectory(rootfolder, linkForFilesystem) {
+  const root = String(rootfolder ?? "").trim();
+  const link = String(linkForFilesystem ?? "").trim();
+  const pathInput = pathm.isAbsolute(link) ? link : pathm.join(root || ".", link);
+  return files.formatpath(pathInput);
+}
+
 function getStoredFilename(file) {
   const clientName = _sanitizeUploadName(file.originalname);
   if (TIMESTAMP_JPG_PATTERN.test(clientName)) return _forceJpgExtension(clientName);
@@ -105,11 +112,16 @@ const mstorage = multer.diskStorage({
     } catch (_) {}
 
     return rootfolder(req.body.data).then((rf) => {
-        // console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
-        
-        console.log("multi-upload", rf);
+        console.log("multi-upload", {
+          rootfolder: rf?.rootfolder,
+          link: rf?.link,
+          existing_main_filename: rf?.filename,
+          incoming_client_filename: frontendname,
+          incoming_stored_filename: storedFilename,
+        });
         const fsLink = _normalizeLinkForFilesystem(rf.rootfolder, rf.link);
-        const targetPath = files.formatpath(pathm.join(rf.rootfolder, fsLink));
+        const targetPath = _resolveTargetDirectory(rf.rootfolder, fsLink);
+        const targetFilePath = pathm.join(targetPath, file.originalname);
         fs.mkdirSync(targetPath, { recursive: true });
         let prev_filename = rf.filename;
 
@@ -123,8 +135,41 @@ const mstorage = multer.diskStorage({
           client_filename: frontendname,
           stored_filename: file.originalname,
           stored_link: pathm.join(fsLink, file.originalname),
+          stored_rootfolder: rf.rootfolder,
+          stored_link_raw: rf.link,
+          stored_link_normalized: fsLink,
+          stored_directory_path: targetPath,
+          stored_absolute_path: targetFilePath,
           hash,
         });
+
+        try {
+          console.log(
+            "[upload-trace] destination-resolved",
+            JSON.stringify(
+              {
+                client_filename: frontendname,
+                stored_filename: file.originalname,
+                data_scope: {
+                  PjNr: req?.body?.data?.PjNr,
+                  E1: req?.body?.data?.E1,
+                  E2: req?.body?.data?.E2,
+                  E3: req?.body?.data?.E3,
+                },
+                rootfolder: rf.rootfolder,
+                link_raw: rf.link,
+                link_normalized: fsLink,
+                existing_main_filename: prev_filename,
+                target_directory: targetPath,
+                target_directory_is_absolute: pathm.isAbsolute(targetPath),
+                target_file: targetFilePath,
+                exists_before_write: fs.existsSync(targetFilePath),
+              },
+              null,
+              2
+            )
+          );
+        } catch (_) {}
 
         // If destination was empty -> set the new image as main (aka as req.body.Link; update).
         // Defer this until after multer finished and auth/login wall ran, otherwise req.user is not available yet.
