@@ -820,6 +820,16 @@ class API {
                     storedName: storedName,
                     scope: scope,
                   );
+                  final fallbackStoredName =
+                      scope.isNotEmpty ? '$scope/$hash' : hash;
+                  if (fallbackStoredName != storedName) {
+                    try {
+                      final fallbackFile = await localFile(fallbackStoredName);
+                      if (fallbackFile.existsSync()) {
+                        await fallbackFile.delete();
+                      }
+                    } catch (_) {}
+                  }
                 }
               }
             }

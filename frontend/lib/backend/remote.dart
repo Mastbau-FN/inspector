@@ -417,6 +417,15 @@ class Remote {
     }
   }
 
+  Future<void> _deleteLocalImageQuietly(String name) async {
+    try {
+      final f = await OP.localFile(name);
+      if (f.existsSync()) {
+        await f.delete();
+      }
+    } catch (_) {}
+  }
+
   /// Erweiterte Version von postJSON mit robuster Behandlung von Socket-Fehlern
   /// Besonders wichtig für Hintergrundprozesse, bei denen die App in den Hintergrund wechselt
   Future<http.BaseResponse?> postJSONWithSocketRetry(
@@ -537,7 +546,36 @@ class Remote {
               storedName: storedName,
               scope: scope,
             );
+            final fallbackStoredName =
+                (scope.isNotEmpty) ? '$scope/$hash' : hash;
+            if (fallbackStoredName != storedName) {
+              await _deleteLocalImageQuietly(fallbackStoredName);
+            }
           } else {
+            // If we already know a canonical local filename for this hash, use it
+            // and avoid creating an additional hash-named duplicate file.
+            if (!isPathHash) {
+              final indexed = await OP.lookupImageNameForHash(
+                hash,
+                scope: scope,
+              );
+              if (indexed != null && indexed.isNotEmpty) {
+                final existing =
+                    await API().local.readImage(indexed, cacheSize: null);
+                if (existing != null) {
+                  final fallbackStoredName =
+                      (scope.isNotEmpty) ? '$scope/$hash' : hash;
+                  if (fallbackStoredName != indexed) {
+                    await _deleteLocalImageQuietly(fallbackStoredName);
+                  }
+                  return ImageData(
+                    existing,
+                    id: hash,
+                    name: _stripImageExtension(indexed.split('/').last),
+                  );
+                }
+              }
+            }
             storedName =
                 (!isPathHash && scope.isNotEmpty) ? '$scope/$hash' : hash;
             // fall back to hash-derived name (best-effort)
