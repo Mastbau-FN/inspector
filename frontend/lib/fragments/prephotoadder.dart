@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import '../backend/api.dart';
+import '../backend/categoryProgressState.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';
 import '../options.dart';
@@ -363,8 +364,8 @@ class _CameraForAdderState extends State<CameraForAdder>
       caller.forceOffline = true;
     }
 
-    await API().uploadNewImagesOrFiles(cp, queue,
-        caller: caller, forceUpdate: true);
+    await API()
+        .uploadNewImagesOrFiles(cp, queue, caller: caller, forceUpdate: true);
   }
 
   // Bilder hochladen und neuen Defekt erstellen
@@ -394,6 +395,15 @@ class _CameraForAdderState extends State<CameraForAdder>
                 }
                 CheckPointDefect? newDefect =
                     await API().setNew(defect, caller: widget.parent);
+                if (newDefect != null &&
+                    newDefect.ereArt != OufnessChooser.none) {
+                  CategoryProgressState.instance
+                      .markCheckpointEditedByCoordinates(
+                    pjNr: widget.parent.pjNr,
+                    categoryIndex: widget.parent.category_index,
+                    checkpointIndex: widget.parent.index,
+                  );
+                }
                 await API().update(newDefect!, caller: widget.parent);
                 await widget.onDone();
                 await _onNewImages(queue, newDefect);

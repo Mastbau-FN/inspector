@@ -1,4 +1,9 @@
+import 'dart:async';
+
+import 'package:MBG_Inspektionen/backend/categoryProgressState.dart';
+import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +22,10 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
   static const _nextViewTitle = "Prüfpunkte";
   static const predefinedCategories = [
     "Weg zum Mast",
-    "Funkraum Container",                    
+    "Funkraum Container",
     "Kabelrinne",
-    "Bühnen",               
-    "Anschlagpunkte",  
+    "Bühnen",
+    "Anschlagpunkte",
     "Fundamente",
     "Blitzschutz Erdung",
     "Tragwerk",
@@ -31,7 +36,7 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     "Flugfeuer",
     "Rettungsgerät",
     "Standortschließung Tresor"
-  ];                                                
+  ];
 
   CategoryModel(InspectionLocation location) : super(location);
 
@@ -65,21 +70,111 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     MyListTileData tiledata,
   ) {
     currentlyChosenChildData = Future.value(data);
+    if (tiledata.title == _nextViewTitle) {
+      final checkPointsModel = generateNextModel(data);
+      Navigator.of(context)
+          .push(
+        MaterialPageRoute(
+          builder: (newcontext) =>
+              nextModel<CheckPoint, CheckCategory, CheckPointsModel>(
+            checkPointsModel,
+          ),
+        ),
+      )
+          .then((_) {
+        unawaited(_updateRecentCategoryProgress(data, checkPointsModel));
+      });
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(builder: (newcontext) {
-        if (tiledata.title == S.current!.imagesButton)
+        if (tiledata.title == S.current!.imagesButton) {
           return standard_statefulImageView(this, data);
-        switch (tiledata.title) {
-          case _nextViewTitle:
-            return nextModel<CheckPoint, CheckCategory, CheckPointsModel>(
-                generateNextModel(data));
-
-          default:
-            return alwaysPlainText(this, data,
-                ((CheckCategory p0, p1) => update(p0, langText: p1)));
         }
+        return alwaysPlainText(
+            this, data, ((CheckCategory p0, p1) => update(p0, langText: p1)));
       }),
     );
+  }
+
+  Future<void> _updateRecentCategoryProgress(
+    CheckCategory category,
+    CheckPointsModel checkPointsModel,
+  ) async {
+    final now = DateTime.now();
+    final checkpoints = await checkPointsModel.all().last;
+    CategoryProgressState.instance.setTotal(
+      categoryId: category.id,
+      totalCheckpoints: checkpoints.length,
+    );
+
+    if (checkpoints.isEmpty) {
+      CategoryProgressState.instance.clear(category.id);
+      return;
+    }
+
+    final completionStates = await Future.wait(
+      checkpoints.map((checkpoint) {
+        return _isCheckpointEdited(
+          checkPointsModel,
+          checkpoint,
+          now: now,
+        );
+      }),
+    );
+
+    final completedCheckpoints = completionStates.where((it) => it).length;
+    if (completedCheckpoints <= 0) {
+      CategoryProgressState.instance.clear(category.id);
+      return;
+    }
+
+    CategoryProgressState.instance.upsert(
+      categoryId: category.id,
+      totalCheckpoints: checkpoints.length,
+      completedCheckpoints: completedCheckpoints,
+      updatedAt: now,
+    );
+  }
+
+  Future<bool> _isCheckpointEdited(
+    CheckPointsModel checkPointsModel,
+    CheckPoint checkpoint, {
+    DateTime? now,
+  }) async {
+    final effectiveNow = now ?? DateTime.now();
+    final checkpointKey = CategoryProgressState.checkpointKey(
+      pjNr: checkpoint.pjNr,
+      categoryIndex: checkpoint.category_index,
+      checkpointIndex: checkpoint.index,
+    );
+
+    if (CategoryProgressState.instance
+        .checkpointEditedRecently(checkpointKey, now: effectiveNow)) {
+      return true;
+    }
+
+    final cutoff = effectiveNow.subtract(CategoryProgressState.recentWindow);
+    final defectsModel = checkPointsModel.generateNextModel(checkpoint);
+    final defects = await defectsModel.all().last;
+    return defects.any((defect) => _isRecentRealDefect(defect, cutoff));
+  }
+
+  bool _isRecentRealDefect(CheckPointDefect defect, DateTime cutoff) {
+    if (defect.ereArt == 5204) {
+      return false;
+    }
+    if (defect.erDate != null && defect.erDate!.isAfter(cutoff)) {
+      return true;
+    }
+    if (defect.forceOffline) {
+      return true;
+    }
+    if (defect.id.startsWith(LOCALLY_ADDED_PREFIX)) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -120,14 +215,13 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
           "KurzText",
           hint: S.current!.kurzTextHint,
           value: currentCategory?.kurzText,
-          dropdown: predefinedCategories, 
+          dropdown: predefinedCategories,
         ),
         InputData(
           "LangText",
           hint: S.current!.langTextHint,
           verify: InputData.alwaysCorrect,
           value: currentCategory?.langText,
-          
         ),
       ],
     );
