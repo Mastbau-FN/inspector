@@ -74,6 +74,10 @@ class DropDownPageB<
               future: ddmodel.currentData?.previewImage,
               builder: (context, snapshot) {
                 final img = snapshot.data?.image.image;
+                final currentData = ddmodel.currentData;
+                final currentDataId = currentData == null
+                    ? "root"
+                    : (currentData as Data).id;
                 return Container(
                   decoration: BoxDecoration(
                     boxShadow: [
@@ -101,9 +105,8 @@ class DropDownPageB<
                               blurColor: Colors.transparent,
                               child: Positioned.fill(
                                 child: Hero(
-                                  tag: ddmodel.title +
-                                      ".image" +
-                                      ddmodel.currentData.runtimeType.toString(),
+                                  tag:
+                                      "dropdown.header.image.${ddmodel.currentData.runtimeType}.$currentDataId",
                                   child: Image(
                                     image: img,
                                     fit: BoxFit.cover,
@@ -161,11 +164,8 @@ class DropDownPageB<
                                           sigmaY: 5,
                                         ),
                                         child: Hero(
-                                          tag: ddmodel.title +
-                                              ".title.text" +
-                                              ddmodel.currentData.runtimeType
-                                                  .toString() +
-                                              'disabled',
+                                          tag:
+                                              "dropdown.header.title.${ddmodel.currentData.runtimeType}.$currentDataId.disabled",
                                           child: Text(
                                             ddmodel.title,
                                             overflow: expandRatio >
@@ -402,9 +402,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                             offlineIndicator(cd),
                             Expanded(
                               child: Hero(
-                                tag: cd.title +
-                                    ".title.text" +
-                                    cd.runtimeType.toString(),
+                                tag: "dropdown.item.title.${cd.runtimeType}.${cd.id}",
                                 child: Text(
                                   cd.title,
                                   style:
@@ -464,9 +462,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                           offlineIndicator(cd),
                           Expanded(
                             child: Hero(
-                              tag: cd.title +
-                                  ".title.text" +
-                                  cd.runtimeType.toString(),
+                              tag: "dropdown.item.title.${cd.runtimeType}.${cd.id}",
                               child: Text(
                                 cd.title,
                                 style: Theme.of(context).textTheme.titleMedium,

@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
@@ -23,16 +24,15 @@ const LOCALLY_ADDED_PREFIX = '__loc__';
 
 String _scopeForData(Data? data, {Data? caller}) {
   if (data == null) return '';
-  // Prefer an explicitly set parent folder if available
+  String? parentId;
   try {
-    final parentId = (data as WithOffline).parentId;
-    if (parentId != null && parentId.isNotEmpty) return parentId;
+    parentId = (data as WithOffline).parentId;
   } catch (_) {}
 
   String inspection = data.id;
-  String seg2 = 'null';
-  String seg3 = 'null';
-  String seg4 = 'null';
+  String seg2 = 'undefined';
+  String seg3 = 'undefined';
+  String seg4 = 'undefined';
 
   if (data is CheckPointDefect) {
     inspection = data.pjNr.toString();
@@ -43,22 +43,34 @@ String _scopeForData(Data? data, {Data? caller}) {
     inspection = data.pjNr.toString();
     seg2 = data.category_index.toString();
     seg3 = data.index.toString();
-    seg4 = data.e3?.toString() ?? 'null';
+    seg4 = data.e3?.toString() ?? 'undefined';
+  } else if (data is CheckCategory) {
+    inspection = data.pjNr.toString();
+    seg2 = data.index.toString();
+    seg3 = data.e2?.toString() ?? 'undefined';
+    seg4 = data.e3?.toString() ?? 'undefined';
   } else if (data is InspectionLocation) {
     inspection = data.pjNr.toString();
+  } else if (parentId != null && parentId.isNotEmpty) {
+    // Fallback for unknown/legacy data types.
+    return parentId;
   } else if (caller is InspectionLocation) {
     inspection = caller.pjNr.toString();
   }
 
-  if (caller is WithOffline && caller.parentId != null) {
+  // Only let caller override when we don't have a reliable numeric scope.
+  if (inspection == data.id && caller is WithOffline && caller.parentId != null) {
     inspection = caller.parentId!;
   }
 
+  if (inspection.isEmpty && parentId != null && parentId.isNotEmpty) {
+    return parentId;
+  }
   if (inspection.isEmpty) return '';
-  // never create legacy "undefined" scopes
+  // use "undefined" as canonical folder token
   return [inspection, seg2, seg3, seg4]
       .join('-')
-      .replaceAll('undefined', 'null');
+      .replaceAll('null', 'undefined');
 }
 
 /// backend Singleton to provide all functionality related to the backend
@@ -190,7 +202,7 @@ class LocalMirror {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
     final legacyScope =
-        scope.contains('null') ? scope.replaceAll('null', 'undefined') : scope;
+        scope.contains('undefined') ? scope.replaceAll('undefined', 'null') : scope;
 
     String displayNameFromStored(String storedName) {
       var base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
@@ -249,8 +261,8 @@ class LocalMirror {
     for (final name in candidates) {
       final img = await readImage(name, cacheSize: null);
       if (img != null) {
-        // Best-effort migration: if we loaded from a legacy "undefined" folder, copy to the
-        // normalized "null" folder so we stop accumulating both.
+        // Best-effort migration: if we loaded from a legacy "null" folder, copy to the
+        // canonical "undefined" folder so we stop accumulating both.
         if (!isPath &&
             scope.isNotEmpty &&
             legacyScope != scope &&
@@ -285,7 +297,7 @@ class LocalMirror {
     final filename = docPath.split('/').last;
     final s = (scope ?? '').trim();
     final legacyScope =
-        s.contains('null') ? s.replaceAll('null', 'undefined') : s;
+        s.contains('undefined') ? s.replaceAll('undefined', 'null') : s;
 
     final candidates = <String>[
       if (s.isNotEmpty) '$s/Dokus/$filename',

@@ -27,19 +27,90 @@ Future<String> get localPath async {
   return (await getApplicationDocumentsDirectory()).path;
 }
 
+String _canonicalizeScope(String scope) {
+  final s = scope.trim();
+  if (s.isEmpty) return s;
+  final parts = s.split('-');
+  final normalized = parts.map((p) => p == 'null' ? 'undefined' : p).toList();
+  return normalized.join('-');
+}
+
+String _legacyScopeForCanonical(String canonicalScope) {
+  return canonicalScope.contains('undefined')
+      ? canonicalScope.replaceAll('undefined', 'null')
+      : canonicalScope;
+}
+
+String _canonicalizeScopedName(String name) {
+  final normalized = name.replaceAll('\\', '/');
+  if (!normalized.contains('/')) return normalized;
+  final parts = normalized.split('/');
+  parts[0] = _canonicalizeScope(parts[0]);
+  return parts.join('/');
+}
+
+Future<void> _mergeLegacyScopeIntoCanonical(String canonicalScope) async {
+  if (kIsWeb) return;
+  if (canonicalScope.isEmpty) return;
+  final legacyScope = _legacyScopeForCanonical(canonicalScope);
+  if (legacyScope == canonicalScope) return;
+
+  final base = await localPath;
+  final fromDir = Directory('$base/$legacyScope');
+  if (!fromDir.existsSync()) return;
+
+  final toDir = Directory('$base/$canonicalScope');
+  await toDir.create(recursive: true);
+  try {
+    await copyPath(fromDir.path, toDir.path);
+    if (fromDir.existsSync()) {
+      await fromDir.delete(recursive: true);
+    }
+  } catch (_) {}
+}
+
 Future<File> localFile(String name, [String? doc]) async {
+  name = _canonicalizeScopedName(name);
   // allow nested relative paths (e.g. per inspection) and create dirs if needed
   final basePath = await localPath;
   var p0 = File('$basePath/$name');
   // keep legacy behaviour only for flat names; otherwise preserve folders
   final hasFolder = name.contains('/');
+  String? legacyName;
+  if (hasFolder) {
+    final parts = name.split('/');
+    final scope = _canonicalizeScope(parts.first);
+    await _mergeLegacyScopeIntoCanonical(scope);
+    final legacyScope = _legacyScopeForCanonical(scope);
+    if (legacyScope != scope) {
+      legacyName = [legacyScope, ...parts.skip(1)].join('/');
+    }
+  }
+
+  Future<File?> migrateLegacyFileIfPresent() async {
+    if (legacyName == null || legacyName.isEmpty) return null;
+    final legacyFile = File('$basePath/$legacyName');
+    if (!legacyFile.existsSync()) return null;
+    await p0.parent.create(recursive: true);
+    if (!p0.existsSync()) {
+      await legacyFile.copy(p0.path);
+    }
+    try {
+      await legacyFile.delete();
+    } catch (_) {}
+    return p0;
+  }
 
   if (doc != null) {
+    final migrated = await migrateLegacyFileIfPresent();
+    if (migrated != null) return migrated;
     await p0.parent.create(recursive: true);
     return p0;
   }
 
   if (await p0.exists()) return p0;
+  final migrated = await migrateLegacyFileIfPresent();
+  if (migrated != null) return migrated;
   if (hasFolder) {
     // if the file has no extension, prefer a .jpg to keep it recognizable
     final baseName = p0.uri.pathSegments.last;
@@ -169,15 +240,18 @@ bool _looksLikeImageFilename(String filename) {
 }
 
 Future<List<String>> listScopedImageNames(String scope) async {
-  final s = scope.trim();
+  final s = _canonicalizeScope(scope.trim());
   if (s.isEmpty || kIsWeb) return const [];
+
+  await _mergeLegacyScopeIntoCanonical(s);
 
   final base = await localPath;
   final byName = <String, DateTime>{};
 
-  void collectScope(String scopeName) {
+  void collectScope(String scopeName, {String? exposeAsScope}) {
     final dir = Directory('$base/$scopeName');
     if (!dir.existsSync()) return;
+    final outScope = exposeAsScope ?? scopeName;
 
     for (final entity in dir.listSync(followLinks: false)) {
       if (entity is! File) continue;
@@ -191,14 +265,14 @@ Future<List<String>> listScopedImageNames(String scope) async {
       try {
         modified = entity.statSync().modified;
       } catch (_) {}
-      byName['$scopeName/$filename'] = modified;
+      byName['$outScope/$filename'] = modified;
     }
   }
 
-  collectScope(s);
-  final legacyScope = s.contains('null') ? s.replaceAll('null', 'undefined') : s;
+  collectScope(s, exposeAsScope: s);
+  final legacyScope = _legacyScopeForCanonical(s);
   if (legacyScope != s) {
-    collectScope(legacyScope);
+    collectScope(legacyScope, exposeAsScope: s);
   }
 
   final out = byName.keys.toList()
@@ -324,17 +398,15 @@ Future<String?> lookupImageNameForHash(
     return null;
   }
 
-  final direct = await tryScope(scope);
+  final s = _canonicalizeScope((scope ?? '').trim());
+  final direct = await tryScope(s);
   if (direct != null) return direct;
 
-  // legacy migration: "null" scopes used to be stored as "undefined"
-  final s = (scope ?? '').trim();
-  if (s.contains('null')) {
-    final legacy = await tryScope(s.replaceAll('null', 'undefined'));
+  // legacy lookup for old "null" folders
+  final legacyScope = _legacyScopeForCanonical(s);
+  if (legacyScope != s) {
+    final legacy = await tryScope(legacyScope);
     if (legacy != null) return legacy;
-  } else if (s.contains('undefined')) {
-    final normalized = await tryScope(s.replaceAll('undefined', 'null'));
-    if (normalized != null) return normalized;
   }
 
   // fallback: global entry (no scope)
