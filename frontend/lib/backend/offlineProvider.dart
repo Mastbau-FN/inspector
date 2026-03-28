@@ -418,6 +418,105 @@ Future<String?> lookupImageNameForHash(
   return null;
 }
 
+String _normalizeStoredNameForMatch(String name) {
+  return _canonicalizeScopedName(name).replaceAll('\\', '/').trim();
+}
+
+String _basenameOfStoredName(String name) {
+  final normalized = _normalizeStoredNameForMatch(name);
+  if (normalized.isEmpty) return normalized;
+  final parts = normalized.split('/').where((e) => e.isNotEmpty).toList();
+  return parts.isEmpty ? normalized : parts.last;
+}
+
+/// Finds a backend hash for a cached stored image name (best-effort).
+Future<String?> lookupHashForImageName(
+  String storedName, {
+  String? scope,
+}) async {
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+  } catch (_) {}
+
+  final wanted = _normalizeStoredNameForMatch(storedName);
+  if (wanted.isEmpty) return null;
+  final wantedBase = _basenameOfStoredName(wanted);
+  final wantedScope = _canonicalizeScope((scope ?? '').trim());
+  final legacyScope = _legacyScopeForCanonical(wantedScope);
+
+  final docs = await imageIndexCollection.get();
+  if (docs == null || docs.isEmpty) return null;
+
+  int scopeRank(String docScopeRaw) {
+    final docScope = _canonicalizeScope(docScopeRaw.trim());
+    if (wantedScope.isEmpty) {
+      return docScope.isEmpty ? 0 : 1;
+    }
+    if (docScope == wantedScope) return 0;
+    if (legacyScope != wantedScope && docScope == legacyScope) return 1;
+    if (docScope.isEmpty) return 2;
+    return 3;
+  }
+
+  String? bestHash;
+  int? bestScore;
+
+  for (final entry in docs.entries) {
+    final raw = entry.value;
+    if (raw is! Map) continue;
+    final map = Map<String, dynamic>.from(raw);
+    final hash = map['hash']?.toString().trim();
+    final indexedName = map['storedName']?.toString().trim();
+    if (hash == null ||
+        hash.isEmpty ||
+        indexedName == null ||
+        indexedName.isEmpty) {
+      continue;
+    }
+
+    final normalizedIndexed = _normalizeStoredNameForMatch(indexedName);
+    final exactMatch = normalizedIndexed == wanted;
+    final baseMatch = _basenameOfStoredName(normalizedIndexed) == wantedBase;
+    if (!exactMatch && !baseMatch) continue;
+
+    final rank = scopeRank(map['scope']?.toString() ?? '');
+    if (rank >= 3) continue;
+
+    final matchRank = exactMatch ? 0 : 1;
+    final score = rank * 10 + matchRank;
+    if (bestScore == null || score < bestScore) {
+      bestScore = score;
+      bestHash = hash;
+    }
+  }
+
+  return bestHash;
+}
+
+Future<void> unindexImageHash({
+  required String hash,
+  String? scope,
+}) async {
+  final h = hash.trim();
+  if (h.isEmpty) return;
+
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+  } catch (_) {}
+
+  final s = _canonicalizeScope((scope ?? '').trim());
+  final legacyScope = _legacyScopeForCanonical(s);
+  final scopes = <String>{'', s};
+  if (legacyScope != s) scopes.add(legacyScope);
+
+  for (final scopeCandidate in scopes) {
+    try {
+      final id = _imageIndexDocId(h, scope: scopeCandidate);
+      await imageIndexCollection.doc(id).delete();
+    } catch (_) {}
+  }
+}
+
 /// @depricated, its now only the parentID
 /// ~~non-null wrapper for [Helper.getIdentifierFromData]~~
 /// ~~a collection is always named via the scheme `${DataT}-${ParentId}`~~

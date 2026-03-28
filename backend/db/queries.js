@@ -495,13 +495,78 @@ const getLink = async (data, andSet = true, recursion_num = 0) => {
   return res;
 };
 
-const deleteImgByHash = async (hash) => {
-  let p = imghasher.getPathFromHash(hash);
-  //console.log(p)
-  //TODO: errorhandling
-  if(p!=null && p.length>=1){
-    const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
-    fsp.rm(oldpath)
+const _pathFromHashCache = (hash) => {
+  const p = imghasher.getPathFromHash(hash);
+  const hasPath =
+    p != null &&
+    p.rootpath != null &&
+    p.link != null &&
+    p.filename != null &&
+    String(p.rootpath).length > 0 &&
+    String(p.filename).length > 0;
+
+  if (!hasPath) return null;
+  return {
+    rootpath: p.rootpath,
+    link: p.link,
+    filename: p.filename,
+  };
+};
+
+const _pathFromHashInContext = async (hash, dataContext) => {
+  if (dataContext == null || typeof dataContext !== "object") return null;
+  try {
+    const linkData = await getLink(dataContext, false);
+    if (
+      linkData == null ||
+      !linkData.rootfolder ||
+      linkData.link == null
+    ) {
+      return null;
+    }
+    const rootpath = linkData.rootfolder;
+    const link = linkData.link;
+    const names = await imgfiler.getAllImagenamesFrom(rootpath, link);
+    for (const name of names) {
+      const candidate = imghasher.memorize(rootpath, link, name);
+      if (candidate === hash) {
+        return { rootpath, link, filename: name };
+      }
+    }
+  } catch (_) {}
+  return null;
+};
+
+const deleteImgByHash = async (hash, dataContext = null) => {
+  let resolvedVia = "cache";
+  let p = _pathFromHashCache(hash);
+  if (p == null) {
+    resolvedVia = "context";
+    p = await _pathFromHashInContext(hash, dataContext);
+  }
+
+  if (p == null) {
+    return { deleted: false, reason: "hash_not_found", hash };
+  }
+
+  const oldpath = imgfiler.formatpath(path.join(p.rootpath, p.link, p.filename));
+
+  try {
+    await fsp.rm(oldpath, { force: true });
+    return {
+      deleted: true,
+      path: oldpath,
+      hash,
+      resolvedVia,
+    };
+  } catch (error) {
+    return {
+      deleted: false,
+      reason: "delete_failed",
+      hash,
+      path: oldpath,
+      error: error?.message ?? String(error),
+    };
   }
 
   // const newDir = imgfiler.formatpath(path.join(p.rootpath, p.link, './.deleted/'));

@@ -17,15 +17,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 /// Hauptseite für die Bilderverwaltung
-class ImagesPage<T extends Object> extends StatelessWidget {
+class ImagesPage<T extends Object> extends StatefulWidget {
   // Streams für die Bilddaten
   late final List<Stream<ImageData<T>?>> _images;
 
   // Callback-Funktionen
   final Future<String?> Function(List<XFile>) onNewImages;
-  final Function(T) onDelete;
-  final Function(T) onStar;
-  final Function(T) onShare;
+  final FutureOr<void> Function(T) onDelete;
+  final FutureOr<void> Function(T) onStar;
+  final FutureOr<void> Function(T) onShare;
+  final Future<void> Function(List<T>)? onDeleteMany;
+  final Future<void> Function(List<T>)? onShareMany;
 
   // Konfigurationsoptionen
   final int columnCount;
@@ -38,7 +40,8 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     return "";
   }
 
-  static _default(Object _) => showToast(S.current!.notAvailable);
+  static FutureOr<void> _default(Object _) =>
+      showToast(S.current!.notAvailable);
 
   /// Konstruktor für direkte Bildlisten
   ImagesPage.constant({
@@ -49,11 +52,12 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onDeleteMany,
+    this.onShareMany,
     this.hasMainImage = false,
     this.intendsToAddPicture = false,
   }) : super(key: key) {
-    this._images =
-        images?.nonNulls.map((e) => Stream.value(e)).toList() ?? [];
+    this._images = images?.nonNulls.map((e) => Stream.value(e)).toList() ?? [];
   }
 
   /// Konstruktor für Future-basierte Bildlisten
@@ -65,6 +69,8 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onDeleteMany,
+    this.onShareMany,
     this.hasMainImage = false,
     this.intendsToAddPicture = false,
   }) : super(key: key) {
@@ -81,6 +87,8 @@ class ImagesPage<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onDeleteMany,
+    this.onShareMany,
     this.hasMainImage = false,
     this.intendsToAddPicture = false,
   }) : super(key: key) {
@@ -90,16 +98,183 @@ class ImagesPage<T extends Object> extends StatelessWidget {
   final ImagePicker _picker = ImagePicker();
 
   @override
+  State<ImagesPage<T>> createState() => _ImagesPageState<T>();
+}
+
+class _ImagesPageState<T extends Object> extends State<ImagesPage<T>> {
+  bool _selectionMode = false;
+  final Set<T> _selectedIds = <T>{};
+  Set<T> _visibleIds = <T>{};
+
+  void _onVisibleIdsChanged(Set<T> visibleIds) {
+    final visibleChanged = !setEquals(_visibleIds, visibleIds);
+    _visibleIds = visibleIds;
+    if (!_selectionMode) {
+      if (visibleChanged) {
+        setState(() {});
+      }
+      return;
+    }
+
+    final before = _selectedIds.length;
+    _selectedIds.retainAll(visibleIds);
+    final selectionChanged = _selectedIds.length != before;
+    if (visibleChanged || selectionChanged) {
+      setState(() {
+        if (_selectedIds.isEmpty) _selectionMode = false;
+      });
+    }
+  }
+
+  void _toggleSelection(T id) {
+    _setSelection(id, !_selectedIds.contains(id));
+  }
+
+  void _setSelection(T id, bool selected) {
+    setState(() {
+      if (selected) {
+        _selectionMode = true;
+        _selectedIds.add(id);
+      } else {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _selectionMode = false;
+        }
+      }
+    });
+  }
+
+  void _toggleSelectAll() {
+    setState(() {
+      _selectionMode = true;
+      if (_selectedIds.length == _visibleIds.length && _visibleIds.isNotEmpty) {
+        _selectedIds.clear();
+        _selectionMode = false;
+      } else {
+        _selectedIds
+          ..clear()
+          ..addAll(_visibleIds);
+      }
+    });
+  }
+
+  Future<void> _shareSelected() async {
+    final ids = _selectedIds.toList(growable: false);
+    if (ids.isEmpty) return;
+
+    try {
+      if (widget.onShareMany != null) {
+        await widget.onShareMany!(ids);
+      } else {
+        for (final id in ids) {
+          await Future.sync(() => widget.onShare(id));
+        }
+      }
+    } catch (e) {
+      if (mounted) showToast('Fehler beim Teilen: $e');
+    }
+  }
+
+  Future<void> _deleteSelected() async {
+    final ids = _selectedIds.toList(growable: false);
+    if (ids.isEmpty) return;
+
+    final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Bilder löschen'),
+            content: Text('${ids.length} Bilder wirklich löschen?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('Abbrechen'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Löschen'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!confirm) return;
+
+    try {
+      if (widget.onDeleteMany != null) {
+        await widget.onDeleteMany!(ids);
+      } else {
+        for (final id in ids) {
+          await Future.sync(() => widget.onDelete(id));
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _selectedIds.clear();
+        _selectionMode = false;
+      });
+    } catch (e) {
+      if (mounted) showToast('Fehler beim Löschen: $e');
+    }
+  }
+
+  void _leaveSelectionMode() {
+    setState(() {
+      _selectedIds.clear();
+      _selectionMode = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final selectAllActive =
+        _visibleIds.isNotEmpty && _selectedIds.length == _visibleIds.length;
+
     return Stack(
       children: [
         // Hauptscaffold mit Bildergalerie
         Scaffold(
           endDrawer: MainDrawer(),
           appBar: AppBar(
-            title: Text('Bilder'),
+            title: Text(_selectionMode
+                ? '${_selectedIds.length} ausgewählt'
+                : 'Bilder'),
             elevation: 0,
             actions: [
+              if (_selectionMode)
+                IconButton(
+                  icon:
+                      Icon(selectAllActive ? Icons.deselect : Icons.select_all),
+                  onPressed: _toggleSelectAll,
+                  tooltip:
+                      selectAllActive ? 'Auswahl aufheben' : 'Alle auswählen',
+                ),
+              if (_selectionMode)
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: _selectedIds.isEmpty ? null : _shareSelected,
+                  tooltip: 'Ausgewählte teilen',
+                ),
+              if (_selectionMode)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _selectedIds.isEmpty ? null : _deleteSelected,
+                  tooltip: 'Ausgewählte löschen',
+                ),
+              if (_selectionMode)
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: _leaveSelectionMode,
+                  tooltip: 'Auswahlmodus beenden',
+                ),
+              if (!_selectionMode)
+                IconButton(
+                  icon: const Icon(Icons.checklist),
+                  onPressed: _visibleIds.isEmpty
+                      ? null
+                      : () => setState(() => _selectionMode = true),
+                  tooltip: 'Mehrfachauswahl',
+                ),
               Builder(
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.more_vert),
@@ -112,7 +287,7 @@ class ImagesPage<T extends Object> extends StatelessWidget {
           body: Column(
             children: [
               // Hinweis zur Bilderverwaltung
-              if (_images.isEmpty)
+              if (widget._images.isEmpty)
                 Expanded(
                   child: Center(
                     child: Column(
@@ -148,11 +323,16 @@ class ImagesPage<T extends Object> extends StatelessWidget {
                 // Bildergalerie
                 Expanded(
                   child: ImageWrap<T>.streamed(
-                    images: _images,
-                    onDelete: onDelete,
-                    onShare: onShare,
-                    onStar: onStar,
-                    hasFav: hasMainImage,
+                    images: widget._images,
+                    onDelete: widget.onDelete,
+                    onShare: widget.onShare,
+                    onStar: widget.onStar,
+                    hasFav: widget.hasMainImage,
+                    selectionMode: _selectionMode,
+                    selectedIds: _selectedIds,
+                    onToggleSelection: _toggleSelection,
+                    onSetSelection: _setSelection,
+                    onVisibleIdsChanged: _onVisibleIdsChanged,
                   ),
                 ),
             ],
@@ -164,9 +344,9 @@ class ImagesPage<T extends Object> extends StatelessWidget {
           create: (context) => CameraModel(),
           child: Builder(builder: (context) {
             return ImageCapturePanel(
-              picker: _picker,
-              onNewImages: onNewImages,
-              autoExpand: intendsToAddPicture,
+              picker: widget._picker,
+              onNewImages: widget.onNewImages,
+              autoExpand: widget.intendsToAddPicture,
             );
           }),
         ),

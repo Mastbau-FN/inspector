@@ -135,9 +135,8 @@ class DropDownModel<ChildData extends WithLangText,
     }
   }
 
-  Future<ChildData?> get currentlyChosenChildData =>
-      _getCurrentlyChosenChildData()
-          .last; //XXX: locally mirrored (.first) should suffice, but as this doenst work perfectly rn we rather use .last to override with online data
+  Future<ChildData?> get currentlyChosenChildData => _getCurrentlyChosenChildData()
+      .last; //XXX: locally mirrored (.first) should suffice, but as this doenst work perfectly rn we rather use .last to override with online data
   // int? _currentlyChosenChildDataIndex;
   // // ChildData? _currentlyChosenChildData;
   // int? get currentlyChosenChildDataIndex => _currentlyChosenChildDataIndex;
@@ -279,6 +278,64 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                       (snapshot.data!.mainhash ??
                               Options().no_image_placeholder_name) !=
                           Options().no_image_placeholder_name;
+                  Future<XFile?> _toShareXFile(Object hash) async {
+                    final owner = snapshot.data ?? data;
+                    if (owner == null) return null;
+
+                    final scope =
+                        API().local.scopeFor(owner, caller: model.currentData);
+                    final file = await resolveImageFileByHash(
+                      hash.toString(),
+                      scope: scope,
+                    );
+
+                    if (file == null) return null;
+                    final decoded =
+                        imglib.decodeImage(await file.readAsBytes());
+                    if (decoded == null) return null;
+
+                    return XFile.fromData(
+                      Uint8List.fromList(imglib.encodePng(decoded)),
+                      name: 'mbg_${hash.hashCode.toRadixString(36)}.png',
+                      mimeType: 'image/png',
+                    );
+                  }
+
+                  Future<void> _deleteByHash(Object hash,
+                      {bool withToast = true}) async {
+                    if (withToast) {
+                      showToast(S.of(context).deletingImageThisMayTakeASec);
+                    }
+                    final value = await model.updateCurrentChild(
+                      (data) => API().deleteImageByHash(
+                        data,
+                        hash.toString(),
+                        caller: model.currentData,
+                        forceUpdate: true,
+                      ),
+                    );
+                    _maybeShowToast(value);
+                  }
+
+                  Future<void> _deleteManyByHash(List<Object> hashes) async {
+                    if (hashes.isEmpty) return;
+                    showToast('Lösche ${hashes.length} Bilder...');
+                    final value =
+                        await model.updateCurrentChild<String?>((data) async {
+                      String? lastResponse;
+                      for (final hash in hashes) {
+                        lastResponse = await API().deleteImageByHash(
+                          data,
+                          hash.toString(),
+                          caller: model.currentData,
+                          forceUpdate: true,
+                        );
+                      }
+                      return lastResponse;
+                    });
+                    _maybeShowToast(value);
+                  }
+
                   return Stack(
                     children: [
                       ImagesPage.futured(
@@ -317,47 +374,37 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                             return value;
                           });
                         },
-                        onDelete: (hash) {
-                          showToast(S.of(context).deletingImageThisMayTakeASec);
-                          model
-                              .updateCurrentChild((data) => API()
-                                  .deleteImageByHash(data, hash.toString(),
-                                      caller: model.currentData,
-                                      forceUpdate: true))
-                              .then((value) {
-                            _maybeShowToast(value);
-                            return value;
-                          });
+                        onDelete: (hash) async {
+                          await _deleteByHash(hash);
+                        },
+                        onDeleteMany: (hashes) async {
+                          await _deleteManyByHash(hashes.cast<Object>());
                         },
                         onShare: (hash) async {
-                          final owner = snapshot.data ?? data;
-                          final scope = API()
-                              .local
-                              .scopeFor(owner, caller: model.currentData);
-                          final file = await resolveImageFileByHash(
-                            hash.toString(),
-                            scope: scope,
-                          );
-
-                          if (file == null) {
+                          final xfile = await _toShareXFile(hash);
+                          if (xfile == null) {
                             showToast(S.of(context).somethingWentWrong);
                             return;
                           }
-
-                          final decoded =
-                              imglib.decodeImage(await file.readAsBytes());
-                          if (decoded == null) {
+                          await Share.shareXFiles([xfile],
+                              text: 'Internes Bild');
+                        },
+                        onShareMany: (hashes) async {
+                          final xfiles = <XFile>[];
+                          for (final hash in hashes) {
+                            final xfile = await _toShareXFile(hash);
+                            if (xfile != null) xfiles.add(xfile);
+                          }
+                          if (xfiles.isEmpty) {
                             showToast(S.of(context).somethingWentWrong);
                             return;
                           }
-
-                          final xfile = XFile.fromData(
-                            Uint8List.fromList(imglib.encodePng(decoded)),
-                            name:
-                                'mbg_${hash.hashCode.toRadixString(36)}.png',
-                            mimeType: 'image/png',
+                          await Share.shareXFiles(
+                            xfiles,
+                            text: xfiles.length == 1
+                                ? 'Internes Bild'
+                                : 'Interne Bilder',
                           );
-                          await Share.shareXFiles([xfile], text: 'Internes Bild');
                         },
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)

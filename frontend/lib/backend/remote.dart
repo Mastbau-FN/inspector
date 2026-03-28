@@ -665,6 +665,16 @@ class Remote {
       if (data == null) return null;
       final mergedRefs = <String>[];
       final scope = API().local.scopeFor(data);
+      final remoteHashes = <String>{};
+
+      String normalizeName(String v) => v.replaceAll('\\', '/');
+
+      bool sameStoredName(String a, String b) {
+        final na = normalizeName(a);
+        final nb = normalizeName(b);
+        if (na == nb) return true;
+        return na.split('/').last == nb.split('/').last;
+      }
 
       Future<void> addRef(String? ref, {bool fromLocal = false}) async {
         final v = ref?.trim();
@@ -675,15 +685,28 @@ class Remote {
           return;
         }
 
-        // If this is a backend hash and we already have its mapped local file
-        // in the list, skip duplicate rendering.
-        if (!fromLocal && !v.contains('/') && scope.isNotEmpty) {
+        if (fromLocal) {
+          // If this local file already has a known backend hash representation,
+          // keep the hash (server-deletable) and skip the local duplicate ref.
+          for (final hash in remoteHashes) {
+            try {
+              final mapped =
+                  await OP.lookupImageNameForHash(hash, scope: scope);
+              if (mapped != null &&
+                  mapped.isNotEmpty &&
+                  sameStoredName(mapped, v)) {
+                return;
+              }
+            } catch (_) {}
+          }
+        } else if (!v.contains('/')) {
+          remoteHashes.add(v);
+          // Remove already-added local duplicates when a backend hash is available.
           try {
             final mapped = await OP.lookupImageNameForHash(v, scope: scope);
-            if (mapped != null &&
-                mapped.isNotEmpty &&
-                mergedRefs.contains(mapped)) {
-              return;
+            if (mapped != null && mapped.isNotEmpty) {
+              mergedRefs.removeWhere((existing) =>
+                  existing.contains('/') && sameStoredName(existing, mapped));
             }
           } catch (_) {}
         }
@@ -691,19 +714,19 @@ class Remote {
         mergedRefs.add(v);
       }
 
-      // 1) Always local-first.
+      // 1) Prefer backend hashes so operations like online delete use server ids.
+      await addRef(data.mainhash);
+      for (final hash in data.imagehashes ?? const <String>[]) {
+        await addRef(hash);
+      }
+
+      // 2) Add local-only leftovers (e.g. not yet mapped/synced).
       try {
         final localNames = await API().local.listScopedImageNames(data);
         for (final name in localNames) {
           await addRef(name, fromLocal: true);
         }
       } catch (_) {}
-
-      // 2) Then backend refs (new online images).
-      await addRef(data.mainhash);
-      for (final hash in data.imagehashes ?? const <String>[]) {
-        await addRef(hash);
-      }
 
       if (mergedRefs.isNotEmpty) {
         data.mainhash = mergedRefs.first;
@@ -968,10 +991,19 @@ class Remote {
   }
 
   /// deletes an image specified by its hash and returns the response
-  RequestAndParser<http.BaseResponse, String?> deleteImageByHash(String hash) {
+  RequestAndParser<http.BaseResponse, String?> deleteImageByHash<DataT extends Data>(
+    String hash, {
+    DataT? data,
+  }) {
+    debugPrint(
+      'remote.deleteImageByHash hash=$hash url=${_baseurl + _deleteImageByHash_r} hasData=${data != null}',
+    );
     final rd = RequestData(
       _deleteImageByHash_r,
-      json: {'hash': hash},
+      json: {
+        'hash': hash,
+        if (data != null) 'data': data.toJson(),
+      },
     );
 
     parser(http.BaseResponse? res) => res?.forceRes()?.body;

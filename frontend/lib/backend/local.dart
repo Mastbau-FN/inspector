@@ -59,7 +59,9 @@ String _scopeForData(Data? data, {Data? caller}) {
   }
 
   // Only let caller override when we don't have a reliable numeric scope.
-  if (inspection == data.id && caller is WithOffline && caller.parentId != null) {
+  if (inspection == data.id &&
+      caller is WithOffline &&
+      caller.parentId != null) {
     inspection = caller.parentId!;
   }
 
@@ -96,6 +98,17 @@ class LocalMirror {
     } catch (_) {
       return const [];
     }
+  }
+
+  Future<void> _deleteStoredImageQuietly(String storedName) async {
+    final name = storedName.trim();
+    if (name.isEmpty) return;
+    try {
+      final file = await OP.localFile(name);
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    } catch (_) {}
   }
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
@@ -201,8 +214,9 @@ class LocalMirror {
   Future<ImageData?> getImageByHash(String hash, {Data? owner}) async {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
-    final legacyScope =
-        scope.contains('undefined') ? scope.replaceAll('undefined', 'null') : scope;
+    final legacyScope = scope.contains('undefined')
+        ? scope.replaceAll('undefined', 'null')
+        : scope;
 
     String displayNameFromStored(String storedName) {
       var base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
@@ -318,21 +332,76 @@ class LocalMirror {
   Future<String?> deleteImageByHash<DataT extends Data>(
     DataT? data,
     String hash, {
+    String? canonicalHash,
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null) && data != null) {
-      try {
-        // data.id = /*'_oe_' + */ createLocalId(data);
-        data.imagehashes!.remove(hash);
-        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
-        // return 'successfully deleted image offline';
-      } catch (e) {
-        debugPrint('failed to remove image locally');
+    final requested = hash.trim();
+    final canonical = (canonicalHash ?? '').trim();
+    final scope = _scopeForData(data, caller: caller).trim();
+
+    final hashRefs = <String>{};
+    final pathRefs = <String>{};
+
+    void addRef(String value) {
+      final v = value.trim();
+      if (v.isEmpty) return;
+      if (v.contains('/')) {
+        pathRefs.add(v);
+      } else {
+        hashRefs.add(v);
       }
     }
-    return null;
+
+    addRef(requested);
+    addRef(canonical);
+
+    for (final ref in [requested, canonical]) {
+      if (ref.isEmpty || !ref.contains('/')) continue;
+      try {
+        final mappedHash = await OP.lookupHashForImageName(ref, scope: scope);
+        if (mappedHash != null && mappedHash.trim().isNotEmpty) {
+          addRef(mappedHash);
+        }
+      } catch (_) {}
+    }
+
+    for (final h in hashRefs.toList(growable: false)) {
+      try {
+        final mappedName = await OP.lookupImageNameForHash(h, scope: scope);
+        if (mappedName != null && mappedName.trim().isNotEmpty) {
+          addRef(mappedName);
+        }
+      } catch (_) {}
+      if (scope.isNotEmpty) addRef('$scope/$h');
+    }
+
+    final allRefs = <String>{...hashRefs, ...pathRefs};
+
+    if ((forceUpdate || caller != null) && data != null) {
+      try {
+        data.imagehashes ??= <String>[];
+        data.imagehashes!.removeWhere((h) => allRefs.contains(h));
+        if (data.mainhash != null && allRefs.contains(data.mainhash!)) {
+          data.mainhash = null;
+        }
+        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+      } catch (e) {
+        debugPrint('failed to remove image references locally: $e');
+      }
+    }
+
+    for (final pathRef in pathRefs) {
+      await _deleteStoredImageQuietly(pathRef);
+    }
+    for (final hashRef in hashRefs) {
+      await _deleteStoredImageQuietly(hashRef);
+      if (scope.isNotEmpty) {
+        await _deleteStoredImageQuietly('$scope/$hashRef');
+      }
+      await OP.unindexImageHash(hash: hashRef, scope: scope);
+    }
+    return 'success';
   }
 
   /// sets an image specified by its hash as the new main image

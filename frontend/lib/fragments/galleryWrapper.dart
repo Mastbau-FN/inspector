@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -45,7 +46,8 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   Widget build(BuildContext context) {
     String currentName() {
       final explicit = widget.galleryItems[currentIndex].image?.name;
-      if (explicit != null && explicit.trim().isNotEmpty) return explicit.trim();
+      if (explicit != null && explicit.trim().isNotEmpty)
+        return explicit.trim();
       final id = widget.galleryItems[currentIndex].image?.id.toString();
       if (id == null || id.isEmpty) return '';
       final parts = id.split('/').where((e) => e.isNotEmpty).toList();
@@ -172,6 +174,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
   ImageData? image;
   Object tag;
   bool hidden = false;
+  StreamSubscription<ImageData<T>?>? _subscription;
 
   void markCorrupt() {
     if (hidden) return;
@@ -208,7 +211,7 @@ class ImageItem<T extends Object> with ChangeNotifier {
     fallBackWidget = const LoadingView(),
   })  : this.tag = UniqueKey(),
         this.fallBackWidget = const LoadingView() {
-    image.forEach((value) {
+    _subscription = image.listen((value) {
       this.image = value;
       if (value != null) {
         hidden = false;
@@ -219,6 +222,16 @@ class ImageItem<T extends Object> with ChangeNotifier {
       }
       // debugPrint(this.tag.toString());
       notifyListeners();
+    }, onError: (_) {
+      hidden = true;
+      this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      notifyListeners();
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

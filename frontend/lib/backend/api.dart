@@ -669,22 +669,54 @@ class API {
       data: data,
       caller: caller,
     );
-    if (hash == data?.mainhash) {
-      data?.mainhash = null;
+    final requestedHash = hash.trim();
+    final scope = local.scopeFor(data, caller: caller);
+    var remoteHash = requestedHash;
+    try {
+      final mapped = await lookupHashForImageName(
+        requestedHash,
+        scope: scope,
+      );
+      if (mapped != null && mapped.trim().isNotEmpty) {
+        remoteHash = mapped.trim();
+      }
+    } catch (_) {}
+
+    if (data?.mainhash != null &&
+        (data!.mainhash == requestedHash || data.mainhash == remoteHash)) {
+      data.mainhash = null;
       debugPrint('deleted mainhash');
       await update(data, caller: caller, forceUpdate: forceUpdate);
     }
+
+    final prefersCache = forceUpdate
+        ? false
+        : (_dataPrefersCache(data, type: requestType) ??
+            _dataPrefersCache(caller, type: requestType) ??
+            false);
+    debugPrint(
+      'deleteImageByHash: requested=$requestedHash remote=$remoteHash forceUpdate=$forceUpdate prefersCache=$prefersCache',
+    );
+
     return _run(
-      itPrefersCache: _dataPrefersCache(data, type: requestType),
+      itPrefersCache: prefersCache,
       // offline: () => local.setMainImageByHash(
       //   data,
       //   hash,
       //   caller: caller,
       //   forceUpdate: forceUpdate,
       // ),
-      offline: () => local.deleteImageByHash(data, hash,
-          caller: caller, forceUpdate: forceUpdate),
-      online: () => remote.deleteImageByHash(hash),
+      offline: () => local.deleteImageByHash(
+        data,
+        requestedHash,
+        canonicalHash: remoteHash,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.deleteImageByHash(
+        remoteHash,
+        data: data,
+      ),
       requestType: requestType,
     ).last;
   }

@@ -213,7 +213,27 @@ const delete_ = (req, res, next) =>
 
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
-    async () => (await queries.deleteImgByHash(req.body.hash)),
+    async () => {
+      _logRequest("log", req, "delete-image-request", {
+        hash: req.body?.hash,
+      });
+      const result = await queries.deleteImgByHash(
+        req.body.hash,
+        req.body?.data
+      );
+      _logRequest(
+        result?.deleted ? "log" : "warn",
+        req,
+        "delete-image-result",
+        {
+          deleted: result?.deleted,
+          reason: result?.reason,
+          via: result?.resolvedVia,
+          hash: req.body?.hash,
+        }
+      );
+      return result;
+    },
     (json) => { return { message: "deleted image", query_result: json } },
     res,
     next
