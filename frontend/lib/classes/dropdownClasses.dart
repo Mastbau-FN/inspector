@@ -377,6 +377,19 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                         onDelete: (hash) async {
                           await _deleteByHash(hash);
                         },
+                        onRotate: (hash, deltaQuarterTurns) async {
+                          showToast('Drehe Bild...');
+                          final value = await model.updateCurrentChild(
+                            (data) => API().rotateImageByHash(
+                              data,
+                              hash.toString(),
+                              quarterTurns: deltaQuarterTurns,
+                              caller: model.currentData,
+                              forceUpdate: true,
+                            ),
+                          );
+                          _maybeShowToast(value);
+                        },
                         onDeleteMany: (hashes) async {
                           await _deleteManyByHash(hashes.cast<Object>());
                         },

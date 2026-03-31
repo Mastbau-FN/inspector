@@ -179,6 +179,12 @@ const getValidUser = async (user) => {
 };
 
 /**
+ * @returns a Promise resolving to all selectable login users for the pre-login dropdown.
+ */
+const getLoginUsers = async () =>
+  await queryFileWithParams("get/login_users", [], false);
+
+/**
  *
  * @param {User} user
  * @returns a Promise resolving to all the inspection location data for the inspector given by {user.name} (with name beeing the kürzel)
@@ -591,6 +597,7 @@ module.exports = {
   getLink,
 
   getValidUser,
+  getLoginUsers,
   getInspectionsForUser,
   getCheckCategoriesForPjNR,
   getCheckPoints,

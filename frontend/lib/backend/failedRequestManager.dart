@@ -17,6 +17,7 @@ import 'package:MBG_Inspektionen/backend/offlineProvider.dart'
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
 import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
+import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
 
 import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -39,6 +40,7 @@ final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
 final sync_success_str = 'sync success';
 const _localImagePrefix = '__loc__';
+final _inspectionVisibility = InspectionVisibility();
 
 /// Hilfsklasse, um globale und Inspektions-spezifische Upload-Fortschritte
 /// samt ETA zu verwalten.
@@ -91,6 +93,9 @@ class SyncProgress {
 /// Aus dem JSON String in rd.json['data'] wird die local_id (oder PjNr) geholt.
 String _extractInspectionIdFromRequest(RequestData rd) {
   try {
+    final fromVisibility = _inspectionVisibility.extractPjNrFromRequest(rd);
+    if (fromVisibility != null) return fromVisibility;
+
     final dataField = rd.json?['data'];
     if (dataField == null) return 'unknown';
 
@@ -515,6 +520,16 @@ Future<void> _deleteInspectionLocally(
   }
 }
 
+Future<void> deleteInspectionFromDevice(InspectionLocation inspection) async {
+  final rootId = await API().rootID;
+  await _deleteInspectionLocally(inspection, rootId);
+  try {
+    await OfflineProvider.otherCollection
+        .doc('__sync_maps__${inspection.pjNr}')
+        .delete();
+  } catch (_) {}
+}
+
 Future<List<InspectionLocation>> _fetchRemoteInspectionsForCleanup() async {
   try {
     final rap =
@@ -632,7 +647,9 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   // debugPrint('HTTP-Verbindungseinstellungen optimiert für Hintergrundausführung');
 
   try {
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
+      await API().local.getAllFailedRequests() ?? [],
+    );
     final user = await API().user;
     if (user == null) {
       input.progressSender.send((1.0, false, null, 1.0, ''));
@@ -1353,7 +1370,9 @@ class FailedRequestmanager {
   /// Gruppiert die fehlgeschlagenen Requests nach PJNr
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
     debugPrint('getGroupedFailedRequests: Starte...');
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
+      await API().local.getAllFailedRequests() ?? [],
+    );
     debugPrint(
         'getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
 

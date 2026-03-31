@@ -1,17 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
 import 'package:MBG_Inspektionen/backend/image_naming.dart';
+import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as imglib;
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../classes/imageData.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';
@@ -23,8 +28,10 @@ import 'download_progress.dart';
 
 /// backend Singleton to provide all functionality related to the backend
 class API {
+  static const String _loginUsersStoreKey = 'login_users_cache_v1';
   final remote = Remote();
   final local = LocalMirror();
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   // MARK: internals
 
   static final API _instance = API._internal();
@@ -39,6 +46,28 @@ class API {
   final Map<int, String?> _prueferByPjNr = <int, String?>{};
   final Map<String, Future<ImageData?>> _inflightImageFetches =
       <String, Future<ImageData?>>{};
+  bool _refreshingLoginUsers = false;
+
+  String? _readStringKey(Map<String, dynamic> map, List<String> candidates) {
+    for (final key in candidates) {
+      final v = map[key];
+      if (v != null) {
+        final s = v.toString().trim();
+        if (s.isNotEmpty) return s;
+      }
+    }
+    for (final entry in map.entries) {
+      final key = entry.key.toLowerCase();
+      if (candidates.any((c) => c.toLowerCase() == key)) {
+        final v = entry.value;
+        if (v != null) {
+          final s = v.toString().trim();
+          if (s.isNotEmpty) return s;
+        }
+      }
+    }
+    return null;
+  }
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
@@ -48,7 +77,132 @@ class API {
     final user = await User.fromStore();
     _user = user;
     remote.injectUser(user);
+    if (user != null) {
+      unawaited(refreshLoginUsersCache());
+    }
     return _user;
+  }
+
+  List<DisplayUser> _parseLoginUsers(dynamic entries) {
+    if (entries is! List) return [];
+    final usersByKzl = <String, DisplayUser>{};
+    for (final entry in entries) {
+      if (entry is! Map) continue;
+      final map = Map<String, dynamic>.from(entry);
+      final kzl = (_readStringKey(map, ['KZL', 'kzl']) ?? '').trim();
+      if (kzl.isEmpty || kzl == '??') continue;
+      final user = DisplayUser(kzl);
+      user.full_name = _readStringKey(map, ['Vorname', 'vorname']);
+      user.full_surname = _readStringKey(map, ['Name', 'name']);
+      usersByKzl[kzl] = user;
+    }
+    final users = usersByKzl.values.toList();
+    users.sort((a, b) {
+      final aName = '${a.full_surname ?? ''} ${a.full_name ?? ''} ${a.name}'
+          .toLowerCase();
+      final bName = '${b.full_surname ?? ''} ${b.full_name ?? ''} ${b.name}'
+          .toLowerCase();
+      return aName.compareTo(bName);
+    });
+    return users;
+  }
+
+  Future<void> _storeLoginUsers(List<DisplayUser> users) async {
+    final usersByKzl = <String, DisplayUser>{};
+    for (final user in users) {
+      final kzl = user.name.trim();
+      if (kzl.isEmpty || kzl == '??') continue;
+      usersByKzl[kzl] = user;
+    }
+    final normalized = usersByKzl.values.toList();
+    normalized.sort((a, b) {
+      final aName = '${a.full_surname ?? ''} ${a.full_name ?? ''} ${a.name}'
+          .toLowerCase();
+      final bName = '${b.full_surname ?? ''} ${b.full_name ?? ''} ${b.name}'
+          .toLowerCase();
+      return aName.compareTo(bName);
+    });
+
+    final encoded = normalized
+        .map((user) => {
+              'KZL': user.name,
+              'Vorname': user.full_name,
+              'Name': user.full_surname,
+            })
+        .toList(growable: false);
+    final payload = jsonEncode(encoded);
+    await (await _prefs).setString(_loginUsersStoreKey, payload);
+    debugPrint(
+      'Login users cache stored: count=${normalized.length}, bytes=${payload.length}',
+    );
+  }
+
+  Future<List<DisplayUser>> _readStoredLoginUsers() async {
+    final raw = (await _prefs).getString(_loginUsersStoreKey);
+    if (raw == null || raw.isEmpty) {
+      debugPrint('Login users cache read: empty');
+      return [];
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      final parsed = _parseLoginUsers(decoded);
+      debugPrint(
+        'Login users cache read: parsed=${parsed.length}, bytes=${raw.length}',
+      );
+      return parsed;
+    } catch (e) {
+      debugPrint('Could not parse cached login users: $e');
+      return [];
+    }
+  }
+
+  /// Refreshes the login-users cache from backend.
+  /// This should only run while a user is already authenticated.
+  Future<void> refreshLoginUsersCache() async {
+    if (_refreshingLoginUsers) return;
+    if (await _c_user == null) return;
+    _refreshingLoginUsers = true;
+    try {
+      debugPrint('Refreshing login users cache from backend...');
+      final users = await remote.getLoginUsers();
+      debugPrint('Login users fetched from backend: ${users.length}');
+      await _storeLoginUsers(users);
+      debugPrint('Cached login users updated: ${users.length}');
+    } catch (e) {
+      debugPrint('Could not refresh login users cache: $e');
+    } finally {
+      _refreshingLoginUsers = false;
+    }
+  }
+
+  Future<void> _seedLoginUsersCacheWithCurrentUser(DisplayUser user) async {
+    final currentKzl = user.name.trim();
+    if (currentKzl.isEmpty || currentKzl == '??') return;
+    final cached = await _readStoredLoginUsers();
+    final idx = cached.indexWhere(
+      (u) => u.name.toLowerCase() == currentKzl.toLowerCase(),
+    );
+    if (idx >= 0) {
+      final existing = cached[idx];
+      if ((existing.full_name == null || existing.full_name!.isEmpty) &&
+          (user.full_name != null && user.full_name!.isNotEmpty)) {
+        existing.full_name = user.full_name;
+      }
+      if ((existing.full_surname == null || existing.full_surname!.isEmpty) &&
+          (user.full_surname != null && user.full_surname!.isNotEmpty)) {
+        existing.full_surname = user.full_surname;
+      }
+    } else {
+      cached.add(
+        DisplayUser(
+          currentKzl,
+          full_name: user.full_name,
+          full_surname: user.full_surname,
+        ),
+      );
+    }
+    await _storeLoginUsers(cached);
+    debugPrint('Seeded login users cache with current user: $currentKzl');
   }
 
   bool? _dataPrefersCache(Data? data,
@@ -334,6 +488,50 @@ class API {
     return null;
   }
 
+  bool _isLocalImageReference(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return false;
+    if (v.contains('/')) return true;
+    if (v.startsWith(LOCALLY_ADDED_PREFIX)) return true;
+    if (isTimestampImageFilename(v)) return true;
+    return false;
+  }
+
+  Set<String> _collectImageRefs(Data? data) {
+    final refs = <String>{};
+    if (data == null) return refs;
+    if (data.mainhash != null && data.mainhash!.trim().isNotEmpty) {
+      refs.add(data.mainhash!.trim());
+    }
+    for (final hash in data.imagehashes ?? const <String>[]) {
+      final trimmed = hash.trim();
+      if (trimmed.isNotEmpty) refs.add(trimmed);
+    }
+    return refs;
+  }
+
+  Uint8List _encodeRotatedImageBytes(imglib.Image image, String nameHint) {
+    final lower = nameHint.toLowerCase();
+    if (lower.endsWith('.png')) {
+      return Uint8List.fromList(imglib.encodePng(image));
+    }
+    if (lower.endsWith('.webp')) {
+      return Uint8List.fromList(imglib.encodeJpg(image, quality: 92));
+    }
+    return Uint8List.fromList(imglib.encodeJpg(image, quality: 92));
+  }
+
+  Future<String> _nextScopedImageName(String scope) async {
+    var ts = DateTime.now();
+    while (true) {
+      final filename = formatTimestampImageFilename(ts);
+      final scoped = scope.isNotEmpty ? '$scope/$filename' : filename;
+      final file = await localFile(scoped);
+      if (!file.existsSync()) return scoped;
+      ts = ts.add(const Duration(seconds: 1));
+    }
+  }
+
   int? _extractOldPrueferId({Data? data, Data? caller, int? pjNr}) {
     // First: try cached locations list
     if (pjNr != null) {
@@ -432,6 +630,11 @@ class API {
   /// gets the currently logged in [DisplayUser], which is the current [User] but with removed [User.pass] to avoid abuse
   Future<DisplayUser?> get user async => await _c_user;
 
+  /// gets cached workers for the login dropdown.
+  /// This is intentionally local-only, so it also works while logged out.
+  Future<List<DisplayUser>> getLoginUsers() async =>
+      await _readStoredLoginUsers();
+
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
     if (await isUserLoggedIn(user)) return this.user;
@@ -442,6 +645,10 @@ class API {
       _user = loggedInUser;
       remote.injectUser(loggedInUser);
       await loggedInUser!.store();
+      await _seedLoginUsersCacheWithCurrentUser(loggedInUser);
+      await refreshLoginUsersCache();
+      final cachedUsers = await _readStoredLoginUsers();
+      debugPrint('Login users cache after login: ${cachedUsers.length}');
       return this.user;
     } catch (e) {
       logout();
@@ -495,11 +702,36 @@ class API {
       }
     }
 
+    Future<List<ChildData>> filterHiddenIfRootInspections(
+        List<ChildData> children) async {
+      if (typeOf<ChildData>() != typeOf<InspectionLocation>() || data != null) {
+        return children;
+      }
+      final hiddenPjNrs = await InspectionVisibility().getHiddenPjNrs();
+      if (hiddenPjNrs.isEmpty) return children;
+      return children.where((child) {
+        if (child is InspectionLocation) {
+          return !hiddenPjNrs.contains(child.pjNr.toString());
+        }
+        return true;
+      }).toList();
+    }
+
     yield* _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.getNextDatapoint(data),
-      online: () =>
-          remote.getNextDatapoint(data, preloadFullImages: preloadFullImages),
+      offline: () async => filterHiddenIfRootInspections(
+          await local.getNextDatapoint<ChildData, ParentData>(data)),
+      online: () async {
+        final rap = remote.getNextDatapoint<ChildData, ParentData>(
+          data,
+          preloadFullImages: preloadFullImages,
+        );
+        return RequestAndParser<http.Response, List<ChildData>>(
+          rd: rap.rd,
+          parser: (response) async =>
+              filterHiddenIfRootInspections(await rap.parser(response)),
+        );
+      },
       onlineSuccessCB: (childDatas) async {
         _cachePrueferIdsFromLocations(childDatas);
         for (final childData in childDatas) {
@@ -719,6 +951,93 @@ class API {
       ),
       requestType: requestType,
     ).last;
+  }
+
+  Future<String?> rotateImageByHash<DataT extends Data>(
+    DataT? data,
+    String hash, {
+    int quarterTurns = 1,
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    try {
+      if (data == null) return 'no data to rotate';
+
+      var turns = quarterTurns % 4;
+      if (turns < 0) turns += 4;
+      if (turns == 0) return 'rotation unchanged';
+
+      final requested = hash.trim();
+      if (requested.isEmpty) return 'no image selected';
+      final scope = local.scopeFor(data, caller: caller).trim();
+
+      File? sourceFile = await resolveImageFileByHash(requested, scope: scope);
+      if (sourceFile == null && !_isLocalImageReference(requested)) {
+        final mapped = await lookupImageNameForHash(requested, scope: scope);
+        if (mapped != null && mapped.trim().isNotEmpty) {
+          sourceFile =
+              await resolveImageFileByHash(mapped.trim(), scope: scope);
+        }
+      }
+      if (sourceFile == null) {
+        return 'image not found locally';
+      }
+
+      final originalBytes = await sourceFile.readAsBytes();
+      final decoded = imglib.decodeImage(originalBytes);
+      if (decoded == null) return 'could not decode image';
+      final rotated = imglib.copyRotate(decoded, angle: 90 * turns);
+      final rotatedBytes =
+          _encodeRotatedImageBytes(rotated, sourceFile.path.toLowerCase());
+
+      // Local-only image refs (timestamp/scoped/local prefixes) are uploaded by
+      // pending multipart requests. Overwrite the file in place so sync uploads
+      // the rotated bytes.
+      if (_isLocalImageReference(requested)) {
+        await sourceFile.writeAsBytes(rotatedBytes, flush: true);
+        await FileImage(sourceFile).evict();
+        return 'image rotated locally';
+      }
+
+      // Backend hash: create a rotated replacement image, upload it, then remove
+      // the old hash so backend and local state stay in sync.
+      final oldRefs = _collectImageRefs(data);
+      final wasMainImage = data.mainhash == requested;
+      final newScopedName = await _nextScopedImageName(scope);
+      final rotatedFile = await storeImage(rotatedBytes, newScopedName);
+      if (rotatedFile == null) return 'could not persist rotated image';
+      await FileImage(rotatedFile).evict();
+
+      final uploadResult = await uploadNewImagesOrFiles<DataT>(
+        data,
+        [XFile(rotatedFile.path)],
+        caller: caller,
+        forceUpdate: forceUpdate,
+      );
+
+      final newRefs = _collectImageRefs(data);
+      final addedRefs = newRefs.difference(oldRefs);
+      final replacementRef = addedRefs.isEmpty ? null : addedRefs.first;
+
+      if (wasMainImage && replacementRef != null) {
+        await setMainImageByHash(
+          data,
+          replacementRef,
+          caller: caller,
+          forceUpdate: forceUpdate,
+        );
+      }
+
+      await deleteImageByHash(
+        data,
+        requested,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      );
+      return uploadResult ?? 'rotated image queued for sync';
+    } catch (e) {
+      return 'rotate failed: $e';
+    }
   }
 
   // sets an image specified by its hash as the new main image

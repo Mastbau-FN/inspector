@@ -844,6 +844,88 @@ class Remote {
 
   // MARK: API
 
+  /// fetches all selectable workers for the login dropdown.
+  Future<List<DisplayUser>> getLoginUsers() async {
+    const candidateRoutes = <String>[
+      '/login/users',
+      '/loginUsers',
+      '/users/login',
+    ];
+
+    List<DisplayUser> parseUsers(http.Response res) {
+      final raw = jsonDecode(res.body);
+      final entries = (raw is Map) ? raw['users'] : null;
+      if (entries is! List) return [];
+
+      final users = <DisplayUser>[];
+      for (final entry in entries) {
+        if (entry is! Map) continue;
+        final map = Map<String, dynamic>.from(entry);
+        String? pick(List<String> keys) {
+          for (final key in keys) {
+            final v = map[key];
+            if (v != null) {
+              final s = v.toString().trim();
+              if (s.isNotEmpty) return s;
+            }
+          }
+          for (final kv in map.entries) {
+            if (keys.any((k) => k.toLowerCase() == kv.key.toLowerCase())) {
+              final s = kv.value?.toString().trim() ?? '';
+              if (s.isNotEmpty) return s;
+            }
+          }
+          return null;
+        }
+
+        final kzl = (pick(['KZL', 'kzl']) ?? '').trim();
+        if (kzl.isEmpty || kzl == '??') continue;
+        final user = DisplayUser(kzl);
+        user.full_name = pick(['Vorname', 'vorname']);
+        user.full_surname = pick(['Name', 'name']);
+        users.add(user);
+      }
+
+      users.sort((a, b) {
+        final aName = '${a.full_surname ?? ''} ${a.full_name ?? ''} ${a.name}'
+            .toLowerCase();
+        final bName = '${b.full_surname ?? ''} ${b.full_name ?? ''} ${b.name}'
+            .toLowerCase();
+        return aName.compareTo(bName);
+      });
+      return users;
+    }
+
+    http.Response? lastResponse;
+    for (final route in candidateRoutes) {
+      final res = (await postJSON(RequestData(route)))?.forceRes();
+      lastResponse = res;
+      debugPrint(
+        'Remote.getLoginUsers route=$route status=${res?.statusCode} len=${res?.body.length ?? 0}',
+      );
+      if (res != null && (res.statusCode ~/ 100 == 2)) {
+        final users = parseUsers(res);
+        debugPrint('Remote.getLoginUsers parsed=${users.length} via $route');
+        return users;
+      }
+      if (res?.statusCode == 404) {
+        continue;
+      }
+      final preview = res?.body.substring(
+            0,
+            (res.body.length < 200) ? res.body.length : 200,
+          ) ??
+          '';
+      debugPrint('Remote.getLoginUsers failed via $route: $preview');
+      throw ResponseException(res);
+    }
+
+    debugPrint(
+      'Remote.getLoginUsers failed: all candidate routes returned 404',
+    );
+    throw ResponseException(lastResponse);
+  }
+
   /// login a [User] by checking if he exists in the remote database
   Future<User?> login(User user) async {
     // if user is already logged in
@@ -991,7 +1073,8 @@ class Remote {
   }
 
   /// deletes an image specified by its hash and returns the response
-  RequestAndParser<http.BaseResponse, String?> deleteImageByHash<DataT extends Data>(
+  RequestAndParser<http.BaseResponse, String?>
+      deleteImageByHash<DataT extends Data>(
     String hash, {
     DataT? data,
   }) {

@@ -15,9 +15,14 @@ class ImageWrap<T extends Object> extends StatefulWidget {
     showToast(S.current!.notAvailable);
   }
 
+  static FutureOr<void> _defaultRotate(Object _, int __) {
+    showToast(S.current!.notAvailable);
+  }
+
   final FutureOr<void> Function(T) onDelete;
   final FutureOr<void> Function(T) onStar;
   final FutureOr<void> Function(T) onShare;
+  final FutureOr<void> Function(T, int deltaQuarterTurns) onRotate;
   final bool selectionMode;
   final Set<T> selectedIds;
   final ValueChanged<T>? onToggleSelection;
@@ -35,6 +40,7 @@ class ImageWrap<T extends Object> extends StatefulWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.selectionMode = false,
     Set<T>? selectedIds,
     this.onToggleSelection,
@@ -52,6 +58,7 @@ class ImageWrap<T extends Object> extends StatefulWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.selectionMode = false,
     Set<T>? selectedIds,
     this.onToggleSelection,
@@ -69,6 +76,7 @@ class ImageWrap<T extends Object> extends StatefulWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.selectionMode = false,
     Set<T>? selectedIds,
     this.onToggleSelection,
@@ -256,6 +264,7 @@ class _ImageWrapState<T extends Object> extends State<ImageWrap<T>> {
                           onDelete: widget.onDelete,
                           onShare: widget.onShare,
                           onStar: widget.onStar,
+                          onRotate: widget.onRotate,
                           currentIndex: i,
                           chosenIndex: (widget.hasFav ?? true) &&
                                   visibleImages.isNotEmpty
@@ -285,9 +294,14 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
     showToast(S.current!.notAvailable);
   }
 
+  static FutureOr<void> _defaultRotate(_, __) {
+    showToast(S.current!.notAvailable);
+  }
+
   final FutureOr<void> Function(T) onDelete;
   final FutureOr<void> Function(T) onStar;
   final FutureOr<void> Function(T) onShare;
+  final FutureOr<void> Function(T, int deltaQuarterTurns) onRotate;
 
   ///expected width to determine resolution
   final num approxWidth;
@@ -313,6 +327,7 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.selectionMode = false,
     Set<T>? selectedIds,
     this.onToggleSelection,
@@ -414,6 +429,11 @@ class OpenableImageView<T extends Object> extends StatelessWidget {
               BoxDecoration(color: Theme.of(context).canvasColor),
           initialIndex: visibleIndex,
           scrollDirection: Axis.horizontal,
+          onRotate: (id, deltaQuarterTurns) async {
+            if (id is T) {
+              await Future.sync(() => onRotate(id, deltaQuarterTurns));
+            }
+          },
         ),
       ),
     );

@@ -26,6 +26,7 @@ class ImagesPage<T extends Object> extends StatefulWidget {
   final FutureOr<void> Function(T) onDelete;
   final FutureOr<void> Function(T) onStar;
   final FutureOr<void> Function(T) onShare;
+  final FutureOr<void> Function(T, int deltaQuarterTurns) onRotate;
   final Future<void> Function(List<T>)? onDeleteMany;
   final Future<void> Function(List<T>)? onShareMany;
 
@@ -42,6 +43,8 @@ class ImagesPage<T extends Object> extends StatefulWidget {
 
   static FutureOr<void> _default(Object _) =>
       showToast(S.current!.notAvailable);
+  static FutureOr<void> _defaultRotate(Object _, int __) =>
+      showToast(S.current!.notAvailable);
 
   /// Konstruktor für direkte Bildlisten
   ImagesPage.constant({
@@ -52,6 +55,7 @@ class ImagesPage<T extends Object> extends StatefulWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.onDeleteMany,
     this.onShareMany,
     this.hasMainImage = false,
@@ -69,6 +73,7 @@ class ImagesPage<T extends Object> extends StatefulWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.onDeleteMany,
     this.onShareMany,
     this.hasMainImage = false,
@@ -87,6 +92,7 @@ class ImagesPage<T extends Object> extends StatefulWidget {
     this.onDelete = _default,
     this.onStar = _default,
     this.onShare = _default,
+    this.onRotate = _defaultRotate,
     this.onDeleteMany,
     this.onShareMany,
     this.hasMainImage = false,
@@ -327,6 +333,7 @@ class _ImagesPageState<T extends Object> extends State<ImagesPage<T>> {
                     onDelete: widget.onDelete,
                     onShare: widget.onShare,
                     onStar: widget.onStar,
+                    onRotate: widget.onRotate,
                     hasFav: widget.hasMainImage,
                     selectionMode: _selectionMode,
                     selectedIds: _selectedIds,

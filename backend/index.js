@@ -9,6 +9,7 @@ const _update_r = "/update";
 const _delete_r = "/delete";
 
 const _touchPruefer_r = "/pruefer/touch";
+const _loginUsers_r = "/login/users";
 
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 const _setMainImageByHash_r = "/setMainImgH"; // issue #20
@@ -97,6 +98,7 @@ app.use("/api/secure/", auth.login_wall);
 
 
 app.post("/api/secure/login", api.login);
+app.post("/api/secure" + _loginUsers_r, api.getLoginUsers);
 
 app.use("/api/secure/", decorateReqFromLocalId);
 

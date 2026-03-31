@@ -80,6 +80,17 @@ const login = (req, res) => {
 };
 
 /**
+ * resolves all available workers for the pre-login dropdown
+ */
+const getLoginUsers = (req, res, next) =>
+  errsafejson(
+    async () => await queries.getLoginUsers(),
+    (rows) => ({ users: rows }),
+    res,
+    next
+  );
+
+/**
  * resolves all projects / inspections / locations for the currently logged-in user 
  */
 const getProjects = (req, res, next) =>
@@ -432,6 +443,7 @@ const fileUpload = async (req, res) => {
 
 module.exports = {
   login,
+  getLoginUsers,
 
   getProjects,
   getCategories,
