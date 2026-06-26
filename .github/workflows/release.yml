@@ -33,7 +33,6 @@ jobs:
         run: |
           flutter pub global activate dartdoc
           flutter pub global run dartdoc
-
       - name: upload doc artifact
         uses: actions/upload-artifact@v4
         with:
@@ -60,12 +59,16 @@ jobs:
           printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
           ls 
           pwd
-
       - name: map build-type (platform) to path
         uses: kanga333/variable-mapper@v0.3.0
         with:
           key: ${{ matrix.platform }}
           map: |
+            {
+              "web": {
+                "builtpath": "build/web",
+                "buildcmd": "flutter build web"
+              },
               "apkr": {
                 "builtpath": "build/app/outputs/flutter-apk/app-release.apk",
                 "buildcmd": "flutter build apk --release"
@@ -79,7 +82,6 @@ jobs:
                 "buildcmd": "flutter build appbundle"
               }
             }
-
       - name: Build ${{ matrix.platform }}
         run: ${{ env.buildcmd }}
 
@@ -195,7 +197,6 @@ jobs:
           mkdir news
           touch news/whatsnew-en-US
           cat ./release-info.md >> news/whatsnew-en-US
-
       - name: upload aab
         uses: r0adkll/upload-google-play@v1.0.15
         with:
