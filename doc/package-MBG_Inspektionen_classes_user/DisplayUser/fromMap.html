@@ -70,6 +70,15 @@
   <pre class="language-dart"><code class="language-dart">void fromMap(Map&lt;String, dynamic&gt;? map) {
   full_surname = map?[&#39;Name&#39;];
   full_name = map?[&#39;Vorname&#39;];
+  try {
+    final v = map?[&#39;Def_Login_ID&#39;] ??
+        map?[&#39;def_login_id&#39;] ??
+        map?[&#39;Login_ID_Pruefer&#39;] ??
+        map?[&#39;login_id_pruefer&#39;];
+    if (v is int) defLoginId = v;
+    if (v is num) defLoginId = v.toInt();
+    if (v is String) defLoginId = int.tryParse(v);
+  } catch (_) {}
 }</code></pre>
 </section>
 

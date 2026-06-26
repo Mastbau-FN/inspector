@@ -113,18 +113,24 @@ Widget build(BuildContext context) {
     animation: item,
     builder: (context, child) =&gt; FutureBuilder(
       future: item.image?.fullImage(),
-      builder: (context, AsyncSnapshot&lt;Image?&gt; snapshot) =&gt;
-          snapshot.data ??
-          item.image?.thumbnail ??
-          ((snapshot.hasError)
-              ? item.fallBackWidget
-              : Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (item.image != null) item.image!.thumbnail,
-                    const LoadingView(),
-                  ],
-                )),
+      builder: (context, AsyncSnapshot&lt;Image?&gt; snapshot) {
+        if (snapshot.hasError) {
+          SchedulerBinding.instance
+              .addPostFrameCallback((_) =&gt; item.markCorrupt());
+          return item.fallBackWidget;
+        }
+        return (snapshot.data != null)
+            ? _safe(snapshot.data!)
+            : (item.image?.image != null)
+                ? _safe(item.image!.image)
+                : Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (item.image != null) _safe(item.image!.image),
+                      const LoadingView(),
+                    ],
+                  );
+      },
     ),
   );
 }</code></pre>

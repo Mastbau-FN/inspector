@@ -57,6 +57,7 @@
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>&gt;</span></span>
 <span class="name ">deleteImageByHash</span>&lt;<wbr><span class="type-parameter">DataT extends Data</span>&gt;(<wbr><ol class="parameter-list"> <li><span class="parameter" id="deleteImageByHash-param-data"><span class="type-annotation">DataT?</span> <span class="parameter-name">data</span>, </span></li>
 <li><span class="parameter" id="deleteImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, {</span></li>
+<li><span class="parameter" id="deleteImageByHash-param-canonicalHash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">canonicalHash</span>, </span></li>
 <li><span class="parameter" id="deleteImageByHash-param-caller"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">caller</span>, </span></li>
 <li><span class="parameter" id="deleteImageByHash-param-forceUpdate"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">forceUpdate</span> = <span class="default-value">false</span>, </span></li>
 </ol>})
@@ -76,22 +77,76 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; deleteImageByHash&lt;DataT extends Data&gt;(
   DataT? data,
   String hash, {
+  String? canonicalHash,
   Data? caller,
   bool forceUpdate = false,
 }) async {
-  &#47;&#47;offline procedure, needs some stuff changed and added..
-  if ((forceUpdate || caller != null) &amp;&amp; data != null) {
-    try {
-      &#47;&#47; data.id = &#47;*&#39;_oe_&#39; + *&#47; createLocalId(data);
-      &#47;&#47; await OP.deleteImage(hash); &#47;&#47;TODO: delete image from disk, such that when &#39;hochsyncen&#39; it is not uploaded and the &#39;hochsync&#39; is not interrupted (which it would be if it just tries to upload a file that is now deleted)
-      data.imagehashes!.remove(hash);
-      await storeData&lt;DataT&gt;(data, forId: caller?.id ?? await API().rootID);
-      &#47;&#47; return &#39;successfully deleted image offline&#39;;
-    } catch (e) {
-      debugPrint(&#39;failed to remove image locally&#39;);
+  final requested = hash.trim();
+  final canonical = (canonicalHash ?? &#39;&#39;).trim();
+  final scope = _scopeForData(data, caller: caller).trim();
+
+  final hashRefs = &lt;String&gt;{};
+  final pathRefs = &lt;String&gt;{};
+
+  void addRef(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return;
+    if (v.contains(&#39;&#47;&#39;)) {
+      pathRefs.add(v);
+    } else {
+      hashRefs.add(v);
     }
   }
-  return null;
+
+  addRef(requested);
+  addRef(canonical);
+
+  for (final ref in [requested, canonical]) {
+    if (ref.isEmpty || !ref.contains(&#39;&#47;&#39;)) continue;
+    try {
+      final mappedHash = await OP.lookupHashForImageName(ref, scope: scope);
+      if (mappedHash != null &amp;&amp; mappedHash.trim().isNotEmpty) {
+        addRef(mappedHash);
+      }
+    } catch (_) {}
+  }
+
+  for (final h in hashRefs.toList(growable: false)) {
+    try {
+      final mappedName = await OP.lookupImageNameForHash(h, scope: scope);
+      if (mappedName != null &amp;&amp; mappedName.trim().isNotEmpty) {
+        addRef(mappedName);
+      }
+    } catch (_) {}
+    if (scope.isNotEmpty) addRef(&#39;$scope&#47;$h&#39;);
+  }
+
+  final allRefs = &lt;String&gt;{...hashRefs, ...pathRefs};
+
+  if ((forceUpdate || caller != null) &amp;&amp; data != null) {
+    try {
+      data.imagehashes ??= &lt;String&gt;[];
+      data.imagehashes!.removeWhere((h) =&gt; allRefs.contains(h));
+      if (data.mainhash != null &amp;&amp; allRefs.contains(data.mainhash!)) {
+        data.mainhash = null;
+      }
+      await storeData&lt;DataT&gt;(data, forId: caller?.id ?? await API().rootID);
+    } catch (e) {
+      debugPrint(&#39;failed to remove image references locally: $e&#39;);
+    }
+  }
+
+  for (final pathRef in pathRefs) {
+    await _deleteStoredImageQuietly(pathRef);
+  }
+  for (final hashRef in hashRefs) {
+    await _deleteStoredImageQuietly(hashRef);
+    if (scope.isNotEmpty) {
+      await _deleteStoredImageQuietly(&#39;$scope&#47;$hashRef&#39;);
+    }
+    await OP.unindexImageHash(hash: hashRef, scope: scope);
+  }
+  return &#39;success&#39;;
 }</code></pre>
 </section>
 

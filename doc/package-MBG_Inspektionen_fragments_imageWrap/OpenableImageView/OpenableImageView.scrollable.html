@@ -27,7 +27,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../package-MBG_Inspektionen_fragments_imageWrap/">fragments&#47;imageWrap.dart</a></li>
     <li><a href="../../package-MBG_Inspektionen_fragments_imageWrap/OpenableImageView-class.html">OpenableImageView<span class="signature">&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;</span></a></li>
-    <li class="self-crumb">OpenableImageView.scrollable const constructor</li>
+    <li class="self-crumb">OpenableImageView.scrollable constructor</li>
   </ol>
   <div class="self-name">OpenableImageView.scrollable</div>
   <form class="search navbar-right" role="search">
@@ -53,17 +53,23 @@
 </h1></div>
 
     <section class="multi-line-signature">
-      const
+      
       <span class="name ">OpenableImageView&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;.scrollable</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="scrollable-param-currentIndex"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">currentIndex</span>, </span></li>
 <li><span class="parameter" id="scrollable-param-allImages"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_fragments_galleryWrapper/ImageItem-class.html">ImageItem</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></span>&gt;</span></span> <span class="parameter-name">allImages</span>, </span></li>
 <li><span class="parameter" id="scrollable-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>, </span></li>
 <li><span class="parameter" id="scrollable-param-chosenIndex"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">chosenIndex</span> = <span class="default-value">-1</span>, </span></li>
-<li><span class="parameter" id="scrollable-param-onDelete"><span class="type-annotation">dynamic</span> <span class="parameter-name">onDelete</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
+<li><span class="parameter" id="scrollable-param-onDelete"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onDelete</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>) = <span class="default-value">_default</span>, </span></li>
-<li><span class="parameter" id="scrollable-param-onStar"><span class="type-annotation">dynamic</span> <span class="parameter-name">onStar</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
+<li><span class="parameter" id="scrollable-param-onStar"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onStar</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>) = <span class="default-value">_default</span>, </span></li>
-<li><span class="parameter" id="scrollable-param-onShare"><span class="type-annotation">dynamic</span> <span class="parameter-name">onShare</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
+<li><span class="parameter" id="scrollable-param-onShare"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onShare</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>) = <span class="default-value">_default</span>, </span></li>
+<li><span class="parameter" id="scrollable-param-onRotate"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onRotate</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span>, </span></li>
+<li><span class="parameter" id="param-deltaQuarterTurns"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">deltaQuarterTurns</span></span></li>
+</ol>) = <span class="default-value">_defaultRotate</span>, </span></li>
+<li><span class="parameter" id="scrollable-param-selectionMode"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">selectionMode</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="scrollable-param-selectedIds"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Set-class.html">Set</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span>?</span> <span class="parameter-name">selectedIds</span>, </span></li>
+<li><span class="parameter" id="scrollable-param-onToggleSelection"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/ValueChanged.html">ValueChanged</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span>?</span> <span class="parameter-name">onToggleSelection</span>, </span></li>
 <li><span class="parameter" id="scrollable-param-approxWidth"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/num-class.html">num</a></span> <span class="parameter-name">approxWidth</span>, </span></li>
 </ol>})
     </section>
@@ -73,7 +79,7 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">const OpenableImageView.scrollable({
+  <pre class="language-dart"><code class="language-dart">OpenableImageView.scrollable({
   &#47;&#47;which item from this list shall be opened
   required this.currentIndex,
   required this.allImages,
@@ -82,8 +88,13 @@
   this.onDelete = _default,
   this.onStar = _default,
   this.onShare = _default,
+  this.onRotate = _defaultRotate,
+  this.selectionMode = false,
+  Set&lt;T&gt;? selectedIds,
+  this.onToggleSelection,
   required this.approxWidth,
-})  : assert(0 &lt;= currentIndex &amp;&amp; currentIndex &lt; (allImages.length)),
+})  : selectedIds = selectedIds ?? &lt;T&gt;{},
+      assert(0 &lt;= currentIndex &amp;&amp; currentIndex &lt; (allImages.length)),
       super(key: key);</code></pre>
 </section>
 
@@ -100,7 +111,7 @@
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../package-MBG_Inspektionen_fragments_imageWrap/">imageWrap</a></li>
     <li><a href="../../package-MBG_Inspektionen_fragments_imageWrap/OpenableImageView-class.html">OpenableImageView<span class="signature">&lt;<wbr><span class="type-parameter">T extends Object</span>&gt;</span></a></li>
-    <li class="self-crumb">OpenableImageView.scrollable const constructor</li>
+    <li class="self-crumb">OpenableImageView.scrollable constructor</li>
 </ol>
 
     <h5>OpenableImageView class</h5>

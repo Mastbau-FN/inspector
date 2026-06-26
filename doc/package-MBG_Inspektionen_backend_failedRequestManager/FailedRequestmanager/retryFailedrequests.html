@@ -137,6 +137,11 @@
   &#47;&#47; Letztes &quot;onProgress&quot;, um finalen Erfolg zu signalisieren:
   onProgress?.call(1.0, finalSuccess, null, 1.0, &#39;&#39;);
 
+  if (finalSuccess) {
+    &#47;&#47; Ensure all open dropdown pages rebuild and re-fetch data so indicators update immediately.
+    SyncEvents.instance.notifyLocalDataChanged();
+  }
+
   return finalSuccess;
 }</code></pre>
 </section>

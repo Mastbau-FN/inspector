@@ -78,6 +78,11 @@
   final name = _name ?? relativeName ?? file.name;
   final target = await localFile(name);
   await target.parent.create(recursive: true);
+  final srcAbs = File(file.path).absolute.path;
+  final dstAbs = target.absolute.path;
+  if (srcAbs == dstAbs &amp;&amp; target.existsSync() &amp;&amp; target.lengthSync() &gt;= 5) {
+    return name;
+  }
   await file.saveTo(target.path);
   debugPrint(&#39;Persisted cached file to ${target.path}&#39;);
   return name;

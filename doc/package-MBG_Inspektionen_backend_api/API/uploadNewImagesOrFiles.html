@@ -79,46 +79,140 @@
   Data? caller,
   bool forceUpdate = false,
 }) async {
+  final preparedFiles =
+      await _normalizeUploadFilesForStorage(data, files, caller: caller);
+
   &#47;&#47; Wenn forceOffline aktiv ist: nur lokal speichern und Request zum Retry vormerken
-  bool prefersOffline = _dataPrefersCache(
-            caller, type: Helper.SimulatedRequestType.PUT) ??
-      false;
+  bool prefersOffline =
+      _dataPrefersCache(caller, type: Helper.SimulatedRequestType.PUT) ??
+          false;
   &#47;&#47; fallback: nutze Daten-Flag oder globale Option
   try {
-    prefersOffline =
-        prefersOffline || (caller as WithOffline).forceOffline;
+    prefersOffline = prefersOffline || (caller as WithOffline).forceOffline;
   } catch (_) {}
   try {
-    prefersOffline =
-        prefersOffline || (data as WithOffline).forceOffline;
+    prefersOffline = prefersOffline || (data as WithOffline).forceOffline;
   } catch (_) {}
   prefersOffline = prefersOffline || Options().forceOffline;
 
+  &#47;&#47; Always persist images locally first (even when online), so cache and
+  &#47;&#47; on-device storage are immediately available with canonical filenames.
+  await local.uploadNewImagesOrFiles(
+    data,
+    preparedFiles,
+    caller: caller,
+    forceUpdate: forceUpdate,
+  );
+
   if (prefersOffline) {
-    final rap = remote.uploadNewImagesOrFiles&lt;DataT&gt;(data, files);
-    await local.uploadNewImagesOrFiles(
-      data,
-      files,
-      caller: caller,
-      forceUpdate: forceUpdate,
-    );
+    final rap = remote.uploadNewImagesOrFiles&lt;DataT&gt;(data, preparedFiles);
     await local.logFailedReq(rap.rd);
     return &#39;added files offline (queued)&#39;;
   }
 
+  await _touchPrueferIfNeeded(
+    requestType: Helper.SimulatedRequestType.PUT,
+    data: data,
+    caller: caller,
+  );
+
   final requestType = Helper.SimulatedRequestType.PUT;
   return _run(
     itPrefersCache: _dataPrefersCache(data, type: requestType),
-    offline: () =&gt; local.uploadNewImagesOrFiles(
-      data,
-      files,
-      caller: caller,
-      forceUpdate: forceUpdate,
-    ),
+    offline: () async =&gt; &#39;added files offline&#39;,
     online: () =&gt; remote.uploadNewImagesOrFiles(
       data,
-      files,
+      preparedFiles,
     ),
+    onlineSuccessCB: (body) async {
+      &#47;&#47; If the backend returns hashes for uploaded images, replace any local placeholders.
+      try {
+        final decoded = jsonDecode(body ?? &#39;&#39;);
+        final uploaded = (decoded is Map) ? decoded[&#39;uploaded_images&#39;] : null;
+        if (uploaded is List) {
+          final map = &lt;String, String&gt;{};
+          for (final e in uploaded) {
+            if (e is Map) {
+              final client = e[&#39;client_filename&#39;]?.toString();
+              final hash = e[&#39;hash&#39;]?.toString();
+              if (client != null &amp;&amp;
+                  client.isNotEmpty &amp;&amp;
+                  hash != null &amp;&amp;
+                  hash.isNotEmpty) {
+                map[client] = hash;
+                final scope = local.scopeFor(data, caller: caller);
+                final base =
+                    client.contains(&#39;&#47;&#39;) ? client.split(&#39;&#47;&#39;).last : client;
+                final baseNoLocalPrefix =
+                    base.startsWith(LOCALLY_ADDED_PREFIX)
+                        ? base.substring(LOCALLY_ADDED_PREFIX.length)
+                        : base;
+                final localPrefixedBase =
+                    &#39;$LOCALLY_ADDED_PREFIX$baseNoLocalPrefix&#39;;
+                map[base] = hash;
+                map[baseNoLocalPrefix] = hash;
+                map[localPrefixedBase] = hash;
+
+                String scoped(String b) =&gt; scope.isNotEmpty ? &#39;$scope&#47;$b&#39; : b;
+
+                final candidateStoredNames = &lt;String&gt;[
+                  scoped(baseNoLocalPrefix),
+                  scoped(base),
+                  scoped(localPrefixedBase),
+                ];
+                String storedName = candidateStoredNames.first;
+                for (final candidate in candidateStoredNames) {
+                  final f = await localFile(candidate);
+                  if (f.existsSync()) {
+                    storedName = candidate;
+                    break;
+                  }
+                }
+
+                await indexImageHash(
+                  hash: hash,
+                  storedName: storedName,
+                  scope: scope,
+                );
+                final fallbackStoredName =
+                    scope.isNotEmpty ? &#39;$scope&#47;$hash&#39; : hash;
+                if (fallbackStoredName != storedName) {
+                  try {
+                    final fallbackFile = await localFile(fallbackStoredName);
+                    if (fallbackFile.existsSync()) {
+                      await fallbackFile.delete();
+                    }
+                  } catch (_) {}
+                }
+              }
+            }
+          }
+          if (map.isNotEmpty) {
+            String? rewrite(String? v) {
+              if (v == null) return null;
+              &#47;&#47; match scoped values like &quot;&lt;scope&gt;&#47;&lt;client_filename&gt;&quot;
+              final base = v.contains(&#39;&#47;&#39;) ? v.split(&#39;&#47;&#39;).last : v;
+              final repl = map[base] ?? map[v];
+              return repl ?? v;
+            }
+
+            data.mainhash = rewrite(data.mainhash);
+            if (data.imagehashes != null) {
+              data.imagehashes =
+                  data.imagehashes!.map((h) =&gt; rewrite(h) ?? h).toList();
+            }
+
+            &#47;&#47; Persist updated hashes locally so subsequent requests use backend hashes.
+            try {
+              await local.storeData(
+                data,
+                forId: caller?.id ?? await rootID,
+              );
+            } catch (_) {}
+          }
+        }
+      } catch (_) {}
+    },
     &#47;&#47; onlineSuccessCB: (response) async {},
     onlineFailedCB: (onlineRes, rap) {
       debugPrint(&#39;failed to upload images, &#39; +

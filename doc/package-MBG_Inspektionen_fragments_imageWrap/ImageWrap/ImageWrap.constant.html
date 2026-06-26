@@ -58,12 +58,22 @@
 <li><span class="parameter" id="constant-param-columnCount"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">columnCount</span> = <span class="default-value">4</span>, </span></li>
 <li><span class="parameter" id="constant-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>, </span></li>
 <li><span class="parameter" id="constant-param-hasFav"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">hasFav</span>, </span></li>
-<li><span class="parameter" id="constant-param-onDelete"><span class="type-annotation">dynamic</span> <span class="parameter-name">onDelete</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
+<li><span class="parameter" id="constant-param-onDelete"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onDelete</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>) = <span class="default-value">_default</span>, </span></li>
-<li><span class="parameter" id="constant-param-onStar"><span class="type-annotation">dynamic</span> <span class="parameter-name">onStar</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
+<li><span class="parameter" id="constant-param-onStar"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onStar</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>) = <span class="default-value">_default</span>, </span></li>
-<li><span class="parameter" id="constant-param-onShare"><span class="type-annotation">dynamic</span> <span class="parameter-name">onShare</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
+<li><span class="parameter" id="constant-param-onShare"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onShare</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span></span></li>
 </ol>) = <span class="default-value">_default</span>, </span></li>
+<li><span class="parameter" id="constant-param-onRotate"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/FutureOr-class.html">FutureOr</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onRotate</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation">T</span>, </span></li>
+<li><span class="parameter" id="param-deltaQuarterTurns"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">deltaQuarterTurns</span></span></li>
+</ol>) = <span class="default-value">_defaultRotate</span>, </span></li>
+<li><span class="parameter" id="constant-param-selectionMode"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">selectionMode</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="constant-param-selectedIds"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Set-class.html">Set</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span>?</span> <span class="parameter-name">selectedIds</span>, </span></li>
+<li><span class="parameter" id="constant-param-onToggleSelection"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/ValueChanged.html">ValueChanged</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span>?</span> <span class="parameter-name">onToggleSelection</span>, </span></li>
+<li><span class="parameter" id="constant-param-onSetSelection"><span class="type-annotation">void</span> <span class="parameter-name">onSetSelection</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-id"><span class="type-annotation">T</span> <span class="parameter-name">id</span>, </span></li>
+<li><span class="parameter" id="param-selected"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">selected</span></span></li>
+</ol>)?, </span></li>
+<li><span class="parameter" id="constant-param-onVisibleIdsChanged"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/ValueChanged.html">ValueChanged</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Set-class.html">Set</a><span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></span>&gt;</span>?</span> <span class="parameter-name">onVisibleIdsChanged</span>, </span></li>
 </ol>})
     </section>
     
@@ -80,8 +90,14 @@
   this.onDelete = _default,
   this.onStar = _default,
   this.onShare = _default,
+  this.onRotate = _defaultRotate,
+  this.selectionMode = false,
+  Set&lt;T&gt;? selectedIds,
+  this.onToggleSelection,
+  this.onSetSelection,
+  this.onVisibleIdsChanged,
 })  : this.images = images.map((e) =&gt; Stream.value(e)).toList(),
-      _allImages = images.map((e) =&gt; ImageItem.fromImageData(e)).toList(),
+      this.selectedIds = selectedIds ?? &lt;T&gt;{},
       super(key: key);</code></pre>
 </section>
 

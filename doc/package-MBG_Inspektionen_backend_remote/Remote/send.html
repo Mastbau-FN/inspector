@@ -74,33 +74,74 @@
   Duration? timeout,
   bool returnsBinary = false,
 }) async {
-  try {
-    &#47;&#47; Setze Verbindungstimeouts für die Verbindung
-
-    &#47;&#47; Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
-    timeout ??= Duration(minutes: 2);
-
-    final req = _client.send(request);
-    final res = await req.timeout(timeout, onTimeout: () {
+  Future&lt;http.Response?&gt; doSendOnce(http.Request req) async {
+    final streamed = await _client.send(req).timeout(timeout!, onTimeout: () {
       debugPrint(&#39;HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden&#39;);
       throw TimeoutException(&#39;HTTP Request Timeout&#39;, timeout);
     });
 
-    try {
-      final ret = await http.Response.fromStream(res);
-      return ret;
-    } catch (e) {
-      debugPrint(&#39;Fehler beim Verarbeiten des Response-Streams: $e&#39;);
-      &#47;&#47; Versuche es noch einmal mit einem neuen Request, wenn der Stream beschädigt ist
-      if (e is IOException) {
-        debugPrint(
-            &#39;IO-Fehler beim Lesen des Streams, möglicherweise Netzwerkunterbrechung&#39;);
-      }
-      rethrow;
+    if (!returnsBinary) {
+      return http.Response.fromStream(streamed);
     }
+
+    &#47;&#47; For binary responses (images&#47;docs): read manually to reduce stream errors
+    &#47;&#47; and avoid unhandled exceptions from partially closed connections.
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in streamed.stream) {
+      builder.add(chunk);
+    }
+    return http.Response.bytes(
+      builder.takeBytes(),
+      streamed.statusCode,
+      headers: streamed.headers,
+      request: streamed.request,
+      isRedirect: streamed.isRedirect,
+      persistentConnection: streamed.persistentConnection,
+      reasonPhrase: streamed.reasonPhrase,
+    );
+  }
+
+  http.Request clone(http.Request req) {
+    final r = http.Request(req.method, req.url);
+    r.headers.addAll(req.headers);
+    r.bodyBytes = req.bodyBytes;
+    r.encoding = req.encoding;
+    r.followRedirects = req.followRedirects;
+    r.maxRedirects = req.maxRedirects;
+    r.persistentConnection = req.persistentConnection;
+    return r;
+  }
+
+  bool isRetryableStreamError(Object e) {
+    if (e is http.ClientException) {
+      final msg = e.message.toLowerCase();
+      return msg.contains(&#39;connection closed&#39;) ||
+          msg.contains(&#39;connection reset&#39;) ||
+          msg.contains(&#39;broken pipe&#39;);
+    }
+    if (e is IOException) return true;
+    return false;
+  }
+
+  &#47;&#47; Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
+  timeout ??= Duration(minutes: 2);
+
+  final runner = returnsBinary
+      ? _binaryDownloadSemaphore.withPermit&lt;http.Response?&gt;(() async {
+          return _sendWithRetries(
+            () =&gt; doSendOnce(clone(request)),
+            isRetryable: isRetryableStreamError,
+          );
+        })
+      : _sendWithRetries(
+          () =&gt; doSendOnce(clone(request)),
+          isRetryable: isRetryableStreamError,
+        );
+
+  try {
+    return await runner;
   } on SocketException catch (e) {
     debugPrint(&#39;Socket-Fehler beim Senden des Requests: ${e.message}&#39;);
-    &#47;&#47; Spezielle Behandlung für bestimmte Socket-Fehler
     if (e.message.contains(&#39;Software caused connection abort&#39;) ||
         e.message.contains(&#39;Write failed&#39;)) {
       debugPrint(

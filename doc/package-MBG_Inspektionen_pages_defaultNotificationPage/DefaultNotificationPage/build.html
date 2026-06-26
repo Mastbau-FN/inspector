@@ -114,14 +114,11 @@ Widget build(BuildContext context) {
       &#39;DefaultNotificationPage: Received action with ID=${action.id}, Channel=${action.channelKey}&#39;);
   debugPrint(&#39;Payload: ${action.payload}&#39;);
 
-  &#47;&#47; Bestimme den Benachrichtigungstyp basierend auf ID und Kanal
-  String notificationType;
   String title;
   Widget contentWidget;
 
   if (action.id == 900) {
     &#47;&#47; Sync Start Benachrichtigung
-    notificationType = &#39;progress&#39;;
     title = &#39;🔄 Upload Sync gestartet&#39;;
     contentWidget = Column(
       children: [
@@ -132,7 +129,6 @@ Widget build(BuildContext context) {
     );
   } else if (action.id == 999) {
     &#47;&#47; Sync Success Benachrichtigung
-    notificationType = &#39;done&#39;;
     title = &#39;✅ Upload Sync Done&#39;;
     contentWidget = Column(
       children: [
@@ -143,7 +139,6 @@ Widget build(BuildContext context) {
     );
   } else if (action.id == 997) {
     &#47;&#47; Sync Error Benachrichtigung
-    notificationType = &#39;error&#39;;
     title = &#39;❌ Upload Sync Failed&#39;;
     contentWidget = Column(
       children: [
@@ -154,7 +149,6 @@ Widget build(BuildContext context) {
     );
   } else if (action.id == 888) {
     &#47;&#47; Progress Benachrichtigung
-    notificationType = &#39;progress&#39;;
     title = &#39;Upload Sync läuft...&#39;;
 
     &#47;&#47; Hier den aktuellen Fortschritt aus dem Provider anzeigen
@@ -185,7 +179,6 @@ Widget build(BuildContext context) {
     );
   } else {
     &#47;&#47; Standard-Fallback für andere Benachrichtigungen
-    notificationType = action.payload?[&#39;type&#39;] ?? &#39;unknown&#39;;
     title = action.payload?[&#39;title&#39;] ?? &#39;Benachrichtigung&#39;;
 
     &#47;&#47; Ursprüngliche Logik beibehalten

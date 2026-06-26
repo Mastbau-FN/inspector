@@ -116,13 +116,13 @@ Widget build(BuildContext context) {
       style: TextButton.styleFrom(
         &#47;&#47; iconColor: Theme.of(context).colorScheme.onSurface,
         foregroundColor:
-            CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(1),
+            CheckPointDefect.ereArtToColor(data.ereArt),
         &#47;&#47; primary: Theme.of(context).colorScheme.onSurface,
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 10,
         &#47;&#47;     CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.4),
         shadowColor:
-            CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.8),
+            CheckPointDefect.ereArtToColor(data.ereArt).withValues(alpha: 0.8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
@@ -133,7 +133,7 @@ Widget build(BuildContext context) {
         padding: EdgeInsets.all(0),
       ).copyWith(
         foregroundColor:
-            MaterialStatePropertyAll(Theme.of(context).colorScheme.onSurface),
+            WidgetStatePropertyAll(Theme.of(context).colorScheme.onSurface),
       ),
       onPressed: () =&gt; onExpansionChanged(!isExpanded),
       child: IntrinsicHeight(
@@ -146,8 +146,7 @@ Widget build(BuildContext context) {
                   topLeft: Radius.circular(15),
                   bottomLeft: Radius.circular(15),
                 ),
-                color: CheckPointDefect.ereArtToColor(data.ereArt)
-                    .withOpacity(1),
+                color: CheckPointDefect.ereArtToColor(data.ereArt),
               ),
               width: 40,
               child: Center(
@@ -168,8 +167,8 @@ Widget build(BuildContext context) {
                         style: (Theme.of(context).textButtonTheme.style ??
                                 ButtonStyle())
                             .copyWith(
-                          padding: MaterialStateProperty.all(EdgeInsets.zero),
-                          iconColor: MaterialStateProperty.all(
+                          padding: WidgetStateProperty.all(EdgeInsets.zero),
+                          iconColor: WidgetStateProperty.all(
                               Theme.of(context).colorScheme.onSurface),
                         ),
                         onPressed: () {
@@ -283,7 +282,7 @@ Widget build(BuildContext context) {
 
                         await API().delete&lt;CheckPointDefect&gt;(data,
                             caller: model.currentData);
-                        model.notifyListeners();
+                        model.refresh();
                       }),
                     ],
                   ),

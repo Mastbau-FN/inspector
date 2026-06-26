@@ -76,6 +76,7 @@
   var _user = User(name, pass);
   _user.full_name = (await _prefs).getString(_full_name_store);
   _user.full_surname = (await _prefs).getString(_full_surname_store);
+  _user.defLoginId = (await _prefs).getInt(_def_login_id_store);
   return _user;
 }</code></pre>
 </section>

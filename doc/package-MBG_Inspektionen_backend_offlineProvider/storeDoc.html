@@ -73,6 +73,12 @@
   try {
     var file = await localFile(name, &quot;jaman&quot;);
     await file.parent.create(recursive: true);
+    &#47;&#47; Avoid rewriting already valid cached files
+    if (file.existsSync()) {
+      try {
+        if (file.lengthSync() &gt;= 5) return file;
+      } catch (_) {}
+    }
     file = await file.writeAsBytes(imgBytes); &#47;&#47;u good?
     return file;
   } catch (e) {

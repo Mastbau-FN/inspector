@@ -122,7 +122,10 @@ Widget build(BuildContext context) {
           SvgPicture.asset(
             &#39;lib&#47;assets&#47;icon_smooth.svg&#39;,
             semanticsLabel: &#39;MBG Logo&#39;,
-            color: Theme.of(context).colorScheme.primary,
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).colorScheme.primary,
+              BlendMode.srcIn,
+            ),
           ),
           SizedBox(height: 20),
           LoginField(

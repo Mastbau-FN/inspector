@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the getLoginUsers method from the Remote class, for the Dart programming language.">
+  <title>getLoginUsers method - Remote class - remote library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_remote/">backend&#47;remote.dart</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_remote/Remote-class.html">Remote</a></li>
+    <li class="self-crumb">getLoginUsers method</li>
+  </ol>
+  <div class="self-name">getLoginUsers</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="package-MBG_Inspektionen_backend_remote&#47;Remote-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+<h1><span class="kind-method">getLoginUsers</span> method 
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_user/DisplayUser-class.html">DisplayUser</a></span>&gt;</span></span>&gt;</span></span>
+<span class="name ">getLoginUsers</span>(<wbr>)
+
+      
+
+    </section>
+    
+<section class="desc markdown">
+  <p>fetches all selectable workers for the login dropdown.</p>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;DisplayUser&gt;&gt; getLoginUsers() async {
+  const candidateRoutes = &lt;String&gt;[
+    &#39;&#47;login&#47;users&#39;,
+    &#39;&#47;loginUsers&#39;,
+    &#39;&#47;users&#47;login&#39;,
+  ];
+
+  List&lt;DisplayUser&gt; parseUsers(http.Response res) {
+    final raw = jsonDecode(res.body);
+    final entries = (raw is Map) ? raw[&#39;users&#39;] : null;
+    if (entries is! List) return [];
+
+    final users = &lt;DisplayUser&gt;[];
+    for (final entry in entries) {
+      if (entry is! Map) continue;
+      final map = Map&lt;String, dynamic&gt;.from(entry);
+      String? pick(List&lt;String&gt; keys) {
+        for (final key in keys) {
+          final v = map[key];
+          if (v != null) {
+            final s = v.toString().trim();
+            if (s.isNotEmpty) return s;
+          }
+        }
+        for (final kv in map.entries) {
+          if (keys.any((k) =&gt; k.toLowerCase() == kv.key.toLowerCase())) {
+            final s = kv.value?.toString().trim() ?? &#39;&#39;;
+            if (s.isNotEmpty) return s;
+          }
+        }
+        return null;
+      }
+
+      final kzl = (pick([&#39;KZL&#39;, &#39;kzl&#39;]) ?? &#39;&#39;).trim();
+      if (kzl.isEmpty || kzl == &#39;??&#39;) continue;
+      final user = DisplayUser(kzl);
+      user.full_name = pick([&#39;Vorname&#39;, &#39;vorname&#39;]);
+      user.full_surname = pick([&#39;Name&#39;, &#39;name&#39;]);
+      users.add(user);
+    }
+
+    users.sort((a, b) {
+      final aName = &#39;${a.full_surname ?? &#39;&#39;} ${a.full_name ?? &#39;&#39;} ${a.name}&#39;
+          .toLowerCase();
+      final bName = &#39;${b.full_surname ?? &#39;&#39;} ${b.full_name ?? &#39;&#39;} ${b.name}&#39;
+          .toLowerCase();
+      return aName.compareTo(bName);
+    });
+    return users;
+  }
+
+  http.Response? lastResponse;
+  for (final route in candidateRoutes) {
+    final res = (await postJSON(RequestData(route)))?.forceRes();
+    lastResponse = res;
+    debugPrint(
+      &#39;Remote.getLoginUsers route=$route status=${res?.statusCode} len=${res?.body.length ?? 0}&#39;,
+    );
+    if (res != null &amp;&amp; (res.statusCode ~&#47; 100 == 2)) {
+      final users = parseUsers(res);
+      debugPrint(&#39;Remote.getLoginUsers parsed=${users.length} via $route&#39;);
+      return users;
+    }
+    if (res?.statusCode == 404) {
+      continue;
+    }
+    final preview = res?.body.substring(
+          0,
+          (res.body.length &lt; 200) ? res.body.length : 200,
+        ) ??
+        &#39;&#39;;
+    debugPrint(&#39;Remote.getLoginUsers failed via $route: $preview&#39;);
+    throw ResponseException(res);
+  }
+
+  debugPrint(
+    &#39;Remote.getLoginUsers failed: all candidate routes returned 404&#39;,
+  );
+  throw ResponseException(lastResponse);
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_remote/">remote</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_remote/Remote-class.html">Remote</a></li>
+    <li class="self-crumb">getLoginUsers method</li>
+</ol>
+
+    <h5>Remote class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    MBG_Inspektionen
+      1.2.8+58
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

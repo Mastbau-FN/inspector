@@ -67,7 +67,25 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">injectUser(User? user) =&gt; _user = user;</code></pre>
+  <pre class="language-dart"><code class="language-dart">injectUser(User? user) {
+  if (user == null) {
+    _user = null;
+    debugPrint(&#39;Remote.injectUser: user=null&#39;);
+    return;
+  }
+
+  &#47;&#47; Preserve Def_Login_ID if we already know it and the incoming user doesn&#39;t have it yet.
+  if (_user != null &amp;&amp;
+      _user?.name == user.name &amp;&amp;
+      user.defLoginId == null &amp;&amp;
+      _user?.defLoginId != null) {
+    user.defLoginId = _user?.defLoginId;
+  }
+
+  _user = user;
+  debugPrint(
+      &#39;Remote.injectUser: KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}, hash=${_user.hashCode}&#39;);
+}</code></pre>
 </section>
 
 

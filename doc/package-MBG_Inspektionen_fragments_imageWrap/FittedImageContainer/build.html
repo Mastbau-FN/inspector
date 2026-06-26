@@ -111,14 +111,29 @@ and</li>
 Widget build(BuildContext context) {
   return AnimatedBuilder(
     builder: (context, child) =&gt; FutureBuilder&lt;Image?&gt;(
-        future: (item.image == null)
-            ? null
-            : ((approxWidth &gt; 100)
-                ? item.image!.fullImage()
-                : Future.value(item.image!.thumbnail)),
+        future: item.image?.fullImage(),
         builder: (context, snapshot) {
-          return (snapshot.data ?? item.image?.thumbnail)?.refit(fit) ??
-              ((snapshot.hasError) ? item.fallBackWidget : LoadingView());
+          if (snapshot.hasError) {
+            SchedulerBinding.instance
+                .addPostFrameCallback((_) =&gt; item.markCorrupt());
+            return item.fallBackWidget;
+          }
+          final img = snapshot.data ?? item.image?.image;
+          if (img == null) {
+            return LoadingView();
+          }
+          return Image(
+            image: img.image,
+            fit: fit,
+            filterQuality: img.filterQuality,
+            isAntiAlias: img.isAntiAlias,
+            gaplessPlayback: img.gaplessPlayback,
+            errorBuilder: (context, error, stackTrace) {
+              SchedulerBinding.instance
+                  .addPostFrameCallback((_) =&gt; item.markCorrupt());
+              return item.fallBackWidget;
+            },
+          );
         }),
     animation: item,
   );

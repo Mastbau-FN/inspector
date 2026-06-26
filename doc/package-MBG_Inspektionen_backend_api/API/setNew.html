@@ -76,6 +76,11 @@
   Data? caller,
 }) async {
   final requestType = Helper.SimulatedRequestType.PUT;
+  await _touchPrueferIfNeeded(
+    requestType: requestType,
+    data: data,
+    caller: caller,
+  );
   try {
     (data as WithOffline).parentId = caller?.id ?? await rootID;
   } catch (e) {}

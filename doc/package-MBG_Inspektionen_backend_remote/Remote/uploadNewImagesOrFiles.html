@@ -76,7 +76,8 @@
   DataT data,
   List&lt;XFile&gt; files,
 ) {
-  debugPrint(&#39;uploading images ${files.map((e) =&gt; e.name)}&#39;);
+  debugPrint(
+      &#39;uploading images ${files.map((e) =&gt; canonicalTimestampFilenameForXFile(e))}&#39;);
   var jsonData = data.toJson();
   final rd = RequestData.fromFiles(
     _uploadImage_r,

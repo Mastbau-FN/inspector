@@ -70,13 +70,12 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">D injectImages&lt;D extends Data&gt;(D data, {bool preloadFull = false}) {
   Future&lt;ImageData?&gt; getImgDataFromHash(String? hash) {
-    if (preloadFull)
-      API().getImageByHash(hash!, compressed: false, owner: data);
-    return API().getImageByHash(hash!, compressed: false, owner: data).then(
-        (value) =&gt; value
-          ?..fullImageGetter = () =&gt; API()
-              .getImageByHash(hash, compressed: false, owner: data)
-              .then((value) =&gt; value?.thumbnail));
+    if (hash == null) return Future.value(null);
+
+    return API().getImageByHash(hash, owner: data).catchError((e, st) {
+      debugPrint(&#39;getImageByHash failed ($hash): $e&#39;);
+      return null;
+    });
   }
 
   if (data.mainhash != null &amp;&amp;

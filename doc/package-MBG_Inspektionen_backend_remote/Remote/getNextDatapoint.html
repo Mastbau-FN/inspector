@@ -83,7 +83,13 @@ if no <code>ParentData</code> is given it defaults to root</p>
     route: routesFromData&lt;ChildData&gt;(null),
     jsonResponseID: childTypeStr + &#39;s&#39;,
     json: data?.toSmallJson(),
-    fromJson: (json) =&gt; &#47;*Child*&#47; Data.fromJson&lt;ChildData&gt;(json),
+    fromJson: (json) {
+      &#47;&#47; &quot;offline&quot; (forceOffline) is a local-only flag; never trust&#47;propagate it from server payloads.
+      final scrubbed = Map&lt;String, dynamic&gt;.from(json);
+      scrubbed.remove(&#39;offline&#39;);
+      scrubbed.remove(&#39;parent_local_id&#39;);
+      return Data.fromJson&lt;ChildData&gt;(scrubbed);
+    },
     preloadFullImages: preloadFullImages,
   );
 }</code></pre>

@@ -84,19 +84,30 @@ void open(
   MyListTileData tiledata,
 ) {
   currentlyChosenChildData = Future.value(data);
+  if (tiledata.title == _nextViewTitle) {
+    final checkPointsModel = generateNextModel(data);
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(
+        builder: (newcontext) =&gt;
+            nextModel&lt;CheckPoint, CheckCategory, CheckPointsModel&gt;(
+          checkPointsModel,
+        ),
+      ),
+    )
+        .then((_) {
+      unawaited(_updateRecentCategoryProgress(data, checkPointsModel));
+    });
+    return;
+  }
+
   Navigator.of(context).push(
     MaterialPageRoute(builder: (newcontext) {
-      if (tiledata.title == S.current!.imagesButton)
+      if (tiledata.title == S.current!.imagesButton) {
         return standard_statefulImageView(this, data);
-      switch (tiledata.title) {
-        case _nextViewTitle:
-          return nextModel&lt;CheckPoint, CheckCategory, CheckPointsModel&gt;(
-              generateNextModel(data));
-
-        default:
-          return alwaysPlainText(this, data,
-              ((CheckCategory p0, p1) =&gt; update(p0, langText: p1)));
       }
+      return alwaysPlainText(
+          this, data, ((CheckCategory p0, p1) =&gt; update(p0, langText: p1)));
     }),
   );
 }</code></pre>

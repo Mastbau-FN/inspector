@@ -77,6 +77,11 @@
   bool forceUpdate = false,
 }) async {
   final requestType = Helper.SimulatedRequestType.PUT;
+  await _touchPrueferIfNeeded(
+    requestType: requestType,
+    data: data,
+    caller: caller,
+  );
   return _run(
     itPrefersCache: _dataPrefersCache(data, type: requestType),
     offline: () =&gt; local.setMainImageByHash(

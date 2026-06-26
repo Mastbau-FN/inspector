@@ -116,9 +116,15 @@ Widget build(BuildContext context) {
       child: FutureBuilder(
           future: previewImage,
           builder: (context, snapshot) {
-            var imagep = snapshot.data?.thumbnail.image;
+            var imagep = snapshot.data?.image.image;
             return (imagep != null
-                    ? Image(image: imagep, fit: BoxFit.fill)
+                    ? Image(
+                        image: imagep,
+                        fit: BoxFit.fill,
+                        errorBuilder: (context, error, stackTrace) =&gt; Icon(
+                          fallbackIcon,
+                        ),
+                      )
                     : null) ??
                 Icon(
                   fallbackIcon,

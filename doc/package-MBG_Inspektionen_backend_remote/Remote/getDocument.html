@@ -55,8 +55,9 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="../../package-MBG_Inspektionen_backend_remote/RequestAndParser-class.html">RequestAndParser</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/1.2.2/http/BaseResponse-class.html">BaseResponse</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a>?</span>&gt;</span></span>
-<span class="name ">getDocument</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="getDocument-param-docPath"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">docPath</span></span></li>
-</ol>)
+<span class="name ">getDocument</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="getDocument-param-docPath"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">docPath</span>, {</span></li>
+<li><span class="parameter" id="getDocument-param-scope"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">scope</span>, </span></li>
+</ol>})
 
       
 
@@ -67,7 +68,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">RequestAndParser&lt;http.BaseResponse, File?&gt; getDocument(String docPath) {
+  <pre class="language-dart"><code class="language-dart">RequestAndParser&lt;http.BaseResponse, File?&gt; getDocument(String docPath,
+    {String? scope}) {
   final rd = switch (kIsWeb) {
     true =&gt; RequestData(&#39;&#47;login&#39;),
     false =&gt; RequestData(
@@ -78,7 +80,6 @@
         returnsBinary: true,
       )
   };
-  debugPrint(&quot;fssgfsfsdf&quot; + rd.toString());
 
   parser(http.BaseResponse _res) async {
     final res = _res.forceRes();
@@ -86,8 +87,12 @@
       return null;
     else {
       try {
-        await API().local.storeDoc(res.bodyBytes, docPath.split(&#39;&#47;&#39;).last);
-        return API().local.readDoc(docPath.split(&#39;&#47;&#39;).last);
+        final filename = docPath.split(&#39;&#47;&#39;).last;
+        final s = (scope ?? &#39;&#39;).trim();
+        final storedName =
+            s.isNotEmpty ? &#39;$s&#47;Dokus&#47;$filename&#39; : &#39;Dokus&#47;$filename&#39;;
+        await API().local.storeDoc(res.bodyBytes, storedName);
+        return API().local.readDoc(storedName);
       } catch (e) {
         debugPrint(&quot;failed to load webimg: &quot; + e.toString());
       }

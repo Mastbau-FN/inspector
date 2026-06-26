@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the AppLocalizations class from the app_localizations library, for the Dart programming language.">
+  <title>AppLocalizations class - app_localizations library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../package-MBG_Inspektionen_l10n_app_localizations/">l10n&#47;app_localizations.dart</a></li>
+    <li class="self-crumb">AppLocalizations class</li>
+  </ol>
+  <div class="self-name">AppLocalizations</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="package-MBG_Inspektionen_l10n_app_localizations&#47;package-MBG_Inspektionen_l10n_app_localizations-library-sidebar.html"
+    data-below-sidebar="package-MBG_Inspektionen_l10n_app_localizations&#47;AppLocalizations-class-sidebar.html">
+    <div>
+<h1><span class="kind-class">AppLocalizations</span> class 
+    <a href="https://dart.dev/language/class-modifiers#abstract" class="feature feature-abstract" title="This type can not be directly constructed.">abstract</a>
+ 
+</h1></div>
+
+    
+<section class="desc markdown">
+  <p>Callers can lookup localized strings with an instance of AppLocalizations
+returned by <code>AppLocalizations.of(context)</code>.</p>
+<p>Applications need to include <code>AppLocalizations.delegate()</code> in their app's
+<code>localizationDelegates</code> list, and the locales they support in the app's
+<code>supportedLocales</code> list. For example:</p>
+<pre class="language-dart"><code class="language-dart">import 'l10n/app_localizations.dart';
+
+return MaterialApp(
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: MyApplicationHome(),
+);
+</code></pre>
+<h2 id="update-pubspecyaml">Update pubspec.yaml</h2>
+<p>Please make sure to update your pubspec.yaml to include the following
+packages:</p>
+<pre class="language-yaml"><code class="language-yaml">dependencies:
+  # Internationalization support.
+  flutter_localizations:
+    sdk: flutter
+  intl: any # Use the pinned version from flutter_localizations
+
+  # Rest of dependencies
+</code></pre>
+<h2 id="ios-applications">iOS Applications</h2>
+<p>iOS applications define key application metadata, including supported
+locales, in an Info.plist file that is built into the application bundle.
+To configure the locales supported by your app, you’ll need to edit this
+file.</p>
+<p>First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+Then, in the Project Navigator, open the Info.plist file under the Runner
+project’s Runner folder.</p>
+<p>Next, select the Information Property List item, select Add Item from the
+Editor menu, then select Localizations from the pop-up menu.</p>
+<p>Select and expand the newly-created Localizations item then, for each
+locale your application supports, add a new item and select the locale
+you wish to add from the pop-up menu in the Value field. This list should
+be consistent with the languages listed in the AppLocalizations.supportedLocales
+property.</p>
+</section>
+
+
+    <section>
+      <dl class="dl-horizontal">
+        
+
+        
+        
+
+          <dt>Implementers</dt>
+          <dd><ul class="comma-separated clazz-relationships">
+              <li><a href="../package-MBG_Inspektionen_l10n_app_localizations_de/AppLocalizationsDe-class.html">AppLocalizationsDe</a></li>
+              <li><a href="../package-MBG_Inspektionen_l10n_app_localizations_en/AppLocalizationsEn-class.html">AppLocalizationsEn</a></li>
+          </ul></dd>
+
+        
+        
+
+
+      </dl>
+    </section>
+
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
+    <dl class="constructor-summary-list">
+        <dt id="AppLocalizations.new" class="callable">
+          <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/AppLocalizations.html">AppLocalizations.new</a></span><span class="signature">(<span class="parameter" id="-param-locale"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">locale</span></span>)</span>
+        </dt>
+        <dd>
+          
+        </dd>
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-properties">
+    <h2>Properties</h2>
+    <dl class="properties">
+        <dt id="addingDataEnterSomethingHere" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/addingDataEnterSomethingHere.html">addingDataEnterSomethingHere</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @addingDataEnterSomethingHere.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="addingDataSomethingWrong" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/addingDataSomethingWrong.html">addingDataSomethingWrong</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @addingDataSomethingWrong.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="addingDataTryAgain" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/addingDataTryAgain.html">addingDataTryAgain</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @addingDataTryAgain.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="advancedSettingsHeadline" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/advancedSettingsHeadline.html">advancedSettingsHeadline</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @advancedSettingsHeadline.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="allow" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/allow.html">allow</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @allow.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="allowNotifications" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/allowNotifications.html">allowNotifications</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @allowNotifications.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="anUnknownErrorOccured" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/anUnknownErrorOccured.html">anUnknownErrorOccured</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @anUnknownErrorOccured.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="areYouSure" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/areYouSure.html">areYouSure</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @areYouSure.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="cancel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/cancel.html">cancel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @cancel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="checkPointsTitle" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/checkPointsTitle.html">checkPointsTitle</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @checkPointsTitle.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="commentsOrDetailsButton" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/commentsOrDetailsButton.html">commentsOrDetailsButton</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @commentsOrDetailsButton.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="couldNotParseResponse" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/couldNotParseResponse.html">couldNotParseResponse</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @couldNotParseResponse.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="couldntReach" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/couldntReach.html">couldntReach</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @couldntReach.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="deleteLocalImagesButton" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/deleteLocalImagesButton.html">deleteLocalImagesButton</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @deleteLocalImagesButton.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="deleteUnseccessful" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/deleteUnseccessful.html">deleteUnseccessful</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @deleteUnseccessful.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="deletingImageThisMayTakeASec" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/deletingImageThisMayTakeASec.html">deletingImageThisMayTakeASec</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @deletingImageThisMayTakeASec.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="developerOptions" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/developerOptions.html">developerOptions</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @developerOptions.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="didntGetAnyResponseAfterSend" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/didntGetAnyResponseAfterSend.html">didntGetAnyResponseAfterSend</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @didntGetAnyResponseAfterSend.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="didYouMisclick" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/didYouMisclick.html">didYouMisclick</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @didYouMisclick.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="dismiss" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/dismiss.html">dismiss</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @dismiss.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="exceptionNoUrlToConnectToProvided" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/exceptionNoUrlToConnectToProvided.html">exceptionNoUrlToConnectToProvided</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @exceptionNoUrlToConnectToProvided.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="hashCode" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  The hash code for this object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="heightNotOptional" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/heightNotOptional.html">heightNotOptional</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @heightNotOptional.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="image" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/image.html">image</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @image.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="imagesButton" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/imagesButton.html">imagesButton</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @imagesButton.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="kurzTextHint" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/kurzTextHint.html">kurzTextHint</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @kurzTextHint.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="langTextHint" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/langTextHint.html">langTextHint</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @langTextHint.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loading" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loading.html">loading</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loading.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="localeName" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/localeName.html">localeName</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="localtionOwner" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/localtionOwner.html">localtionOwner</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @localtionOwner.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationAbschaltung" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationAbschaltung.html">locationAbschaltung</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationAbschaltung.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationAdditionalInfoSteckdosenLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationAdditionalInfoSteckdosenLabel.html">locationAdditionalInfoSteckdosenLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationAdditionalInfoSteckdosenLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationASPLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationASPLabel.html">locationASPLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationASPLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationASPRequieredLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationASPRequieredLabel.html">locationASPRequieredLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationASPRequieredLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationHasSteckdosenLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationHasSteckdosenLabel.html">locationHasSteckdosenLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationHasSteckdosenLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationHasStorageSpaceLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationHasStorageSpaceLabel.html">locationHasStorageSpaceLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationHasStorageSpaceLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationHasWCLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationHasWCLabel.html">locationHasWCLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationHasWCLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationHeight" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationHeight.html">locationHeight</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationHeight.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationKeyAddintionalInfoLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationKeyAddintionalInfoLabel.html">locationKeyAddintionalInfoLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationKeyAddintionalInfoLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationRequiresKeyLabel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationRequiresKeyLabel.html">locationRequiresKeyLabel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationRequiresKeyLabel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationSteigschutzKey" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationSteigschutzKey.html">locationSteigschutzKey</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationSteigschutzKey.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationWayUp" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationWayUp.html">locationWayUp</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationWayUp.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="locationYearOfBuild" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/locationYearOfBuild.html">locationYearOfBuild</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @locationYearOfBuild.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loginButton" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loginButton.html">loginButton</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loginButton.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loginCredentialsAreBeeingVerified" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loginCredentialsAreBeeingVerified.html">loginCredentialsAreBeeingVerified</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loginCredentialsAreBeeingVerified.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loginErrorPleaseEnterPassword" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loginErrorPleaseEnterPassword.html">loginErrorPleaseEnterPassword</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loginErrorPleaseEnterPassword.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loginErrorPleaseEnterUserName" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loginErrorPleaseEnterUserName.html">loginErrorPleaseEnterUserName</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loginErrorPleaseEnterUserName.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loginLabelPassword" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loginLabelPassword.html">loginLabelPassword</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loginLabelPassword.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="loginUsername" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/loginUsername.html">loginUsername</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @loginUsername.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="logoutButton" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/logoutButton.html">logoutButton</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @logoutButton.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="mobileNetworkNotAllowed" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/mobileNetworkNotAllowed.html">mobileNetworkNotAllowed</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @mobileNetworkNotAllowed.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="newImageSendingThisMayTakeASec" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/newImageSendingThisMayTakeASec.html">newImageSendingThisMayTakeASec</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @newImageSendingThisMayTakeASec.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="nonetwork_forcedOfflineMode" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/nonetwork_forcedOfflineMode.html">nonetwork_forcedOfflineMode</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @nonetwork_forcedOfflineMode.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="noNetworkAvailable" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/noNetworkAvailable.html">noNetworkAvailable</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @noNetworkAvailable.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="noResponse" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/noResponse.html">noResponse</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @noResponse.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="notAvailable" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/notAvailable.html">notAvailable</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @notAvailable.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="noViableInternetConnection" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/noViableInternetConnection.html">noViableInternetConnection</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @noViableInternetConnection.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="ohneMaengel" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/ohneMaengel.html">ohneMaengel</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @ohneMaengel.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_canbeoffline" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_canbeoffline.html">option_canbeoffline</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_canbeoffline.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_canusemobilenetworkifpossible" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_canusemobilenetworkifpossible.html">option_canusemobilenetworkifpossible</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_canusemobilenetworkifpossible.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_debugallresponses" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_debugallresponses.html">option_debugallresponses</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_debugallresponses.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_debugimages" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_debugimages.html">option_debugimages</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_debugimages.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_debuglocalmirror" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_debuglocalmirror.html">option_debuglocalmirror</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_debuglocalmirror.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_forceOffline" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_forceOffline.html">option_forceOffline</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_forceOffline.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_infinitelyreloadpictures" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_infinitelyreloadpictures.html">option_infinitelyreloadpictures</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_infinitelyreloadpictures.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_mergeloadeddataintoonlinedata" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_mergeloadeddataintoonlinedata.html">option_mergeloadeddataintoonlinedata</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_mergeloadeddataintoonlinedata.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_mergeloadeddataintoonlinedataevenincachedparent" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_mergeloadeddataintoonlinedataevenincachedparent.html">option_mergeloadeddataintoonlinedataevenincachedparent</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_mergeloadeddataintoonlinedataevenincachedparent.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_preferremotedata" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_preferremotedata.html">option_preferremotedata</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_preferremotedata.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_preferremoteimages" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_preferremoteimages.html">option_preferremoteimages</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_preferremoteimages.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_showdoggo" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_showdoggo.html">option_showdoggo</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_showdoggo.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_tryOnlineIfOfflineFailed" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_tryOnlineIfOfflineFailed.html">option_tryOnlineIfOfflineFailed</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_tryOnlineIfOfflineFailed.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_tryonlinerequestincachedmode" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_tryonlinerequestincachedmode.html">option_tryonlinerequestincachedmode</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_tryonlinerequestincachedmode.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_usemobilenetworkfordownload" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_usemobilenetworkfordownload.html">option_usemobilenetworkfordownload</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_usemobilenetworkfordownload.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_usemobilenetworkforupload" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_usemobilenetworkforupload.html">option_usemobilenetworkforupload</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_usemobilenetworkforupload.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="option_usesystemtheme" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/option_usesystemtheme.html">option_usesystemtheme</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @option_usesystemtheme.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="optionsForThisImageHeadLine" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/optionsForThisImageHeadLine.html">optionsForThisImageHeadLine</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @optionsForThisImageHeadLine.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="permanentlyRemoveImage" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/permanentlyRemoveImage.html">permanentlyRemoveImage</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @permanentlyRemoveImage.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="pleaseDragDownToReloadThisPage" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/pleaseDragDownToReloadThisPage.html">pleaseDragDownToReloadThisPage</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @pleaseDragDownToReloadThisPage.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="pleaseWaitDataIsBeeingSynced" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/pleaseWaitDataIsBeeingSynced.html">pleaseWaitDataIsBeeingSynced</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @pleaseWaitDataIsBeeingSynced.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="plsWait" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/plsWait.html">plsWait</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @plsWait.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="positionHeightHint" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/positionHeightHint.html">positionHeightHint</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @positionHeightHint.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="runtimeType" class="property inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/runtimeType.html">runtimeType</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Type-class.html">Type</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  A representation of the runtime type of the object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="seeSomeDoggos" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/seeSomeDoggos.html">seeSomeDoggos</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @seeSomeDoggos.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="setAsMainImage" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/setAsMainImage.html">setAsMainImage</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @setAsMainImage.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="settingMainImageThisMayTakeASec" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/settingMainImageThisMayTakeASec.html">settingMainImageThisMayTakeASec</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @settingMainImageThisMayTakeASec.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="settings" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/settings.html">settings</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @settings.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="shareImage" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/shareImage.html">shareImage</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @shareImage.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="somethingWentWrong" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/somethingWentWrong.html">somethingWentWrong</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @somethingWentWrong.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="somethingWentWrongWhileCommunicatingWithTheApi" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/somethingWentWrongWhileCommunicatingWithTheApi.html">somethingWentWrongWhileCommunicatingWithTheApi</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @somethingWentWrongWhileCommunicatingWithTheApi.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="sorryNoImageToUpload" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/sorryNoImageToUpload.html">sorryNoImageToUpload</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @sorryNoImageToUpload.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="theBodyHadNoErrorField" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/theBodyHadNoErrorField.html">theBodyHadNoErrorField</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @theBodyHadNoErrorField.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="tryAgainLater_noNetwork" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/tryAgainLater_noNetwork.html">tryAgainLater_noNetwork</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @tryAgainLater_noNetwork.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="uhoh" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/uhoh.html">uhoh</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @uhoh.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="unknown" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/unknown.html">unknown</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @unknown.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="updateSuccessful" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/updateSuccessful.html">updateSuccessful</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @updateSuccessful.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="uploadAndSyncData" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/uploadAndSyncData.html">uploadAndSyncData</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @uploadAndSyncData.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="uploadFinishedNoIdeaWhetherSuccessedOrFailedTho" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/uploadFinishedNoIdeaWhetherSuccessedOrFailedTho.html">uploadFinishedNoIdeaWhetherSuccessedOrFailedTho</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @uploadFinishedNoIdeaWhetherSuccessedOrFailedTho.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="uploading" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/uploading.html">uploading</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @uploading.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="usernameOrPasswordWasNotGiven" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/usernameOrPasswordWasNotGiven.html">usernameOrPasswordWasNotGiven</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @usernameOrPasswordWasNotGiven.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="validateDeletionPromtHeadline" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/validateDeletionPromtHeadline.html">validateDeletionPromtHeadline</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @validateDeletionPromtHeadline.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="validateDeletionPromtWarning" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/validateDeletionPromtWarning.html">validateDeletionPromtWarning</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @validateDeletionPromtWarning.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="validateDeletionSure" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/validateDeletionSure.html">validateDeletionSure</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @validateDeletionSure.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="weCanSendYouANotificationAboutTheSyncProgress" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/weCanSendYouANotificationAboutTheSyncProgress.html">weCanSendYouANotificationAboutTheSyncProgress</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @weCanSendYouANotificationAboutTheSyncProgress.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+        <dt id="wontFetchAnythingSinceNoOneIsLoggedIn" class="property">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/wontFetchAnythingSinceNoOneIsLoggedIn.html">wontFetchAnythingSinceNoOneIsLoggedIn</a></span>
+  <span class="signature">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  No description provided for @wontFetchAnythingSinceNoOneIsLoggedIn.
+  <div class="features"><span class="feature">no setter</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
+        <dt id="defectInfo" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/defectInfo.html">defectInfo</a></span><span class="signature">(<wbr><span class="parameter" id="defectInfo-param-info"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">info</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  No description provided for @defectInfo.
+  
+
+</dd>
+
+        <dt id="defectLocation" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/defectLocation.html">defectLocation</a></span><span class="signature">(<wbr><span class="parameter" id="defectLocation-param-location"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">location</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  No description provided for @defectLocation.
+  
+
+</dd>
+
+        <dt id="noSuchMethod" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Invoked when a nonexistent method or property is accessed.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  A string representation of this object.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+  <span class="name"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  The equality operator.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+    
+  <section class="summary offset-anchor" id="static-methods">
+    <h2>Static Methods</h2>
+    <dl class="callables">
+        <dt id="of" class="callable">
+  <span class="name"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/of.html">of</a></span><span class="signature">(<wbr><span class="parameter" id="of-param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span></span>)
+    <span class="returntype parameter">&#8594; <a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations-class.html">AppLocalizations</a>?</span>
+  </span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+    </dl>
+  </section>
+    
+
+  <section class="summary offset-anchor" id="constants">
+    <h2>Constants</h2>
+    <dl class="properties">
+        <dt id="delegate" class="constant">
+    <span class="name "><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/delegate-constant.html">delegate</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/widgets/LocalizationsDelegate-class.html">LocalizationsDelegate</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations-class.html">AppLocalizations</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  
+  
+
+</dd>
+
+        <dt id="localizationsDelegates" class="constant">
+    <span class="name "><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/localizationsDelegates-constant.html">localizationsDelegates</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/LocalizationsDelegate-class.html">LocalizationsDelegate</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  A list of this localizations delegate along with the default localizations
+delegates.
+  
+
+</dd>
+
+        <dt id="supportedLocales" class="constant">
+    <span class="name "><a href="../package-MBG_Inspektionen_l10n_app_localizations/AppLocalizations/supportedLocales-constant.html">supportedLocales</a></span>
+  <span class="signature">&#8594; const <a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-ui/Locale-class.html">Locale</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  A list of this localizations delegate's supported locales.
+  
+
+</dd>
+
+    </dl>
+  </section>
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../package-MBG_Inspektionen_l10n_app_localizations/">app_localizations</a></li>
+    <li class="self-crumb">AppLocalizations class</li>
+</ol>
+
+    <h5>app_localizations library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div>
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    MBG_Inspektionen
+      1.2.8+58
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

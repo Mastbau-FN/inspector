@@ -71,8 +71,7 @@
   var rd = _$RequestDataFromJson(json);
   rd.multipartFileNames = rd.multipartFileNames?.map((element) {
     &#47;&#47; fix for failed uploads in pratiks latest incident (02)
-    if (element.contains(LOCALLY_ADDED_PREFIX) &amp;&amp;
-        !element.contains(&#39;&#47;&#39;)) {
+    if (element.contains(LOCALLY_ADDED_PREFIX) &amp;&amp; !element.contains(&#39;&#47;&#39;)) {
       &#47;&#47;shouldnt be necessary but just in case, but keep folder paths intact
       element = element.substring(element.indexOf(LOCALLY_ADDED_PREFIX));
     }

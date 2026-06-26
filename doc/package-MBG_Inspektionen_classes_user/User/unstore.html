@@ -79,6 +79,7 @@
     final prefs = await _prefs;
     await prefs.remove(_full_name_store);
     await prefs.remove(_full_surname_store);
+    await prefs.remove(_def_login_id_store);
 
     debugPrint(&#39;User-Daten vollständig gelöscht&#39;);
   } catch (e) {

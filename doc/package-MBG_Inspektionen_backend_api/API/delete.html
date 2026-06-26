@@ -76,6 +76,11 @@
   Data? caller,
 }) async {
   final requestType = Helper.SimulatedRequestType.DELETE;
+  await _touchPrueferIfNeeded(
+    requestType: requestType,
+    data: data,
+    caller: caller,
+  );
   return _run(
     itPrefersCache: _dataPrefersCache(caller, type: requestType),
     offline: () =&gt; local.delete(data, caller: caller),

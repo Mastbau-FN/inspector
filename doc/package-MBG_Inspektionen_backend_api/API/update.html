@@ -78,6 +78,11 @@
   bool forceUpdate = false,
 }) async {
   final requestType = Helper.SimulatedRequestType.PUT;
+  await _touchPrueferIfNeeded(
+    requestType: requestType,
+    data: data,
+    caller: caller,
+  );
   return _run(
     itPrefersCache: _dataPrefersCache(caller, type: requestType),
     offline: () =&gt; local.update(data, caller: caller),

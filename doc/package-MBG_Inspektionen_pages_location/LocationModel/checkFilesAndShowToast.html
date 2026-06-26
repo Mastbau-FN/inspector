@@ -54,8 +54,8 @@
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a>?</span>&gt;</span></span>
-<span class="name ">checkFilesAndShowToast</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="checkFilesAndShowToast-param-PjNr"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">PjNr</span>, </span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+<span class="name ">checkFilesAndShowToast</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="checkFilesAndShowToast-param-pjNr"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">pjNr</span>, </span></li>
 <li><span class="parameter" id="checkFilesAndShowToast-param-data"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">data</span>, </span></li>
 <li><span class="parameter" id="checkFilesAndShowToast-param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span></span></li>
 </ol>)
@@ -69,59 +69,65 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;Widget?&gt; checkFilesAndShowToast(
-    int PjNr, InspectionLocation data, BuildContext context) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; checkFilesAndShowToast(
+    int pjNr, InspectionLocation data, BuildContext context) async {
   &#47;&#47; Holen des App-Dokumentenverzeichnisses
   final directory = await getApplicationDocumentsDirectory();
-  final basePath = directory.path;
 
   &#47;&#47; Alle Ordner im Verzeichnis auflisten
-  final baseDir = Directory(basePath);
-  if (!await baseDir.exists())
-    return nextModel&lt;CheckCategory, InspectionLocation, CategoryModel&gt;(
-        generateNextModel(data));
-  ;
+  final baseDir = Directory(directory.path);
+  if (!await baseDir.exists()) return;
 
-  final folders = baseDir.listSync().whereType&lt;Directory&gt;();
-  for (var folder in folders) {
-    final folderName = folder.path.split(Platform.pathSeparator).last;
-    debugPrint(&quot;Checking folder: ${folderName}&quot;);
-    final regex = RegExp(&#39;^${PjNr}&#39; + r&#39;-[1-9]*-[1-9]*-0$&#39;);
-    debugPrint(&quot;Checking folder: ${regex}&quot;);
-    if (folderName.startsWith(regex)) {
-      final file = folder.listSync().whereType&lt;File&gt;();
-      if (file.isNotEmpty) {
-        debugPrint(&quot;Found files in folder: ${folderName}&quot;);
-        return showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text(&quot;Gefundene Mängel&quot;),
-                content: Text(
-                    &quot;Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?&quot;),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(&quot;Abbrechen&quot;),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(&quot;Trotzdem fortfahren&quot;),
-                  ),
-                ],
-              );
-            });
-      }
-      break;
+  final prefix = &#39;$pjNr-&#39;;
+  final regex =
+      RegExp(&#39;^${RegExp.escape(prefix)}\\d+-\\d+-0\$&#39;); &#47;&#47; pjNr-e1-e2-0
+
+  int scannedFolders = 0;
+  await for (final entity in baseDir.list(followLinks: false)) {
+    if (entity is! Directory) continue;
+    scannedFolders++;
+    if (scannedFolders % 25 == 0) {
+      await Future&lt;void&gt;.delayed(Duration.zero);
     }
-  }
 
-  ;
+    final folderName = entity.path.split(Platform.pathSeparator).last;
+    if (!folderName.startsWith(prefix)) continue;
+    if (!regex.hasMatch(folderName)) continue;
+
+    final hasAnyFile = await _directoryHasAnyFile(entity);
+    if (hasAnyFile) {
+      if (kDebugMode) {
+        debugPrint(&#39;Found existing defect files in folder: $folderName&#39;);
+      }
+      if (!context.mounted) return;
+      await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(&quot;Gefundene Mängel&quot;),
+            content: Text(
+                &quot;Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?&quot;),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: Text(&quot;Abbrechen&quot;),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(&quot;Trotzdem fortfahren&quot;),
+              ),
+            ],
+          );
+        },
+      );
+    }
+    break;
+  }
 }</code></pre>
 </section>
 

@@ -87,6 +87,64 @@
                       (snapshot.data!.mainhash ??
                               Options().no_image_placeholder_name) !=
                           Options().no_image_placeholder_name;
+                  Future&lt;XFile?&gt; _toShareXFile(Object hash) async {
+                    final owner = snapshot.data ?? data;
+                    if (owner == null) return null;
+
+                    final scope =
+                        API().local.scopeFor(owner, caller: model.currentData);
+                    final file = await resolveImageFileByHash(
+                      hash.toString(),
+                      scope: scope,
+                    );
+
+                    if (file == null) return null;
+                    final decoded =
+                        imglib.decodeImage(await file.readAsBytes());
+                    if (decoded == null) return null;
+
+                    return XFile.fromData(
+                      Uint8List.fromList(imglib.encodePng(decoded)),
+                      name: &#39;mbg_${hash.hashCode.toRadixString(36)}.png&#39;,
+                      mimeType: &#39;image&#47;png&#39;,
+                    );
+                  }
+
+                  Future&lt;void&gt; _deleteByHash(Object hash,
+                      {bool withToast = true}) async {
+                    if (withToast) {
+                      showToast(S.of(context).deletingImageThisMayTakeASec);
+                    }
+                    final value = await model.updateCurrentChild(
+                      (data) =&gt; API().deleteImageByHash(
+                        data,
+                        hash.toString(),
+                        caller: model.currentData,
+                        forceUpdate: true,
+                      ),
+                    );
+                    _maybeShowToast(value);
+                  }
+
+                  Future&lt;void&gt; _deleteManyByHash(List&lt;Object&gt; hashes) async {
+                    if (hashes.isEmpty) return;
+                    showToast(&#39;Lösche ${hashes.length} Bilder...&#39;);
+                    final value =
+                        await model.updateCurrentChild&lt;String?&gt;((data) async {
+                      String? lastResponse;
+                      for (final hash in hashes) {
+                        lastResponse = await API().deleteImageByHash(
+                          data,
+                          hash.toString(),
+                          caller: model.currentData,
+                          forceUpdate: true,
+                        );
+                      }
+                      return lastResponse;
+                    });
+                    _maybeShowToast(value);
+                  }
+
                   return Stack(
                     children: [
                       ImagesPage.futured(
@@ -125,36 +183,50 @@
                             return value;
                           });
                         },
-                        onDelete: (hash) {
-                          showToast(S.of(context).deletingImageThisMayTakeASec);
-                          model
-                              .updateCurrentChild((data) =&gt; API()
-                                  .deleteImageByHash(data, hash.toString(),
-                                      caller: model.currentData,
-                                      forceUpdate: true))
-                              .then((value) {
-                            _maybeShowToast(value);
-                            return value;
-                          });
+                        onDelete: (hash) async {
+                          await _deleteByHash(hash);
+                        },
+                        onRotate: (hash, deltaQuarterTurns) async {
+                          showToast(&#39;Drehe Bild...&#39;);
+                          final value = await model.updateCurrentChild(
+                            (data) =&gt; API().rotateImageByHash(
+                              data,
+                              hash.toString(),
+                              quarterTurns: deltaQuarterTurns,
+                              caller: model.currentData,
+                              forceUpdate: true,
+                            ),
+                          );
+                          _maybeShowToast(value);
+                        },
+                        onDeleteMany: (hashes) async {
+                          await _deleteManyByHash(hashes.cast&lt;Object&gt;());
                         },
                         onShare: (hash) async {
-                          var files = await Future.wait(
-                              [await localFile(hash.toString())]
-                                  .map(
-                                    (e) async =&gt; XFile.fromData(
-                                      Uint8List.fromList(
-                                        imglib.encodePng(
-                                          imglib.decodeImage(
-                                              await e.readAsBytes())!,
-                                        ),
-                                      ),
-                                      name:
-                                          &#39;mbg_${hash.hashCode.toRadixString(36)}.png&#39;,
-                                      mimeType: &#39;image&#47;png&#39;,
-                                    ),
-                                  )
-                                  .toList());
-                          await Share.shareXFiles(files, text: &#39;Internes Bild&#39;);
+                          final xfile = await _toShareXFile(hash);
+                          if (xfile == null) {
+                            showToast(S.of(context).somethingWentWrong);
+                            return;
+                          }
+                          await Share.shareXFiles([xfile],
+                              text: &#39;Internes Bild&#39;);
+                        },
+                        onShareMany: (hashes) async {
+                          final xfiles = &lt;XFile&gt;[];
+                          for (final hash in hashes) {
+                            final xfile = await _toShareXFile(hash);
+                            if (xfile != null) xfiles.add(xfile);
+                          }
+                          if (xfiles.isEmpty) {
+                            showToast(S.of(context).somethingWentWrong);
+                            return;
+                          }
+                          await Share.shareXFiles(
+                            xfiles,
+                            text: xfiles.length == 1
+                                ? &#39;Internes Bild&#39;
+                                : &#39;Interne Bilder&#39;,
+                          );
                         },
                       ),
                       if (snapshot.connectionState == ConnectionState.waiting)

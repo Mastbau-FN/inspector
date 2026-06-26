@@ -69,13 +69,20 @@
   fallBackWidget = const LoadingView(),
 })  : this.tag = UniqueKey(),
       this.fallBackWidget = const LoadingView() {
-  image.forEach((value) {
+  _subscription = image.listen((value) {
     this.image = value;
-    if (value != null)
+    if (value != null) {
+      hidden = false;
       this.tag = value.id;
-    else
+    } else {
+      hidden = true;
       this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+    }
     &#47;&#47; debugPrint(this.tag.toString());
+    notifyListeners();
+  }, onError: (_) {
+    hidden = true;
+    this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
     notifyListeners();
   });
 }</code></pre>

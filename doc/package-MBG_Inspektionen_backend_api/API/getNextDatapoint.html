@@ -95,19 +95,49 @@ if no <code>ParentData</code> is given it defaults to root</p>
     }
   }
 
+  Future&lt;List&lt;ChildData&gt;&gt; filterHiddenIfRootInspections(
+      List&lt;ChildData&gt; children) async {
+    if (typeOf&lt;ChildData&gt;() != typeOf&lt;InspectionLocation&gt;() || data != null) {
+      return children;
+    }
+    final hiddenPjNrs = await InspectionVisibility().getHiddenPjNrs();
+    if (hiddenPjNrs.isEmpty) return children;
+    return children.where((child) {
+      if (child is InspectionLocation) {
+        return !hiddenPjNrs.contains(child.pjNr.toString());
+      }
+      return true;
+    }).toList();
+  }
+
   yield* _run(
     itPrefersCache: _dataPrefersCache(data, type: requestType),
-    offline: () =&gt; local.getNextDatapoint(data),
-    online: () =&gt;
-        remote.getNextDatapoint(data, preloadFullImages: preloadFullImages),
-    onlineSuccessCB: (childDatas) =&gt; childDatas.forEach((childData) async {
-      await local.storeData(
-        childData,
-        forId: data?.id ?? await API().rootID,
-        &#47;&#47;TODO: uncomment this as soon as offline can mirror everything well #211
-        &#47;&#47; overrideMode: OverrideMode.abortIfExistent,
+    offline: () async =&gt; filterHiddenIfRootInspections(
+        await local.getNextDatapoint&lt;ChildData, ParentData&gt;(data)),
+    online: () async {
+      final rap = remote.getNextDatapoint&lt;ChildData, ParentData&gt;(
+        data,
+        preloadFullImages: preloadFullImages,
       );
-    }),
+      return RequestAndParser&lt;http.Response, List&lt;ChildData&gt;&gt;(
+        rd: rap.rd,
+        parser: (response) async =&gt;
+            filterHiddenIfRootInspections(await rap.parser(response)),
+      );
+    },
+    onlineSuccessCB: (childDatas) async {
+      _cachePrueferIdsFromLocations(childDatas);
+      for (final childData in childDatas) {
+        &#47;&#47; &quot;offline&quot; is a local-only flag; online data should clear it to avoid stale UI indicators.
+        try {
+          (childData as WithOffline).forceOffline = false;
+        } catch (_) {}
+        await local.storeData(
+          childData,
+          forId: data?.id ?? await API().rootID,
+        );
+      }
+    },
     requestType: requestType,
     merge: merge,
   );

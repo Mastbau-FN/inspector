@@ -80,8 +80,28 @@
       ?.forceRes();
   if (res != null &amp;&amp; (res.statusCode ~&#47; 100 == 2)) {
     &#47;&#47;success
-    var resb = jsonDecode(res.body)[&#39;user&#39;];
-    _user?.fromMap(resb);
+    final resb = jsonDecode(res.body)[&#39;user&#39;];
+    try {
+      final dbgMap = (resb is Map) ? resb : null;
+      debugPrint(&#39;login response user keys: ${dbgMap?.keys.toList()}&#39;);
+      debugPrint(&#39;login response Def_Login_ID: ${dbgMap?[&#39;Def_Login_ID&#39;]}&#39;);
+    } catch (_) {}
+
+    &#47;&#47; Best-effort: set Def_Login_ID explicitly (some maps&#47;keys differ across backends).
+    try {
+      final map = resb as Map?;
+      final v = map?[&#39;Def_Login_ID&#39;] ??
+          map?[&#39;def_login_id&#39;] ??
+          map?[&#39;Login_ID_Pruefer&#39;] ??
+          map?[&#39;login_id_pruefer&#39;];
+      if (v is int) _user?.defLoginId = v;
+      if (v is num) _user?.defLoginId = v.toInt();
+      if (v is String) _user?.defLoginId = int.tryParse(v);
+    } catch (_) {}
+
+    _user?.fromMap((resb is Map) ? resb.cast&lt;String, dynamic&gt;() : null);
+    debugPrint(
+        &#39;login parsed user: KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}&#39;);
     return _user;
   }
   throw ResponseException(res);

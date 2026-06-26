@@ -80,33 +80,47 @@
       try {
         var fullURL = Uri.parse(_baseurl + rd.route);
         mreq = http.MultipartRequest(&#39;POST&#39;, fullURL)
-          ..files.addAll(
-            List&lt;http.MultipartFile&gt;.from((await Future.wait(
-              rd.multipartFiles.map(
-                (fxfile) async {
-                  final xfile = await fxfile;
-                  final name = xfile.name;
-                  var creation = 0;
-                  creation = FileStat.statSync(xfile.path)
-                      .changed
-                      .toUtc()
-                      .millisecondsSinceEpoch;
-                  final path = xfile.path;
-                  return http.MultipartFile.fromPath(
-                      creation.toString(), path,
-                      filename: name);
-                },
-              ),
-            ))
-                .whereType&lt;http.MultipartFile&gt;()),
-          )
           ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-          ..fields.addAll(&#47;*flatten()*&#47; rd.json!.map&lt;String, String&gt;(
-              (key, value) =&gt; MapEntry(
-                  key,
-                  value
-                      .toString()))); &#47;&#47; this causes #279, but that is fixed in backend, since the formrequests fields is Map&lt;String, String&gt; and not Map&lt;String, dynamic&gt;
-        debugPrint(&quot;gonna send multipart-req with booty ${mreq.fields}&quot;);
+          ..fields.addAll(
+            &#47;*flatten()*&#47; rd.json!.map&lt;String, String&gt;((key, value) {
+              if (value is Map || value is List) {
+                return MapEntry(key, jsonEncode(value));
+              }
+              return MapEntry(key, value.toString());
+            }),
+          ); &#47;&#47; send structured fields as JSON so the backend can parse them reliably
+
+        &#47;&#47; Build multipart files sequentially to keep peak memory lower.
+        final usedUploadImageNames = &lt;String&gt;{};
+        for (final fxfile in rd.multipartFiles) {
+          final xfile = await fxfile;
+          String name = xfile.name;
+          if (rd.route == _uploadImage_r) {
+            DateTime ts = parseTimestampImageFilename(name) ??
+                parseTimestampImageFilename(
+                    canonicalTimestampFilenameForXFile(xfile)) ??
+                DateTime.now();
+            name = formatTimestampImageFilename(ts);
+            while (usedUploadImageNames.contains(name)) {
+              ts = ts.add(const Duration(seconds: 1));
+              name = formatTimestampImageFilename(ts);
+            }
+            usedUploadImageNames.add(name);
+          }
+          final creation = FileStat.statSync(xfile.path)
+              .changed
+              .toUtc()
+              .millisecondsSinceEpoch;
+          final path = xfile.path;
+          mreq.files.add(await http.MultipartFile.fromPath(
+            creation.toString(),
+            path,
+            filename: name,
+          ));
+        }
+        &#47;&#47; Avoid logging full fields (can be huge and contains credentials) and reduces memory churn.
+        debugPrint(
+            &#39;sending multipart request ${rd.route} (files: ${mreq.files.length})&#39;);
         var res = (rd.timeout == null)
             ? await _client.send(mreq)
             : await _client.send(mreq).timeout(rd.timeout!);
@@ -154,6 +168,12 @@
       }
     }
   } catch (e) {
+    &#47;&#47; Don&#39;t swallow OOM: returning null will trigger retries and worsen memory pressure.
+    if (e is OutOfMemoryError) rethrow;
+    final msg = e.toString();
+    if (msg.contains(&#39;Out of Memory&#39;) || msg.contains(&#39;Exhausted heap&#39;)) {
+      rethrow;
+    }
     debugPrint(&quot;request failed, cause : $e&quot;);
     return null;
   }

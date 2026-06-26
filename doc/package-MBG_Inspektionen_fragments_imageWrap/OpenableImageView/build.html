@@ -112,10 +112,15 @@ Widget build(BuildContext context) {
   return ChangeNotifierProvider.value(
     value: allImages[currentIndex],
     child: Builder(builder: (context) {
+      final currentId = allImages[currentIndex].image?.id;
+      final isSelected = currentId != null &amp;&amp;
+          currentId is T &amp;&amp;
+          selectedIds.contains(currentId);
       return Container(
         child: Stack(
           children: [
             Consumer&lt;ImageItem&gt;(builder: (context, imgModel, _) {
+              if (imgModel.hidden) return const SizedBox.shrink();
               return _heroImg(context, imgModel);
             }),
             if (chosenIndex == currentIndex)
@@ -127,6 +132,24 @@ Widget build(BuildContext context) {
                 ),
                 left: 8,
                 top: 8,
+              ),
+            if (selectionMode &amp;&amp; currentId != null &amp;&amp; currentId is T)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isSelected
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color:
+                        isSelected ? Colors.lightGreenAccent : Colors.white,
+                  ),
+                ),
               ),
           ],
         ),

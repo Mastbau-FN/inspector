@@ -71,7 +71,12 @@
       this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
   image.then((value) {
     this.image = value;
-    if (value != null) this.tag = value.id;
+    if (value != null) {
+      hidden = false;
+      this.tag = value.id;
+    } else {
+      hidden = true;
+    }
     &#47;&#47; debugPrint(this.tag.toString());
     notifyListeners();
   });

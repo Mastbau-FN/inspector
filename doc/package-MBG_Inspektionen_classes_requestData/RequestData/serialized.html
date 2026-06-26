@@ -82,7 +82,10 @@
   this.multipartFileNames ??= await Future.wait(
       _multipartFiles! &#47;&#47;either names or files are set
           .map((file) async =&gt; await OP.permaStoreCachedXFile(
-              file, scoped(LOCALLY_ADDED_PREFIX + file.name))));
+              file,
+              scoped(route == &#39;&#47;image&#47;set&#39;
+                  ? canonicalTimestampFilenameForXFile(file)
+                  : file.name))));
   return _$RequestDataToJson(this);
 }</code></pre>
 </section>

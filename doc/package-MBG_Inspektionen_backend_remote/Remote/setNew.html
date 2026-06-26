@@ -82,7 +82,19 @@
   return RequestAndParser(
       rd: rap.rd,
       parser: (x) async {
-        return (await rap.parser(x))?.body != null ? data : null;
+        final res = await rap.parser(x);
+        final body = res?.body;
+        if (body == null || body.isEmpty) return null;
+        try {
+          final decoded = jsonDecode(body);
+          final qr = (decoded is Map) ? decoded[&#39;query_result&#39;] : null;
+          if (qr is Map) {
+            final parsed =
+                Data.fromJson&lt;DataT&gt;(Map&lt;String, dynamic&gt;.from(qr));
+            if (parsed != null) return parsed;
+          }
+        } catch (_) {}
+        return data;
       });
 }</code></pre>
 </section>

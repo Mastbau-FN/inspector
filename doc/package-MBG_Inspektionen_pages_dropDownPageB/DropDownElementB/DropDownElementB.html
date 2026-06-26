@@ -56,6 +56,8 @@
       const
       <span class="name ">DropDownElementB&lt;<wbr><span class="type-parameter">ChildData extends WithLangText</span>&gt;</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/foundation/Key-class.html">Key</a>?</span> <span class="parameter-name">key</span>, </span></li>
 <li><span class="parameter" id="-param-cd"><span>required</span> <span class="type-annotation">ChildData</span> <span class="parameter-name">cd</span>, </span></li>
+<li><span class="parameter" id="-param-completionPercent"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span> <span class="parameter-name">completionPercent</span> = <span class="default-value">0</span>, </span></li>
+<li><span class="parameter" id="-param-completionLabel"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">completionLabel</span>, </span></li>
 <li><span class="parameter" id="-param-actions"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_listTileData/MyListTileData-class.html">MyListTileData</a></span>&gt;</span></span> <span class="parameter-name">actions</span>, </span></li>
 <li><span class="parameter" id="-param-onAction"><span>required</span> <span class="type-annotation">dynamic</span> <span class="parameter-name">onAction</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-actionTileData"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_listTileData/MyListTileData-class.html">MyListTileData</a></span> <span class="parameter-name">actionTileData</span></span></li>
 </ol>), </span></li>
@@ -71,6 +73,8 @@
   <pre class="language-dart"><code class="language-dart">const DropDownElementB({
   super.key,
   required this.cd,
+  this.completionPercent = 0,
+  this.completionLabel,
   required this.actions,
   required this.onAction,
   this.onDelete = _onDelete,

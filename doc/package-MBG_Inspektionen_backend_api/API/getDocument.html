@@ -55,8 +55,10 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a>?</span>&gt;</span></span>
-<span class="name ">getDocument</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="getDocument-param-path"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">path</span></span></li>
-</ol>)
+<span class="name ">getDocument</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="getDocument-param-path"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">path</span>, {</span></li>
+<li><span class="parameter" id="getDocument-param-owner"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">owner</span>, </span></li>
+<li><span class="parameter" id="getDocument-param-scope"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">scope</span>, </span></li>
+</ol>})
 
       
 
@@ -67,12 +69,15 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;File?&gt; getDocument(String path) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;File?&gt; getDocument(String path, {Data? owner, String? scope}) async {
   final requestType = Helper.SimulatedRequestType.GET;
+  final effectiveScope = (scope != null &amp;&amp; scope.isNotEmpty)
+      ? scope
+      : (owner != null ? local.scopeFor(owner) : null);
   return _run(
     itPrefersCache: false,
-    offline: () =&gt; local.getDocument(path),
-    online: () =&gt; remote.getDocument(path),
+    offline: () =&gt; local.getDocument(path, scope: effectiveScope),
+    online: () =&gt; remote.getDocument(path, scope: effectiveScope),
     requestType: requestType,
   ).last;
 }</code></pre>

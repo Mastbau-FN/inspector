@@ -109,6 +109,11 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
+  final progress = completionPercent.clamp(0.0, 1.0);
+  final showCompletion = cd is CheckCategory &amp;&amp; progress &gt; 0;
+  final showCompletionLabel = cd is CheckCategory &amp;&amp; completionLabel != null;
+  const progressColor = Color(0xFF2E7D32);
+
   return Container(
     &#47;&#47; height: 50,
     &#47;&#47; color: &#47;&#47; random
@@ -117,10 +122,11 @@ Widget build(BuildContext context) {
     child: Padding(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
       child: TextButton(
+        clipBehavior: Clip.antiAlias,
         style: TextButton.styleFrom(
           iconColor: Theme.of(context).colorScheme.onSurface,
           &#47;&#47; primary: Theme.of(context).colorScheme.onSurface,
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -129,129 +135,186 @@ Widget build(BuildContext context) {
         onPressed: () {
           onAction(actions.first);
         },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            (cd.runtimeType == InspectionLocation)
-                ? ExpansionTile(
-                    title: Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 50,
-                            child: PreviewImageCircle(
-                              previewImage: cd.previewImage,
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+            ),
+            if (showCompletion)
+              Positioned.fill(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final overlayWidth = constraints.maxWidth * progress;
+                    final reachedEnd = progress &gt;= 0.999;
+
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        width: overlayWidth,
+                        height: constraints.maxHeight,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: progressColor.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              bottomLeft: Radius.circular(15),
+                              topRight: Radius.circular(reachedEnd ? 15 : 0),
+                              bottomRight:
+                                  Radius.circular(reachedEnd ? 15 : 0),
                             ),
                           ),
-                          offlineIndicator(cd),
-                          Expanded(
-                            child: Hero(
-                              tag: cd.title +
-                                  &quot;.title.text&quot; +
-                                  cd.runtimeType.toString(),
-                              child: Text(
-                                cd.title,
-                                style:
-                                    Theme.of(context).textTheme.titleMedium,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          ...cd.extras(context: context),
-                        ],
+                        ),
                       ),
-                    ),
-                    children: [
-                      if (actions.length &gt; 1)
-                        Row(
-                          children: actions.indexed.map&lt;Widget&gt;((a) {
-                            final (int i, MyListTileData actionTileData) = a;
-                            if (i == 0) return Container();
-
-                            final int totalTiles = actions.length;
-                            &#47;&#47; The three tiles immediately preceding the last one:
-                            final bool isBeforeLastThree =
-                                i &gt;= totalTiles - 4 &amp;&amp; i &lt; totalTiles - 1;
-
-                            &#47;&#47; Use flex 3 normally, but flex 2 for these three tiles.
-                            final int flexValue = isBeforeLastThree ? 2 : 3;
-
-                            return Expanded(
-                              flex: flexValue,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 5),
-                                child: MyCardListTileB(
-                                  text: actionTileData.title,
-                                  icon: actionTileData.icon,
-                                  onTap: () =&gt; onAction(actionTileData),
+                    );
+                  },
+                ),
+              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                (cd.runtimeType == InspectionLocation)
+                    ? ExpansionTile(
+                        title: Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 50,
+                                child: PreviewImageCircle(
+                                  previewImage: cd.previewImage,
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        )
-                      else
-                        SizedBox(height: 5),
-                    ],
-                  )
-                : Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 50,
-                          child: PreviewImageCircle(
-                            previewImage: cd.previewImage,
+                              offlineIndicator(cd),
+                              Expanded(
+                                child: Hero(
+                                  tag:
+                                      &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
+                                  child: Text(
+                                    cd.title,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                              ...cd.extras(context: context),
+                            ],
                           ),
                         ),
-                        offlineIndicator(cd),
-                        Expanded(
-                          child: Hero(
-                            tag: cd.title +
-                                &quot;.title.text&quot; +
-                                cd.runtimeType.toString(),
-                            child: Text(
-                              cd.title,
-                              style: Theme.of(context).textTheme.titleMedium,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                        ...cd.extras(context: context),
-                        FutureBuilder(
-                          future: API().user,
-                          builder: (BuildContext context,
-                              AsyncSnapshot&lt;DisplayUser?&gt; snapshot2) {
-                            &#47;&#47;assert(data.runtimeType==DataT);
-                            try {
-                              if (cd.runtimeType ==
-                                      CheckPointDefect &#47;&#47;alle mängel dürfen gelöscht werden (#380)
-                                  ||
-                                  (snapshot2.hasData &amp;&amp;
-                                      cd.toJson()[&#39;Autor&#39;] ==
-                                          snapshot2.data?.name))
-                                return TrashButton(
-                                  delete: onDelete,
-                                  confirmName: cd.title,
+                        children: [
+                          if (actions.length &gt; 1)
+                            Row(
+                              children: actions.indexed.map&lt;Widget&gt;((a) {
+                                final (int i, MyListTileData actionTileData) =
+                                    a;
+                                if (i == 0) return Container();
+
+                                final int totalTiles = actions.length;
+                                &#47;&#47; The three tiles immediately preceding the last one:
+                                final bool isBeforeLastThree =
+                                    i &gt;= totalTiles - 4 &amp;&amp; i &lt; totalTiles - 1;
+
+                                &#47;&#47; Use flex 3 normally, but flex 2 for these three tiles.
+                                final int flexValue =
+                                    isBeforeLastThree ? 2 : 3;
+
+                                return Expanded(
+                                  flex: flexValue,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 5),
+                                    child: MyCardListTileB(
+                                      text: actionTileData.title,
+                                      icon: actionTileData.icon,
+                                      onTap: () =&gt; onAction(actionTileData),
+                                    ),
+                                  ),
                                 );
-                            } catch (e) {}
-                            return Container();
-                          },
-                        ), &#47;&#47; Spacer(),
-                        Transform.translate(
-                          offset: Offset(4, 0),
-                          child: Icon(actions.first.icon, size: 10),
+                              }).toList(),
+                            )
+                          else
+                            SizedBox(height: 5),
+                        ],
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 50,
+                              child: PreviewImageCircle(
+                                previewImage: cd.previewImage,
+                              ),
+                            ),
+                            offlineIndicator(cd),
+                            Expanded(
+                              child: Hero(
+                                tag:
+                                    &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
+                                child: Text(
+                                  cd.title,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            if (showCompletionLabel)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text(
+                                  completionLabel!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                              ),
+                            ...cd.extras(context: context),
+                            FutureBuilder(
+                              future: API().user,
+                              builder: (BuildContext context,
+                                  AsyncSnapshot&lt;DisplayUser?&gt; snapshot2) {
+                                &#47;&#47;assert(data.runtimeType==DataT);
+                                try {
+                                  if (cd.runtimeType ==
+                                          CheckPointDefect &#47;&#47;alle mängel dürfen gelöscht werden (#380)
+                                      ||
+                                      (snapshot2.hasData &amp;&amp;
+                                          cd.toJson()[&#39;Autor&#39;] ==
+                                              snapshot2.data?.name))
+                                    return TrashButton(
+                                      delete: onDelete,
+                                      confirmName: cd.title,
+                                    );
+                                } catch (e) {}
+                                return Container();
+                              },
+                            ), &#47;&#47; Spacer(),
+                            Transform.translate(
+                              offset: Offset(4, 0),
+                              child: Icon(actions.first.icon, size: 10),
+                            ),
+                            Icon(Icons.chevron_right),
+                          ],
                         ),
-                        Icon(Icons.chevron_right),
-                      ],
-                    ),
-                  ),
-            &#47;&#47; SizedBox(height: 10),
-            &#47;&#47;secondRow
+                      ),
+                &#47;&#47; SizedBox(height: 10),
+                &#47;&#47;secondRow
+              ],
+            ),
           ],
         ),
       ),

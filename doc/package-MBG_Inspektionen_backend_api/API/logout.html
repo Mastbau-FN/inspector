@@ -77,11 +77,15 @@
       debugPrint(&#39;User-Daten gelöscht&#39;);
     }
     _user = null;
+    _touchedPrueferForProjects.clear();
+    _prueferByPjNr.clear();
     debugPrint(&#39;User ausgeloggt&#39;);
   } catch (e) {
     debugPrint(&#39;Fehler beim Ausloggen: $e&#39;);
     &#47;&#47; Trotz Fehler zurücksetzen, um UI-Update zu ermöglichen
     _user = null;
+    _touchedPrueferForProjects.clear();
+    _prueferByPjNr.clear();
   }
 }</code></pre>
 </section>

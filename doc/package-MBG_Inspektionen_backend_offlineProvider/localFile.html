@@ -69,18 +69,47 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;File&gt; localFile(String name, [String? doc]) async {
+  name = _canonicalizeScopedName(name);
   &#47;&#47; allow nested relative paths (e.g. per inspection) and create dirs if needed
   final basePath = await localPath;
   var p0 = File(&#39;$basePath&#47;$name&#39;);
   &#47;&#47; keep legacy behaviour only for flat names; otherwise preserve folders
   final hasFolder = name.contains(&#39;&#47;&#39;);
+  String? legacyName;
+  if (hasFolder) {
+    final parts = name.split(&#39;&#47;&#39;);
+    final scope = _canonicalizeScope(parts.first);
+    await _mergeLegacyScopeIntoCanonical(scope);
+    final legacyScope = _legacyScopeForCanonical(scope);
+    if (legacyScope != scope) {
+      legacyName = [legacyScope, ...parts.skip(1)].join(&#39;&#47;&#39;);
+    }
+  }
+
+  Future&lt;File?&gt; migrateLegacyFileIfPresent() async {
+    if (legacyName == null || legacyName.isEmpty) return null;
+    final legacyFile = File(&#39;$basePath&#47;$legacyName&#39;);
+    if (!legacyFile.existsSync()) return null;
+    await p0.parent.create(recursive: true);
+    if (!p0.existsSync()) {
+      await legacyFile.copy(p0.path);
+    }
+    try {
+      await legacyFile.delete();
+    } catch (_) {}
+    return p0;
+  }
 
   if (doc != null) {
+    final migrated = await migrateLegacyFileIfPresent();
+    if (migrated != null) return migrated;
     await p0.parent.create(recursive: true);
     return p0;
   }
 
   if (await p0.exists()) return p0;
+  final migrated = await migrateLegacyFileIfPresent();
+  if (migrated != null) return migrated;
   if (hasFolder) {
     &#47;&#47; if the file has no extension, prefer a .jpg to keep it recognizable
     final baseName = p0.uri.pathSegments.last;

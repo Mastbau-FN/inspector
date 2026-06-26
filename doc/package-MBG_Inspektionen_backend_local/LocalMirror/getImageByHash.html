@@ -56,7 +56,6 @@
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_imageData/ImageData-class.html">ImageData</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span>&gt;</span>?</span>&gt;</span></span>
 <span class="name ">getImageByHash</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="getImageByHash-param-hash"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">hash</span>, {</span></li>
-<li><span class="parameter" id="getImageByHash-param-compressed"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">compressed</span> = <span class="default-value">false</span>, </span></li>
 <li><span class="parameter" id="getImageByHash-param-owner"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a>?</span> <span class="parameter-name">owner</span>, </span></li>
 </ol>})
 
@@ -69,26 +68,98 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;ImageData?&gt; getImageByHash(String hash,
-    {bool compressed = false, Data? owner}) async {
+  <pre class="language-dart"><code class="language-dart">Future&lt;ImageData?&gt; getImageByHash(String hash, {Data? owner}) async {
   final isPath = hash.contains(&#39;&#47;&#39;);
   final scope = _scopeForData(owner);
+  final legacyScope = scope.contains(&#39;undefined&#39;)
+      ? scope.replaceAll(&#39;undefined&#39;, &#39;null&#39;)
+      : scope;
+
+  String displayNameFromStored(String storedName) {
+    var base = storedName.split(&#39;&#47;&#39;).where((e) =&gt; e.isNotEmpty).toList().last;
+    &#47;&#47; strip prefixes
+    if (base.startsWith(LOCALLY_ADDED_PREFIX)) {
+      base = base.substring(LOCALLY_ADDED_PREFIX.length);
+    }
+    &#47;&#47; strip common extensions
+    final lower = base.toLowerCase();
+    const suffixes = [
+      &#39;.maybe.jpg&#39;,
+      &#39;.img&#39;,
+      &#39;.jpeg&#39;,
+      &#39;.jpg&#39;,
+      &#39;.webp&#39;,
+      &#39;.heic&#39;,
+      &#39;.png&#39;,
+    ];
+    for (final s in suffixes) {
+      if (lower.endsWith(s)) {
+        return base.substring(0, base.length - s.length);
+      }
+    }
+    final dot = base.lastIndexOf(&#39;.&#39;);
+    if (dot &gt; 0 &amp;&amp; dot &gt; base.length - 8) return base.substring(0, dot);
+    return base;
+  }
+
+  &#47;&#47; Prefer the backend filename-based cache if present.
+  if (!isPath) {
+    try {
+      final indexed = await OP.lookupImageNameForHash(
+        hash,
+        scope: scope,
+      );
+      if (indexed != null &amp;&amp; indexed.isNotEmpty) {
+        final img = await readImage(indexed, cacheSize: null);
+        if (img != null)
+          return ImageData(img,
+              id: hash, name: displayNameFromStored(indexed));
+      }
+    } catch (_) {}
+  }
+
   List&lt;String&gt; candidates = [];
   if (!isPath &amp;&amp; scope.isNotEmpty) {
     final scoped = &#39;$scope&#47;$hash&#39;;
-    candidates.add(compressed
-        ? &#39;$scope&#47;${OP.convertToCompressedHashName(hash)}&#39;
-        : scoped);
+    candidates.add(scoped);
   }
-  if (compressed) {
-    candidates.add(OP.convertToCompressedHashName(hash));
+  if (!isPath &amp;&amp; legacyScope.isNotEmpty &amp;&amp; legacyScope != scope) {
+    final scoped = &#39;$legacyScope&#47;$hash&#39;;
+    candidates.add(scoped);
   }
   candidates.add(hash);
 
   for (final name in candidates) {
-    final img =
-        await readImage(name, cacheSize: compressed ? CACHESIZE : null);
-    if (img != null) return ImageData(img, id: hash);
+    final img = await readImage(name, cacheSize: null);
+    if (img != null) {
+      &#47;&#47; Best-effort migration: if we loaded from a legacy &quot;null&quot; folder, copy to the
+      &#47;&#47; canonical &quot;undefined&quot; folder so we stop accumulating both.
+      if (!isPath &amp;&amp;
+          scope.isNotEmpty &amp;&amp;
+          legacyScope != scope &amp;&amp;
+          name.startsWith(&#39;$legacyScope&#47;&#39;)) {
+        final migratedName = name.replaceFirst(legacyScope, scope);
+        try {
+          final src = await OP.localFile(name);
+          final dst = await OP.localFile(migratedName);
+          if (!dst.existsSync()) {
+            await dst.parent.create(recursive: true);
+            await src.copy(dst.path);
+          }
+          await OP.indexImageHash(
+            hash: hash,
+            storedName: migratedName,
+            scope: scope,
+          );
+          final migratedImg = await readImage(migratedName, cacheSize: null);
+          if (migratedImg != null) {
+            return ImageData(migratedImg,
+                id: hash, name: displayNameFromStored(migratedName));
+          }
+        } catch (_) {}
+      }
+      return ImageData(img, id: hash, name: displayNameFromStored(name));
+    }
   }
   throw Exception(&quot;no img cached&quot;);
 }</code></pre>

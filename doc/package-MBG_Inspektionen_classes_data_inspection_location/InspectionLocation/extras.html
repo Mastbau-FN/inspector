@@ -78,7 +78,10 @@
   <pre class="language-dart"><code class="language-dart">@override
 List&lt;Widget&gt; extras({BuildContext? context}) =&gt; [
       if (!forceOffline)
-        _RecursiveDownloadButton(caller: CategoryModel(this)),
+        _RecursiveDownloadButton(
+          key: ValueKey(&#39;recursive_download_${pjNr}_$stONr&#39;),
+          caller: CategoryModel(this),
+        ),
     ];</code></pre>
 </section>
 

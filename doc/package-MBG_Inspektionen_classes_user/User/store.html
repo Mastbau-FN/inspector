@@ -75,6 +75,12 @@
 
   (await _prefs).setString(_full_name_store, full_name ?? &#39;noname&#39;);
   (await _prefs).setString(_full_surname_store, full_surname ?? &#39;noname&#39;);
+  final prefs = await _prefs;
+  if (defLoginId != null) {
+    await prefs.setInt(_def_login_id_store, defLoginId!);
+  } else {
+    await prefs.remove(_def_login_id_store);
+  }
 }</code></pre>
 </section>
 

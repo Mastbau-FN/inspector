@@ -73,8 +73,16 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;DisplayUser?&gt; login(User user) async {
   if (await isUserLoggedIn(user)) return this.user;
   try {
-    final _user = await remote.login(user);
-    await _user!.store();
+    final loggedInUser = await remote.login(user);
+    debugPrint(
+        &#39;API.login: logged in as KZL=${loggedInUser?.name}, Def_Login_ID=${loggedInUser?.defLoginId}&#39;);
+    _user = loggedInUser;
+    remote.injectUser(loggedInUser);
+    await loggedInUser!.store();
+    await _seedLoginUsersCacheWithCurrentUser(loggedInUser);
+    await refreshLoginUsersCache();
+    final cachedUsers = await _readStoredLoginUsers();
+    debugPrint(&#39;Login users cache after login: ${cachedUsers.length}&#39;);
     return this.user;
   } catch (e) {
     logout();

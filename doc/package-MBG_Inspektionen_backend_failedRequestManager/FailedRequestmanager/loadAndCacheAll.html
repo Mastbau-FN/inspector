@@ -82,6 +82,45 @@
   String? name,
   String? parentID,
 }) async {
+  final progressSession = DownloadProgress.instance.active;
+
+  Future&lt;void&gt; awaitAllImagesForData(Data data) async {
+    final futures = &lt;Future&gt;[];
+    futures.add(data.mainImage);
+    if (data.imageFutures != null) futures.addAll(data.imageFutures!);
+    await Future.wait(futures.map((f) =&gt; f.catchError((_) =&gt; null)));
+  }
+
+  Future&lt;void&gt; reserveImagesForData(Data data) async {
+    if (progressSession == null) return;
+
+    final hashes = &lt;String&gt;{};
+    if (data.mainhash != null &amp;&amp;
+        data.mainhash != Options().no_image_placeholder_name) {
+      hashes.add(data.mainhash!);
+    }
+    if (data.imagehashes != null) {
+      hashes.addAll(data.imagehashes!.where((h) =&gt; h.isNotEmpty));
+    }
+
+    for (final hash in hashes) {
+      &#47;&#47; Only reserve tasks for images that are not already cached locally.
+      bool cached = false;
+      try {
+        await API().local.getImageByHash(hash, owner: data);
+        cached = true;
+      } catch (_) {}
+      if (!cached) {
+        final key = &#39;&#47;image&#47;get|$hash&#39;;
+        progressSession.reserveTask(
+          key,
+          step: 3,
+          label: &#39;Step 3&#47;3: Images&#39;,
+        );
+      }
+    }
+  }
+
   &#47;&#47; base-case: CheckPointDefects have no children
   if (depth == 0) return true;
   depth--;
@@ -89,9 +128,15 @@
     &#47;&#47;fail early if no connection
     await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
     &#47;&#47;get all children, this will also cache them internally
-    var children = await caller
-        .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
-        .last;
+    var children = await caller.all(preloadFullImages: true).last;
+
+    &#47;&#47; Ensure image downloads complete (and errors are absorbed) during manual download.
+    for (final child in children) {
+      await reserveImagesForData(child);
+      await awaitAllImagesForData(child);
+      await Future&lt;void&gt;.delayed(Duration.zero);
+    }
+
     if (caller.currentData is InspectionLocation) {
       final location = caller.currentData as InspectionLocation;
       if (location.dokuspaths != null &amp;&amp; location.dokuspaths!.isNotEmpty) {
@@ -100,7 +145,7 @@
           assert((await API().user) != null,
               &#39;Niemand eingeloggt&#39;); &#47;&#47; Using string directly instead of S.current
           for (var doc in docus) {
-            await API().getDocument(doc.docupath);
+            await API().getDocument(doc.docupath, owner: location);
           }
         }
       }

@@ -139,142 +139,119 @@ Widget build(BuildContext context) {
         &#47;&#47; expandedHeight: _appbarHeightBig,
         contentBuilder:
             (context, expandRatio, contentHeight, overlapsContent, isPinned) {
-          return FutureBuilder(
+          return FutureBuilder&lt;ImageData?&gt;(
             future: ddmodel.currentData?.previewImage,
             builder: (context, snapshot) {
-              final img = snapshot.data?.thumbnail
-                  .image; &#47;&#47;todo show as bg (and switch to fullsize when loaded)
-              return FutureBuilder(
-                  future: snapshot.data?.fullImageGetter?.call(),
-                  builder: (context, fullImageSnapshot) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          if (img != null)
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.5),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                              offset: Offset(0, 5),
-                            ),
-                        ],
+              final img = snapshot.data?.image.image;
+              final currentData = ddmodel.currentData;
+              final currentDataId =
+                  currentData == null ? &quot;root&quot; : (currentData as Data).id;
+              return Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    if (img != null)
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                        offset: Offset(0, 5),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(25 * expandRatio),
-                          bottomRight: Radius.circular(25 * expandRatio),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(25 * expandRatio),
+                    bottomRight: Radius.circular(25 * expandRatio),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      &#47;&#47; background image
+                      if (img != null)
+                        Positioned.fill(
+                          child: Blur(
+                            blurColor: Colors.transparent,
+                            child: Positioned.fill(
+                              child: Hero(
+                                tag:
+                                    &quot;dropdown.header.image.${ddmodel.currentData.runtimeType}.$currentDataId&quot;,
+                                child: Image(
+                                  image: img,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            &#47;&#47;background image
-                            if (img != null)
-                              Positioned.fill(
-                                child: fullImageSnapshot.data != null
-                                    ? Image(
-                                        image: fullImageSnapshot.data!.image,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Blur(
-                                        blurColor: Colors.transparent,
-                                        child: Positioned.fill(
-                                          child: Hero(
-                                            tag: ddmodel.title +
-                                                &quot;.image&quot; +
-                                                ddmodel
-                                                    .currentData.runtimeType
-                                                    .toString(),
-                                            child: Image(
-                                              image: img,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
+                      &#47;&#47; title
+                      Container(
+                        alignment: Alignment.center,
+                        height: contentHeight,
+                        padding: EdgeInsets.only(
+                          left: 10 + (1 - expandRatio) * 40,
+                          right: 10 + (1 - expandRatio) * 40,
+                          bottom: 10,
+                          top: 10 + (expandRatio) * _appbarBarHeight,
+                        ),
+                        child: SafeArea(
+                          child: AnimatedContainer(
+                            height: expandRatio &gt; _appbarExpansionSwitchValue
+                                ? _appbarHeightBig
+                                : _appbarHeightSmall,
+                            alignment: Alignment.center,
+                            curve: Curves.fastOutSlowIn,
+                            duration: const Duration(milliseconds: 200),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              child: Container(
+                                decoration: img == null
+                                    ? null
+                                    : BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(27),
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
                                         ),
                                       ),
-                              ),
-                            &#47;&#47;title
-                            Container(
-                              alignment: Alignment.center,
-                              height: contentHeight,
-                              padding: EdgeInsets.only(
-                                left: 10 + (1 - expandRatio) * 40,
-                                right: 10 + (1 - expandRatio) * 40,
-                                bottom: 10,
-                                top: 10 + (expandRatio) * _appbarBarHeight,
-                              ),
-                              child: SafeArea(
-                                child: AnimatedContainer(
-                                  &#47;&#47; padding: EdgeInsets.only(top: _appbarBarHeight),
-                                  height: expandRatio &gt;
-                                          _appbarExpansionSwitchValue
-                                      ? _appbarHeightBig
-                                      : _appbarHeightSmall,
-                                  &#47;&#47; color: Colors.amber,
-                                  alignment: Alignment.center,
-                                  curve: Curves.fastOutSlowIn,
-                                  duration: const Duration(milliseconds: 200),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    child: Container(
-                                      decoration: img == null
-                                          ? null
-                                          : BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(27),
-                                              border: Border.all(
-                                                color: Colors.white,
-                                                width: 2,
-                                              ),
-                                            ),
-                                      child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(25),
-                                        child: Container(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .surface
-                                              .withOpacity(0.5),
-                                          &#47;&#47; alignment: Alignment.center,
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 25,
-                                            vertical: 10 * expandRatio,
-                                          ),
-                                          &#47;&#47;blur background
-
-                                          child: BackdropFilter(
-                                            filter: ImageFilter.blur(
-                                              sigmaX: 5,
-                                              sigmaY: 5,
-                                            ),
-                                            child: Hero(
-                                              tag: ddmodel.title +
-                                                  &quot;.title.text&quot; +
-                                                  ddmodel
-                                                      .currentData.runtimeType
-                                                      .toString() +
-                                                  &#39;disabled&#39;, &#47;&#47;FIXME: mir gefiel die animation nicht, deshalb falscher tag zum disablen
-                                              child: Text(
-                                                ddmodel.title,
-                                                overflow: expandRatio &gt;
-                                                        _appbarExpansionSwitchValue
-                                                    ? null
-                                                    : TextOverflow.ellipsis,
-                                                softWrap: true,
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontSize: Theme.of(context)
-                                                          .textTheme
-                                                          .headlineMedium
-                                                          ?.fontSize +
-                                                      expandRatio * 5,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Container(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surface
+                                        .withValues(alpha: 0.5),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 25,
+                                      vertical: 10 * expandRatio,
+                                    ),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 5,
+                                        sigmaY: 5,
+                                      ),
+                                      child: Hero(
+                                        tag:
+                                            &quot;dropdown.header.title.${ddmodel.currentData.runtimeType}.$currentDataId.disabled&quot;,
+                                        child: Text(
+                                          ddmodel.title,
+                                          overflow: expandRatio &gt;
+                                                  _appbarExpansionSwitchValue
+                                              ? null
+                                              : TextOverflow.ellipsis,
+                                          softWrap: true,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: Theme.of(context)
+                                                    .textTheme
+                                                    .headlineMedium
+                                                    ?.fontSize +
+                                                expandRatio * 5,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
@@ -283,21 +260,23 @@ Widget build(BuildContext context) {
                                 ),
                               ),
                             ),
-                            &#47;&#47;maengelbutton
-                            Positioned(
-                              top: MediaQuery.of(context).padding.top *
-                                  (4 * expandRatio - 3),
-                              height: _appbarBarHeight,
-                              child: Opacity(
-                                opacity: max(expandRatio * 2 - 1, 0),
-                                child: Align(child: maengelDoneButton),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    );
-                  });
+                      &#47;&#47; maengel button
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top *
+                            (4 * expandRatio - 3),
+                        height: _appbarBarHeight,
+                        child: Opacity(
+                          opacity: max(expandRatio * 2 - 1, 0),
+                          child: Align(child: maengelDoneButton),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             },
           );
         },
@@ -311,55 +290,87 @@ Widget build(BuildContext context) {
             &#47;&#47; physics: BouncingScrollPhysics(),
             slivers: &lt;Widget&gt;[
               sliverAppBar,
-              FutureBuilder(
-                future: ddmodel.all().last,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return SliverFillRemaining(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ErrorText(S.of(context).somethingWentWrong +
-                              &#39;:\n${snapshot.error ?? &#39;&#39;} \n\n&#39; +
-                              S.of(context).pleaseDragDownToReloadThisPage),
+              ValueListenableBuilder&lt;int&gt;(
+                valueListenable: SyncEvents.instance.revision,
+                builder: (context, _, __) =&gt; FutureBuilder(
+                  future: ddmodel.all().last,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SliverFillRemaining(
+                        child: Center(
+                          child: CircularProgressIndicator(),
                         ),
-                      ),
-                    );
-                  }
-                  final childrenData = snapshot.data as List&lt;ChildData&gt;;
-                  if (ddmodel.runtimeType == CheckPointDefectsModel) {
-                    return generateCheckPointDefectsSliverList(
-                        context, childrenData as List&lt;CheckPointDefect&gt;);
-                  }
-                  return SliverList.list(
-                    children: childrenData.map((cd) {
-                      return DropDownElementB(
-                        cd: cd,
-                        actions: ddmodel.actions,
-                        onAction: (actionTileData) {
-                          ddmodel.open(context, cd, actionTileData);
-                        },
-                        onDelete: () =&gt; API()
-                            .delete&lt;ChildData&gt;(cd,
-                                caller: ddmodel.currentData)
-                            .then((value) =&gt; value != null
-                                ? () {
-                                    (kDebugMode ? showToast(value) : (_) {});
-                                    ddmodel.refresh(); &#47;&#47;quickfix for #336
-                                  }()
-                                : showToast(
-                                    S.of(context).deleteUnseccessful)),
                       );
-                    }).toList(),
-                  );
-                },
+                    }
+                    if (snapshot.hasError) {
+                      return SliverFillRemaining(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ErrorText(S
+                                    .of(context)
+                                    .somethingWentWrong +
+                                &#39;:\n${snapshot.error ?? &#39;&#39;} \n\n&#39; +
+                                S.of(context).pleaseDragDownToReloadThisPage),
+                          ),
+                        ),
+                      );
+                    }
+                    final childrenData = snapshot.data as List&lt;ChildData&gt;;
+                    _primeCategoryTotals(childrenData);
+                    if (ddmodel.runtimeType == CheckPointDefectsModel) {
+                      return generateCheckPointDefectsSliverList(
+                          context, childrenData as List&lt;CheckPointDefect&gt;);
+                    }
+                    return ValueListenableBuilder&lt;int&gt;(
+                      valueListenable:
+                          CategoryProgressState.instance.revision,
+                      builder: (context, _, __) {
+                        return SliverList.list(
+                          children: childrenData.map((cd) {
+                            final progressEntry = cd is CheckCategory
+                                ? CategoryProgressState.instance
+                                    .entryFor(cd.id)
+                                : null;
+                            final totalCheckpoints = cd is CheckCategory
+                                ? (progressEntry?.totalCheckpoints ??
+                                    CategoryProgressState.instance
+                                        .totalFor(cd.id))
+                                : null;
+                            final completionPercent =
+                                progressEntry?.progress ?? 0.0;
+                            final completionLabel = totalCheckpoints == null
+                                ? null
+                                : &#39;${progressEntry?.completedCheckpoints ?? 0}&#47;$totalCheckpoints bearbeitet&#39;;
+
+                            return DropDownElementB(
+                              cd: cd,
+                              completionPercent: completionPercent,
+                              completionLabel: completionLabel,
+                              actions: ddmodel.actions,
+                              onAction: (actionTileData) {
+                                ddmodel.open(context, cd, actionTileData);
+                              },
+                              onDelete: () =&gt; API()
+                                  .delete&lt;ChildData&gt;(cd,
+                                      caller: ddmodel.currentData)
+                                  .then((value) =&gt; value != null
+                                      ? () {
+                                          (kDebugMode
+                                              ? showToast(value)
+                                              : (_) {});
+                                          ddmodel
+                                              .refresh(); &#47;&#47;quickfix for #336
+                                        }()
+                                      : showToast(
+                                          S.of(context).deleteUnseccessful)),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
               SliverToBoxAdapter(
                 child: SizedBox(height: 30),
