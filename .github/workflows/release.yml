@@ -66,11 +66,6 @@ jobs:
         with:
           key: ${{ matrix.platform }}
           map: |
-            {
-              "web": {
-                "builtpath": "build/web",
-                "buildcmd": "flutter build web"
-              },
               "apkr": {
                 "builtpath": "build/app/outputs/flutter-apk/app-release.apk",
                 "buildcmd": "flutter build apk --release"
