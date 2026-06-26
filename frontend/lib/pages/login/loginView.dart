@@ -303,7 +303,8 @@ class _LoginFieldState extends State<LoginField> {
                           ),
                         )
                       : DropdownButtonFormField<String>(
-                          initialValue: (_selectedKzl != null &&
+                          // ignore: deprecated_member_use
+                          value: (_selectedKzl != null &&
                                   _loginUsers
                                       .any((u) => u.name == _selectedKzl))
                               ? _selectedKzl
