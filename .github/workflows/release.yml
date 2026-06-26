@@ -33,7 +33,6 @@ jobs:
         run: |
           flutter pub global activate dartdoc
           flutter pub global run dartdoc
-
       - name: upload doc artifact
         uses: actions/upload-artifact@v4
         with:
@@ -41,36 +40,32 @@ jobs:
           path: ${{ env.working-directory }}/doc/api
 
   build-app:
-    name: Build Web + Android (apk+aab)
+    name: Build Android apk
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [web, apkd, apkr] #[web, apkd, apkr, appbundle] #TODO: if releasePS == true add appbundle
+        platform: [apkd, apkr]
 
     steps:
       - uses: actions/checkout@v3
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
         with:
-          version: v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || ' ' }} ${GITHUB_SHA::8}-${{matrix.platform}}
+          version: v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || ' ' }} ${GITHUB_SHA::8}-${{ matrix.platform }}
 
       - name: create key.properties for signing
         run: |
           cd android
           touch key.properties
           printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
-          ls 
+          ls
           pwd
 
-      - name: map build-type (platform) to path
+      - name: map build-type platform to path
         uses: kanga333/variable-mapper@v0.3.0
         with:
           key: ${{ matrix.platform }}
           map: |
             {
-              "web": {
-                "builtpath": "build/web",
-                "buildcmd": "flutter build web"
-              },
               "apkr": {
                 "builtpath": "build/app/outputs/flutter-apk/app-release.apk",
                 "buildcmd": "flutter build apk --release"
@@ -94,17 +89,12 @@ jobs:
           name: ${{ matrix.platform }}
           path: ${{ env.working-directory }}/${{ env.builtpath }}
 
-  deploy-web:
+  deploy-docs:
     needs: [build-doc, build-app]
-    name: Deploy Web-App and Docs
+    name: Deploy Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3 # Creates folder structure for downloaded artifacts
-      - name: download web artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: web
-          path: web
+      - uses: actions/checkout@v3
 
       - name: download doc artifact
         uses: actions/download-artifact@v4
@@ -114,14 +104,12 @@ jobs:
 
       - run: ls -a && ls -a .. && ls -a ../..
 
-      - name: make gh-pages folder for doc as well as the app
+      - name: make gh-pages folder for docs
         run: |
           cd ..
           mkdir gh-pages
           mv doc gh-pages/doc
-          mv web gh-pages/app
           cd gh-pages && touch .nojekyll
-        # the last command is needed to serve the .env
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.4
@@ -135,11 +123,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Read release notes
         id: release-info
         uses: juliangruber/read-file-action@v1
         with:
           path: ./release-info.md
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -188,13 +178,14 @@ jobs:
     name: Release to the Google Play Store
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3 # Need release notes
+      - uses: actions/checkout@v3
+
       - name: download aab
         uses: actions/download-artifact@v4
         with:
           name: appbundle
 
-      - name: create release notes # TODO: Improve release notes handling
+      - name: create release notes
         run: |
           cd ..
           mkdir news
@@ -207,6 +198,6 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.mbgsolutions.inspector
           releaseFiles: app-release.aab
-          track: beta # TODO: Move to production when stable
+          track: beta
           inAppUpdatePriority: 2
           whatsNewDirectory: news
