@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'package:MBG_Inspektionen/backend/local.dart';
+import 'dart:typed_data';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/env.dart';
+import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +21,40 @@ import '/classes/user.dart';
 
 import './helpers.dart' as Helper;
 import 'api.dart';
+
+class _AsyncSemaphore {
+  int _available;
+  final Queue<Completer<void>> _waiters = Queue<Completer<void>>();
+
+  _AsyncSemaphore(int maxPermits) : _available = maxPermits;
+
+  Future<T> withPermit<T>(Future<T> Function() fn) async {
+    await _acquire();
+    try {
+      return await fn();
+    } finally {
+      _release();
+    }
+  }
+
+  Future<void> _acquire() {
+    if (_available > 0) {
+      _available -= 1;
+      return Future.value();
+    }
+    final c = Completer<void>();
+    _waiters.add(c);
+    return c.future;
+  }
+
+  void _release() {
+    if (_waiters.isNotEmpty) {
+      _waiters.removeFirst().complete();
+      return;
+    }
+    _available += 1;
+  }
+}
 
 String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
@@ -93,6 +130,7 @@ class Remote {
   }
 
   final http.Client _client = http.Client();
+  final _AsyncSemaphore _binaryDownloadSemaphore = _AsyncSemaphore(4);
 
   User? _user;
   injectUser(User? user) {
@@ -155,33 +193,74 @@ class Remote {
     Duration? timeout,
     bool returnsBinary = false,
   }) async {
-    try {
-      // Setze Verbindungstimeouts für die Verbindung
-
-      // Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
-      timeout ??= Duration(minutes: 2);
-
-      final req = _client.send(request);
-      final res = await req.timeout(timeout, onTimeout: () {
+    Future<http.Response?> doSendOnce(http.Request req) async {
+      final streamed = await _client.send(req).timeout(timeout!, onTimeout: () {
         debugPrint('HTTP Request Timeout nach ${timeout?.inSeconds} Sekunden');
         throw TimeoutException('HTTP Request Timeout', timeout);
       });
 
-      try {
-        final ret = await http.Response.fromStream(res);
-        return ret;
-      } catch (e) {
-        debugPrint('Fehler beim Verarbeiten des Response-Streams: $e');
-        // Versuche es noch einmal mit einem neuen Request, wenn der Stream beschädigt ist
-        if (e is IOException) {
-          debugPrint(
-              'IO-Fehler beim Lesen des Streams, möglicherweise Netzwerkunterbrechung');
-        }
-        rethrow;
+      if (!returnsBinary) {
+        return http.Response.fromStream(streamed);
       }
+
+      // For binary responses (images/docs): read manually to reduce stream errors
+      // and avoid unhandled exceptions from partially closed connections.
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in streamed.stream) {
+        builder.add(chunk);
+      }
+      return http.Response.bytes(
+        builder.takeBytes(),
+        streamed.statusCode,
+        headers: streamed.headers,
+        request: streamed.request,
+        isRedirect: streamed.isRedirect,
+        persistentConnection: streamed.persistentConnection,
+        reasonPhrase: streamed.reasonPhrase,
+      );
+    }
+
+    http.Request clone(http.Request req) {
+      final r = http.Request(req.method, req.url);
+      r.headers.addAll(req.headers);
+      r.bodyBytes = req.bodyBytes;
+      r.encoding = req.encoding;
+      r.followRedirects = req.followRedirects;
+      r.maxRedirects = req.maxRedirects;
+      r.persistentConnection = req.persistentConnection;
+      return r;
+    }
+
+    bool isRetryableStreamError(Object e) {
+      if (e is http.ClientException) {
+        final msg = e.message.toLowerCase();
+        return msg.contains('connection closed') ||
+            msg.contains('connection reset') ||
+            msg.contains('broken pipe');
+      }
+      if (e is IOException) return true;
+      return false;
+    }
+
+    // Verwende einen längeren Standard-Timeout, wenn keiner angegeben ist
+    timeout ??= Duration(minutes: 2);
+
+    final runner = returnsBinary
+        ? _binaryDownloadSemaphore.withPermit<http.Response?>(() async {
+            return _sendWithRetries(
+              () => doSendOnce(clone(request)),
+              isRetryable: isRetryableStreamError,
+            );
+          })
+        : _sendWithRetries(
+            () => doSendOnce(clone(request)),
+            isRetryable: isRetryableStreamError,
+          );
+
+    try {
+      return await runner;
     } on SocketException catch (e) {
       debugPrint('Socket-Fehler beim Senden des Requests: ${e.message}');
-      // Spezielle Behandlung für bestimmte Socket-Fehler
       if (e.message.contains('Software caused connection abort') ||
           e.message.contains('Write failed')) {
         debugPrint(
@@ -191,6 +270,25 @@ class Remote {
     } catch (e) {
       debugPrint('Fehler beim Senden des Requests: $e');
       rethrow;
+    }
+  }
+
+  Future<T> _sendWithRetries<T>(
+    Future<T> Function() attempt, {
+    required bool Function(Object e) isRetryable,
+    int maxRetries = 2,
+  }) async {
+    int tries = 0;
+    while (true) {
+      try {
+        return await attempt();
+      } catch (e) {
+        tries += 1;
+        if (tries > maxRetries || !isRetryable(e)) rethrow;
+        final backoffMs = 300 * tries;
+        debugPrint('Retrying request after error ($tries/$maxRetries): $e');
+        await Future<void>.delayed(Duration(milliseconds: backoffMs));
+      }
     }
   }
 
@@ -215,41 +313,53 @@ class Remote {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json ??= {};
     rd.json!['user'] = _user?.toJson();
-    debugPrint(
-        'Sending request ${rd.route} as KZL=${_user?.name}, Def_Login_ID=${_user?.defLoginId}, hash=${_user.hashCode}');
     try {
       if (rd.multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
           var fullURL = Uri.parse(_baseurl + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
-            ..files.addAll(
-              List<http.MultipartFile>.from((await Future.wait(
-                rd.multipartFiles.map(
-                  (fxfile) async {
-                    final xfile = await fxfile;
-                    final name = xfile.name;
-                    var creation = 0;
-                    creation = FileStat.statSync(xfile.path)
-                        .changed
-                        .toUtc()
-                        .millisecondsSinceEpoch;
-                    final path = xfile.path;
-                    return http.MultipartFile.fromPath(
-                        creation.toString(), path,
-                        filename: name);
-                  },
-                ),
-              ))
-                  .whereType<http.MultipartFile>()),
-            )
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
-            ..fields.addAll(/*flatten()*/ rd.json!.map<String, String>(
-                (key, value) => MapEntry(
-                    key,
-                    value
-                        .toString()))); // this causes #279, but that is fixed in backend, since the formrequests fields is Map<String, String> and not Map<String, dynamic>
-          debugPrint("gonna send multipart-req with booty ${mreq.fields}");
+            ..fields.addAll(
+              /*flatten()*/ rd.json!.map<String, String>((key, value) {
+                if (value is Map || value is List) {
+                  return MapEntry(key, jsonEncode(value));
+                }
+                return MapEntry(key, value.toString());
+              }),
+            ); // send structured fields as JSON so the backend can parse them reliably
+
+          // Build multipart files sequentially to keep peak memory lower.
+          final usedUploadImageNames = <String>{};
+          for (final fxfile in rd.multipartFiles) {
+            final xfile = await fxfile;
+            String name = xfile.name;
+            if (rd.route == _uploadImage_r) {
+              DateTime ts = parseTimestampImageFilename(name) ??
+                  parseTimestampImageFilename(
+                      canonicalTimestampFilenameForXFile(xfile)) ??
+                  DateTime.now();
+              name = formatTimestampImageFilename(ts);
+              while (usedUploadImageNames.contains(name)) {
+                ts = ts.add(const Duration(seconds: 1));
+                name = formatTimestampImageFilename(ts);
+              }
+              usedUploadImageNames.add(name);
+            }
+            final creation = FileStat.statSync(xfile.path)
+                .changed
+                .toUtc()
+                .millisecondsSinceEpoch;
+            final path = xfile.path;
+            mreq.files.add(await http.MultipartFile.fromPath(
+              creation.toString(),
+              path,
+              filename: name,
+            ));
+          }
+          // Avoid logging full fields (can be huge and contains credentials) and reduces memory churn.
+          debugPrint(
+              'sending multipart request ${rd.route} (files: ${mreq.files.length})');
           var res = (rd.timeout == null)
               ? await _client.send(mreq)
               : await _client.send(mreq).timeout(rd.timeout!);
@@ -297,9 +407,24 @@ class Remote {
         }
       }
     } catch (e) {
+      // Don't swallow OOM: returning null will trigger retries and worsen memory pressure.
+      if (e is OutOfMemoryError) rethrow;
+      final msg = e.toString();
+      if (msg.contains('Out of Memory') || msg.contains('Exhausted heap')) {
+        rethrow;
+      }
       debugPrint("request failed, cause : $e");
       return null;
     }
+  }
+
+  Future<void> _deleteLocalImageQuietly(String name) async {
+    try {
+      final f = await OP.localFile(name);
+      if (f.existsSync()) {
+        await f.delete();
+      }
+    } catch (_) {}
   }
 
   /// Erweiterte Version von postJSON mit robuster Behandlung von Socket-Fehlern
@@ -325,6 +450,9 @@ class Remote {
           attempts++;
           debugPrint('Null-Antwort bei Versuch $attempts/$maxRetries');
         }
+      } on OutOfMemoryError {
+        // Retrying will almost certainly fail again; surface the error.
+        rethrow;
       } on SocketException catch (e) {
         lastSocketException = e;
         attempts++;
@@ -378,7 +506,7 @@ class Remote {
 
   //final _imageStreamController = BehaviorSubject<String>();
   RequestAndParser<http.BaseResponse, ImageData?> getImageByHash(String hash,
-      {bool compressed = false, Data? owner}) {
+      {Data? owner}) {
     final isPathHash = hash.contains('/');
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
@@ -386,7 +514,6 @@ class Remote {
           _getImageFromHash_r,
           json: {
             'hash': hash,
-            'compressed': compressed,
           },
           returnsBinary: true,
         )
@@ -396,23 +523,70 @@ class Remote {
       if (kIsWeb)
         return ImageData(
             Image(
-                image: NetworkImage("$_baseurl/get/compressed/$hash",
+                image: NetworkImage("$_baseurl/get/$hash",
                     headers: {HttpHeaders.authorizationHeader: _api_key})),
-            id: hash);
+            id: hash,
+            name: _stripImageExtension(hash.split('/').last));
       final res = _res.forceRes();
       if (res == null || res.statusCode ~/ 100 != 2)
         return null;
       else {
         try {
           final scope = owner != null ? API().local.scopeFor(owner) : '';
-          final name = compressed ? OP.convertToCompressedHashName(hash) : hash;
-          final scopedName =
-              (!isPathHash && scope.isNotEmpty) ? '$scope/$name' : name;
-          await API().local.storeImage(res.bodyBytes, scopedName);
+          final filename = _extractBackendFilename(res.headers);
+
+          String storedName;
+          String? displayName;
+          if (!isPathHash && filename != null && filename.isNotEmpty) {
+            final base = filename;
+            storedName = (scope.isNotEmpty) ? '$scope/$base' : base;
+            displayName = _stripImageExtension(filename);
+            await API().local.storeImage(res.bodyBytes, storedName);
+            await OP.indexImageHash(
+              hash: hash,
+              storedName: storedName,
+              scope: scope,
+            );
+            final fallbackStoredName =
+                (scope.isNotEmpty) ? '$scope/$hash' : hash;
+            if (fallbackStoredName != storedName) {
+              await _deleteLocalImageQuietly(fallbackStoredName);
+            }
+          } else {
+            // If we already know a canonical local filename for this hash, use it
+            // and avoid creating an additional hash-named duplicate file.
+            if (!isPathHash) {
+              final indexed = await OP.lookupImageNameForHash(
+                hash,
+                scope: scope,
+              );
+              if (indexed != null && indexed.isNotEmpty) {
+                final existing =
+                    await API().local.readImage(indexed, cacheSize: null);
+                if (existing != null) {
+                  final fallbackStoredName =
+                      (scope.isNotEmpty) ? '$scope/$hash' : hash;
+                  if (fallbackStoredName != indexed) {
+                    await _deleteLocalImageQuietly(fallbackStoredName);
+                  }
+                  return ImageData(
+                    existing,
+                    id: hash,
+                    name: _stripImageExtension(indexed.split('/').last),
+                  );
+                }
+              }
+            }
+            storedName =
+                (!isPathHash && scope.isNotEmpty) ? '$scope/$hash' : hash;
+            // fall back to hash-derived name (best-effort)
+            displayName = _stripImageExtension(storedName.split('/').last);
+            await API().local.storeImage(res.bodyBytes, storedName);
+          }
           return ImageData(
-            (await API().local.readImage(scopedName,
-                cacheSize: compressed ? CACHESIZE : null))!,
+            (await API().local.readImage(storedName, cacheSize: null))!,
             id: hash,
+            name: displayName,
           );
         } catch (e) {
           debugPrint("failed to load webimg: " + e.toString());
@@ -423,6 +597,64 @@ class Remote {
     return RequestAndParser(rd: rd, parser: parser);
   }
 
+  String? _extractBackendFilename(Map<String, String> headers) {
+    // Node/Express lowercases header keys.
+    final direct = headers['x-image-filename'] ??
+        headers['x-filename'] ??
+        headers['x-image-name'];
+    if (direct != null && direct.trim().isNotEmpty) return direct.trim();
+
+    final cd = headers['content-disposition'];
+    if (cd == null) return null;
+
+    // Minimal RFC 6266 support (filename / filename*=UTF-8'')
+    final filenameStar =
+        RegExp(r"filename\*\s*=\s*UTF-8''([^;]+)", caseSensitive: false)
+            .firstMatch(cd)
+            ?.group(1);
+    if (filenameStar != null && filenameStar.trim().isNotEmpty) {
+      try {
+        return Uri.decodeFull(filenameStar.trim());
+      } catch (_) {
+        return filenameStar.trim();
+      }
+    }
+
+    final filename = RegExp(r'filename\s*=\s*"([^"]+)"', caseSensitive: false)
+            .firstMatch(cd)
+            ?.group(1) ??
+        RegExp(r'filename\s*=\s*([^;]+)', caseSensitive: false)
+            .firstMatch(cd)
+            ?.group(1);
+    return filename?.trim();
+  }
+
+  String _stripImageExtension(String name) {
+    var n = name.trim();
+    if (n.isEmpty) return n;
+    // remove common suffixes produced by our storage variants
+    const suffixes = [
+      '.maybe.jpg',
+      '.img',
+      '.jpeg',
+      '.jpg',
+      '.webp',
+      '.heic',
+      '.png',
+    ];
+    for (final s in suffixes) {
+      if (n.toLowerCase().endsWith(s)) {
+        return n.substring(0, n.length - s.length);
+      }
+    }
+    // generic fallback: remove last extension if it looks like one
+    final dot = n.lastIndexOf('.');
+    if (dot > 0 && dot > n.length - 8) {
+      return n.substring(0, dot);
+    }
+    return n;
+  }
+
   Future<DataT?> Function(Map<String, dynamic>)
       _generateImageFetcher<DataT extends Data>(
           DataT? Function(Map<String, dynamic>) jsoner,
@@ -431,11 +663,83 @@ class Remote {
     return (Map<String, dynamic> json) async {
       DataT? data = jsoner(json);
       if (data == null) return null;
-      return injectImages(data, preloadFull: preloadFullImages);
+      final mergedRefs = <String>[];
+      final scope = API().local.scopeFor(data);
+      final remoteHashes = <String>{};
+
+      String normalizeName(String v) => v.replaceAll('\\', '/');
+
+      bool sameStoredName(String a, String b) {
+        final na = normalizeName(a);
+        final nb = normalizeName(b);
+        if (na == nb) return true;
+        return na.split('/').last == nb.split('/').last;
+      }
+
+      Future<void> addRef(String? ref, {bool fromLocal = false}) async {
+        final v = ref?.trim();
+        if (v == null ||
+            v.isEmpty ||
+            v == Options().no_image_placeholder_name ||
+            mergedRefs.contains(v)) {
+          return;
+        }
+
+        if (fromLocal) {
+          // If this local file already has a known backend hash representation,
+          // keep the hash (server-deletable) and skip the local duplicate ref.
+          for (final hash in remoteHashes) {
+            try {
+              final mapped =
+                  await OP.lookupImageNameForHash(hash, scope: scope);
+              if (mapped != null &&
+                  mapped.isNotEmpty &&
+                  sameStoredName(mapped, v)) {
+                return;
+              }
+            } catch (_) {}
+          }
+        } else if (!v.contains('/')) {
+          remoteHashes.add(v);
+          // Remove already-added local duplicates when a backend hash is available.
+          try {
+            final mapped = await OP.lookupImageNameForHash(v, scope: scope);
+            if (mapped != null && mapped.isNotEmpty) {
+              mergedRefs.removeWhere((existing) =>
+                  existing.contains('/') && sameStoredName(existing, mapped));
+            }
+          } catch (_) {}
+        }
+
+        mergedRefs.add(v);
+      }
+
+      // 1) Prefer backend hashes so operations like online delete use server ids.
+      await addRef(data.mainhash);
+      for (final hash in data.imagehashes ?? const <String>[]) {
+        await addRef(hash);
+      }
+
+      // 2) Add local-only leftovers (e.g. not yet mapped/synced).
+      try {
+        final localNames = await API().local.listScopedImageNames(data);
+        for (final name in localNames) {
+          await addRef(name, fromLocal: true);
+        }
+      } catch (_) {}
+
+      if (mergedRefs.isNotEmpty) {
+        data.mainhash = mergedRefs.first;
+        data.imagehashes = mergedRefs.skip(1).toList();
+      }
+
+      injectImages(data, preloadFull: preloadFullImages);
+      return data;
     };
   }
 
-  RequestAndParser<http.BaseResponse, File?> getDocument(String docPath) {
+  RequestAndParser<http.BaseResponse, File?> getDocument(String docPath,
+      {String? scope}) {
     final rd = switch (kIsWeb) {
       true => RequestData('/login'),
       false => RequestData(
@@ -446,7 +750,6 @@ class Remote {
           returnsBinary: true,
         )
     };
-    debugPrint("fssgfsfsdf" + rd.toString());
 
     parser(http.BaseResponse _res) async {
       final res = _res.forceRes();
@@ -454,8 +757,12 @@ class Remote {
         return null;
       else {
         try {
-          await API().local.storeDoc(res.bodyBytes, docPath.split('/').last);
-          return API().local.readDoc(docPath.split('/').last);
+          final filename = docPath.split('/').last;
+          final s = (scope ?? '').trim();
+          final storedName =
+              s.isNotEmpty ? '$s/Dokus/$filename' : 'Dokus/$filename';
+          await API().local.storeDoc(res.bodyBytes, storedName);
+          return API().local.readDoc(storedName);
         } catch (e) {
           debugPrint("failed to load webimg: " + e.toString());
         }
@@ -508,6 +815,8 @@ class Remote {
   }) {
     assert(data != null, 'we cant send no data, data needs to be supplied');
     var jsonData = data!.toJson();
+    // Never upload local-only flags.
+    jsonData.remove('offline');
     final rd = RequestData(route, json: {
       'type': Helper.getIdentifierFromData(data),
       'data': jsonData,
@@ -534,6 +843,88 @@ class Remote {
   }
 
   // MARK: API
+
+  /// fetches all selectable workers for the login dropdown.
+  Future<List<DisplayUser>> getLoginUsers() async {
+    const candidateRoutes = <String>[
+      '/login/users',
+      '/loginUsers',
+      '/users/login',
+    ];
+
+    List<DisplayUser> parseUsers(http.Response res) {
+      final raw = jsonDecode(res.body);
+      final entries = (raw is Map) ? raw['users'] : null;
+      if (entries is! List) return [];
+
+      final users = <DisplayUser>[];
+      for (final entry in entries) {
+        if (entry is! Map) continue;
+        final map = Map<String, dynamic>.from(entry);
+        String? pick(List<String> keys) {
+          for (final key in keys) {
+            final v = map[key];
+            if (v != null) {
+              final s = v.toString().trim();
+              if (s.isNotEmpty) return s;
+            }
+          }
+          for (final kv in map.entries) {
+            if (keys.any((k) => k.toLowerCase() == kv.key.toLowerCase())) {
+              final s = kv.value?.toString().trim() ?? '';
+              if (s.isNotEmpty) return s;
+            }
+          }
+          return null;
+        }
+
+        final kzl = (pick(['KZL', 'kzl']) ?? '').trim();
+        if (kzl.isEmpty || kzl == '??') continue;
+        final user = DisplayUser(kzl);
+        user.full_name = pick(['Vorname', 'vorname']);
+        user.full_surname = pick(['Name', 'name']);
+        users.add(user);
+      }
+
+      users.sort((a, b) {
+        final aName = '${a.full_surname ?? ''} ${a.full_name ?? ''} ${a.name}'
+            .toLowerCase();
+        final bName = '${b.full_surname ?? ''} ${b.full_name ?? ''} ${b.name}'
+            .toLowerCase();
+        return aName.compareTo(bName);
+      });
+      return users;
+    }
+
+    http.Response? lastResponse;
+    for (final route in candidateRoutes) {
+      final res = (await postJSON(RequestData(route)))?.forceRes();
+      lastResponse = res;
+      debugPrint(
+        'Remote.getLoginUsers route=$route status=${res?.statusCode} len=${res?.body.length ?? 0}',
+      );
+      if (res != null && (res.statusCode ~/ 100 == 2)) {
+        final users = parseUsers(res);
+        debugPrint('Remote.getLoginUsers parsed=${users.length} via $route');
+        return users;
+      }
+      if (res?.statusCode == 404) {
+        continue;
+      }
+      final preview = res?.body.substring(
+            0,
+            (res.body.length < 200) ? res.body.length : 200,
+          ) ??
+          '';
+      debugPrint('Remote.getLoginUsers failed via $route: $preview');
+      throw ResponseException(res);
+    }
+
+    debugPrint(
+      'Remote.getLoginUsers failed: all candidate routes returned 404',
+    );
+    throw ResponseException(lastResponse);
+  }
 
   /// login a [User] by checking if he exists in the remote database
   Future<User?> login(User user) async {
@@ -586,7 +977,13 @@ class Remote {
       route: routesFromData<ChildData>(null),
       jsonResponseID: childTypeStr + 's',
       json: data?.toSmallJson(),
-      fromJson: (json) => /*Child*/ Data.fromJson<ChildData>(json),
+      fromJson: (json) {
+        // "offline" (forceOffline) is a local-only flag; never trust/propagate it from server payloads.
+        final scrubbed = Map<String, dynamic>.from(json);
+        scrubbed.remove('offline');
+        scrubbed.remove('parent_local_id');
+        return Data.fromJson<ChildData>(scrubbed);
+      },
       preloadFullImages: preloadFullImages,
     );
   }
@@ -604,7 +1001,19 @@ class Remote {
     return RequestAndParser(
         rd: rap.rd,
         parser: (x) async {
-          return (await rap.parser(x))?.body != null ? data : null;
+          final res = await rap.parser(x);
+          final body = res?.body;
+          if (body == null || body.isEmpty) return null;
+          try {
+            final decoded = jsonDecode(body);
+            final qr = (decoded is Map) ? decoded['query_result'] : null;
+            if (qr is Map) {
+              final parsed =
+                  Data.fromJson<DataT>(Map<String, dynamic>.from(qr));
+              if (parsed != null) return parsed;
+            }
+          } catch (_) {}
+          return data;
         });
   }
 
@@ -664,10 +1073,20 @@ class Remote {
   }
 
   /// deletes an image specified by its hash and returns the response
-  RequestAndParser<http.BaseResponse, String?> deleteImageByHash(String hash) {
+  RequestAndParser<http.BaseResponse, String?>
+      deleteImageByHash<DataT extends Data>(
+    String hash, {
+    DataT? data,
+  }) {
+    debugPrint(
+      'remote.deleteImageByHash hash=$hash url=${_baseurl + _deleteImageByHash_r} hasData=${data != null}',
+    );
     final rd = RequestData(
       _deleteImageByHash_r,
-      json: {'hash': hash},
+      json: {
+        'hash': hash,
+        if (data != null) 'data': data.toJson(),
+      },
     );
 
     parser(http.BaseResponse? res) => res?.forceRes()?.body;
@@ -701,7 +1120,8 @@ class Remote {
     DataT data,
     List<XFile> files,
   ) {
-    debugPrint('uploading images ${files.map((e) => e.name)}');
+    debugPrint(
+        'uploading images ${files.map((e) => canonicalTimestampFilenameForXFile(e))}');
     var jsonData = data.toJson();
     final rd = RequestData.fromFiles(
       _uploadImage_r,

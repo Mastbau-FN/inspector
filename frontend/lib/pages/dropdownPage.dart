@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
@@ -97,11 +98,14 @@ class _DropDownBodyState<
   @override
   Widget build(BuildContext context) {
     return Consumer<DDModel>(builder: (context, ddmodel, child) {
-      return FutureBuilder<List<ChildData>>(
-        future: ddmodel.all().last,
-        builder: (context, snapshot) => RefreshIndicator(
-          onRefresh: _refresh,
-          child: _list(snapshot, context),
+      return ValueListenableBuilder<int>(
+        valueListenable: SyncEvents.instance.revision,
+        builder: (context, _, __) => FutureBuilder<List<ChildData>>(
+          future: ddmodel.all().last,
+          builder: (context, snapshot) => RefreshIndicator(
+            onRefresh: _refresh,
+            child: _list(snapshot, context),
+          ),
         ),
       );
     });

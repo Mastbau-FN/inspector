@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/user.dart';
 import 'package:MBG_Inspektionen/fragments/ErrorView.dart';
 import 'package:MBG_Inspektionen/pages/homeView.dart';
@@ -132,6 +133,7 @@ class _LoginFieldState extends State<LoginField> {
   static const double padding = 10;
 
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _usernameController = TextEditingController();
 
   String? username;
 
@@ -139,12 +141,73 @@ class _LoginFieldState extends State<LoginField> {
 
   String? errorMessage;
 
+  List<DisplayUser> _loginUsers = [];
+  String? _selectedKzl;
+  bool _loadingLoginUsers = true;
+  String? _loginUsersError;
+
   bool loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLoginUsers();
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadLoginUsers() async {
+    setState(() {
+      _loadingLoginUsers = true;
+      _loginUsersError = null;
+    });
+    try {
+      final users = await API().getLoginUsers();
+      debugPrint('LoginView: loaded cached login users: ${users.length}');
+      if (!mounted) return;
+      final typedKzl = _usernameController.text.trim().toLowerCase();
+      String? selected =
+          users.any((u) => u.name == _selectedKzl) ? _selectedKzl : null;
+      if (selected == null && typedKzl.isNotEmpty) {
+        try {
+          selected =
+              users.firstWhere((u) => u.name.toLowerCase() == typedKzl).name;
+        } catch (_) {}
+      }
+      setState(() {
+        _loginUsers = users;
+        _selectedKzl = selected;
+        _loadingLoginUsers = false;
+      });
+    } catch (e) {
+      debugPrint('LoginView: failed to load cached login users: $e');
+      if (!mounted) return;
+      setState(() {
+        _loadingLoginUsers = false;
+        _loginUsers = [];
+        _selectedKzl = null;
+        _loginUsersError = e.toString();
+      });
+    }
+  }
+
+  String _loginUserLabel(DisplayUser user) {
+    final firstName = (user.full_name ?? '').trim();
+    final surname = (user.full_surname ?? '').trim();
+    final fullName = '$firstName $surname'.trim();
+    if (fullName.isEmpty) return user.name;
+    return '$fullName (${user.name})';
+  }
 
   Future logmein(BuildContext context) async {
     setState(() {
       errorMessage = null;
     });
+    username = _usernameController.text.trim();
     if (_formKey.currentState!.validate()) {
       final controller = ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -232,12 +295,90 @@ class _LoginFieldState extends State<LoginField> {
               children: [
                 Padding(
                   padding: widget.padding,
+                  child: _loadingLoginUsers
+                      ? const SizedBox(
+                          height: 56,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : DropdownButtonFormField<String>(
+                          initialValue: (_selectedKzl != null &&
+                                  _loginUsers
+                                      .any((u) => u.name == _selectedKzl))
+                              ? _selectedKzl
+                              : null,
+                          items: _loginUsers
+                              .map((user) => DropdownMenuItem<String>(
+                                    value: user.name,
+                                    child: Text(
+                                      _loginUserLabel(user),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ))
+                              .toList(),
+                          hint: Text(_loginUsers.isEmpty
+                              ? 'Keine Monteurliste gespeichert'
+                              : 'Monteur auswählen'),
+                          onChanged: (loading || _loginUsers.isEmpty)
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    _selectedKzl = value;
+                                  });
+                                  _usernameController.text = value ?? '';
+                                },
+                          decoration:
+                              fieldDecoration(context, name: 'Monteurliste'),
+                          isExpanded: true,
+                        ),
+                ),
+                if (_loginUsersError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _loginUsersError!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (!_loadingLoginUsers && _loginUsers.isEmpty)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: loading ? null : () => _loadLoginUsers(),
+                      child: const Text('Liste neu laden'),
+                    ),
+                  ),
+                Padding(
+                  padding: widget.padding,
                   child: TextFormField(
-                    onSaved: (value) {
-                      username = value;
+                    controller: _usernameController,
+                    onSaved: (_) {
+                      username = _usernameController.text.trim();
+                    },
+                    onChanged: (value) {
+                      final typed = value.trim().toLowerCase();
+                      String? matchedKzl;
+                      for (final user in _loginUsers) {
+                        if (user.name.toLowerCase() == typed) {
+                          matchedKzl = user.name;
+                          break;
+                        }
+                      }
+                      if (matchedKzl != _selectedKzl) {
+                        setState(() {
+                          _selectedKzl = matchedKzl;
+                        });
+                      }
                     },
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return S.of(context).loginErrorPleaseEnterUserName;
                       }
                       return null;

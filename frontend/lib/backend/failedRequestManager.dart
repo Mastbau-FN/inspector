@@ -11,8 +11,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
-import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OfflineProvider;
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
+import 'package:MBG_Inspektionen/backend/offlineProvider.dart'
+    as OfflineProvider;
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
+import 'package:MBG_Inspektionen/backend/download_progress.dart';
+import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
 
 import 'package:MBG_Inspektionen/helpers/background.dart' as BG;
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -34,6 +39,8 @@ import 'package:http/http.dart' as http;
 final sync_progress_str = 'sync progress';
 final sync_in_progress_str = 'sync in progress';
 final sync_success_str = 'sync success';
+const _localImagePrefix = '__loc__';
+final _inspectionVisibility = InspectionVisibility();
 
 /// Hilfsklasse, um globale und Inspektions-spezifische Upload-Fortschritte
 /// samt ETA zu verwalten.
@@ -86,6 +93,9 @@ class SyncProgress {
 /// Aus dem JSON String in rd.json['data'] wird die local_id (oder PjNr) geholt.
 String _extractInspectionIdFromRequest(RequestData rd) {
   try {
+    final fromVisibility = _inspectionVisibility.extractPjNrFromRequest(rd);
+    if (fromVisibility != null) return fromVisibility;
+
     final dataField = rd.json?['data'];
     if (dataField == null) return 'unknown';
 
@@ -113,6 +123,131 @@ String _extractInspectionIdFromRequest(RequestData rd) {
     // debugPrint('Could not parse inspectionId: $e');
   }
   return 'unknown';
+}
+
+String _extractScopeFromRequest(RequestData rd) {
+  try {
+    final dataField = rd.json?['data'];
+    Map<String, dynamic>? data;
+    if (dataField is String) {
+      final decoded = json.decode(dataField);
+      if (decoded is Map) data = Map<String, dynamic>.from(decoded);
+    } else if (dataField is Map) {
+      data = Map<String, dynamic>.from(dataField);
+    }
+    if (data == null) return '';
+
+    final parent = data['parent_local_id']?.toString().trim();
+    if (parent != null && parent.isNotEmpty) return parent;
+
+    final pjNr = data['PjNr']?.toString().trim();
+    if (pjNr == null || pjNr.isEmpty || pjNr == 'null' || pjNr == 'undefined') {
+      return '';
+    }
+
+    String norm(dynamic v) {
+      final s = v?.toString().trim() ?? '';
+      if (s.isEmpty || s == 'undefined') return 'null';
+      return s;
+    }
+
+    return [pjNr, norm(data['E1']), norm(data['E2']), norm(data['E3'])]
+        .join('-');
+  } catch (_) {
+    return '';
+  }
+}
+
+String _pathBasename(String raw) {
+  final normalized = raw.replaceAll('\\', '/');
+  final parts = normalized.split('/');
+  return parts.isEmpty ? raw : parts.last;
+}
+
+String _pathDirname(String raw) {
+  final normalized = raw.replaceAll('\\', '/');
+  final idx = normalized.lastIndexOf('/');
+  if (idx <= 0) return '';
+  return normalized.substring(0, idx);
+}
+
+Future<void> _canonicalizeImageMultipartFilenames(RequestData req) async {
+  if (req.route != '/image/set') return;
+  final names = req.multipartFileNames;
+  if (names == null || names.isEmpty) return;
+
+  final scope = _extractScopeFromRequest(req);
+  final updated = <String>[];
+  final used = <String>{};
+
+  Future<String?> existingPath(String name) async {
+    final f = await OfflineProvider.localFile(name);
+    if (f.existsSync()) return name;
+    return null;
+  }
+
+  for (final raw in names) {
+    final cleaned = raw.trim();
+    final base = _pathBasename(cleaned);
+    final baseNoLocalPrefix = base.startsWith(_localImagePrefix)
+        ? base.substring(_localImagePrefix.length)
+        : base;
+    final dir = _pathDirname(cleaned);
+    final effectiveDir = dir.isNotEmpty ? dir : scope;
+
+    DateTime ts =
+        parseTimestampImageFilename(baseNoLocalPrefix) ?? DateTime.now();
+    if (!isTimestampImageFilename(baseNoLocalPrefix)) {
+      final altName = effectiveDir.isNotEmpty
+          ? '$effectiveDir/$baseNoLocalPrefix'
+          : baseNoLocalPrefix;
+      final src1 = await existingPath(cleaned);
+      final src2 = await existingPath(altName);
+      final srcName = src1 ?? src2;
+      if (srcName != null) {
+        try {
+          final f = await OfflineProvider.localFile(srcName);
+          ts = f.statSync().changed;
+        } catch (_) {}
+      }
+    }
+
+    String canonicalBase = formatTimestampImageFilename(ts);
+    while (used.contains(canonicalBase)) {
+      ts = ts.add(const Duration(seconds: 1));
+      canonicalBase = formatTimestampImageFilename(ts);
+    }
+    used.add(canonicalBase);
+
+    final canonicalName = effectiveDir.isNotEmpty
+        ? '$effectiveDir/$canonicalBase'
+        : canonicalBase;
+
+    if (canonicalName != cleaned) {
+      final candidates = <String>[
+        cleaned,
+        if (effectiveDir.isNotEmpty) '$effectiveDir/$baseNoLocalPrefix',
+        baseNoLocalPrefix,
+      ];
+      try {
+        final dst = await OfflineProvider.localFile(canonicalName);
+        if (!dst.existsSync()) {
+          for (final c in candidates) {
+            final src = await OfflineProvider.localFile(c);
+            if (src.existsSync()) {
+              await dst.parent.create(recursive: true);
+              await src.copy(dst.path);
+              break;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    updated.add(canonicalName);
+  }
+
+  req.multipartFileNames = updated;
 }
 
 /// Gruppiert die Requests nach extrahierter Inspection-ID, anschließend sortiert.
@@ -326,11 +461,11 @@ Future<void> _deleteFilesForData(WithImgHashes data) async {
 }
 
 Future<void> _deleteDefectsForCheckpoint(CheckPoint checkpoint) async {
-  final defects =
-      (await OfflineProvider.getAllChildrenFrom<CheckPointDefect>(checkpoint.id))
-              ?.whereType<CheckPointDefect>()
-              .toList() ??
-          [];
+  final defects = (await OfflineProvider.getAllChildrenFrom<CheckPointDefect>(
+              checkpoint.id))
+          ?.whereType<CheckPointDefect>()
+          .toList() ??
+      [];
 
   for (final defect in defects) {
     await _deleteFilesForData(defect);
@@ -385,11 +520,20 @@ Future<void> _deleteInspectionLocally(
   }
 }
 
+Future<void> deleteInspectionFromDevice(InspectionLocation inspection) async {
+  final rootId = await API().rootID;
+  await _deleteInspectionLocally(inspection, rootId);
+  try {
+    await OfflineProvider.otherCollection
+        .doc('__sync_maps__${inspection.pjNr}')
+        .delete();
+  } catch (_) {}
+}
+
 Future<List<InspectionLocation>> _fetchRemoteInspectionsForCleanup() async {
   try {
-    final rap = API()
-        .remote
-        .getNextDatapoint<InspectionLocation, WithOffline?>(null);
+    final rap =
+        API().remote.getNextDatapoint<InspectionLocation, WithOffline?>(null);
     final response = await API().remote.postJSON(rap.rd);
 
     if (response is http.StreamedResponse) {
@@ -410,9 +554,9 @@ Future<void> _pruneLocalInspections() async {
   try {
     final remoteInspections = await _fetchRemoteInspectionsForCleanup();
     final remoteIds = remoteInspections.map((insp) => insp.id).toSet();
-    final localInspections =
-        await API().local.getNextDatapoint<InspectionLocation, WithOffline?>(
-            null);
+    final localInspections = await API()
+        .local
+        .getNextDatapoint<InspectionLocation, WithOffline?>(null);
     final rootId = await API().rootID;
 
     for (final inspection in localInspections) {
@@ -422,6 +566,51 @@ Future<void> _pruneLocalInspections() async {
     }
   } catch (e) {
     debugPrint('Failed pruning local inspections: $e');
+  }
+}
+
+Future<void> _resetForceOfflineFlagsForAllLocalInspections() async {
+  try {
+    final rootId = await API().rootID;
+    Future<Map<String, dynamic>?> _asMap(dynamic v) async {
+      if (v is Map<String, dynamic>) return Map<String, dynamic>.from(v);
+      if (v is Map) return Map<String, dynamic>.from(v.cast<String, dynamic>());
+      return null;
+    }
+
+    String _docIdFromKey(String key) => key.split('/').last;
+
+    Future<List<String>> _resetCollection(String collectionName) async {
+      final raw = await OfflineProvider.db.collection(collectionName).get();
+      if (raw == null) return const [];
+      final docIds = <String>[];
+      for (final entry in raw.entries) {
+        final docId = _docIdFromKey(entry.key);
+        final map = await _asMap(entry.value);
+        if (map == null) continue;
+        map['local_id'] = docId; // normalize legacy docs
+        map['offline'] = false;
+        await OfflineProvider.db.collection(collectionName).doc(docId).set(map);
+        docIds.add(docId);
+      }
+      return docIds;
+    }
+
+    // Root level: inspections
+    final inspectionIds = await _resetCollection(rootId);
+
+    // Descend: categories -> checkpoints -> defects
+    for (final inspectionId in inspectionIds) {
+      final categoryIds = await _resetCollection(inspectionId);
+      for (final categoryId in categoryIds) {
+        final checkpointIds = await _resetCollection(categoryId);
+        for (final checkpointId in checkpointIds) {
+          await _resetCollection(checkpointId);
+        }
+      }
+    }
+  } catch (e) {
+    debugPrint('Failed resetting forceOffline flags: $e');
   }
 }
 
@@ -458,7 +647,9 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   // debugPrint('HTTP-Verbindungseinstellungen optimiert für Hintergrundausführung');
 
   try {
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
+      await API().local.getAllFailedRequests() ?? [],
+    );
     final user = await API().user;
     if (user == null) {
       input.progressSender.send((1.0, false, null, 1.0, ''));
@@ -493,7 +684,8 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           await AwesomeNotifications().createNotification(
             content: NotificationContent(
               id: 900,
-              channelKey: 'sync_complete', // Kanal mit Ton
+              channelKey:
+                  'mbg_all_notifications', // use the shared channel (avoids "channel does not exist")
               title: '🔄 Upload Sync gestartet',
               body:
                   'Die Synchronisierung von ${totalRequests} Requests beginnt...',
@@ -538,6 +730,15 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       final requests = grouped[inspId]!;
       progress.currentInspectionTotal = requests.length;
       progress.currentInspectionDone = 0;
+
+      // Maps for this inspection to replace local placeholders with backend identifiers.
+      final localIdMap = <String, String>{};
+      final imageHashMap = <String, String>{};
+      try {
+        final stored = await OfflineProvider.getSyncMaps(inspId);
+        localIdMap.addAll(stored.localIdMap);
+        imageHashMap.addAll(stored.imageHashMap);
+      } catch (_) {}
 
       String? pjNr;
       try {
@@ -585,24 +786,300 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
           bool requestSuccess = false;
 
+          Future<void> ensureParentLocalIdIfMissing(RequestData req) async {
+            final jsonData = req.json;
+            if (jsonData == null) return;
+            if (req.route != '/set') return;
+
+            final type = jsonData['type']?.toString();
+            final dataField = jsonData['data'];
+            Map<String, dynamic>? dataMap;
+            bool wasString = false;
+            if (dataField is String) {
+              wasString = true;
+              try {
+                final decoded = json.decode(dataField);
+                if (decoded is Map) {
+                  dataMap = Map<String, dynamic>.from(decoded);
+                }
+              } catch (_) {}
+            } else if (dataField is Map) {
+              dataMap = Map<String, dynamic>.from(dataField);
+            }
+            if (dataMap == null) return;
+
+            final hasParent = (dataMap['parent_local_id'] is String) &&
+                (dataMap['parent_local_id'] as String).trim().isNotEmpty;
+            if (hasParent) return;
+
+            final childId = dataMap['local_id']?.toString();
+            if (childId == null || childId.trim().isEmpty) return;
+
+            String? inferred;
+
+            // Category is always directly under the inspection.
+            if (type == 'category') {
+              inferred = inspId;
+            } else if (type == 'checkpoint') {
+              try {
+                final cats = await OfflineProvider.db.collection(inspId).get();
+                if (cats != null) {
+                  for (final key in cats.keys) {
+                    final catId = key.split('/').last;
+                    final doc = await OfflineProvider.db
+                        .collection(catId)
+                        .doc(childId)
+                        .get();
+                    if (doc != null) {
+                      inferred = catId;
+                      break;
+                    }
+                  }
+                }
+              } catch (_) {}
+            } else if (type == 'defect') {
+              try {
+                final cats = await OfflineProvider.db.collection(inspId).get();
+                if (cats != null) {
+                  for (final catKey in cats.keys) {
+                    final catId = catKey.split('/').last;
+                    final cps =
+                        await OfflineProvider.db.collection(catId).get();
+                    if (cps == null) continue;
+                    for (final cpKey in cps.keys) {
+                      final cpId = cpKey.split('/').last;
+                      final doc = await OfflineProvider.db
+                          .collection(cpId)
+                          .doc(childId)
+                          .get();
+                      if (doc != null) {
+                        inferred = cpId;
+                        break;
+                      }
+                    }
+                    if (inferred != null) break;
+                  }
+                }
+              } catch (_) {}
+            }
+
+            if (inferred == null || inferred.trim().isEmpty) return;
+            dataMap['parent_local_id'] = inferred;
+            jsonData['data'] = wasString ? json.encode(dataMap) : dataMap;
+          }
+
+          void patchRequestInPlace(RequestData req) {
+            final jsonData = req.json;
+            if (jsonData == null) return;
+
+            String rewriteLocalId(String v) {
+              return localIdMap[v] ?? v;
+            }
+
+            String rewriteHash(String v) {
+              // local hashes might be scoped like "<scope>/__loc__foo.jpg"
+              final base = v.contains('/') ? v.split('/').last : v;
+              return imageHashMap[base] ?? imageHashMap[v] ?? v;
+            }
+
+            // Patch top-level hash param if present.
+            final hash = jsonData['hash'];
+            if (hash is String && hash.isNotEmpty) {
+              jsonData['hash'] = rewriteHash(hash);
+            }
+
+            // Patch embedded data payload (Map or JSON string).
+            final dataField = jsonData['data'];
+            Map<String, dynamic>? dataMap;
+            bool wasString = false;
+            if (dataField is String) {
+              wasString = true;
+              try {
+                final decoded = json.decode(dataField);
+                if (decoded is Map) {
+                  dataMap = Map<String, dynamic>.from(decoded);
+                }
+              } catch (_) {}
+            } else if (dataField is Map) {
+              dataMap = Map<String, dynamic>.from(dataField);
+            }
+
+            if (dataMap != null) {
+              final lid = dataMap['local_id'];
+              if (lid is String && lid.isNotEmpty) {
+                dataMap['local_id'] = rewriteLocalId(lid);
+              }
+              final plid = dataMap['parent_local_id'];
+              if (plid is String && plid.isNotEmpty) {
+                dataMap['parent_local_id'] = rewriteLocalId(plid);
+              }
+              // If mainhash uses local placeholder names, translate it too.
+              final mh = dataMap['mainhash'];
+              if (mh is String && mh.isNotEmpty) {
+                dataMap['mainhash'] = rewriteHash(mh);
+              }
+              final imgs = dataMap['images'];
+              if (imgs is List) {
+                dataMap['images'] =
+                    imgs.map((e) => e is String ? rewriteHash(e) : e).toList();
+              }
+
+              jsonData['data'] = wasString ? json.encode(dataMap) : dataMap;
+            }
+          }
+
           // Verbesserte Wiederholungsstrategie mit exponentiellem Backoff
           await _retryWithBackoff(
             operation: () async {
               // Verwende die verbesserte Methode für Socket-Fehler
-              final res = await API().remote.postJSONWithSocketRetry(
+              await _canonicalizeImageMultipartFilenames(rd);
+              await ensureParentLocalIdIfMissing(rd);
+              patchRequestInPlace(rd);
+              final baseRes = await API().remote.postJSONWithSocketRetry(
                     rd,
                     maxRetries: 3,
                     initialDelay: Duration(seconds: 2),
                     exponentialBackoff: true,
                   );
 
+              http.Response? res;
+              try {
+                if (baseRes is http.Response) {
+                  res = baseRes;
+                } else if (baseRes is http.StreamedResponse) {
+                  res = await http.Response.fromStream(baseRes);
+                }
+              } catch (_) {}
+
               if (res != null && res.statusCode ~/ 100 == 2) {
+                // Learn mappings from successful responses to make later requests stateless.
+                try {
+                  if (rd.route == '/set') {
+                    final decoded = json.decode(res.body);
+                    final qr =
+                        (decoded is Map) ? decoded['query_result'] : null;
+                    if (qr is Map) {
+                      final newLocalId = qr['local_id']?.toString();
+                      final dataField = rd.json?['data'];
+                      String? oldLocalId;
+                      String? parentLocalId;
+                      if (dataField is Map) {
+                        oldLocalId = dataField['local_id']?.toString();
+                        parentLocalId =
+                            dataField['parent_local_id']?.toString();
+                      } else if (dataField is String) {
+                        try {
+                          final dm = json.decode(dataField);
+                          if (dm is Map) {
+                            oldLocalId = dm['local_id']?.toString();
+                            parentLocalId = dm['parent_local_id']?.toString();
+                          }
+                        } catch (_) {}
+                      }
+                      if (oldLocalId != null &&
+                          oldLocalId.isNotEmpty &&
+                          newLocalId != null &&
+                          newLocalId.isNotEmpty &&
+                          oldLocalId != newLocalId) {
+                        localIdMap[oldLocalId] = newLocalId;
+                        try {
+                          await OfflineProvider.applyLocalIdMapping(
+                            oldLocalId: oldLocalId,
+                            newLocalId: newLocalId,
+                            parentLocalId: parentLocalId,
+                          );
+                        } catch (_) {}
+                        try {
+                          await OfflineProvider.storeSyncMaps(
+                            inspId,
+                            localIdMap: localIdMap,
+                            imageHashMap: imageHashMap,
+                          );
+                        } catch (_) {}
+                      }
+                    }
+                  } else if (rd.route == '/image/set') {
+                    final decoded = json.decode(res.body);
+                    final uploaded =
+                        (decoded is Map) ? decoded['uploaded_images'] : null;
+                    final scope = _extractScopeFromRequest(rd);
+                    if (uploaded is List) {
+                      for (final e in uploaded) {
+                        if (e is Map) {
+                          final client = e['client_filename']?.toString();
+                          final hash = e['hash']?.toString();
+                          if (client != null &&
+                              client.isNotEmpty &&
+                              hash != null &&
+                              hash.isNotEmpty) {
+                            imageHashMap[client] = hash;
+                            final base = client.contains('/')
+                                ? client.split('/').last
+                                : client;
+                            final baseNoLocalPrefix =
+                                base.startsWith(_localImagePrefix)
+                                    ? base.substring(_localImagePrefix.length)
+                                    : base;
+                            final localPrefixedBase =
+                                '$_localImagePrefix$baseNoLocalPrefix';
+                            imageHashMap[base] = hash;
+                            imageHashMap[baseNoLocalPrefix] = hash;
+                            imageHashMap[localPrefixedBase] = hash;
+
+                            String scoped(String b) =>
+                                scope.isNotEmpty ? '$scope/$b' : b;
+
+                            final candidateStoredNames = <String>[
+                              scoped(baseNoLocalPrefix),
+                              scoped(base),
+                              scoped(localPrefixedBase),
+                            ];
+                            String storedName = candidateStoredNames.first;
+                            for (final candidate in candidateStoredNames) {
+                              final f =
+                                  await OfflineProvider.localFile(candidate);
+                              if (f.existsSync()) {
+                                storedName = candidate;
+                                break;
+                              }
+                            }
+                            await OfflineProvider.indexImageHash(
+                              hash: hash,
+                              storedName: storedName,
+                              scope: scope,
+                            );
+                            final fallbackStoredName =
+                                scope.isNotEmpty ? '$scope/$hash' : hash;
+                            if (fallbackStoredName != storedName) {
+                              try {
+                                final fallbackFile =
+                                    await OfflineProvider.localFile(
+                                        fallbackStoredName);
+                                if (fallbackFile.existsSync()) {
+                                  await fallbackFile.delete();
+                                }
+                              } catch (_) {}
+                            }
+                          }
+                        }
+                      }
+                      try {
+                        await OfflineProvider.storeSyncMaps(
+                          inspId,
+                          localIdMap: localIdMap,
+                          imageHashMap: imageHashMap,
+                        );
+                      } catch (_) {}
+                    }
+                  }
+                } catch (_) {}
+
                 API().local.failedRequestWasSuccessful(docID);
                 requestSuccess = true;
                 return true;
               } else {
                 debugPrint(
-                    'Request fehlgeschlagen mit Status: ${res?.statusCode ?? "null"}');
+                    'Request fehlgeschlagen mit Status: ${res?.statusCode ?? baseRes?.statusCode ?? "null"}');
                 return false;
               }
             },
@@ -656,6 +1133,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
       try {
         await _cleanupMultipartFilesFromRequests(failedReqs);
         await _pruneLocalInspections();
+        await _resetForceOfflineFlagsForAllLocalInspections();
       } catch (e) {
         debugPrint('Post-upload cleanup failed: $e');
       }
@@ -892,8 +1370,11 @@ class FailedRequestmanager {
   /// Gruppiert die fehlgeschlagenen Requests nach PJNr
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
     debugPrint('getGroupedFailedRequests: Starte...');
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
-    debugPrint('getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
+    final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
+      await API().local.getAllFailedRequests() ?? [],
+    );
+    debugPrint(
+        'getGroupedFailedRequests: ${failedReqs.length} fehlgeschlagene Requests gefunden');
 
     Map<String, Map<String, dynamic>> groupedRequests = {};
 
@@ -913,7 +1394,8 @@ class FailedRequestmanager {
 
             final pjNr = parsedData['PjNr']?.toString() ?? 'Unbekannt';
             final route = requestData.route;
-            final timestamp = DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
+            final timestamp =
+                DateTime.fromMillisecondsSinceEpoch(int.parse(id, radix: 36));
 
             if (!groupedRequests.containsKey(pjNr)) {
               groupedRequests[pjNr] = {
@@ -955,7 +1437,8 @@ class FailedRequestmanager {
       }
     }
 
-    debugPrint('getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
+    debugPrint(
+        'getGroupedFailedRequests: ${groupedRequests.length} verschiedene Inspektionen gefunden');
 
     // Berechne den Fortschritt für jede Inspektion
     for (var pjNr in groupedRequests.keys) {
@@ -979,7 +1462,8 @@ class FailedRequestmanager {
             ))
         .toList();
 
-    debugPrint('getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
+    debugPrint(
+        'getGroupedFailedRequests: Fertig. ${result.length} Inspektionen zurückgegeben');
     return result;
   }
 
@@ -1045,6 +1529,11 @@ class FailedRequestmanager {
     // Letztes "onProgress", um finalen Erfolg zu signalisieren:
     onProgress?.call(1.0, finalSuccess, null, 1.0, '');
 
+    if (finalSuccess) {
+      // Ensure all open dropdown pages rebuild and re-fetch data so indicators update immediately.
+      SyncEvents.instance.notifyLocalDataChanged();
+    }
+
     return finalSuccess;
   }
 
@@ -1058,6 +1547,45 @@ class FailedRequestmanager {
     String? name,
     String? parentID,
   }) async {
+    final progressSession = DownloadProgress.instance.active;
+
+    Future<void> awaitAllImagesForData(Data data) async {
+      final futures = <Future>[];
+      futures.add(data.mainImage);
+      if (data.imageFutures != null) futures.addAll(data.imageFutures!);
+      await Future.wait(futures.map((f) => f.catchError((_) => null)));
+    }
+
+    Future<void> reserveImagesForData(Data data) async {
+      if (progressSession == null) return;
+
+      final hashes = <String>{};
+      if (data.mainhash != null &&
+          data.mainhash != Options().no_image_placeholder_name) {
+        hashes.add(data.mainhash!);
+      }
+      if (data.imagehashes != null) {
+        hashes.addAll(data.imagehashes!.where((h) => h.isNotEmpty));
+      }
+
+      for (final hash in hashes) {
+        // Only reserve tasks for images that are not already cached locally.
+        bool cached = false;
+        try {
+          await API().local.getImageByHash(hash, owner: data);
+          cached = true;
+        } catch (_) {}
+        if (!cached) {
+          final key = '/image/get|$hash';
+          progressSession.reserveTask(
+            key,
+            step: 3,
+            label: 'Step 3/3: Images',
+          );
+        }
+      }
+    }
+
     // base-case: CheckPointDefects have no children
     if (depth == 0) return true;
     depth--;
@@ -1065,9 +1593,15 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       //get all children, this will also cache them internally
-      var children = await caller
-          .all(preloadFullImages: Options().preloadFullImagesOnManualDownload)
-          .last;
+      var children = await caller.all(preloadFullImages: true).last;
+
+      // Ensure image downloads complete (and errors are absorbed) during manual download.
+      for (final child in children) {
+        await reserveImagesForData(child);
+        await awaitAllImagesForData(child);
+        await Future<void>.delayed(Duration.zero);
+      }
+
       if (caller.currentData is InspectionLocation) {
         final location = caller.currentData as InspectionLocation;
         if (location.dokuspaths != null && location.dokuspaths!.isNotEmpty) {
@@ -1076,7 +1610,7 @@ class FailedRequestmanager {
             assert((await API().user) != null,
                 'Niemand eingeloggt'); // Using string directly instead of S.current
             for (var doc in docus) {
-              await API().getDocument(doc.docupath);
+              await API().getDocument(doc.docupath, owner: location);
             }
           }
         }

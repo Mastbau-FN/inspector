@@ -9,6 +9,7 @@ const _update_r = "/update";
 const _delete_r = "/delete";
 
 const _touchPruefer_r = "/pruefer/touch";
+const _loginUsers_r = "/login/users";
 
 const _deleteImageByHash_r = "/deleteImgH"; // issue #39
 const _setMainImageByHash_r = "/setMainImgH"; // issue #20
@@ -28,8 +29,8 @@ const multer = require("multer");
 const upload = multer({ storage: require("./images/storage").mstorage });
 
 const api = require("./api");
-
-const ftb = require("./misc/frontend_wrapper_middleware");
+const { decorateReqFromLocalId } = require("./misc/local_id");
+const logger = require("./misc/logger");
 
 const identifiers = require('./misc/identifiers').identifiers;
 
@@ -55,19 +56,13 @@ app.use(
   })
 );
 
-app.use(function(req, res, next) {
-  res.on('header', function() {
-    console.trace('HEADERS GOING TO BE WRITTEN');
-  });
-  return next();
-});
-
 app.use(express.json());
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
+app.use("/", logger.logreq);
 
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -80,10 +75,10 @@ app.get("/", (request, response) => {
 app.post(
   "/api/secure" + _uploadImage_r,
   auth.api_wall,
-  generateFieldParser(["data"]),//req.body.data = JSON.parse(req.body.data)
-  ftb.ftb_id,
   upload.any(),
-  //auth.login_wall, //TODO: reenable
+  generateFieldParser(["data","user"]),//req.body.data/user = JSON.parse(...)
+  decorateReqFromLocalId,
+  auth.login_wall,
   api.fileUpload
 );
 
@@ -102,14 +97,10 @@ app.use("/api/secure/", auth.api_wall);
 app.use("/api/secure/", auth.login_wall);
 
 
-//log everything
-const logger = require("./misc/logger");
-app.use("/", logger.logreq);
-
-
 app.post("/api/secure/login", api.login);
+app.post("/api/secure" + _loginUsers_r, api.getLoginUsers);
 
-app.use("/api/secure/", ftb.ftb_id,ftb.ftb_hash);
+app.use("/api/secure/", decorateReqFromLocalId);
 
 datapointRoutes.forEach((datapointRoute) =>
   app.post("/api/secure" + datapointRoute.route, datapointRoute.api)
@@ -127,7 +118,7 @@ app.post("/api/secure" + _deleteImageByHash_r, api.deleteImgByHash);
 app.post("/api/secure" + _setMainImageByHash_r, api.setMainImgByHash);
 
 app.post("/api/secure" + _getImageFromHash_r, api.getFileFromHash);
-app.get("/api/secure/get/compressed/:hash", api.getFileFromHash_get);
+app.get("/api/secure/get/:hash", api.getFileFromHash_get);
 
 app.post("/api/secure" + _getDocFromPath_r, api.getDocFromPath);
 

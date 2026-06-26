@@ -1,7 +1,9 @@
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'loadingscreen/loadingView.dart';
 
@@ -14,6 +16,7 @@ class GalleryPhotoViewWrapper extends StatefulWidget {
     this.initialIndex = 0,
     required this.galleryItems,
     this.scrollDirection = Axis.horizontal,
+    this.onRotate,
   }) : pageController = PageController(initialPage: initialIndex);
 
   final LoadingBuilder? loadingBuilder;
@@ -24,6 +27,7 @@ class GalleryPhotoViewWrapper extends StatefulWidget {
   final PageController pageController;
   final List<ImageItem> galleryItems;
   final Axis scrollDirection;
+  final FutureOr<void> Function(Object id, int deltaQuarterTurns)? onRotate;
 
   @override
   State<StatefulWidget> createState() {
@@ -33,6 +37,7 @@ class GalleryPhotoViewWrapper extends StatefulWidget {
 
 class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   late int currentIndex = widget.initialIndex;
+  final Map<Object, int> _quarterTurnsByTag = <Object, int>{};
 
   void onPageChanged(int index) {
     setState(() {
@@ -40,10 +45,53 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
     });
   }
 
+  Future<void> _rotateCurrent(int deltaQuarterTurns) async {
+    if (widget.galleryItems.isEmpty) return;
+    final currentTag = widget.galleryItems[currentIndex].tag;
+    final current = _quarterTurnsByTag[currentTag] ?? 0;
+    final next = (current + deltaQuarterTurns) % 4;
+    final normalized = (next + 4) % 4;
+    setState(() {
+      if (normalized == 0) {
+        _quarterTurnsByTag.remove(currentTag);
+      } else {
+        _quarterTurnsByTag[currentTag] = normalized;
+      }
+    });
+
+    final id = widget.galleryItems[currentIndex].image?.id;
+    if (id != null && widget.onRotate != null) {
+      await Future.sync(() => widget.onRotate!(id, deltaQuarterTurns));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    String currentName() {
+      final explicit = widget.galleryItems[currentIndex].image?.name;
+      if (explicit != null && explicit.trim().isNotEmpty)
+        return explicit.trim();
+      final id = widget.galleryItems[currentIndex].image?.id.toString();
+      if (id == null || id.isEmpty) return '';
+      final parts = id.split('/').where((e) => e.isNotEmpty).toList();
+      return parts.isEmpty ? id : parts.last;
+    }
+
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            tooltip: 'Nach links drehen',
+            icon: const Icon(Icons.rotate_left),
+            onPressed: () async => _rotateCurrent(-1),
+          ),
+          IconButton(
+            tooltip: 'Nach rechts drehen',
+            icon: const Icon(Icons.rotate_right),
+            onPressed: () async => _rotateCurrent(1),
+          ),
+        ],
+      ),
       body: Container(
         decoration: widget.backgroundDecoration,
         constraints: BoxConstraints.expand(
@@ -62,17 +110,31 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
               onPageChanged: onPageChanged,
               scrollDirection: widget.scrollDirection,
             ),
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                "Image ${currentIndex + 1}:${widget.galleryItems[currentIndex].image?.id.toString().split('/').last ?? ')'}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 17.0,
-                  decoration: null,
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    child: Text(
+                      currentName().isEmpty
+                          ? 'Bild ${currentIndex + 1}'
+                          : 'Bild ${currentIndex + 1}: ${currentName()}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                        decoration: null,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -82,9 +144,14 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
   PhotoViewGalleryPageOptions _buildItem(BuildContext context, int index) {
     final ImageItem item = widget.galleryItems[index];
     return PhotoViewGalleryPageOptions.customChild(
-      child: FullImg(item: item),
+      child: FullImg(
+        item: item,
+        quarterTurns: _quarterTurnsByTag[item.tag] ?? 0,
+      ),
       initialScale: PhotoViewComputedScale.contained,
-      minScale: PhotoViewComputedScale.contained * (0.5 + index / 10),
+      // Keep consistent minimum scale. The previous index-based minScale could clamp initialScale
+      // and make some images appear zoomed-in by default.
+      minScale: PhotoViewComputedScale.contained * 0.8,
       maxScale: PhotoViewComputedScale.covered * 4.1,
       heroAttributes: PhotoViewHeroAttributes(tag: item.tag),
     );
@@ -93,7 +160,31 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
 
 class FullImg extends StatelessWidget {
   final ImageItem item;
-  const FullImg({super.key, required this.item});
+  final int quarterTurns;
+  const FullImg({
+    super.key,
+    required this.item,
+    this.quarterTurns = 0,
+  });
+
+  Widget _safe(Image img) {
+    final image = Image(
+      image: img.image,
+      fit: BoxFit.contain,
+      filterQuality: img.filterQuality,
+      isAntiAlias: img.isAntiAlias,
+      gaplessPlayback: img.gaplessPlayback,
+      errorBuilder: (context, error, stackTrace) {
+        // Mark corrupt/unreadable images so they disappear from the gallery.
+        // Defer notify to avoid setState during build.
+        SchedulerBinding.instance
+            .addPostFrameCallback((_) => item.markCorrupt());
+        return item.fallBackWidget;
+      },
+    );
+    if (quarterTurns == 0) return image;
+    return RotatedBox(quarterTurns: quarterTurns, child: image);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,18 +192,24 @@ class FullImg extends StatelessWidget {
       animation: item,
       builder: (context, child) => FutureBuilder(
         future: item.image?.fullImage(),
-        builder: (context, AsyncSnapshot<Image?> snapshot) =>
-            snapshot.data ??
-            item.image?.thumbnail ??
-            ((snapshot.hasError)
-                ? item.fallBackWidget
-                : Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (item.image != null) item.image!.thumbnail,
-                      const LoadingView(),
-                    ],
-                  )),
+        builder: (context, AsyncSnapshot<Image?> snapshot) {
+          if (snapshot.hasError) {
+            SchedulerBinding.instance
+                .addPostFrameCallback((_) => item.markCorrupt());
+            return item.fallBackWidget;
+          }
+          return (snapshot.data != null)
+              ? _safe(snapshot.data!)
+              : (item.image?.image != null)
+                  ? _safe(item.image!.image)
+                  : Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (item.image != null) _safe(item.image!.image),
+                        const LoadingView(),
+                      ],
+                    );
+        },
       ),
     );
   }
@@ -122,6 +219,14 @@ class ImageItem<T extends Object> with ChangeNotifier {
   Widget fallBackWidget;
   ImageData? image;
   Object tag;
+  bool hidden = false;
+  StreamSubscription<ImageData<T>?>? _subscription;
+
+  void markCorrupt() {
+    if (hidden) return;
+    hidden = true;
+    notifyListeners();
+  }
 
   /* const */ ImageItem.fromImageData(ImageData<T>? imaged,
       {this.fallBackWidget =
@@ -136,7 +241,12 @@ class ImageItem<T extends Object> with ChangeNotifier {
         this.fallBackWidget = Center(child: const Icon(Icons.report_problem)) {
     image.then((value) {
       this.image = value;
-      if (value != null) this.tag = value.id;
+      if (value != null) {
+        hidden = false;
+        this.tag = value.id;
+      } else {
+        hidden = true;
+      }
       // debugPrint(this.tag.toString());
       notifyListeners();
     });
@@ -147,14 +257,27 @@ class ImageItem<T extends Object> with ChangeNotifier {
     fallBackWidget = const LoadingView(),
   })  : this.tag = UniqueKey(),
         this.fallBackWidget = const LoadingView() {
-    image.forEach((value) {
+    _subscription = image.listen((value) {
       this.image = value;
-      if (value != null)
+      if (value != null) {
+        hidden = false;
         this.tag = value.id;
-      else
+      } else {
+        hidden = true;
         this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      }
       // debugPrint(this.tag.toString());
       notifyListeners();
+    }, onError: (_) {
+      hidden = true;
+      this.fallBackWidget = Center(child: const Icon(Icons.report_problem));
+      notifyListeners();
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

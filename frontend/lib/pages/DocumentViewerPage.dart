@@ -9,10 +9,12 @@ class DocumentViewerPage extends StatefulWidget {
 
   /// The file name including its extension (e.g., "document.pdf", "report.docx").
   final String docupath;
+  final String? scope;
 
   const DocumentViewerPage({
     Key? key,
     required this.docupath,
+    this.scope,
   }) : super(key: key);
 
   @override
@@ -32,7 +34,7 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
   Future<void> _openDocument() async {
     try {
       // Fetch the Base64-encoded file from your API
-      final file = await API().getDocument(widget.docupath);
+      final file = await API().getDocument(widget.docupath, scope: widget.scope);
 
       // Open the file with the native viewer.
       showToast(file!.path);

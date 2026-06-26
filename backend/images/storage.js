@@ -4,7 +4,6 @@ const files = require("./filesystem");
 const rootfolder = require("../db/queries").getLink;
 
 const { memorize_link } = require("./hash");
-const { setMainImgByHash } = require("../api");
 
 const fs = require("fs");
 const multer = require("multer");
@@ -12,78 +11,177 @@ const {
   set_first_image_as_main,
   no_image_placeholder_name,
 } = require("../options");
-const LOCALLY_ADDED_PREFIX = '__locally_added__';
-const SHORT_LOCALLY_ADDED_PREFIX = '__loc__';
 
-const {ftb_ftb_id, update_hash_map } = require("../misc/frontend_wrapper_middleware");
+const { decorateDataFromLocalId } = require("../misc/local_id");
+
+const TIMESTAMP_JPG_PATTERN = /^\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.jpg$/i;
+
+const pad2 = (v) => String(v).padStart(2, "0");
+
+function formatTimestampJpg(date) {
+  return `${pad2(date.getDate())}_${pad2(date.getMonth() + 1)}_${date.getFullYear()}_${pad2(date.getHours())}_${pad2(date.getMinutes())}_${pad2(date.getSeconds())}.jpg`;
+}
+
+function _sanitizeUploadName(name) {
+  if (name == null) return "";
+  const normalized = String(name).replace(/\\/g, "/");
+  return pathm.basename(normalized).trim();
+}
+
+function _extractCanonicalTimestampName(name) {
+  const match = String(name).match(/\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.jpg/i);
+  return match ? match[0] : null;
+}
+
+function _forceJpgExtension(name) {
+  return String(name).replace(/\.[^.]+$/i, ".jpg");
+}
+
+function _fallbackTimestampName(fieldname) {
+  const asNumber = Number.parseInt(String(fieldname ?? ""), 10);
+  if (!Number.isFinite(asNumber)) return null;
+  const d = new Date(asNumber);
+  if (!Number.isFinite(d.getTime())) return null;
+  return formatTimestampJpg(d);
+}
+
+function _toPosixPath(input) {
+  return String(input ?? "").replace(/\\/g, "/").replace(/\/+/g, "/");
+}
+
+function _trimTrailingSlash(input) {
+  const s = _toPosixPath(input);
+  return s.endsWith("/") ? s.slice(0, -1) : s;
+}
+
+function _isDrivePath(input) {
+  return /^[A-Za-z]:\//.test(String(input ?? ""));
+}
+
+function _normalizeLinkForFilesystem(rootfolder, link) {
+  const root = _trimTrailingSlash(rootfolder);
+  const rawLink = _trimTrailingSlash(link);
+  if (!rawLink || rawLink === ".") return "";
+
+  // Keep absolute filesystem and drive-prefixed links unchanged.
+  if (pathm.isAbsolute(rawLink) || _isDrivePath(rawLink)) return rawLink;
+
+  if (!root || root === ".") return rawLink;
+  if (rawLink === root) return "";
+  if (rawLink.startsWith(root + "/")) return rawLink.slice(root.length + 1);
+  return rawLink;
+}
+
+function _resolveTargetDirectory(rootfolder, linkForFilesystem) {
+  const root = String(rootfolder ?? "").trim();
+  const link = String(linkForFilesystem ?? "").trim();
+  const pathInput =
+    pathm.isAbsolute(link) || _isDrivePath(link)
+      ? link
+      : pathm.join(root || ".", link);
+  return files.formatpath(pathInput);
+}
+
+function _newUploadTraceId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function _uploadWarn(req, event, payload = {}) {
+  const reason = payload?.reason ? ` reason=${payload.reason}` : "";
+  console.warn(
+    `[upload] WARN ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${reason}`
+  );
+}
+
+function getStoredFilename(file) {
+  const clientName = _sanitizeUploadName(file.originalname);
+  if (TIMESTAMP_JPG_PATTERN.test(clientName)) return _forceJpgExtension(clientName);
+
+  const embedded = _extractCanonicalTimestampName(clientName);
+  if (embedded && TIMESTAMP_JPG_PATTERN.test(embedded)) {
+    return _forceJpgExtension(embedded);
+  }
+
+  return _fallbackTimestampName(file.fieldname) ?? formatTimestampJpg(new Date());
+}
 
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
-    let frontendname = file.originalname;
-    const date = new Date(Number(file.fieldname));
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-
-    // Format the date as "dd_MM_yyyy_HH_mm_ss"
-    const formattedDate = `${day}_${month}_${year}_${hours}_${minutes}_${seconds}`;
-    file.fieldname = formattedDate;
-    if(!file.originalname.startsWith(LOCALLY_ADDED_PREFIX) && !file.originalname.startsWith(SHORT_LOCALLY_ADDED_PREFIX)){
-        file.originalname = file.fieldname+".jpg";
-        file.fieldname = frontendname;
-    }else{
-        file.originalname = SHORT_LOCALLY_ADDED_PREFIX+file.fieldname+(Math.random() + 1).toString(36).substring(8)+".jpg";
-        file.fieldname = frontendname;
+    if (!req.__upload_trace_id) {
+      req.__upload_trace_id = _newUploadTraceId();
     }
-    
-    console.info("file uploaded");
+
+    const frontendname = _sanitizeUploadName(file.originalname);
+    const storedFilename = getStoredFilename(file);
+    file.originalname = storedFilename;
+
     //shouldnt be neccessary, since upload route used fieldparser as middleware
+    if (typeof req.body?.data === "string") {
+      try {
+        //might fail if the body was already parsed
+        req.body.data = JSON.parse(req.body.data);
+      } catch (e) {
+        _uploadWarn(req, "parse-data-failed", {
+          reason: e?.message ?? String(e),
+        });
+      }
+    }
+
     try {
-      //might fail if the body was already parsed
-      req.body.data = JSON.parse(req.body.data);
-    } catch (_) {}
-    
-    ftb_ftb_id(req).then((req) => {
-      // console.log("🚀 ~ file: storage.js:30 ~ ftb_ftb_id ~ req", req.body);
+      req.body.data = decorateDataFromLocalId(req.body.data);
+    } catch (e) {
+      _uploadWarn(req, "decorate-local-id-failed", {
+        reason: e?.message ?? String(e),
+      });
+    }
+
     return rootfolder(req.body.data).then((rf) => {
-        // console.log("🚀 ~ file: storage.js:29 ~ rootfolder ~ rf", rf)
-        
-        console.log("multi-upload", rf);
-        const path = files.formatpath(pathm.join(rf.rootfolder, rf.link));
-        fs.mkdirSync(path, { recursive: true });
+        const fsLink = _normalizeLinkForFilesystem(rf.rootfolder, rf.link);
+        const targetPath = _resolveTargetDirectory(rf.rootfolder, fsLink);
+        const targetFilePath = pathm.join(targetPath, file.originalname);
+        fs.mkdirSync(targetPath, { recursive: true });
         let prev_filename = rf.filename;
-        fs.readdir(path, {}, (err, files) => {
-            rf.filename = file.originalname;
-            //lil race condition workaround: if file already added length is increased by 1
-    
-            // if (files.length < 1 + files.includes(prev_filename)) {
-    
-            let hash = memorize_link(rf);
-    
-            if (rf.filename.startsWith(LOCALLY_ADDED_PREFIX)|| rf.filename.startsWith(SHORT_LOCALLY_ADDED_PREFIX)) {
-            update_hash_map({hash: rf.filename}, hash);
-            }
-    
-    
-            //: if destination is empty -> set the new image as main (aka as req.body.Link; update)
-            if (
-            set_first_image_as_main &&
-            !prev_filename || prev_filename == no_image_placeholder_name
-            ) {
-            req.body.hash = hash;
-            setMainImgByHash(req, { status: (_) => {return {json:(_)=>{}}} }, (err, res) => { });
-            }
-            // }
-    
-    
+
+        // compute the hash for the stored filename immediately
+        const rfForHash = { ...rf, link: fsLink, filename: file.originalname };
+        const hash = memorize_link(rfForHash);
+        rf.filename = file.originalname;
+
+        if (!req.__uploaded_images) req.__uploaded_images = [];
+        req.__uploaded_images.push({
+          client_filename: frontendname,
+          stored_filename: file.originalname,
+          stored_link: pathm.join(fsLink, file.originalname),
+          stored_rootfolder: rf.rootfolder,
+          stored_link_raw: rf.link,
+          stored_link_normalized: fsLink,
+          stored_directory_path: targetPath,
+          stored_absolute_path: targetFilePath,
+          hash,
         });
-        cb(null, path);
+
+        // If destination was empty -> set the new image as main (aka as req.body.Link; update).
+        // Defer this until after multer finished and auth/login wall ran, otherwise req.user is not available yet.
+        if (
+          set_first_image_as_main &&
+          (!prev_filename || prev_filename == no_image_placeholder_name) &&
+          !req.__pending_set_main_hash
+        ) {
+          const linkForDb = _toPosixPath(rf.link);
+          req.__pending_set_main_link = pathm.join(
+            linkForDb,
+            file.originalname
+          );
+          req.__pending_set_main_hash = hash;
+        }
+        cb(null, targetPath);
     
-        });
+    }).catch((error) => {
+      _uploadWarn(req, "destination-error", {
+        reason: error?.message ?? String(error),
+      });
+      cb(error);
     });
   },
   filename: (req, file, cb) => {

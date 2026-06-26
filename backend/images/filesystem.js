@@ -7,10 +7,35 @@ const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting net
 
 ///removes the drive and replaces it with our given root path
 const formatpath = (path) => {
-  const parts = path.split(pathm.sep);
-  const drive = parts.shift()[0];
-  path = pathm.join(root_path, drive, ...parts);
-  return path;
+  const raw = String(path ?? "").replace(/\\/g, "/").trim();
+  if (raw.length === 0) return raw;
+
+  // Absolute linux paths should stay untouched.
+  if (raw.startsWith("/")) {
+    return pathm.normalize(raw);
+  }
+
+  // Handle windows-drive style locations: "S:/x", "S:x", or "S/x".
+  const driveWithColon = raw.match(/^([A-Za-z]):\/?(.*)$/);
+  if (driveWithColon) {
+    const drive = driveWithColon[1];
+    const tail = (driveWithColon[2] ?? "")
+      .split("/")
+      .filter((p) => p.length > 0);
+    return pathm.join(root_path ?? "", drive, ...tail);
+  }
+
+  const parts = raw.split("/").filter((p) => p.length > 0);
+  if (parts.length > 0 && /^[A-Za-z]$/.test(parts[0])) {
+    const drive = parts.shift();
+    return pathm.join(root_path ?? "", drive, ...parts);
+  }
+
+  // Fallback for regular relative paths.
+  if (root_path && root_path.length > 0) {
+    return pathm.join(root_path, raw);
+  }
+  return pathm.normalize(raw);
 };
 
 const getImageFrom = (rootpath, link, filename) => {

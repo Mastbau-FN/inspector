@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,12 +9,14 @@ import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
 /// Basisklasse mit dem alten Polling-Mechanismus aus SharedPrefs.
 class ProgressStateUpdater extends ChangeNotifier {
   ProgressStateUpdater() {
-    _getProgress();
+    _poll();
   }
 
   double? _progress;
   bool? _loading = false;
   bool? _success;
+  bool _disposed = false;
+  Timer? _timer;
 
   double? get progress => _progress;
   bool get loading => _loading ?? false;
@@ -21,38 +24,59 @@ class ProgressStateUpdater extends ChangeNotifier {
 
   /// NEU: Setter-Methoden, damit z.B. ein Kind „super.setProgress(...)“ aufrufen kann
   void setProgress(double value) {
+    if (_disposed) return;
     _progress = value;
     notifyListeners();
   }
 
   void setSuccess(bool value) {
+    if (_disposed) return;
     _success = value;
     notifyListeners();
   }
 
+  @override
+  void notifyListeners() {
+    if (_disposed) return;
+    super.notifyListeners();
+  }
+
   // Lese periodisch aus SharedPreferences (alte Logik):
-  void _getProgress() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    _progress = prefs.getDouble(sync_progress_str);
-    _loading = prefs.getBool(sync_in_progress_str);
-
-    final succInt = prefs.getInt(sync_success_str);
-    _success = switch (succInt) {
-      0 => false,
-      1 => true,
-      _ => null,
-    };
-
-    notifyListeners();
-
-    final delayMs = loading ? 200 : 5000;
-    await Future.delayed(Duration(milliseconds: delayMs));
+  Future<void> _poll() async {
+    if (_disposed) return;
     try {
-      _getProgress();
+      final prefs = await SharedPreferences.getInstance();
+      if (_disposed) return;
+
+      _progress = prefs.getDouble(sync_progress_str);
+      _loading = prefs.getBool(sync_in_progress_str);
+
+      final succInt = prefs.getInt(sync_success_str);
+      _success = switch (succInt) {
+        0 => false,
+        1 => true,
+        _ => null,
+      };
+
+      if (!_disposed) notifyListeners();
     } catch (e) {
-      debugPrint('Error in _getProgress: $e');
+      debugPrint('Error in _poll: $e');
+    } finally {
+      if (_disposed) return;
+      final delayMs = loading ? 200 : 5000;
+      _timer?.cancel();
+      _timer = Timer(Duration(milliseconds: delayMs), () {
+        _poll();
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _timer?.cancel();
+    _timer = null;
+    super.dispose();
   }
 }
 

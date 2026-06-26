@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
@@ -16,18 +17,16 @@ import '/classes/exceptions.dart';
 
 import './offlineProvider.dart' as OP;
 import './helpers.dart' as Helper;
+import 'image_naming.dart';
 import 'api.dart';
 
 const LOCALLY_ADDED_PREFIX = '__loc__';
 
-const CACHESIZE = 128;
-
 String _scopeForData(Data? data, {Data? caller}) {
   if (data == null) return '';
-  // Prefer an explicitly set parent folder if available
+  String? parentId;
   try {
-    final parentId = (data as WithOffline).parentId;
-    if (parentId != null && parentId.isNotEmpty) return parentId;
+    parentId = (data as WithOffline).parentId;
   } catch (_) {}
 
   String inspection = data.id;
@@ -45,20 +44,36 @@ String _scopeForData(Data? data, {Data? caller}) {
     seg2 = data.category_index.toString();
     seg3 = data.index.toString();
     seg4 = data.e3?.toString() ?? 'undefined';
+  } else if (data is CheckCategory) {
+    inspection = data.pjNr.toString();
+    seg2 = data.index.toString();
+    seg3 = data.e2?.toString() ?? 'undefined';
+    seg4 = data.e3?.toString() ?? 'undefined';
   } else if (data is InspectionLocation) {
     inspection = data.pjNr.toString();
+  } else if (parentId != null && parentId.isNotEmpty) {
+    // Fallback for unknown/legacy data types.
+    return parentId;
   } else if (caller is InspectionLocation) {
     inspection = caller.pjNr.toString();
   }
 
-  if (caller is WithOffline && caller.parentId != null) {
+  // Only let caller override when we don't have a reliable numeric scope.
+  if (inspection == data.id &&
+      caller is WithOffline &&
+      caller.parentId != null) {
     inspection = caller.parentId!;
   }
 
+  if (inspection.isEmpty && parentId != null && parentId.isNotEmpty) {
+    return parentId;
+  }
   if (inspection.isEmpty) return '';
-  return [inspection, seg2, seg3, seg4].join('-');
+  // use "undefined" as canonical folder token
+  return [inspection, seg2, seg3, seg4]
+      .join('-')
+      .replaceAll('null', 'undefined');
 }
-
 
 /// backend Singleton to provide all functionality related to the backend
 class LocalMirror {
@@ -74,6 +89,27 @@ class LocalMirror {
   /// Returns folder scope for given data (e.g. pjNr-E1-E2-E3)
   String scopeFor(Data? data, {Data? caller}) =>
       _scopeForData(data, caller: caller);
+
+  Future<List<String>> listScopedImageNames(Data? data, {Data? caller}) async {
+    final scope = _scopeForData(data, caller: caller).trim();
+    if (scope.isEmpty) return const [];
+    try {
+      return await OP.listScopedImageNames(scope);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> _deleteStoredImageQuietly(String storedName) async {
+    final name = storedName.trim();
+    if (name.isEmpty) return;
+    try {
+      final file = await OP.localFile(name);
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    } catch (_) {}
+  }
 
   /// Helper function to get the next [Data] (e.g. all [CheckPoint]s for chosen [CheckCategory])
   Future<List<ChildData>?>
@@ -175,58 +211,197 @@ class LocalMirror {
   }
 
   //final _imageStreamController = BehaviorSubject<String>();
-  Future<ImageData?> getImageByHash(String hash,
-      {bool compressed = false, Data? owner}) async {
+  Future<ImageData?> getImageByHash(String hash, {Data? owner}) async {
     final isPath = hash.contains('/');
     final scope = _scopeForData(owner);
+    final legacyScope = scope.contains('undefined')
+        ? scope.replaceAll('undefined', 'null')
+        : scope;
+
+    String displayNameFromStored(String storedName) {
+      var base = storedName.split('/').where((e) => e.isNotEmpty).toList().last;
+      // strip prefixes
+      if (base.startsWith(LOCALLY_ADDED_PREFIX)) {
+        base = base.substring(LOCALLY_ADDED_PREFIX.length);
+      }
+      // strip common extensions
+      final lower = base.toLowerCase();
+      const suffixes = [
+        '.maybe.jpg',
+        '.img',
+        '.jpeg',
+        '.jpg',
+        '.webp',
+        '.heic',
+        '.png',
+      ];
+      for (final s in suffixes) {
+        if (lower.endsWith(s)) {
+          return base.substring(0, base.length - s.length);
+        }
+      }
+      final dot = base.lastIndexOf('.');
+      if (dot > 0 && dot > base.length - 8) return base.substring(0, dot);
+      return base;
+    }
+
+    // Prefer the backend filename-based cache if present.
+    if (!isPath) {
+      try {
+        final indexed = await OP.lookupImageNameForHash(
+          hash,
+          scope: scope,
+        );
+        if (indexed != null && indexed.isNotEmpty) {
+          final img = await readImage(indexed, cacheSize: null);
+          if (img != null)
+            return ImageData(img,
+                id: hash, name: displayNameFromStored(indexed));
+        }
+      } catch (_) {}
+    }
+
     List<String> candidates = [];
     if (!isPath && scope.isNotEmpty) {
       final scoped = '$scope/$hash';
-      candidates.add(compressed
-          ? '$scope/${OP.convertToCompressedHashName(hash)}'
-          : scoped);
+      candidates.add(scoped);
     }
-    if (compressed) {
-      candidates.add(OP.convertToCompressedHashName(hash));
+    if (!isPath && legacyScope.isNotEmpty && legacyScope != scope) {
+      final scoped = '$legacyScope/$hash';
+      candidates.add(scoped);
     }
     candidates.add(hash);
 
     for (final name in candidates) {
-      final img =
-          await readImage(name, cacheSize: compressed ? CACHESIZE : null);
-      if (img != null) return ImageData(img, id: hash);
+      final img = await readImage(name, cacheSize: null);
+      if (img != null) {
+        // Best-effort migration: if we loaded from a legacy "null" folder, copy to the
+        // canonical "undefined" folder so we stop accumulating both.
+        if (!isPath &&
+            scope.isNotEmpty &&
+            legacyScope != scope &&
+            name.startsWith('$legacyScope/')) {
+          final migratedName = name.replaceFirst(legacyScope, scope);
+          try {
+            final src = await OP.localFile(name);
+            final dst = await OP.localFile(migratedName);
+            if (!dst.existsSync()) {
+              await dst.parent.create(recursive: true);
+              await src.copy(dst.path);
+            }
+            await OP.indexImageHash(
+              hash: hash,
+              storedName: migratedName,
+              scope: scope,
+            );
+            final migratedImg = await readImage(migratedName, cacheSize: null);
+            if (migratedImg != null) {
+              return ImageData(migratedImg,
+                  id: hash, name: displayNameFromStored(migratedName));
+            }
+          } catch (_) {}
+        }
+        return ImageData(img, id: hash, name: displayNameFromStored(name));
+      }
     }
     throw Exception("no img cached");
   }
 
-  Future<File?> getDocument(String docPath) async {
-    final doc = await readDoc(docPath.split('/').last);
-    if (doc == null) throw Exception("no doc cached");
-    // return null;
-    // return Data!;
-    return doc;
+  Future<File?> getDocument(String docPath, {String? scope}) async {
+    final filename = docPath.split('/').last;
+    final s = (scope ?? '').trim();
+    final legacyScope =
+        s.contains('undefined') ? s.replaceAll('undefined', 'null') : s;
+
+    final candidates = <String>[
+      if (s.isNotEmpty) '$s/Dokus/$filename',
+      if (legacyScope.isNotEmpty && legacyScope != s)
+        '$legacyScope/Dokus/$filename',
+      // legacy: flat storage
+      filename,
+    ];
+
+    for (final name in candidates) {
+      final doc = await readDoc(name);
+      if (doc != null) return doc;
+    }
+    throw Exception("no doc cached");
   }
 
   /// deletes an image specified by its hash and returns the response
   Future<String?> deleteImageByHash<DataT extends Data>(
     DataT? data,
     String hash, {
+    String? canonicalHash,
     Data? caller,
     bool forceUpdate = false,
   }) async {
-    //offline procedure, needs some stuff changed and added..
-    if ((forceUpdate || caller != null) && data != null) {
-      try {
-        // data.id = /*'_oe_' + */ createLocalId(data);
-        // await OP.deleteImage(hash); //TODO: delete image from disk, such that when 'hochsyncen' it is not uploaded and the 'hochsync' is not interrupted (which it would be if it just tries to upload a file that is now deleted)
-        data.imagehashes!.remove(hash);
-        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
-        // return 'successfully deleted image offline';
-      } catch (e) {
-        debugPrint('failed to remove image locally');
+    final requested = hash.trim();
+    final canonical = (canonicalHash ?? '').trim();
+    final scope = _scopeForData(data, caller: caller).trim();
+
+    final hashRefs = <String>{};
+    final pathRefs = <String>{};
+
+    void addRef(String value) {
+      final v = value.trim();
+      if (v.isEmpty) return;
+      if (v.contains('/')) {
+        pathRefs.add(v);
+      } else {
+        hashRefs.add(v);
       }
     }
-    return null;
+
+    addRef(requested);
+    addRef(canonical);
+
+    for (final ref in [requested, canonical]) {
+      if (ref.isEmpty || !ref.contains('/')) continue;
+      try {
+        final mappedHash = await OP.lookupHashForImageName(ref, scope: scope);
+        if (mappedHash != null && mappedHash.trim().isNotEmpty) {
+          addRef(mappedHash);
+        }
+      } catch (_) {}
+    }
+
+    for (final h in hashRefs.toList(growable: false)) {
+      try {
+        final mappedName = await OP.lookupImageNameForHash(h, scope: scope);
+        if (mappedName != null && mappedName.trim().isNotEmpty) {
+          addRef(mappedName);
+        }
+      } catch (_) {}
+      if (scope.isNotEmpty) addRef('$scope/$h');
+    }
+
+    final allRefs = <String>{...hashRefs, ...pathRefs};
+
+    if ((forceUpdate || caller != null) && data != null) {
+      try {
+        data.imagehashes ??= <String>[];
+        data.imagehashes!.removeWhere((h) => allRefs.contains(h));
+        if (data.mainhash != null && allRefs.contains(data.mainhash!)) {
+          data.mainhash = null;
+        }
+        await storeData<DataT>(data, forId: caller?.id ?? await API().rootID);
+      } catch (e) {
+        debugPrint('failed to remove image references locally: $e');
+      }
+    }
+
+    for (final pathRef in pathRefs) {
+      await _deleteStoredImageQuietly(pathRef);
+    }
+    for (final hashRef in hashRefs) {
+      await _deleteStoredImageQuietly(hashRef);
+      if (scope.isNotEmpty) {
+        await _deleteStoredImageQuietly('$scope/$hashRef');
+      }
+      await OP.unindexImageHash(hash: hashRef, scope: scope);
+    }
+    return 'success';
   }
 
   /// sets an image specified by its hash as the new main image
@@ -266,11 +441,10 @@ class LocalMirror {
   }) async {
     List<String> newLocalImageNames = [];
     final scope = _scopeForData(data, caller: caller);
-    String _scoped(String base) =>
-        scope.isNotEmpty ? '$scope/$base' : base;
+    String _scoped(String base) => scope.isNotEmpty ? '$scope/$base' : base;
     await Future.wait(files.map((file) async {
       final bytes = await file.readAsBytes();
-      final imageName = _scoped('$LOCALLY_ADDED_PREFIX${file.name}');
+      final imageName = _scoped(canonicalTimestampFilenameForXFile(file));
       await storeImage(bytes, imageName);
       newLocalImageNames.add(imageName);
     }));

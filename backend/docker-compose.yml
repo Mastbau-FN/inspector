@@ -21,7 +21,6 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /home/administrator/images:/home/administrator/images
-      - /home/administrator/compressed_images:/home/administrator/compressed_images
       - ${CERT_PATH}:${CERT_PATH}
 
       - .:/home/node/api
@@ -48,7 +47,6 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /home/administrator/images:/home/administrator/images
-      - /home/administrator/compressed_images:/home/administrator/compressed_images
       - ${CERT_PATH}:${CERT_PATH}
       - .:/home/node/api
     command: sh -c "

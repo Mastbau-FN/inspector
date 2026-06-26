@@ -9,6 +9,38 @@ const fs = require("fs");
 const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
 
+function _shortPayload(payload = {}) {
+  const out = [];
+  for (const [k, v] of Object.entries(payload)) {
+    if (v == null) continue;
+    if (typeof v === "object") continue;
+    out.push(`${k}=${v}`);
+  }
+  return out.join(" ");
+}
+
+function _logRequest(level, req, event, payload = {}) {
+  const logger = console[level] ?? console.log;
+  const details = _shortPayload(payload);
+  logger(
+    `[backend] ${event} ${req.method} ${req.originalUrl ?? req.url} req=${req.__request_id ?? "-"}${details ? ` ${details}` : ""}`
+  );
+}
+
+function _uploadTrace(req, event, payload = {}) {
+  const details = _shortPayload(payload);
+  console.log(
+    `[upload] ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${details ? ` ${details}` : ""}`
+  );
+}
+
+function _uploadWarn(req, event, payload = {}) {
+  const details = _shortPayload(payload);
+  console.warn(
+    `[upload] WARN ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${details ? ` ${details}` : ""}`
+  );
+}
+
 //errorhandling
 /**
  * 
@@ -22,10 +54,9 @@ const errsafejson = async (statement, jsonmaker, res, next) => {
   try {
     const val = await statement();
     const jsonderulo = await jsonmaker(val);
-    // console.log(res)
     if (!res.headersSent) return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(error, "caler")
+    console.warn(`[backend] errsafejson-failed ${res?.req?.method ?? "-"} ${res?.req?.originalUrl ?? res?.req?.url ?? "-"} reason=${error?.message ?? String(error)}`);
     return next({ error: { errsafejson_captured: error.toString() } });
   }
 };
@@ -45,16 +76,19 @@ const login = (req, res) => {
     req.user?.login_id_pruefer ??
     null;
   json_response.user = { ...req.user, Def_Login_ID: defLoginId };
-  console.log(
-    "user logged in:",
-    req.user?.KZL,
-    "Def_Login_ID:",
-    defLoginId,
-    "keys:",
-    Object.keys(req.user ?? {})
-  );
   res.status(200).json(json_response);
 };
+
+/**
+ * resolves all available workers for the pre-login dropdown
+ */
+const getLoginUsers = (req, res, next) =>
+  errsafejson(
+    async () => await queries.getLoginUsers(),
+    (rows) => ({ users: rows }),
+    res,
+    next
+  );
 
 /**
  * resolves all projects / inspections / locations for the currently logged-in user 
@@ -170,11 +204,6 @@ const touchPruefer = (req, res, next) =>
     async () => {
       const pjNr = req.body?.PjNr ?? req.body?.data?.PjNr;
       const out = await queries.touchPruefer(pjNr, req.user.Def_Login_ID);
-      if (out?.updated) {
-        console.log(
-          `touchPruefer: PjNr=${pjNr} old=${out.old_login_id_pruefer} new=${out.login_id_pruefer} (KZL=${req.user?.KZL}, Def_Login_ID=${req.user?.Def_Login_ID})`
-        );
-      }
       return out;
     },
     (json) => ({ message: "touched pruefer", ...json }),
@@ -195,15 +224,33 @@ const delete_ = (req, res, next) =>
 
 const deleteImgByHash = (req, res, next) =>
   errsafejson(
-    async () => (await queries.deleteImgByHash(req.body.hash)),
+    async () => {
+      _logRequest("log", req, "delete-image-request", {
+        hash: req.body?.hash,
+      });
+      const result = await queries.deleteImgByHash(
+        req.body.hash,
+        req.body?.data
+      );
+      _logRequest(
+        result?.deleted ? "log" : "warn",
+        req,
+        "delete-image-result",
+        {
+          deleted: result?.deleted,
+          reason: result?.reason,
+          via: result?.resolvedVia,
+          hash: req.body?.hash,
+        }
+      );
+      return result;
+    },
     (json) => { return { message: "deleted image", query_result: json } },
     res,
     next
   );
 
 const setMainImgByHash = async (req, res, next) => {
-  // console.log("🚀 ~ file: api.js:163 ~ setMain ~ resreq", {req}, {res})
-
   if(req.body.hash!=null){
     const pathparts = imghasher.getPathFromHash(req.body.hash);
     if(pathparts.link!=null && pathparts.filename!=null){
@@ -211,25 +258,41 @@ const setMainImgByHash = async (req, res, next) => {
       // const newLink = path.join(pathparts.filename); // LinkOrdner+/+filename 
       req.body.data.Link = newLink;
     }else {
-      console.log("hash ungültig oder null")
+      _logRequest("warn", req, "set-main-image-invalid-hash", {
+        hash: req.body.hash,
+      });
     } 
   }else{
-    console.log("kein hash übergeben")
+    _logRequest("warn", req, "set-main-image-missing-hash", {});
   }
-
-
-  // console.log("setmainimagehash api backend", req.body.hash, newLink);
-  // res.status(200).json({ reason: 'kein 404 bitte'}) //FIX-ME: aus irgendeinem grund wird in update oder so 404er header geworfen und die app denkt es ist fehlgeschlagen obwohl eigtl alles geht, uns ist aber unklar wieso, aber so klappts als dirty fix erstmal, die logs sind bloß etwas kagge
   await update(req, res, next);
 };
+
+function guessImageContentType(filename) {
+  const name = (filename ?? '').toLowerCase();
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  if (name.endsWith('.gif')) return 'image/gif';
+  if (name.endsWith('.bmp')) return 'image/bmp';
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+  if (name.endsWith('.heic') || name.endsWith('.heif')) return 'image/heic';
+  return 'application/octet-stream';
+}
 
 /**
  * retrieves the file given by a hash and returns it to the client
  */
 const getFileFromHash = async (req, res) => {
   try {
-    let img = await imghasher.getFileFromHash(req.body.hash, req.body.compressed);
-    res.writeHead(200, { "Content-type": "image/jpg" });
+    const hash = req.body.hash;
+    const pathparts = imghasher.getPathFromHash(hash) ?? {};
+    const filename = pathparts.filename;
+
+    let img = await imghasher.getFileFromHash(hash);
+    res.writeHead(200, {
+      "Content-type": guessImageContentType(filename),
+      ...(filename ? { "x-image-filename": filename } : {}),
+    });
     res.end(img);
   } catch (e) {
     res.status(404).json({ reason: "image no longer available" });
@@ -238,13 +301,15 @@ const getFileFromHash = async (req, res) => {
 
 const getDocFromPath = async (req, res) => {
   try {
-    console.log("docPath", req.body.docPath);
     let img = await fsp.readFile(req.body.docPath);
 
     res.writeHead(200, { "Content-type": "application/octet-stream" });
     res.end(img);
   } catch (e) {
-    console.log("FHleer")
+    _logRequest("warn", req, "doc-read-failed", {
+      docPath: req.body?.docPath ?? null,
+      reason: e?.message ?? String(e),
+    });
     res.status(404).json({ reason: "doc no longer available" });
   }
 };
@@ -254,13 +319,14 @@ const getDocFromPath = async (req, res) => {
  */
 const getFileFromHash_get = async (req, res) => {
   try {
-    let img/*;
-    try {
-      img*/ = await imghasher.getFileFromHash(req.params.hash, true); //serve compressed images only
-    // } catch (e) {
-    //   img = await imghasher.getFileFromHash(req.params.hash, false); //fallback to non-compressed
-    // }
-    res.writeHead(200, { "Content-type": "image/jpg" });
+    const hash = req.params.hash;
+    const pathparts = imghasher.getPathFromHash(hash) ?? {};
+    const filename = pathparts.filename;
+    let img = await imghasher.getFileFromHash(hash);
+    res.writeHead(200, {
+      "Content-type": guessImageContentType(filename),
+      ...(filename ? { "x-image-filename": filename } : {}),
+    });
     res.end(img);
   } catch (e) {
     console.warn('failed to get image:',  e);
@@ -270,18 +336,114 @@ const getFileFromHash_get = async (req, res) => {
 
 
 const fileUpload = async (req, res) => {
-  console.log("uploading files..");
+  const filesCount = Array.isArray(req.files)
+    ? req.files.length
+    : req.file
+      ? 1
+      : 0;
+  _uploadTrace(req, "start", {
+    files: filesCount,
+    pj: req?.body?.data?.PjNr,
+    e1: req?.body?.data?.E1,
+    e2: req?.body?.data?.E2,
+    e3: req?.body?.data?.E3,
+  });
+
   if (!(req.files || req.file)) {
-    res.status(204).json({ reason: "no file uploaded" });
-    console.log("file failed")
-  } else {
-    res.status(204).json();
-    console.log("file succeeded")
+    res.status(400).json({ success: false, reason: "no file uploaded" });
+    _uploadWarn(req, "no-files", {});
+    return;
   }
+
+  // If this upload is the first image for the datapoint, set it as main image.
+  // This has to happen here (after auth/login middleware) and not inside multer storage.
+  try {
+    const pendingHash = req.__pending_set_main_hash;
+    const pendingLink = req.__pending_set_main_link;
+    if (pendingHash && req.body && req.body.data) {
+      // Ensure body data is an object.
+      if (typeof req.body.data === "string") {
+        try {
+          req.body.data = JSON.parse(req.body.data);
+        } catch (_) {}
+      }
+      const pathparts = imghasher.getPathFromHash(pendingHash);
+      if (pendingLink) {
+        req.body.hash = pendingHash;
+        req.body.data.Link = pendingLink;
+        const defLoginId =
+          req.user?.Def_Login_ID ??
+          req.user?.def_login_id ??
+          req.user?.Login_ID_Pruefer ??
+          req.user?.login_id_pruefer ??
+          null;
+        if (defLoginId != null) {
+          await queries.update(req.body, defLoginId);
+        } else {
+          _uploadWarn(req, "main-image-update-skipped", { hash: pendingHash });
+        }
+      } else if (pathparts?.link != null && pathparts?.filename != null) {
+        req.body.hash = pendingHash;
+        req.body.data.Link = path.join(pathparts.link, pathparts.filename);
+        const defLoginId =
+          req.user?.Def_Login_ID ??
+          req.user?.def_login_id ??
+          req.user?.Login_ID_Pruefer ??
+          req.user?.login_id_pruefer ??
+          null;
+        if (defLoginId != null) {
+          await queries.update(req.body, defLoginId);
+        } else {
+          _uploadWarn(req, "main-image-update-skipped", { hash: pendingHash });
+        }
+      }
+    }
+  } catch (e) {
+    _uploadWarn(req, "main-image-update-failed", {
+      reason: e?.message ?? String(e)
+    });
+  }
+
+  const uploaded = Array.isArray(req.__uploaded_images)
+    ? req.__uploaded_images
+    : [];
+
+  try {
+    for (const entry of uploaded) {
+      const absPath = entry?.stored_absolute_path;
+      const exists = absPath ? fs.existsSync(absPath) : false;
+      let size = null;
+      if (exists) {
+        try {
+          size = fs.statSync(absPath).size;
+        } catch (_) {}
+      }
+      _uploadTrace(req, "saved", {
+        file: entry?.stored_filename,
+        hash: entry?.hash,
+        bytes: size,
+        exists,
+        path: absPath,
+      });
+    }
+  } catch (e) {
+    _uploadWarn(req, "write-result-log-failed", {
+      reason: e?.message ?? String(e),
+    });
+  }
+
+  _uploadTrace(req, "done", {
+    files: uploaded.length,
+  });
+  res.status(200).json({
+    success: true,
+    uploaded_images: uploaded,
+  });
 };
 
 module.exports = {
   login,
+  getLoginUsers,
 
   getProjects,
   getCategories,

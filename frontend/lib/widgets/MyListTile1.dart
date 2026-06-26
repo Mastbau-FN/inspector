@@ -17,33 +17,33 @@ class MyCardListTile1 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget arrow = const Icon(Icons.keyboard_arrow_right);
     final makeListTile = ListTile(
         onTap: onTap,
         contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
         leading: Icon(icon), // color: Colors.amber[400]),
-        title: child != null
-            ? Row(
+        title: Text(
+          text,
+          maxLines: 2,
+          softWrap: true,
+          overflow: TextOverflow.clip,
+          //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        subtitle: (subtext != null) ? Text(subtext ?? "") : null,
+        trailing: child == null
+            ? arrow
+            : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    child: Text(
-                      text,
-                      maxLines: 2,
-                      //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: child!,
                     ),
                   ),
-                  // Spacer(),
-                  child ?? Container(),
+                  arrow,
                 ],
-              )
-            : Text(
-                text,
-                maxLines: 2,
-                //style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
-        subtitle: (subtext != null) ? Text(subtext ?? "") : null,
-        trailing: Icon(
-            Icons.keyboard_arrow_right) //, color: Colors.white, size: 30.0),
         );
 
     return Card(

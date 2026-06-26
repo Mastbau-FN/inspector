@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 
 class ImageData<T extends Object> {
-  final Image thumbnail;
-  Future<Image?> fullImage() =>
-      fullImageGetter?.call() ?? Future.value(thumbnail);
-  late final Future<Image?> Function()? fullImageGetter;
+  final Image image;
+  Future<Image?> fullImage() {
+    final getter = fullImageGetter;
+    return (getter != null) ? getter() : Future.value(image);
+  }
+
+  Future<Image?> Function()? fullImageGetter;
   final T id;
+  final String? name;
   ImageData(
-    this.thumbnail, {
+    this.image, {
     required this.id,
+    this.name,
   });
 }

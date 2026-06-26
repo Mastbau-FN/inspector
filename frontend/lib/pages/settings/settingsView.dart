@@ -15,17 +15,18 @@ import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
-    show
-        FailedRequestmanager,
-        sync_in_progress_str,
-        GroupedInspection;
+    show FailedRequestmanager, sync_in_progress_str, GroupedInspection;
+import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
 import 'package:MBG_Inspektionen/backend/progressStateUpdater.dart';
+import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:MBG_Inspektionen/pages/login/loginModel.dart';
 import 'package:MBG_Inspektionen/pages/mostrecentrequest.dart';
+import 'package:MBG_Inspektionen/pages/settings/inspectionArchiveView.dart';
 import 'package:MBG_Inspektionen/pages/settings/developerSettings.dart';
 import 'package:MBG_Inspektionen/widgets/MyListTile1.dart';
 import 'package:MBG_Inspektionen/widgets/openNewViewTile.dart';
@@ -99,6 +100,7 @@ class _SettingsViewState extends State<SettingsView> {
                 if (Options().canBeOffline) const UploadSyncTile(),
                 if (Options().canBeOffline) const BackupTile(),
                 if (Options().canBeOffline) backupManagementTile,
+                if (Options().canBeOffline) const InspectionArchiveTile(),
                 if (Options().canBeOffline) const OpenNextRequestTile(),
                 if (Options().canBeOffline) unsetIsRunningTile,
                 developerOptions,
@@ -134,26 +136,125 @@ class _SettingsViewState extends State<SettingsView> {
       );
 }
 
+class InspectionArchiveTile extends StatefulWidget {
+  const InspectionArchiveTile({super.key});
+
+  @override
+  State<InspectionArchiveTile> createState() => _InspectionArchiveTileState();
+}
+
+class _InspectionArchiveTileState extends State<InspectionArchiveTile> {
+  Future<int> _hiddenCount() async =>
+      (await InspectionVisibility().getHiddenInspections()).length;
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<int>(
+        future: _hiddenCount(),
+        builder: (context, snapshot) {
+          final hiddenCount = snapshot.data ?? 0;
+          return MyCardListTile1(
+            icon: Icons.phone_android,
+            text: 'Inspektionen auf Handy löschen',
+            subtext: hiddenCount == 0
+                ? 'Keine gelöschten Inspektionen'
+                : '$hiddenCount gelöschte Inspektionen',
+            child: hiddenCount > 0
+                ? Text(
+                    '$hiddenCount',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  )
+                : null,
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const InspectionArchiveView(),
+                ),
+              );
+              if (mounted) setState(() {});
+            },
+          );
+        },
+      );
+}
+
 /// Displays a page with the "next request" if available.
-class OpenNextRequestTile extends StatelessWidget {
+class OpenNextRequestTile extends StatefulWidget {
   const OpenNextRequestTile({super.key});
 
   @override
-  Widget build(BuildContext context) => FutureBuilder(
-      future: API().local.getAllFailedRequests(),
+  State<OpenNextRequestTile> createState() => _OpenNextRequestTileState();
+}
+
+class _OpenNextRequestTileData {
+  final (String, RequestData?)? nextRequest;
+  final int totalCount;
+  final int hiddenCount;
+
+  const _OpenNextRequestTileData({
+    required this.nextRequest,
+    required this.totalCount,
+    required this.hiddenCount,
+  });
+}
+
+class _OpenNextRequestTileState extends State<OpenNextRequestTile> {
+  final _visibility = InspectionVisibility();
+
+  Future<_OpenNextRequestTileData> _loadData() async {
+    final allRequests = await API().local.getAllFailedRequests() ?? [];
+    final visibleRequests =
+        await _visibility.filterVisibleFailedRequests(allRequests);
+    final hiddenCount = allRequests.length - visibleRequests.length;
+    return _OpenNextRequestTileData(
+      nextRequest: visibleRequests.isEmpty ? null : visibleRequests.first,
+      totalCount: allRequests.length,
+      hiddenCount: hiddenCount,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<_OpenNextRequestTileData>(
+      future: _loadData(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Text('waiting to get failed requests...');
+          return const MyCardListTile1(
+            icon: Icons.remove_from_queue,
+            text: 'next Request',
+            subtext: 'Lade Requests...',
+          );
         }
-        if (snapshot.data == null || snapshot.data!.isEmpty) {
-          return const Text('no failed requests');
+        final data = snapshot.data!;
+        if (data.totalCount == 0) {
+          return const MyCardListTile1(
+            icon: Icons.remove_from_queue,
+            text: 'next Request',
+            subtext: 'Keine Requests vorhanden',
+          );
         }
-        return OpenNewViewTile(
+        if (data.nextRequest == null) {
+          return MyCardListTile1(
+            icon: Icons.remove_from_queue,
+            text: 'next Request',
+            subtext:
+                'Alle Requests sind ausgeblendet (${data.hiddenCount} Stück)',
+          );
+        }
+        return MyCardListTile1(
           icon: Icons.remove_from_queue,
-          title: 'next Request',
-          newView: MostRecentRequestPage(
-            request: snapshot.data?.first,
-          ),
+          text: 'next Request',
+          subtext: data.hiddenCount > 0
+              ? '${data.hiddenCount} ausgeblendete Requests'
+              : null,
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MostRecentRequestPage(
+                  request: data.nextRequest,
+                ),
+              ),
+            );
+            if (mounted) setState(() {});
+          },
         );
       });
 }
@@ -775,6 +876,7 @@ class _UploadSyncTile extends StatefulWidget {
 }
 
 class _UploadSyncTileState extends State<_UploadSyncTile> {
+  final _inspectionVisibility = InspectionVisibility();
   bool isSynced = false;
   bool showCompleted = false;
 
@@ -785,10 +887,16 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   }
 
   Future<void> _checkSyncStatus() async {
-    final failedReqs = await API().local.getAllFailedRequests() ?? [];
+    final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
+      await API().local.getAllFailedRequests() ?? [],
+    );
+    final nextIsSynced = failedReqs.isEmpty;
     setState(() {
-      isSynced = failedReqs.isEmpty;
+      isSynced = nextIsSynced;
     });
+    if (nextIsSynced) {
+      SyncEvents.instance.notifyLocalDataChanged();
+    }
   }
 
   Future<void> _analyzeRequests() async {
@@ -841,8 +949,10 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       return;
     }
 
-    final failedReqs = await API().local.getAllFailedRequests();
-    if (failedReqs == null || failedReqs.isEmpty) {
+    final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
+      await API().local.getAllFailedRequests() ?? [],
+    );
+    if (failedReqs.isEmpty) {
       debugPrint('No failed requests found, skipping backup and sync');
       showToast('Keine Inspektionen zum Synchronisieren vorhanden');
       return;
@@ -939,29 +1049,29 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
           String? pjNr = inspId;
           try {
             if (inspId != 'Backup') {
-              final failedReqs = await API().local.getAllFailedRequests();
-              if (failedReqs != null) {
-                for (var (_, requestData) in failedReqs) {
-                  if (requestData != null) {
-                    final jsonData = requestData.json;
-                    if (jsonData != null) {
-                      final data = jsonData['data'];
-                      Map<String, dynamic> parsedData;
+              final failedReqs =
+                  await _inspectionVisibility.filterVisibleFailedRequests(
+                await API().local.getAllFailedRequests() ?? [],
+              );
+              for (var (_, requestData) in failedReqs) {
+                if (requestData != null) {
+                  final jsonData = requestData.json;
+                  if (jsonData != null) {
+                    final data = jsonData['data'];
+                    Map<String, dynamic> parsedData;
 
-                      if (data is String) {
-                        parsedData =
-                            Map<String, dynamic>.from(json.decode(data));
-                      } else if (data is Map<String, dynamic>) {
-                        parsedData = data;
-                      } else {
-                        continue;
-                      }
+                    if (data is String) {
+                      parsedData = Map<String, dynamic>.from(json.decode(data));
+                    } else if (data is Map<String, dynamic>) {
+                      parsedData = data;
+                    } else {
+                      continue;
+                    }
 
-                      final localId = parsedData['local_id']?.toString();
-                      if (localId == inspId) {
-                        pjNr = parsedData['PjNr']?.toString();
-                        break;
-                      }
+                    final localId = parsedData['local_id']?.toString();
+                    if (localId == inspId) {
+                      pjNr = parsedData['PjNr']?.toString();
+                      break;
                     }
                   }
                 }
@@ -1138,7 +1248,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       }
     } else {
       tileText =
-          isSynced ? 'Alles synchronisiert' : 'Synchronisierung\nmit Server';
+          isSynced ? 'Alles\nsynchronisiert' : 'Synchronisierung\nmit Server';
     }
 
     return Column(

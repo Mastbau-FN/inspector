@@ -1,15 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
+import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as imglib;
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
+import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../classes/imageData.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import '/classes/exceptions.dart';
@@ -17,11 +24,14 @@ import '/classes/user.dart';
 import 'package:MBG_Inspektionen/options.dart';
 
 import './helpers.dart' as Helper;
+import 'download_progress.dart';
 
 /// backend Singleton to provide all functionality related to the backend
 class API {
+  static const String _loginUsersStoreKey = 'login_users_cache_v1';
   final remote = Remote();
   final local = LocalMirror();
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   // MARK: internals
 
   static final API _instance = API._internal();
@@ -34,6 +44,30 @@ class API {
   User? _user;
   final Set<int> _touchedPrueferForProjects = <int>{};
   final Map<int, String?> _prueferByPjNr = <int, String?>{};
+  final Map<String, Future<ImageData?>> _inflightImageFetches =
+      <String, Future<ImageData?>>{};
+  bool _refreshingLoginUsers = false;
+
+  String? _readStringKey(Map<String, dynamic> map, List<String> candidates) {
+    for (final key in candidates) {
+      final v = map[key];
+      if (v != null) {
+        final s = v.toString().trim();
+        if (s.isNotEmpty) return s;
+      }
+    }
+    for (final entry in map.entries) {
+      final key = entry.key.toLowerCase();
+      if (candidates.any((c) => c.toLowerCase() == key)) {
+        final v = entry.value;
+        if (v != null) {
+          final s = v.toString().trim();
+          if (s.isNotEmpty) return s;
+        }
+      }
+    }
+    return null;
+  }
 
   /// returns the currently logged in [User], whether its already initialized or not.
   /// should be prefered over [_user], since it makes sure to have it initialized
@@ -43,7 +77,132 @@ class API {
     final user = await User.fromStore();
     _user = user;
     remote.injectUser(user);
+    if (user != null) {
+      unawaited(refreshLoginUsersCache());
+    }
     return _user;
+  }
+
+  List<DisplayUser> _parseLoginUsers(dynamic entries) {
+    if (entries is! List) return [];
+    final usersByKzl = <String, DisplayUser>{};
+    for (final entry in entries) {
+      if (entry is! Map) continue;
+      final map = Map<String, dynamic>.from(entry);
+      final kzl = (_readStringKey(map, ['KZL', 'kzl']) ?? '').trim();
+      if (kzl.isEmpty || kzl == '??') continue;
+      final user = DisplayUser(kzl);
+      user.full_name = _readStringKey(map, ['Vorname', 'vorname']);
+      user.full_surname = _readStringKey(map, ['Name', 'name']);
+      usersByKzl[kzl] = user;
+    }
+    final users = usersByKzl.values.toList();
+    users.sort((a, b) {
+      final aName = '${a.full_surname ?? ''} ${a.full_name ?? ''} ${a.name}'
+          .toLowerCase();
+      final bName = '${b.full_surname ?? ''} ${b.full_name ?? ''} ${b.name}'
+          .toLowerCase();
+      return aName.compareTo(bName);
+    });
+    return users;
+  }
+
+  Future<void> _storeLoginUsers(List<DisplayUser> users) async {
+    final usersByKzl = <String, DisplayUser>{};
+    for (final user in users) {
+      final kzl = user.name.trim();
+      if (kzl.isEmpty || kzl == '??') continue;
+      usersByKzl[kzl] = user;
+    }
+    final normalized = usersByKzl.values.toList();
+    normalized.sort((a, b) {
+      final aName = '${a.full_surname ?? ''} ${a.full_name ?? ''} ${a.name}'
+          .toLowerCase();
+      final bName = '${b.full_surname ?? ''} ${b.full_name ?? ''} ${b.name}'
+          .toLowerCase();
+      return aName.compareTo(bName);
+    });
+
+    final encoded = normalized
+        .map((user) => {
+              'KZL': user.name,
+              'Vorname': user.full_name,
+              'Name': user.full_surname,
+            })
+        .toList(growable: false);
+    final payload = jsonEncode(encoded);
+    await (await _prefs).setString(_loginUsersStoreKey, payload);
+    debugPrint(
+      'Login users cache stored: count=${normalized.length}, bytes=${payload.length}',
+    );
+  }
+
+  Future<List<DisplayUser>> _readStoredLoginUsers() async {
+    final raw = (await _prefs).getString(_loginUsersStoreKey);
+    if (raw == null || raw.isEmpty) {
+      debugPrint('Login users cache read: empty');
+      return [];
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      final parsed = _parseLoginUsers(decoded);
+      debugPrint(
+        'Login users cache read: parsed=${parsed.length}, bytes=${raw.length}',
+      );
+      return parsed;
+    } catch (e) {
+      debugPrint('Could not parse cached login users: $e');
+      return [];
+    }
+  }
+
+  /// Refreshes the login-users cache from backend.
+  /// This should only run while a user is already authenticated.
+  Future<void> refreshLoginUsersCache() async {
+    if (_refreshingLoginUsers) return;
+    if (await _c_user == null) return;
+    _refreshingLoginUsers = true;
+    try {
+      debugPrint('Refreshing login users cache from backend...');
+      final users = await remote.getLoginUsers();
+      debugPrint('Login users fetched from backend: ${users.length}');
+      await _storeLoginUsers(users);
+      debugPrint('Cached login users updated: ${users.length}');
+    } catch (e) {
+      debugPrint('Could not refresh login users cache: $e');
+    } finally {
+      _refreshingLoginUsers = false;
+    }
+  }
+
+  Future<void> _seedLoginUsersCacheWithCurrentUser(DisplayUser user) async {
+    final currentKzl = user.name.trim();
+    if (currentKzl.isEmpty || currentKzl == '??') return;
+    final cached = await _readStoredLoginUsers();
+    final idx = cached.indexWhere(
+      (u) => u.name.toLowerCase() == currentKzl.toLowerCase(),
+    );
+    if (idx >= 0) {
+      final existing = cached[idx];
+      if ((existing.full_name == null || existing.full_name!.isEmpty) &&
+          (user.full_name != null && user.full_name!.isNotEmpty)) {
+        existing.full_name = user.full_name;
+      }
+      if ((existing.full_surname == null || existing.full_surname!.isEmpty) &&
+          (user.full_surname != null && user.full_surname!.isNotEmpty)) {
+        existing.full_surname = user.full_surname;
+      }
+    } else {
+      cached.add(
+        DisplayUser(
+          currentKzl,
+          full_name: user.full_name,
+          full_surname: user.full_surname,
+        ),
+      );
+    }
+    await _storeLoginUsers(cached);
+    debugPrint('Seeded login users cache with current user: $currentKzl');
   }
 
   bool? _dataPrefersCache(Data? data,
@@ -92,10 +251,12 @@ class API {
     final _itPrefersCache = itPrefersCache ?? false;
     late T offlineRes;
     late T onlineRes;
+    bool offlineHadValue = false;
     Future<bool> doOffline({bool orDontIf = false}) async {
       if (orDontIf) return false;
       return Future<T>(offline).then((value) {
         offlineRes = value;
+        offlineHadValue = true;
         controller.add(offlineRes);
         return true;
       }, onError: (err) {
@@ -124,11 +285,68 @@ class API {
                   (requestType != Helper.SimulatedRequestType.GET);
               if (wantsonline || wantsmerged) {
                 await Future.delayed(Duration(milliseconds: 100));
-                final res = await remote.postJSON(rap.rd);
-                onlineRes = await rap.parser(res as R);
-                if (wantsonline) controller.add(onlineRes);
-                if (wantsmerged)
-                  controller.add(await merge(offlineRes, onlineRes));
+                final session = DownloadProgress.instance.active;
+                String? key;
+                final currentStep = session?.notifier.value.stepIndex ?? 0;
+                int step = currentStep;
+                String? stepLabel;
+                try {
+                  final r = rap.rd.route;
+                  if (r.contains('checkcategory') || r.contains('checkpoint')) {
+                    step = 1;
+                    stepLabel = 'Step 1/3: Checkpoints';
+                  } else if (r.contains('defect')) {
+                    step = 2;
+                    stepLabel = 'Step 2/3: Defects';
+                  } else if (r.contains('/image/get') ||
+                      r.contains('/doc/get')) {
+                    // If image downloads start before we fetched any checkpoints/defects,
+                    // treat them as a pre-step "0/3" to make the UX clearer.
+                    if (currentStep == 0) {
+                      step = 0;
+                      stepLabel = 'Step 0/3: Inspection images';
+                    } else {
+                      step = 3;
+                      stepLabel = 'Step 3/3: Images';
+                    }
+                  }
+                } catch (_) {}
+                try {
+                  if (rap.rd.route == '/image/get') {
+                    final hash = rap.rd.json?['hash']?.toString();
+                    if (hash != null && hash.isNotEmpty) {
+                      key = '${rap.rd.route}|$hash';
+                    }
+                  } else if (rap.rd.route == '/doc/get') {
+                    final docPath = rap.rd.json?['docPath']?.toString();
+                    if (docPath != null && docPath.isNotEmpty) {
+                      key = '${rap.rd.route}|$docPath';
+                    }
+                  }
+                } catch (_) {}
+
+                if (stepLabel != null) {
+                  session?.setStep(step, label: stepLabel);
+                }
+                final token = session?.beginTask(
+                  rap.rd.route,
+                  key: key,
+                  step: step,
+                );
+                try {
+                  final res = await remote.postJSON(rap.rd);
+                  onlineRes = await rap.parser(res as R);
+                  if (wantsonline) {
+                    controller.add(onlineRes);
+                  }
+                  if (wantsmerged) {
+                    controller.add(await merge(offlineRes, onlineRes));
+                  }
+                  if (token != null) session?.endTask(token, success: true);
+                } catch (e) {
+                  if (token != null) session?.endTask(token, success: false);
+                  rethrow;
+                }
               } else
                 return null;
             } catch (e) {
@@ -141,9 +359,9 @@ class API {
           onlineFailedProcedure() async {
             bool log = rap.rd.logIfFailed ??
                 (requestType != Helper.SimulatedRequestType.GET);
-            if (onlineFailedCB != null)
+            if (onlineFailedCB != null && offlineHadValue) {
               await onlineFailedCB(offlineRes, rap);
-            else if (log) {
+            } else if (log) {
               await local.logFailedReq(rap.rd);
             }
           }
@@ -220,11 +438,98 @@ class API {
     return null;
   }
 
+  Future<List<XFile>> _normalizeUploadFilesForStorage<DataT extends Data>(
+    DataT data,
+    List<XFile> files, {
+    Data? caller,
+  }) async {
+    final scope = local.scopeFor(data, caller: caller);
+    final usedNames = <String>{};
+    final prepared = <XFile>[];
+
+    for (final file in files) {
+      DateTime baseTime = parseTimestampImageFilename(file.name) ??
+          parseTimestampImageFilename(
+              canonicalTimestampFilenameForXFile(file)) ??
+          DateTime.now();
+      String candidate = formatTimestampImageFilename(baseTime);
+
+      while (true) {
+        if (usedNames.contains(candidate)) {
+          baseTime = baseTime.add(const Duration(seconds: 1));
+          candidate = formatTimestampImageFilename(baseTime);
+          continue;
+        }
+
+        final scopedName = scope.isNotEmpty ? '$scope/$candidate' : candidate;
+        final target = await localFile(scopedName);
+        final samePath = File(file.path).absolute.path == target.absolute.path;
+        if (target.existsSync() && !samePath) {
+          baseTime = baseTime.add(const Duration(seconds: 1));
+          candidate = formatTimestampImageFilename(baseTime);
+          continue;
+        }
+        break;
+      }
+
+      usedNames.add(candidate);
+      final scopedName = scope.isNotEmpty ? '$scope/$candidate' : candidate;
+      final storedName = await permaStoreCachedXFile(file, scopedName);
+      prepared.add(await retrieveStoredXFile(storedName));
+    }
+
+    return prepared;
+  }
+
   int? _parseInt(dynamic v) {
     if (v is int) return v;
     if (v is num) return v.toInt();
     if (v is String) return int.tryParse(v);
     return null;
+  }
+
+  bool _isLocalImageReference(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return false;
+    if (v.contains('/')) return true;
+    if (v.startsWith(LOCALLY_ADDED_PREFIX)) return true;
+    if (isTimestampImageFilename(v)) return true;
+    return false;
+  }
+
+  Set<String> _collectImageRefs(Data? data) {
+    final refs = <String>{};
+    if (data == null) return refs;
+    if (data.mainhash != null && data.mainhash!.trim().isNotEmpty) {
+      refs.add(data.mainhash!.trim());
+    }
+    for (final hash in data.imagehashes ?? const <String>[]) {
+      final trimmed = hash.trim();
+      if (trimmed.isNotEmpty) refs.add(trimmed);
+    }
+    return refs;
+  }
+
+  Uint8List _encodeRotatedImageBytes(imglib.Image image, String nameHint) {
+    final lower = nameHint.toLowerCase();
+    if (lower.endsWith('.png')) {
+      return Uint8List.fromList(imglib.encodePng(image));
+    }
+    if (lower.endsWith('.webp')) {
+      return Uint8List.fromList(imglib.encodeJpg(image, quality: 92));
+    }
+    return Uint8List.fromList(imglib.encodeJpg(image, quality: 92));
+  }
+
+  Future<String> _nextScopedImageName(String scope) async {
+    var ts = DateTime.now();
+    while (true) {
+      final filename = formatTimestampImageFilename(ts);
+      final scoped = scope.isNotEmpty ? '$scope/$filename' : filename;
+      final file = await localFile(scoped);
+      if (!file.existsSync()) return scoped;
+      ts = ts.add(const Duration(seconds: 1));
+    }
   }
 
   int? _extractOldPrueferId({Data? data, Data? caller, int? pjNr}) {
@@ -325,6 +630,11 @@ class API {
   /// gets the currently logged in [DisplayUser], which is the current [User] but with removed [User.pass] to avoid abuse
   Future<DisplayUser?> get user async => await _c_user;
 
+  /// gets cached workers for the login dropdown.
+  /// This is intentionally local-only, so it also works while logged out.
+  Future<List<DisplayUser>> getLoginUsers() async =>
+      await _readStoredLoginUsers();
+
   /// login a [User] by checking if he exists in the remote database
   Future<DisplayUser?> login(User user) async {
     if (await isUserLoggedIn(user)) return this.user;
@@ -335,6 +645,10 @@ class API {
       _user = loggedInUser;
       remote.injectUser(loggedInUser);
       await loggedInUser!.store();
+      await _seedLoginUsersCacheWithCurrentUser(loggedInUser);
+      await refreshLoginUsersCache();
+      final cachedUsers = await _readStoredLoginUsers();
+      debugPrint('Login users cache after login: ${cachedUsers.length}');
       return this.user;
     } catch (e) {
       logout();
@@ -388,19 +702,46 @@ class API {
       }
     }
 
+    Future<List<ChildData>> filterHiddenIfRootInspections(
+        List<ChildData> children) async {
+      if (typeOf<ChildData>() != typeOf<InspectionLocation>() || data != null) {
+        return children;
+      }
+      final hiddenPjNrs = await InspectionVisibility().getHiddenPjNrs();
+      if (hiddenPjNrs.isEmpty) return children;
+      return children.where((child) {
+        if (child is InspectionLocation) {
+          return !hiddenPjNrs.contains(child.pjNr.toString());
+        }
+        return true;
+      }).toList();
+    }
+
     yield* _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.getNextDatapoint(data),
-      online: () =>
-          remote.getNextDatapoint(data, preloadFullImages: preloadFullImages),
+      offline: () async => filterHiddenIfRootInspections(
+          await local.getNextDatapoint<ChildData, ParentData>(data)),
+      online: () async {
+        final rap = remote.getNextDatapoint<ChildData, ParentData>(
+          data,
+          preloadFullImages: preloadFullImages,
+        );
+        return RequestAndParser<http.Response, List<ChildData>>(
+          rd: rap.rd,
+          parser: (response) async =>
+              filterHiddenIfRootInspections(await rap.parser(response)),
+        );
+      },
       onlineSuccessCB: (childDatas) async {
         _cachePrueferIdsFromLocations(childDatas);
         for (final childData in childDatas) {
+          // "offline" is a local-only flag; online data should clear it to avoid stale UI indicators.
+          try {
+            (childData as WithOffline).forceOffline = false;
+          } catch (_) {}
           await local.storeData(
             childData,
             forId: data?.id ?? await API().rootID,
-            //TODO: uncomment this as soon as offline can mirror everything well #211
-            // overrideMode: OverrideMode.abortIfExistent,
           );
         }
       },
@@ -486,37 +827,63 @@ class API {
   }
 
   /// gets image specified by its hash
-  Future<ImageData?> getImageByHash(String hash,
-      {bool compressed = false, Data? owner}) async {
+  Future<ImageData?> getImageByHash(String hash, {Data? owner}) async {
     // Scoped/local hashes (with folders or local prefix) must not trigger remote fetches
-    final isLocalScoped =
-        hash.contains('/') || hash.startsWith(LOCALLY_ADDED_PREFIX);
-    if (isLocalScoped) {
+    final isLocalScoped = hash.contains('/') ||
+        hash.startsWith(LOCALLY_ADDED_PREFIX) ||
+        isTimestampImageFilename(hash);
+
+    // Always prefer local cache first; if present, never hit network.
+    try {
+      return await local.getImageByHash(hash, owner: owner);
+    } catch (_) {
+      // not cached locally (or unreadable) -> continue
+    }
+
+    // For local-scoped names we never download remotely.
+    if (isLocalScoped) return null;
+
+    // Deduplicate in-flight downloads for the same hash to prevent repeated
+    // downloads on rebuild/opening views.
+    final key = hash;
+    final existing = _inflightImageFetches[key];
+    if (existing != null) return await existing;
+
+    Future<ImageData?> fetch() async {
       try {
-        return await local.getImageByHash(hash,
-            compressed: compressed, owner: owner);
+        await tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+        final rap = remote.getImageByHash(hash, owner: owner);
+        final res = await remote.postJSON(rap.rd);
+        if (res == null) return null;
+        final parsed = await rap.parser(res);
+        if (parsed != null) return parsed;
+      } catch (_) {}
+      // last-chance local read (in case another concurrent fetch stored it)
+      try {
+        return await local.getImageByHash(hash, owner: owner);
       } catch (_) {
-        // fallback to normal flow below if not found locally
+        return null;
       }
     }
-    final requestType = Helper.SimulatedRequestType.GET;
-    return _run(
-      itPrefersCache:
-          isLocalScoped, //! wir nehmen immer lieber lokale bilder, bandbreite und so
-      offline: () =>
-          local.getImageByHash(hash, compressed: compressed, owner: owner),
-      online: () =>
-          remote.getImageByHash(hash, compressed: compressed, owner: owner),
-      requestType: requestType,
-    ).last;
+
+    final future = fetch();
+    _inflightImageFetches[key] = future;
+    try {
+      return await future;
+    } finally {
+      _inflightImageFetches.remove(key);
+    }
   }
 
-  Future<File?> getDocument(String path) async {
+  Future<File?> getDocument(String path, {Data? owner, String? scope}) async {
     final requestType = Helper.SimulatedRequestType.GET;
+    final effectiveScope = (scope != null && scope.isNotEmpty)
+        ? scope
+        : (owner != null ? local.scopeFor(owner) : null);
     return _run(
       itPrefersCache: false,
-      offline: () => local.getDocument(path),
-      online: () => remote.getDocument(path),
+      offline: () => local.getDocument(path, scope: effectiveScope),
+      online: () => remote.getDocument(path, scope: effectiveScope),
       requestType: requestType,
     ).last;
   }
@@ -534,24 +901,143 @@ class API {
       data: data,
       caller: caller,
     );
-    if (hash == data?.mainhash) {
-      data?.mainhash = null;
+    final requestedHash = hash.trim();
+    final scope = local.scopeFor(data, caller: caller);
+    var remoteHash = requestedHash;
+    try {
+      final mapped = await lookupHashForImageName(
+        requestedHash,
+        scope: scope,
+      );
+      if (mapped != null && mapped.trim().isNotEmpty) {
+        remoteHash = mapped.trim();
+      }
+    } catch (_) {}
+
+    if (data?.mainhash != null &&
+        (data!.mainhash == requestedHash || data.mainhash == remoteHash)) {
+      data.mainhash = null;
       debugPrint('deleted mainhash');
       await update(data, caller: caller, forceUpdate: forceUpdate);
     }
+
+    final prefersCache = forceUpdate
+        ? false
+        : (_dataPrefersCache(data, type: requestType) ??
+            _dataPrefersCache(caller, type: requestType) ??
+            false);
+    debugPrint(
+      'deleteImageByHash: requested=$requestedHash remote=$remoteHash forceUpdate=$forceUpdate prefersCache=$prefersCache',
+    );
+
     return _run(
-      itPrefersCache: _dataPrefersCache(data, type: requestType),
+      itPrefersCache: prefersCache,
       // offline: () => local.setMainImageByHash(
       //   data,
       //   hash,
       //   caller: caller,
       //   forceUpdate: forceUpdate,
       // ),
-      offline: () => local.deleteImageByHash(data, hash,
-          caller: caller, forceUpdate: forceUpdate),
-      online: () => remote.deleteImageByHash(hash),
+      offline: () => local.deleteImageByHash(
+        data,
+        requestedHash,
+        canonicalHash: remoteHash,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      ),
+      online: () => remote.deleteImageByHash(
+        remoteHash,
+        data: data,
+      ),
       requestType: requestType,
     ).last;
+  }
+
+  Future<String?> rotateImageByHash<DataT extends Data>(
+    DataT? data,
+    String hash, {
+    int quarterTurns = 1,
+    Data? caller,
+    bool forceUpdate = false,
+  }) async {
+    try {
+      if (data == null) return 'no data to rotate';
+
+      var turns = quarterTurns % 4;
+      if (turns < 0) turns += 4;
+      if (turns == 0) return 'rotation unchanged';
+
+      final requested = hash.trim();
+      if (requested.isEmpty) return 'no image selected';
+      final scope = local.scopeFor(data, caller: caller).trim();
+
+      File? sourceFile = await resolveImageFileByHash(requested, scope: scope);
+      if (sourceFile == null && !_isLocalImageReference(requested)) {
+        final mapped = await lookupImageNameForHash(requested, scope: scope);
+        if (mapped != null && mapped.trim().isNotEmpty) {
+          sourceFile =
+              await resolveImageFileByHash(mapped.trim(), scope: scope);
+        }
+      }
+      if (sourceFile == null) {
+        return 'image not found locally';
+      }
+
+      final originalBytes = await sourceFile.readAsBytes();
+      final decoded = imglib.decodeImage(originalBytes);
+      if (decoded == null) return 'could not decode image';
+      final rotated = imglib.copyRotate(decoded, angle: 90 * turns);
+      final rotatedBytes =
+          _encodeRotatedImageBytes(rotated, sourceFile.path.toLowerCase());
+
+      // Local-only image refs (timestamp/scoped/local prefixes) are uploaded by
+      // pending multipart requests. Overwrite the file in place so sync uploads
+      // the rotated bytes.
+      if (_isLocalImageReference(requested)) {
+        await sourceFile.writeAsBytes(rotatedBytes, flush: true);
+        await FileImage(sourceFile).evict();
+        return 'image rotated locally';
+      }
+
+      // Backend hash: create a rotated replacement image, upload it, then remove
+      // the old hash so backend and local state stay in sync.
+      final oldRefs = _collectImageRefs(data);
+      final wasMainImage = data.mainhash == requested;
+      final newScopedName = await _nextScopedImageName(scope);
+      final rotatedFile = await storeImage(rotatedBytes, newScopedName);
+      if (rotatedFile == null) return 'could not persist rotated image';
+      await FileImage(rotatedFile).evict();
+
+      final uploadResult = await uploadNewImagesOrFiles<DataT>(
+        data,
+        [XFile(rotatedFile.path)],
+        caller: caller,
+        forceUpdate: forceUpdate,
+      );
+
+      final newRefs = _collectImageRefs(data);
+      final addedRefs = newRefs.difference(oldRefs);
+      final replacementRef = addedRefs.isEmpty ? null : addedRefs.first;
+
+      if (wasMainImage && replacementRef != null) {
+        await setMainImageByHash(
+          data,
+          replacementRef,
+          caller: caller,
+          forceUpdate: forceUpdate,
+        );
+      }
+
+      await deleteImageByHash(
+        data,
+        requested,
+        caller: caller,
+        forceUpdate: forceUpdate,
+      );
+      return uploadResult ?? 'rotated image queued for sync';
+    } catch (e) {
+      return 'rotate failed: $e';
+    }
   }
 
   // sets an image specified by its hash as the new main image
@@ -590,6 +1076,9 @@ class API {
     Data? caller,
     bool forceUpdate = false,
   }) async {
+    final preparedFiles =
+        await _normalizeUploadFilesForStorage(data, files, caller: caller);
+
     // Wenn forceOffline aktiv ist: nur lokal speichern und Request zum Retry vormerken
     bool prefersOffline =
         _dataPrefersCache(caller, type: Helper.SimulatedRequestType.PUT) ??
@@ -603,14 +1092,17 @@ class API {
     } catch (_) {}
     prefersOffline = prefersOffline || Options().forceOffline;
 
+    // Always persist images locally first (even when online), so cache and
+    // on-device storage are immediately available with canonical filenames.
+    await local.uploadNewImagesOrFiles(
+      data,
+      preparedFiles,
+      caller: caller,
+      forceUpdate: forceUpdate,
+    );
+
     if (prefersOffline) {
-      final rap = remote.uploadNewImagesOrFiles<DataT>(data, files);
-      await local.uploadNewImagesOrFiles(
-        data,
-        files,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      );
+      final rap = remote.uploadNewImagesOrFiles<DataT>(data, preparedFiles);
       await local.logFailedReq(rap.rd);
       return 'added files offline (queued)';
     }
@@ -624,16 +1116,100 @@ class API {
     final requestType = Helper.SimulatedRequestType.PUT;
     return _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
-      offline: () => local.uploadNewImagesOrFiles(
-        data,
-        files,
-        caller: caller,
-        forceUpdate: forceUpdate,
-      ),
+      offline: () async => 'added files offline',
       online: () => remote.uploadNewImagesOrFiles(
         data,
-        files,
+        preparedFiles,
       ),
+      onlineSuccessCB: (body) async {
+        // If the backend returns hashes for uploaded images, replace any local placeholders.
+        try {
+          final decoded = jsonDecode(body ?? '');
+          final uploaded = (decoded is Map) ? decoded['uploaded_images'] : null;
+          if (uploaded is List) {
+            final map = <String, String>{};
+            for (final e in uploaded) {
+              if (e is Map) {
+                final client = e['client_filename']?.toString();
+                final hash = e['hash']?.toString();
+                if (client != null &&
+                    client.isNotEmpty &&
+                    hash != null &&
+                    hash.isNotEmpty) {
+                  map[client] = hash;
+                  final scope = local.scopeFor(data, caller: caller);
+                  final base =
+                      client.contains('/') ? client.split('/').last : client;
+                  final baseNoLocalPrefix =
+                      base.startsWith(LOCALLY_ADDED_PREFIX)
+                          ? base.substring(LOCALLY_ADDED_PREFIX.length)
+                          : base;
+                  final localPrefixedBase =
+                      '$LOCALLY_ADDED_PREFIX$baseNoLocalPrefix';
+                  map[base] = hash;
+                  map[baseNoLocalPrefix] = hash;
+                  map[localPrefixedBase] = hash;
+
+                  String scoped(String b) => scope.isNotEmpty ? '$scope/$b' : b;
+
+                  final candidateStoredNames = <String>[
+                    scoped(baseNoLocalPrefix),
+                    scoped(base),
+                    scoped(localPrefixedBase),
+                  ];
+                  String storedName = candidateStoredNames.first;
+                  for (final candidate in candidateStoredNames) {
+                    final f = await localFile(candidate);
+                    if (f.existsSync()) {
+                      storedName = candidate;
+                      break;
+                    }
+                  }
+
+                  await indexImageHash(
+                    hash: hash,
+                    storedName: storedName,
+                    scope: scope,
+                  );
+                  final fallbackStoredName =
+                      scope.isNotEmpty ? '$scope/$hash' : hash;
+                  if (fallbackStoredName != storedName) {
+                    try {
+                      final fallbackFile = await localFile(fallbackStoredName);
+                      if (fallbackFile.existsSync()) {
+                        await fallbackFile.delete();
+                      }
+                    } catch (_) {}
+                  }
+                }
+              }
+            }
+            if (map.isNotEmpty) {
+              String? rewrite(String? v) {
+                if (v == null) return null;
+                // match scoped values like "<scope>/<client_filename>"
+                final base = v.contains('/') ? v.split('/').last : v;
+                final repl = map[base] ?? map[v];
+                return repl ?? v;
+              }
+
+              data.mainhash = rewrite(data.mainhash);
+              if (data.imagehashes != null) {
+                data.imagehashes =
+                    data.imagehashes!.map((h) => rewrite(h) ?? h).toList();
+              }
+
+              // Persist updated hashes locally so subsequent requests use backend hashes.
+              try {
+                await local.storeData(
+                  data,
+                  forId: caller?.id ?? await rootID,
+                );
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      },
       // onlineSuccessCB: (response) async {},
       onlineFailedCB: (onlineRes, rap) {
         debugPrint('failed to upload images, ' +
@@ -723,13 +1299,12 @@ class API {
 
 D injectImages<D extends Data>(D data, {bool preloadFull = false}) {
   Future<ImageData?> getImgDataFromHash(String? hash) {
-    if (preloadFull)
-      API().getImageByHash(hash!, compressed: false, owner: data);
-    return API().getImageByHash(hash!, compressed: false, owner: data).then(
-        (value) => value
-          ?..fullImageGetter = () => API()
-              .getImageByHash(hash, compressed: false, owner: data)
-              .then((value) => value?.thumbnail));
+    if (hash == null) return Future.value(null);
+
+    return API().getImageByHash(hash, owner: data).catchError((e, st) {
+      debugPrint('getImageByHash failed ($hash): $e');
+      return null;
+    });
   }
 
   if (data.mainhash != null &&

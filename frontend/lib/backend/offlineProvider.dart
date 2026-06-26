@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:MBG_Inspektionen/options.dart';
@@ -17,29 +18,99 @@ import 'package:localstore/localstore.dart';
 
 import './helpers.dart' as Helper;
 
-const useOldImgEncoding =
-    false; //TO-DO: reset after partiks incident was solved to false
+const useOldImgEncoding = false;
 
 // MARK: image stuff
 
 Future<String> get localPath async {
-  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/"; //TODO
+  if (kIsWeb) return "okay_we_need_to_fake_it_for_web/";
   return (await getApplicationDocumentsDirectory()).path;
 }
 
+String _canonicalizeScope(String scope) {
+  final s = scope.trim();
+  if (s.isEmpty) return s;
+  final parts = s.split('-');
+  final normalized = parts.map((p) => p == 'null' ? 'undefined' : p).toList();
+  return normalized.join('-');
+}
+
+String _legacyScopeForCanonical(String canonicalScope) {
+  return canonicalScope.contains('undefined')
+      ? canonicalScope.replaceAll('undefined', 'null')
+      : canonicalScope;
+}
+
+String _canonicalizeScopedName(String name) {
+  final normalized = name.replaceAll('\\', '/');
+  if (!normalized.contains('/')) return normalized;
+  final parts = normalized.split('/');
+  parts[0] = _canonicalizeScope(parts[0]);
+  return parts.join('/');
+}
+
+Future<void> _mergeLegacyScopeIntoCanonical(String canonicalScope) async {
+  if (kIsWeb) return;
+  if (canonicalScope.isEmpty) return;
+  final legacyScope = _legacyScopeForCanonical(canonicalScope);
+  if (legacyScope == canonicalScope) return;
+
+  final base = await localPath;
+  final fromDir = Directory('$base/$legacyScope');
+  if (!fromDir.existsSync()) return;
+
+  final toDir = Directory('$base/$canonicalScope');
+  await toDir.create(recursive: true);
+  try {
+    await copyPath(fromDir.path, toDir.path);
+    if (fromDir.existsSync()) {
+      await fromDir.delete(recursive: true);
+    }
+  } catch (_) {}
+}
+
 Future<File> localFile(String name, [String? doc]) async {
+  name = _canonicalizeScopedName(name);
   // allow nested relative paths (e.g. per inspection) and create dirs if needed
   final basePath = await localPath;
   var p0 = File('$basePath/$name');
   // keep legacy behaviour only for flat names; otherwise preserve folders
   final hasFolder = name.contains('/');
+  String? legacyName;
+  if (hasFolder) {
+    final parts = name.split('/');
+    final scope = _canonicalizeScope(parts.first);
+    await _mergeLegacyScopeIntoCanonical(scope);
+    final legacyScope = _legacyScopeForCanonical(scope);
+    if (legacyScope != scope) {
+      legacyName = [legacyScope, ...parts.skip(1)].join('/');
+    }
+  }
+
+  Future<File?> migrateLegacyFileIfPresent() async {
+    if (legacyName == null || legacyName.isEmpty) return null;
+    final legacyFile = File('$basePath/$legacyName');
+    if (!legacyFile.existsSync()) return null;
+    await p0.parent.create(recursive: true);
+    if (!p0.existsSync()) {
+      await legacyFile.copy(p0.path);
+    }
+    try {
+      await legacyFile.delete();
+    } catch (_) {}
+    return p0;
+  }
 
   if (doc != null) {
+    final migrated = await migrateLegacyFileIfPresent();
+    if (migrated != null) return migrated;
     await p0.parent.create(recursive: true);
     return p0;
   }
 
   if (await p0.exists()) return p0;
+  final migrated = await migrateLegacyFileIfPresent();
+  if (migrated != null) return migrated;
   if (hasFolder) {
     // if the file has no extension, prefer a .jpg to keep it recognizable
     final baseName = p0.uri.pathSegments.last;
@@ -69,9 +140,13 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
   try {
     var file = await localFile(name);
     await file.parent.create(recursive: true);
-    // if (kIsWeb) {
-    //TODO: support storing images/file in indexedDb or something for web
-    // } else
+    // Avoid rewriting already valid cached files (prevents duplicate "Stored image at ..."
+    // logs and reduces UI-triggered redundant writes).
+    if (file.existsSync()) {
+      try {
+        if (file.lengthSync() >= 5) return file;
+      } catch (_) {}
+    }
     file = await file.writeAsBytes(imgBytes); //u good?
     debugPrint('Stored image at ${file.path}');
     return file;
@@ -86,6 +161,12 @@ Future<File?> storeDoc(Uint8List imgBytes, String name) async {
   try {
     var file = await localFile(name, "jaman");
     await file.parent.create(recursive: true);
+    // Avoid rewriting already valid cached files
+    if (file.existsSync()) {
+      try {
+        if (file.lengthSync() >= 5) return file;
+      } catch (_) {}
+    }
     file = await file.writeAsBytes(imgBytes); //u good?
     return file;
   } catch (e) {
@@ -100,12 +181,8 @@ class NoImagePlaceholderException implements Exception {
       'tried to read the placeholder image, which of course is not there';
 }
 
-String convertToCompressedHashName(String hash) => 'compressed/$hash';
-
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name, {int? cacheSize}) async {
-  //TODO: support reading images/file from indexedDb or something for web
-
   final file = (await localFile(
     name,
   ));
@@ -123,9 +200,92 @@ Future<Image?> readImage(String name, {int? cacheSize}) async {
       cacheHeight: cacheSize, cacheWidth: cacheSize);
 }
 
-Future<File?> readDoc(String name, {int? cacheSize}) async {
-  //TODO: support reading images/file from indexedDb or something for web
+/// Tries to resolve an existing on-disk image file for a given hash/name.
+/// Supports scoped paths (`<scope>/<hash>`) and legacy naming.
+Future<File?> resolveImageFileByHash(
+  String hash, {
+  String? scope,
+}) async {
+  final isPath = hash.contains('/');
+  final names = <String>[];
 
+  void add(String n) {
+    if (n.isEmpty) return;
+    names.add(n);
+  }
+
+  if (!isPath && scope != null && scope.isNotEmpty) {
+    add('$scope/$hash');
+  }
+  add(hash);
+
+  for (final name in names) {
+    try {
+      final f = await localFile(name);
+      if (f.existsSync()) return f;
+    } catch (_) {}
+  }
+  return null;
+}
+
+bool _looksLikeImageFilename(String filename) {
+  final lower = filename.toLowerCase();
+  return lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.webp') ||
+      lower.endsWith('.heic') ||
+      lower.endsWith('.maybe.jpg') ||
+      lower.endsWith('.img');
+}
+
+Future<List<String>> listScopedImageNames(String scope) async {
+  final s = _canonicalizeScope(scope.trim());
+  if (s.isEmpty || kIsWeb) return const [];
+
+  await _mergeLegacyScopeIntoCanonical(s);
+
+  final base = await localPath;
+  final byName = <String, DateTime>{};
+
+  void collectScope(String scopeName, {String? exposeAsScope}) {
+    final dir = Directory('$base/$scopeName');
+    if (!dir.existsSync()) return;
+    final outScope = exposeAsScope ?? scopeName;
+
+    for (final entity in dir.listSync(followLinks: false)) {
+      if (entity is! File) continue;
+      final segments = entity.uri.pathSegments;
+      if (segments.isEmpty) continue;
+      final filename = segments.last;
+      if (filename.isEmpty || filename.startsWith('.')) continue;
+      if (!_looksLikeImageFilename(filename)) continue;
+
+      DateTime modified = DateTime.fromMillisecondsSinceEpoch(0);
+      try {
+        modified = entity.statSync().modified;
+      } catch (_) {}
+      byName['$outScope/$filename'] = modified;
+    }
+  }
+
+  collectScope(s, exposeAsScope: s);
+  final legacyScope = _legacyScopeForCanonical(s);
+  if (legacyScope != s) {
+    collectScope(legacyScope, exposeAsScope: s);
+  }
+
+  final out = byName.keys.toList()
+    ..sort((a, b) {
+      final am = byName[a] ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bm = byName[b] ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final cmp = am.compareTo(bm);
+      return cmp != 0 ? cmp : a.compareTo(b);
+    });
+  return out;
+}
+
+Future<File?> readDoc(String name, {int? cacheSize}) async {
   final file = (await localFile(name, "jaman"));
   // ignore: unused_local_variable
   final err = (name == Options().no_image_placeholder_name)
@@ -142,7 +302,6 @@ Future<File?> readDoc(String name, {int? cacheSize}) async {
 
 ///tries to remove an [Image] given by its [name] , throws if unsuccessful
 Future<File> deleteImage(String name) async {
-  //TODO: support web
   final file = (await localFile(name));
   if (!file.existsSync()) throw Exception("file $file doesnt exist");
 
@@ -168,6 +327,195 @@ Future<void> deleteAll({
 //MARK: data-stuff
 
 final db = Localstore.instance;
+
+const IMAGE_INDEX_COLLECTION = 'image-index';
+final imageIndexCollection = (db).collection(IMAGE_INDEX_COLLECTION);
+
+Future<void> _ensureCollectionDirExists(String collection) async {
+  if (kIsWeb) return;
+  try {
+    final basePath = await localPath;
+    final dir = Directory('$basePath/$collection');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+  } catch (_) {}
+}
+
+String _imageIndexDocId(
+  String hash, {
+  String? scope,
+}) {
+  final s = (scope ?? '').trim();
+  final key = '$s|$hash';
+  // Localstore doc ids are path-like; keep it filesystem-safe and reasonably short.
+  return base64UrlEncode(utf8.encode(key)).replaceAll('=', '');
+}
+
+Future<void> indexImageHash({
+  required String hash,
+  required String storedName,
+  String? scope,
+}) async {
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+
+    final payload = {
+      'hash': hash,
+      'storedName': storedName,
+      'scope': scope ?? '',
+      'ts': DateTime.now().millisecondsSinceEpoch,
+    };
+
+    // scoped entry
+    final id = _imageIndexDocId(hash, scope: scope);
+    await imageIndexCollection.doc(id).set(payload);
+
+    // global entry (scope-agnostic fallback)
+    final globalId = _imageIndexDocId(hash, scope: '');
+    await imageIndexCollection.doc(globalId).set({
+      ...payload,
+      'scope': '',
+    });
+  } catch (e) {
+    debugPrint('indexImageHash failed: $e');
+  }
+}
+
+Future<String?> lookupImageNameForHash(
+  String hash, {
+  String? scope,
+}) async {
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+  } catch (_) {}
+
+  Future<String?> tryScope(String? s) async {
+    final scopedId = _imageIndexDocId(hash, scope: s);
+    final scoped = await imageIndexCollection.doc(scopedId).get();
+    final scopedName = scoped?['storedName']?.toString();
+    if (scopedName != null && scopedName.isNotEmpty) return scopedName;
+    return null;
+  }
+
+  final s = _canonicalizeScope((scope ?? '').trim());
+  final direct = await tryScope(s);
+  if (direct != null) return direct;
+
+  // legacy lookup for old "null" folders
+  final legacyScope = _legacyScopeForCanonical(s);
+  if (legacyScope != s) {
+    final legacy = await tryScope(legacyScope);
+    if (legacy != null) return legacy;
+  }
+
+  // fallback: global entry (no scope)
+  final globalId = _imageIndexDocId(hash, scope: '');
+  final global = await imageIndexCollection.doc(globalId).get();
+  final globalName = global?['storedName']?.toString();
+  if (globalName != null && globalName.isNotEmpty) return globalName;
+
+  return null;
+}
+
+String _normalizeStoredNameForMatch(String name) {
+  return _canonicalizeScopedName(name).replaceAll('\\', '/').trim();
+}
+
+String _basenameOfStoredName(String name) {
+  final normalized = _normalizeStoredNameForMatch(name);
+  if (normalized.isEmpty) return normalized;
+  final parts = normalized.split('/').where((e) => e.isNotEmpty).toList();
+  return parts.isEmpty ? normalized : parts.last;
+}
+
+/// Finds a backend hash for a cached stored image name (best-effort).
+Future<String?> lookupHashForImageName(
+  String storedName, {
+  String? scope,
+}) async {
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+  } catch (_) {}
+
+  final wanted = _normalizeStoredNameForMatch(storedName);
+  if (wanted.isEmpty) return null;
+  final wantedBase = _basenameOfStoredName(wanted);
+  final wantedScope = _canonicalizeScope((scope ?? '').trim());
+  final legacyScope = _legacyScopeForCanonical(wantedScope);
+
+  final docs = await imageIndexCollection.get();
+  if (docs == null || docs.isEmpty) return null;
+
+  int scopeRank(String docScopeRaw) {
+    final docScope = _canonicalizeScope(docScopeRaw.trim());
+    if (wantedScope.isEmpty) {
+      return docScope.isEmpty ? 0 : 1;
+    }
+    if (docScope == wantedScope) return 0;
+    if (legacyScope != wantedScope && docScope == legacyScope) return 1;
+    if (docScope.isEmpty) return 2;
+    return 3;
+  }
+
+  String? bestHash;
+  int? bestScore;
+
+  for (final entry in docs.entries) {
+    final raw = entry.value;
+    if (raw is! Map) continue;
+    final map = Map<String, dynamic>.from(raw);
+    final hash = map['hash']?.toString().trim();
+    final indexedName = map['storedName']?.toString().trim();
+    if (hash == null ||
+        hash.isEmpty ||
+        indexedName == null ||
+        indexedName.isEmpty) {
+      continue;
+    }
+
+    final normalizedIndexed = _normalizeStoredNameForMatch(indexedName);
+    final exactMatch = normalizedIndexed == wanted;
+    final baseMatch = _basenameOfStoredName(normalizedIndexed) == wantedBase;
+    if (!exactMatch && !baseMatch) continue;
+
+    final rank = scopeRank(map['scope']?.toString() ?? '');
+    if (rank >= 3) continue;
+
+    final matchRank = exactMatch ? 0 : 1;
+    final score = rank * 10 + matchRank;
+    if (bestScore == null || score < bestScore) {
+      bestScore = score;
+      bestHash = hash;
+    }
+  }
+
+  return bestHash;
+}
+
+Future<void> unindexImageHash({
+  required String hash,
+  String? scope,
+}) async {
+  final h = hash.trim();
+  if (h.isEmpty) return;
+
+  try {
+    await _ensureCollectionDirExists(IMAGE_INDEX_COLLECTION);
+  } catch (_) {}
+
+  final s = _canonicalizeScope((scope ?? '').trim());
+  final legacyScope = _legacyScopeForCanonical(s);
+  final scopes = <String>{'', s};
+  if (legacyScope != s) scopes.add(legacyScope);
+
+  for (final scopeCandidate in scopes) {
+    try {
+      final id = _imageIndexDocId(h, scope: scopeCandidate);
+      await imageIndexCollection.doc(id).delete();
+    } catch (_) {}
+  }
+}
 
 /// @depricated, its now only the parentID
 /// ~~non-null wrapper for [Helper.getIdentifierFromData]~~
@@ -248,6 +596,137 @@ storeJson(String documentName, Map<String, dynamic> json) =>
 
 Future<Map<String, dynamic>?> getJson(String documentName) =>
     otherCollection.doc(documentName).get();
+
+String _syncMapsDocId(String pjNr) => '__sync_maps__$pjNr';
+
+Future<({Map<String, String> localIdMap, Map<String, String> imageHashMap})>
+    getSyncMaps(String pjNr) async {
+  try {
+    final raw = await getJson(_syncMapsDocId(pjNr));
+    if (raw == null) {
+      return (localIdMap: <String, String>{}, imageHashMap: <String, String>{});
+    }
+    Map<String, String> asStringMap(Object? v) {
+      if (v is Map) {
+        return v.map((k, val) => MapEntry(k.toString(), val.toString()));
+      }
+      return {};
+    }
+
+    return (
+      localIdMap: asStringMap(raw['localIdMap']),
+      imageHashMap: asStringMap(raw['imageHashMap']),
+    );
+  } catch (_) {
+    return (localIdMap: <String, String>{}, imageHashMap: <String, String>{});
+  }
+}
+
+Future<void> storeSyncMaps(
+  String pjNr, {
+  required Map<String, String> localIdMap,
+  required Map<String, String> imageHashMap,
+}) async {
+  try {
+    await storeJson(_syncMapsDocId(pjNr), {
+      'localIdMap': localIdMap,
+      'imageHashMap': imageHashMap,
+      'ts': DateTime.now().millisecondsSinceEpoch,
+    });
+  } catch (_) {}
+}
+
+String _docIdFromKey(String key) => key.split('/').last;
+
+({int pjNr, int? e1, int? e2, int? e3})? _parseNumericLocalId(String? localId) {
+  final s = (localId ?? '').trim();
+  if (s.isEmpty) return null;
+  final parts = s.split('-');
+  int? toInt(String? v) {
+    final t = (v ?? '').trim();
+    if (t.isEmpty || t == 'null' || t == 'undefined') return null;
+    return int.tryParse(t);
+  }
+
+  final pjNr = toInt(parts.isNotEmpty ? parts[0] : null);
+  if (pjNr == null || pjNr <= 0) return null;
+  return (
+    pjNr: pjNr,
+    e1: toInt(parts.length > 1 ? parts[1] : null),
+    e2: toInt(parts.length > 2 ? parts[2] : null),
+    e3: toInt(parts.length > 3 ? parts[3] : null),
+  );
+}
+
+bool _missingEventValue(Object? v) {
+  if (v == null) return true;
+  if (v is num) return !(v > 0);
+  final s = v.toString().trim();
+  if (s.isEmpty || s == 'null' || s == 'undefined') return true;
+  final n = int.tryParse(s);
+  return n == null || n <= 0;
+}
+
+void _fillFromParsedLocalId(
+  Map<String, dynamic> map,
+  ({int pjNr, int? e1, int? e2, int? e3}) parsed,
+) {
+  if (_missingEventValue(map['PjNr'])) map['PjNr'] = parsed.pjNr;
+  if (parsed.e1 != null && _missingEventValue(map['E1'])) map['E1'] = parsed.e1;
+  if (parsed.e2 != null && _missingEventValue(map['E2'])) map['E2'] = parsed.e2;
+  if (parsed.e3 != null && _missingEventValue(map['E3'])) map['E3'] = parsed.e3;
+}
+
+Future<void> applyLocalIdMapping({
+  required String oldLocalId,
+  required String newLocalId,
+  String? parentLocalId,
+}) async {
+  if (oldLocalId == newLocalId) return;
+  final parent = (parentLocalId ?? '').trim();
+
+  try {
+    // 1) Move the document itself inside its parent collection.
+    if (parent.isNotEmpty) {
+      final oldDoc = await db.collection(parent).doc(oldLocalId).get();
+      if (oldDoc != null) {
+        final map = Map<String, dynamic>.from(oldDoc);
+        map['local_id'] = newLocalId;
+        map['parent_local_id'] = parent;
+        final parsed = _parseNumericLocalId(newLocalId);
+        if (parsed != null) {
+          _fillFromParsedLocalId(map, parsed);
+        }
+        await db.collection(parent).doc(newLocalId).set(map);
+        await db.collection(parent).doc(oldLocalId).delete();
+      }
+    }
+  } catch (_) {}
+
+  try {
+    // 2) Move the children collection (collection name == parent local_id).
+    final children = await db.collection(oldLocalId).get();
+    if (children != null) {
+      final parsedParent = _parseNumericLocalId(newLocalId);
+      for (final entry in children.entries) {
+        final docId = _docIdFromKey(entry.key);
+        final raw = entry.value;
+        if (raw is! Map) continue;
+        final map = Map<String, dynamic>.from(raw);
+        map['local_id'] = docId;
+        final plid = map['parent_local_id']?.toString();
+        if (plid == null || plid.isEmpty || plid == oldLocalId) {
+          map['parent_local_id'] = newLocalId;
+        }
+        if (parsedParent != null) {
+          _fillFromParsedLocalId(map, parsedParent);
+        }
+        await db.collection(newLocalId).doc(docId).set(map);
+        await db.collection(oldLocalId).doc(docId).delete();
+      }
+    }
+  } catch (_) {}
+}
 
 const FAILEDCOLLECTION = 'failed-requests';
 const SKIPPEDCOLLECTION = 'skipped-requests';
@@ -353,6 +832,11 @@ Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
   final name = _name ?? relativeName ?? file.name;
   final target = await localFile(name);
   await target.parent.create(recursive: true);
+  final srcAbs = File(file.path).absolute.path;
+  final dstAbs = target.absolute.path;
+  if (srcAbs == dstAbs && target.existsSync() && target.lengthSync() >= 5) {
+    return name;
+  }
   await file.saveTo(target.path);
   debugPrint('Persisted cached file to ${target.path}');
   return name;
