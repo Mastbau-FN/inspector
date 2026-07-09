@@ -118,6 +118,7 @@ dependencies:
 
   url_launcher: ^6.1.9
   archive: ^3.3.7
+  crypto: ^3.0.6
   sliver_app_bar_builder: ^1.1.0
   blur: ^4.0.0
   fs: ^2.0.0

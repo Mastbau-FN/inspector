@@ -3,6 +3,7 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
@@ -173,7 +174,15 @@ class InspectionLocation extends Data
   Map<String, dynamic> toJson() => _$InspectionLocationToJson(this);
 
   @override
-  Map<String, dynamic> toSmallJson() => {'PjNr': pjNr, 'local_id': id};
+  Map<String, dynamic> toSmallJson() {
+    return {
+      'PjNr': pjNr,
+      'StONr': stONr,
+      if (login_id_pruefer != null && login_id_pruefer!.trim().isNotEmpty)
+        'Login_ID_Pruefer': login_id_pruefer,
+      'local_id': id,
+    };
+  }
 }
 
 Map<String, dynamic> _toplevelhelperLatLng_toJson(LatLng? latlng) {
@@ -316,28 +325,40 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       setState(() {});
     }
 
-    //also edit this for finer granularity
-    var rootid = await API().rootID;
-    FailedRequestmanager()
-        .loadAndCacheAll(widget.caller, 3,
-            name: widget.caller.title, parentID: rootid)
-        .then((succs) {
+    try {
+      final manager = FailedRequestmanager();
+      final refreshed = await manager.refreshInspectionForDownload(
+        widget.caller.currentData,
+      );
+      widget.caller.currentData = refreshed;
+      final rootid = await API().rootID;
+      final succeeded = await manager.loadAndCacheAll(
+        widget.caller,
+        3,
+        name: widget.caller.title,
+        parentID: rootid,
+      );
+
+      DownloadProgress.instance.finish(session);
+      session.dispose();
+      if (succeeded) {
+        SyncEvents.instance.notifyLocalDataChanged();
+      }
+      if (!mounted) return;
+      setState(() {
+        _session = null;
+        success = succeeded;
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Inspektionsdownload fehlgeschlagen: $e\n$stackTrace');
       DownloadProgress.instance.finish(session);
       session.dispose();
       if (!mounted) return;
       setState(() {
         _session = null;
-        this.success = succs;
+        success = false;
       });
-    }).catchError((e) {
-      DownloadProgress.instance.finish(session);
-      session.dispose();
-      if (!mounted) return;
-      setState(() {
-        _session = null;
-        this.success = false;
-      });
-    });
+    }
   }
 
   @override

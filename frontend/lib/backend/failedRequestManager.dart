@@ -30,6 +30,7 @@ import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:MBG_Inspektionen/classes/documentData.dart';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:http/http.dart' as http;
@@ -41,6 +42,21 @@ final sync_in_progress_str = 'sync in progress';
 final sync_success_str = 'sync success';
 const _localImagePrefix = '__loc__';
 final _inspectionVisibility = InspectionVisibility();
+
+InspectionLocation? selectRefreshedInspectionForDownload(
+  InspectionLocation current,
+  List<InspectionLocation> refreshed,
+) {
+  for (final inspection in refreshed) {
+    if (inspection.id == current.id) return inspection;
+  }
+  for (final inspection in refreshed) {
+    if (inspection.pjNr == current.pjNr && inspection.stONr == current.stONr) {
+      return inspection;
+    }
+  }
+  return null;
+}
 
 /// Hilfsklasse, um globale und Inspektions-spezifische Upload-Fortschritte
 /// samt ETA zu verwalten.
@@ -626,9 +642,10 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
   // debugPrint('retry failed requests isolate init done');
 
   if (upsn.loading) {
+    input.progressSender.send((1.0, false, null, 1.0, ''));
     return;
   }
-  upsn.setLoading(true);
+  await upsn.setLoading(true);
 
   // Aktiviere Wakelock, um zu verhindern, dass das Gerät in den Schlafmodus wechselt
   if (!kIsWeb) {
@@ -653,7 +670,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     final user = await API().user;
     if (user == null) {
       input.progressSender.send((1.0, false, null, 1.0, ''));
-      upsn.setLoading(false);
+      await upsn.setLoading(false);
       return;
     }
 
@@ -664,7 +681,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
     if (totalRequests == 0) {
       input.progressSender.send((1.0, true, null, 1.0, ''));
-      upsn.setLoading(false);
+      await upsn.setLoading(false);
       return;
     }
 
@@ -1144,9 +1161,9 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     debugPrint('Final overall progress: $finalOverall');
 
     input.progressSender.send((finalOverall, success, null, 1.0, ''));
-    upsn.setProgress(finalOverall);
-    upsn.setSuccess(success);
-    upsn.setLoading(false);
+    await upsn.setProgress(finalOverall);
+    await upsn.setSuccess(success);
+    await upsn.setLoading(false);
 
     // Abschließende Notification
     if (input.notificationsAllowed) {
@@ -1215,7 +1232,12 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
         }
       }
     }
+  } catch (e, stackTrace) {
+    debugPrint('Unerwarteter Fehler beim Upload-Sync: $e\n$stackTrace');
+    input.progressSender.send((1.0, false, null, 1.0, ''));
+    await upsn.setSuccess(false);
   } finally {
+    await upsn.setLoading(false);
     // Deaktiviere Wakelock am Ende, unabhängig vom Ergebnis
     if (!kIsWeb) {
       try {
@@ -1367,6 +1389,25 @@ Future<bool> _checkPermissions(BuildContext context) async {
 
 /// Haupt-Klasse, die den Upload orchestriert und im UI aufgerufen wird.
 class FailedRequestmanager {
+  Future<InspectionLocation> refreshInspectionForDownload(
+    InspectionLocation current,
+  ) async {
+    final inspections = await API()
+        .getNextDatapoint<InspectionLocation, WithOffline?>(
+          null,
+          preloadFullImages: true,
+        )
+        .last;
+    final refreshed =
+        selectRefreshedInspectionForDownload(current, inspections);
+    if (refreshed == null) {
+      throw StateError(
+        'Inspektion ${current.pjNr}/${current.stONr} konnte nicht aktualisiert werden',
+      );
+    }
+    return refreshed;
+  }
+
   /// Gruppiert die fehlgeschlagenen Requests nach PJNr
   Future<List<GroupedInspection>> getGroupedFailedRequests() async {
     debugPrint('getGroupedFailedRequests: Starte...');
@@ -1549,11 +1590,77 @@ class FailedRequestmanager {
   }) async {
     final progressSession = DownloadProgress.instance.active;
 
+    Future<void> cacheDocuments(InspectionLocation location) async {
+      final documents = location.dokuspaths ?? const [];
+      if (documents.isEmpty) return;
+
+      final scope = API().local.scopeFor(location);
+      final documentsToDownload = <DocumentData>[];
+      for (final document in documents) {
+        final path = document.docupath.trim();
+        if (path.isEmpty) {
+          throw StateError('Dokument ohne gültigen Pfad gefunden');
+        }
+
+        var isCached = false;
+        try {
+          final localFile = await API().local.getDocument(path, scope: scope);
+          isCached = localFile != null && await localFile.exists();
+        } catch (_) {}
+        if (isCached) continue;
+
+        documentsToDownload.add(document);
+        progressSession?.reserveTask(
+          '/doc/get|$path',
+          step: 3,
+          label: 'Step 3/3: Dateien',
+        );
+      }
+
+      for (var index = 0; index < documentsToDownload.length; index++) {
+        final document = documentsToDownload[index];
+        progressSession?.setStep(
+          3,
+          label:
+              'Step 3/3: Dokument ${index + 1}/${documentsToDownload.length}',
+        );
+        final file = await API().getDocument(
+          document.docupath,
+          owner: location,
+          scope: scope,
+        );
+        if (file == null || !await file.exists()) {
+          throw StateError(
+            'Dokument "${document.filename}" konnte nicht gespeichert werden',
+          );
+        }
+      }
+    }
+
     Future<void> awaitAllImagesForData(Data data) async {
       final futures = <Future>[];
       futures.add(data.mainImage);
       if (data.imageFutures != null) futures.addAll(data.imageFutures!);
       await Future.wait(futures.map((f) => f.catchError((_) => null)));
+
+      final hashes = <String>{
+        if (data.mainhash != null &&
+            data.mainhash != Options().no_image_placeholder_name)
+          data.mainhash!,
+        ...?data.imagehashes,
+      };
+      for (final hash in hashes.where((value) => value.isNotEmpty)) {
+        try {
+          final image = await API().local.getImageByHash(hash, owner: data);
+          if (image == null) {
+            throw StateError('Bild $hash fehlt');
+          }
+        } catch (_) {
+          throw StateError(
+            'Bild $hash konnte nicht offline gespeichert werden',
+          );
+        }
+      }
     }
 
     Future<void> reserveImagesForData(Data data) async {
@@ -1580,7 +1687,7 @@ class FailedRequestmanager {
           progressSession.reserveTask(
             key,
             step: 3,
-            label: 'Step 3/3: Images',
+            label: 'Step 3/3: Dateien',
           );
         }
       }
@@ -1592,6 +1699,14 @@ class FailedRequestmanager {
     try {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+
+      await reserveImagesForData(caller.currentData);
+      await awaitAllImagesForData(caller.currentData);
+
+      if (caller.currentData is InspectionLocation) {
+        await cacheDocuments(caller.currentData as InspectionLocation);
+      }
+
       //get all children, this will also cache them internally
       var children = await caller.all(preloadFullImages: true).last;
 
@@ -1600,20 +1715,6 @@ class FailedRequestmanager {
         await reserveImagesForData(child);
         await awaitAllImagesForData(child);
         await Future<void>.delayed(Duration.zero);
-      }
-
-      if (caller.currentData is InspectionLocation) {
-        final location = caller.currentData as InspectionLocation;
-        if (location.dokuspaths != null && location.dokuspaths!.isNotEmpty) {
-          var docus = location.dokuspaths;
-          if (docus != null) {
-            assert((await API().user) != null,
-                'Niemand eingeloggt'); // Using string directly instead of S.current
-            for (var doc in docus) {
-              await API().getDocument(doc.docupath, owner: location);
-            }
-          }
-        }
       }
 
       var didSucceed = await Future.wait(children.map(

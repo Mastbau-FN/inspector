@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:MBG_Inspektionen/backend/incremental_backup.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 
 class BackupManagementView extends StatefulWidget {
@@ -23,27 +24,36 @@ class _BackupManagementViewState extends State<BackupManagementView> {
 
   Future<void> _loadBackups() async {
     final externalDir = await getExternalStorageDirectory();
-    if (externalDir != null) {
-      final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
-      if (await backupDir.exists()) {
-        final List<FileSystemEntity> files = backupDir.listSync();
+    if (externalDir == null) {
+      if (mounted) {
         setState(() {
-          backups = files.whereType<File>().toList()
-            ..sort((a, b) =>
-                b.statSync().modified.compareTo(a.statSync().modified));
-          isLoading = false;
-        });
-      } else {
-        setState(() {
+          backups = [];
           isLoading = false;
         });
       }
+      return;
+    }
+
+    final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
+    final files = await listManagedLocalBackups(backupDir);
+    if (mounted) {
+      setState(() {
+        backups = files;
+        isLoading = false;
+      });
     }
   }
 
   Future<void> _deleteBackup(File backup) async {
+    if (BackupCoordinator.instance.isRunning) {
+      showToast('Backup kann während der Erstellung nicht gelöscht werden');
+      return;
+    }
+
     try {
+      final backupDirectory = backup.parent;
       await backup.delete();
+      await invalidateIncrementalBackupState(backupDirectory);
       showToast('Backup gelöscht');
       _loadBackups();
     } catch (e) {
@@ -98,7 +108,7 @@ class _BackupManagementViewState extends State<BackupManagementView> {
                           horizontal: 8, vertical: 4),
                       child: ListTile(
                         title: Text('Backup vom $date'),
-                        subtitle: Text('Größe: $size'),
+                        subtitle: Text('Inkrementell · Größe: $size'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

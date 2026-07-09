@@ -1,3 +1,24 @@
-# changes
+# Änderungen
 
-- flutter sdk update
+- Flutter-SDK aktualisiert.
+- Backups laufen jetzt inkrementell: neue Backup-Dateien enthalten nur neue, geänderte oder gelöschte Daten seit dem letzten Backup.
+- Unveränderte Daten werden nicht mehr erneut in jedes Backup geschrieben, wodurch Backups deutlich kleiner bleiben.
+- Alte vollständige Backups werden als Basis übernommen; bei unvollständigen Backup-Ketten wird automatisch wieder eine saubere Basis erstellt.
+- Backup-Fortschritt, Prozent und ETA werden dauerhaft in der Backup-Kachel angezeigt, auch nach Navigation innerhalb der App.
+- Es kann nur noch ein Backup gleichzeitig laufen.
+- Die Backup-Fortschrittsberechnung wurde angepasst, damit der letzte Prozentpunkt nicht mehr irreführend lange stehen bleibt.
+- Backups arbeiten ressourcenschonender, damit die App währenddessen benutzbar bleibt.
+- Nach einem Backup-vor-Sync startet der Sync robuster automatisch weiter.
+- Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; nach `Failed host lookup` werden Online-Versuche kurz pausiert.
+- Standort-Infos sind im Bearbeitungsmodus wieder wirklich editierbar.
+- Kategorien können wieder im Vollbild bearbeitet werden, inklusive Kategorienamen.
+- Bestätigungsbuttons bleiben beim Bearbeiten über der eingeblendeten Tastatur.
+- Inspektionen laden beim Downloadbutton jetzt alle Bestandteile inklusive Dokumenten direkt herunter und stellen sie offline bereit.
+- Inspektionen zeigen den Sperr-/Mängel-Hinweis nur noch, wenn in genau dieser Inspektion Einträge vorhanden sind.
+- `Mängelfrei` zählt weiterhin als vorhandener Eintrag und wird nicht ausgeschlossen.
+- Während der Mängelprüfung beim Sperren einer Inspektion wird ein kurzer Prüf-Dialog angezeigt.
+- Der Fortschritt in Prüfkategorien zählt jetzt auch `Mängelfrei`-Einträge mit.
+- Doppelte oder widersprüchliche `ohne Mangel`-Einträge werden in der Mängelliste nicht mehr mehrfach angezeigt.
+- Die Selfie-Kamera-Vorschau ist im Hochformat nicht mehr um 180 Grad gedreht.
+- Die Selfie-Kamera-Vorschau wird gespiegelt angezeigt, damit sie sich natürlicher bedienen lässt.
+- Bei vielen Fotos werden Aufnahmen alle 10 Bilder im Hintergrund gespeichert, damit die Kamera stabiler bleibt.

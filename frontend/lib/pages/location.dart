@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
@@ -7,6 +6,7 @@ import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/weather/editableWeatherView.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:MBG_Inspektionen/pages/dokusPage.dart';
+import 'package:MBG_Inspektionen/pages/inspection_defect_checker.dart';
 import 'package:MBG_Inspektionen/widgets/nulleableToggle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,15 +22,19 @@ import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
-import 'package:path_provider/path_provider.dart';
-import 'detailsPage.dart';
 
 class LocationModel extends DropDownModel<InspectionLocation, Null> {
   final DisplayUser? user;
+  final InspectionDefectChecker _defectChecker;
+  final Set<String> _openingInspections = {};
 
   static const _nextViewTitle = "Prüfkategorien";
 
-  LocationModel({this.user}) : super(null);
+  LocationModel({
+    this.user,
+    InspectionDefectChecker? defectChecker,
+  })  : _defectChecker = defectChecker ?? InspectionDefectChecker(),
+        super(null);
 
   @override
   final List<MyListTileData> actions = [
@@ -68,20 +72,21 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     MyListTileData tiledata,
   ) {
     currentlyChosenChildData = Future.value(data);
+    if (tiledata.title == _nextViewTitle) {
+      unawaited(_openInspection(context, data));
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) {
         switch (tiledata.title) {
-          case _nextViewTitle:
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              unawaited(checkFilesAndShowToast(data.pjNr, data, context));
-            });
-
-            return nextModel<CheckCategory, InspectionLocation, CategoryModel>(
-                generateNextModel(data));
           case 'Fotos':
             return standard_statefulImageView(this, data);
           case 'Docs':
-            return DokusList(dokus: data.dokuspaths, scope: data.id);
+            return DokusList(
+              dokus: data.dokuspaths,
+              scope: API().local.scopeFor(data),
+            );
           default:
             return LocationDetailPage(
               locationdata: data,
@@ -91,75 +96,109 @@ class LocationModel extends DropDownModel<InspectionLocation, Null> {
     );
   }
 
-  Future<void> checkFilesAndShowToast(
-      int pjNr, InspectionLocation data, BuildContext context) async {
-    // Holen des App-Dokumentenverzeichnisses
-    final directory = await getApplicationDocumentsDirectory();
-
-    // Alle Ordner im Verzeichnis auflisten
-    final baseDir = Directory(directory.path);
-    if (!await baseDir.exists()) return;
-
-    final prefix = '$pjNr-';
-    final regex =
-        RegExp('^${RegExp.escape(prefix)}\\d+-\\d+-0\$'); // pjNr-e1-e2-0
-
-    int scannedFolders = 0;
-    await for (final entity in baseDir.list(followLinks: false)) {
-      if (entity is! Directory) continue;
-      scannedFolders++;
-      if (scannedFolders % 25 == 0) {
-        await Future<void>.delayed(Duration.zero);
+  Future<void> _openInspection(
+    BuildContext context,
+    InspectionLocation inspection,
+  ) async {
+    if (!_openingInspections.add(inspection.id)) return;
+    try {
+      final hasDefects = await _checkDefectsWithProgressDialog(
+        context,
+        inspection,
+      );
+      if (!context.mounted) return;
+      if (hasDefects) {
+        final continueEditing = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('Gefundene Mängel'),
+                content: const Text(
+                  'Diese Inspektion enthält bereits Mängel. '
+                  'Möchtest du sie wirklich bearbeiten?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    child: const Text('Abbrechen'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    child: const Text('Trotzdem fortfahren'),
+                  ),
+                ],
+              ),
+            ) ??
+            false;
+        if (!continueEditing || !context.mounted) return;
       }
 
-      final folderName = entity.path.split(Platform.pathSeparator).last;
-      if (!folderName.startsWith(prefix)) continue;
-      if (!regex.hasMatch(folderName)) continue;
-
-      final hasAnyFile = await _directoryHasAnyFile(entity);
-      if (hasAnyFile) {
-        if (kDebugMode) {
-          debugPrint('Found existing defect files in folder: $folderName');
-        }
-        if (!context.mounted) return;
-        await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text("Gefundene Mängel"),
-              content: Text(
-                  "Diese Inspektion enthält bereits Mängel. Möchtest du sie wirklich bearbeiten?"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("Abbrechen"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("Trotzdem fortfahren"),
-                ),
-              ],
-            );
-          },
-        );
-      }
-      break;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              nextModel<CheckCategory, InspectionLocation, CategoryModel>(
+            generateNextModel(inspection),
+          ),
+        ),
+      );
+    } finally {
+      _openingInspections.remove(inspection.id);
     }
   }
-}
 
-Future<bool> _directoryHasAnyFile(Directory directory) async {
-  try {
-    await for (final entity in directory.list(followLinks: false)) {
-      if (entity is File) return true;
+  Future<bool> _checkDefectsWithProgressDialog(
+    BuildContext context,
+    InspectionLocation inspection,
+  ) async {
+    _showDefectLookupDialog(context);
+    try {
+      return await _defectChecker.hasDefectEntries(inspection);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(
+          'Mängelprüfung für Inspektion ${inspection.id} fehlgeschlagen: '
+          '$error',
+        );
+      }
+      return false;
+    } finally {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
     }
-  } catch (_) {}
-  return false;
+  }
+
+  void _showDefectLookupDialog(BuildContext context) {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => PopScope(
+          canPop: false,
+          child: AlertDialog(
+            title: const Text('Mängelprüfung'),
+            content: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 3),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    'Es wird geprüft, ob Mängel in dieser Inspektion '
+                    'existieren.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class LocationDetailPage extends StatelessWidget {
@@ -195,7 +234,7 @@ class LocationDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            EditableText(
+            LocationEditableField(
               label: S.current!.localtionOwner,
               text: locationdata.eigentuemer,
               onChanged: (val) {
@@ -222,7 +261,7 @@ class LocationDetailPage extends StatelessWidget {
             //ASP(locationdata, updateData: updateData),
             //Issue-236
             Divider(),
-            EditableText(
+            LocationEditableField(
               label: S.current!.locationWayUp,
               text: locationdata.steigwegtyp,
               onChanged: (val) {
@@ -250,27 +289,31 @@ class LocationDetailPage extends StatelessWidget {
             // ),
             // Divider(),
             // Issue 235 Felder wieder entfernt, da sie nicht mehr benötigt werden
-            EditableText(
+            LocationEditableField(
               keyboardType: TextInputType.numberWithOptions(decimal: false),
               label: S.current!.locationHeight,
-              text: locationdata.bauwerkhoehe.toString(),
+              text: locationdata.bauwerkhoehe?.toString(),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(
                     RegExp(r'^-?[0-9]+(\.|,)?[0-9]*$'))
               ],
+              validator: _optionalDoubleValidator,
               onChanged: (val) {
-                locationdata.bauwerkhoehe =
-                    double.parse(val.replaceAll(r',', '.'));
+                locationdata.bauwerkhoehe = val.trim().isEmpty
+                    ? null
+                    : double.tryParse(val.replaceAll(',', '.'));
                 updateData(locationdata);
               },
             ),
             Divider(),
-            EditableText(
+            LocationEditableField(
               keyboardType: TextInputType.number,
               label: S.current!.locationYearOfBuild,
-              text: locationdata.baujahr.toString(),
+              text: locationdata.baujahr?.toString(),
+              validator: _optionalIntegerValidator,
               onChanged: (val) {
-                locationdata.baujahr = int.tryParse(val);
+                locationdata.baujahr =
+                    val.trim().isEmpty ? null : int.tryParse(val);
                 updateData(locationdata);
               },
             ),
@@ -475,64 +518,154 @@ class _MapState extends State<_Map> {
             );
 }
 
-// ignore: must_be_immutable
-class EditableText extends StatefulWidget {
-  EditableText({
+class LocationEditableField extends StatefulWidget {
+  const LocationEditableField({
     Key? key,
     required this.label,
     required this.text,
     required this.onChanged,
     this.keyboardType = TextInputType.text,
     this.inputFormatters = const [],
+    this.validator,
   }) : super(key: key);
 
   final String label;
-  String? text;
-  final Function(String) onChanged;
+  final String? text;
+  final ValueChanged<String> onChanged;
   final TextInputType keyboardType;
   final List<TextInputFormatter> inputFormatters;
+  final String? Function(String value)? validator;
 
   @override
-  State<EditableText> createState() => _EditableTextState();
+  State<LocationEditableField> createState() => _LocationEditableFieldState();
 }
 
-class _EditableTextState extends State<EditableText> {
-  bool isEditing = false;
+class _LocationEditableFieldState extends State<LocationEditableField> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+  late String _savedValue;
+  bool _isEditing = false;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _savedValue = widget.text ?? '';
+    _controller = TextEditingController(text: _savedValue);
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant LocationEditableField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_isEditing && oldWidget.text != widget.text) {
+      _savedValue = widget.text ?? '';
+      _controller.text = _savedValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _startEditing() {
+    setState(() {
+      _isEditing = true;
+      _errorText = null;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  void _save() {
+    final value = _controller.text;
+    final error = widget.validator?.call(value);
+    if (error != null) {
+      setState(() {
+        _errorText = error;
+      });
+      return;
+    }
+
+    widget.onChanged(value);
+    setState(() {
+      _savedValue = value;
+      _isEditing = false;
+      _errorText = null;
+    });
+  }
+
+  void _cancel() {
+    _controller.text = _savedValue;
+    setState(() {
+      _isEditing = false;
+      _errorText = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    var editor = PlainEditor(
-      inputFormatters: widget.inputFormatters,
-      sdetails: widget.text ?? "--",
-      isEditing: isEditing,
-      keyboardType: widget.keyboardType,
-    );
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          widget.label + ': ',
+          '${widget.label}:',
           style: TextStyle(fontWeight: FontWeight.w300),
         ),
-        Flexible(
-          child: editor,
-        ),
-        // Spacer(),
-        TextButton(
-          // style: ButtonStyle(
-          //     fixedSize: MaterialStateProperty.all<Size>(Size(50, 10)),
-          //     padding: MaterialStateProperty.all(EdgeInsets.all(-10))),
-          // constraints: BoxConstraints(maxHeight: 20, maxWidth: 20),
-          child: Icon(isEditing ? Icons.check : Icons.edit),
-          onPressed: () => setState(() {
-            if (isEditing) {
-              widget.onChanged(editor.details);
-              widget.text = editor.details;
-            }
-            isEditing ^= true;
-          }),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: _isEditing
+                  ? TextFormField(
+                      key: ValueKey('location_field_${widget.label}'),
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      keyboardType: widget.keyboardType,
+                      inputFormatters: widget.inputFormatters,
+                      minLines: 1,
+                      maxLines: 4,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(errorText: _errorText),
+                      onFieldSubmitted: (_) => _save(),
+                    )
+                  : Text(
+                      _controller.text.isEmpty ? '--' : _controller.text,
+                    ),
+            ),
+            if (_isEditing)
+              IconButton(
+                tooltip: 'Abbrechen',
+                icon: const Icon(Icons.close),
+                onPressed: _cancel,
+              ),
+            IconButton(
+              tooltip: _isEditing ? 'Speichern' : 'Bearbeiten',
+              icon: Icon(_isEditing ? Icons.check : Icons.edit),
+              onPressed: _isEditing ? _save : _startEditing,
+            ),
+          ],
         ),
       ],
     );
   }
+}
+
+String? _optionalDoubleValidator(String value) {
+  final normalized = value.trim().replaceAll(',', '.');
+  if (normalized.isEmpty || double.tryParse(normalized) != null) return null;
+  return 'Bitte eine gültige Zahl eingeben';
+}
+
+String? _optionalIntegerValidator(String value) {
+  final normalized = value.trim();
+  if (normalized.isEmpty || int.tryParse(normalized) != null) return null;
+  return 'Bitte eine ganze Zahl eingeben';
 }
 
 class NamedNulleableBoolToggle extends StatelessWidget {
@@ -598,7 +731,7 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 //           },
 //         ),
 //         if (isOn ?? false)
-//           EditableText(
+//           LocationEditableField(
 //             label: S.current!.locationASPLabel,
 //             text: locationdata.ansprechpartner,
 //             onChanged: (val) {
@@ -646,7 +779,7 @@ class NamedNulleableBoolToggle extends StatelessWidget {
 //           },
 //         ),
 //         if (isOn ?? true)
-//           EditableText(
+//           LocationEditableField(
 //             label: S.current!.locationKeyAddintionalInfoLabel,
 //             text: locationdata.schluessel_description,
 //             onChanged: (val) {
@@ -695,7 +828,7 @@ class __SteckDosenState extends State<_SteckDosen> {
           },
         ),
         if (isOn ?? false)
-          EditableText(
+          LocationEditableField(
             label: S.current!.locationAdditionalInfoSteckdosenLabel,
             text: locationdata.steckdosen_description,
             onChanged: (val) {

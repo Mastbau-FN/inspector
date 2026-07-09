@@ -294,8 +294,7 @@ class _OufnessChooserState extends State<OufnessChooser> {
         padding: const EdgeInsets.all(8.0),
         child: ChoiceChip(
           elevation: 4,
-          shadowColor:
-              Theme.of(context).colorScheme.onSurface.withAlpha(100),
+          shadowColor: Theme.of(context).colorScheme.onSurface.withAlpha(100),
           selectedShadowColor: cd?.backgroundColor,
           selectedColor: cd?.backgroundColor,
           backgroundColor: cd?.backgroundColor?.withAlpha(70),
@@ -321,11 +320,47 @@ class _OufnessChooserState extends State<OufnessChooser> {
 
 Widget generateCheckPointDefectsSliverList(
     BuildContext context, List<CheckPointDefect> childrenData) {
+  final displayData = normalizeCheckpointDefectsForDisplay(childrenData);
   return SliverList.list(
-    children: childrenData.map((cd) {
+    children: displayData.map((cd) {
       return DefectWidgetAuto(data: cd);
     }).toList(),
   );
+}
+
+bool isNoDefectMarker(CheckPointDefect defect) =>
+    defect.ereArt == OufnessChooser.none;
+
+List<CheckPointDefect> normalizeCheckpointDefectsForDisplay(
+    List<CheckPointDefect> defects) {
+  final actualDefects =
+      defects.where((defect) => !isNoDefectMarker(defect)).toList();
+  if (actualDefects.isNotEmpty) return actualDefects;
+
+  CheckPointDefect? preferredNoDefect;
+  for (final defect in defects.where(isNoDefectMarker)) {
+    if (preferredNoDefect == null ||
+        _preferNoDefectMarker(defect, preferredNoDefect)) {
+      preferredNoDefect = defect;
+    }
+  }
+
+  return preferredNoDefect == null ? [] : [preferredNoDefect];
+}
+
+bool _preferNoDefectMarker(
+    CheckPointDefect candidate, CheckPointDefect current) {
+  final candidateIsLocal = candidate.id.startsWith(LOCALLY_ADDED_PREFIX);
+  final currentIsLocal = current.id.startsWith(LOCALLY_ADDED_PREFIX);
+  if (candidateIsLocal != currentIsLocal) return !candidateIsLocal;
+
+  final candidateDate = candidate.erDate;
+  final currentDate = current.erDate;
+  if (candidateDate != null && currentDate != null) {
+    return candidateDate.isAfter(currentDate);
+  }
+  if (candidateDate != null) return true;
+  return false;
 }
 
 class DefectWidgetAuto extends StatefulWidget {
@@ -389,14 +424,13 @@ class DefectWidget extends StatelessWidget {
       child: TextButton(
         style: TextButton.styleFrom(
           // iconColor: Theme.of(context).colorScheme.onSurface,
-          foregroundColor:
-              CheckPointDefect.ereArtToColor(data.ereArt),
+          foregroundColor: CheckPointDefect.ereArtToColor(data.ereArt),
           // primary: Theme.of(context).colorScheme.onSurface,
           backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 10,
           //     CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.4),
-          shadowColor:
-              CheckPointDefect.ereArtToColor(data.ereArt).withValues(alpha: 0.8),
+          shadowColor: CheckPointDefect.ereArtToColor(data.ereArt)
+              .withValues(alpha: 0.8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),

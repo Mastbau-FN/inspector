@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:MBG_Inspektionen/backend/backend_reachability.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
@@ -46,6 +47,8 @@ class API {
   final Map<int, String?> _prueferByPjNr = <int, String?>{};
   final Map<String, Future<ImageData?>> _inflightImageFetches =
       <String, Future<ImageData?>>{};
+  final Map<String, Future<File?>> _inflightDocumentFetches =
+      <String, Future<File?>>{};
   bool _refreshingLoginUsers = false;
 
   String? _readStringKey(Map<String, dynamic> map, List<String> candidates) {
@@ -217,6 +220,18 @@ class API {
     return itPrefersCache;
   }
 
+  @visibleForTesting
+  static bool shouldForceOnlineAfterOfflineMiss({
+    required bool onlineSucceeded,
+    required bool offlineSucceeded,
+    required bool prefersCache,
+    required bool forceOffline,
+  }) {
+    if (onlineSucceeded || offlineSucceeded) return false;
+    if (prefersCache || forceOffline) return false;
+    return true;
+  }
+
   Stream<T> _run<R extends http.BaseResponse, T>({
     required FutureOr<T> Function() offline,
     required FutureOr<RequestAndParser<R, T>> Function() online,
@@ -304,10 +319,10 @@ class API {
                     // treat them as a pre-step "0/3" to make the UX clearer.
                     if (currentStep == 0) {
                       step = 0;
-                      stepLabel = 'Step 0/3: Inspection images';
+                      stepLabel = 'Step 0/3: Inspektionsdateien';
                     } else {
                       step = 3;
-                      stepLabel = 'Step 3/3: Images';
+                      stepLabel = 'Step 3/3: Dateien';
                     }
                   }
                 } catch (_) {}
@@ -382,7 +397,12 @@ class API {
 
           bool? onlineSucc = _success[0];
           bool? offlineSucc = _success[1];
-          if (!(onlineSucc ?? false) && !offlineSucc!) {
+          if (API.shouldForceOnlineAfterOfflineMiss(
+            onlineSucceeded: onlineSucc ?? false,
+            offlineSucceeded: offlineSucc ?? false,
+            prefersCache: _itPrefersCache,
+            forceOffline: Options().forceOffline,
+          )) {
             onlineSucc = await doOnline(forceOnline: true);
           }
           if (onlineSucc != null)
@@ -407,6 +427,13 @@ class API {
     required Helper.SimulatedRequestType requestType,
   }) async {
     //check network
+    final offlineCooldown =
+        BackendReachability.instance.remainingOfflineCooldown;
+    if (offlineCooldown != null) {
+      final seconds = offlineCooldown.inSeconds + 1;
+      throw NoConnectionToBackendException(
+          'Backend momentan nicht erreichbar. Nächster Online-Versuch in $seconds s.');
+    }
     if (Options().forceOffline)
       throw NoConnectionToBackendException(
           S.current!.nonetwork_forcedOfflineMode);
@@ -880,12 +907,56 @@ class API {
     final effectiveScope = (scope != null && scope.isNotEmpty)
         ? scope
         : (owner != null ? local.scopeFor(owner) : null);
-    return _run(
-      itPrefersCache: false,
-      offline: () => local.getDocument(path, scope: effectiveScope),
-      online: () => remote.getDocument(path, scope: effectiveScope),
-      requestType: requestType,
-    ).last;
+
+    try {
+      return await local.getDocument(path, scope: effectiveScope);
+    } catch (_) {}
+
+    final key = '${effectiveScope ?? ''}|$path';
+    final existing = _inflightDocumentFetches[key];
+    if (existing != null) return existing;
+
+    Future<File?> fetch() async {
+      final progressSession = DownloadProgress.instance.active;
+      final progressToken = progressSession?.beginTask(
+        '/doc/get',
+        key: '/doc/get|$path',
+        step: 3,
+      );
+      try {
+        await tryNetwork(requestType: requestType);
+        final request = remote.getDocument(path, scope: effectiveScope);
+        final response = await remote.postJSON(request.rd);
+        if (response == null) {
+          if (progressToken != null) {
+            progressSession?.endTask(progressToken, success: false);
+          }
+          return null;
+        }
+        final document = await request.parser(response);
+        if (progressToken != null) {
+          progressSession?.endTask(progressToken, success: document != null);
+        }
+        return document;
+      } catch (_) {
+        if (progressToken != null) {
+          progressSession?.endTask(progressToken, success: false);
+        }
+        try {
+          return await local.getDocument(path, scope: effectiveScope);
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+
+    final future = fetch();
+    _inflightDocumentFetches[key] = future;
+    try {
+      return await future;
+    } finally {
+      _inflightDocumentFetches.remove(key);
+    }
   }
 
   /// deletes an image specified by its hash and returns the response

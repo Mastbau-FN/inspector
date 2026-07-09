@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +15,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
     show FailedRequestmanager, sync_in_progress_str, GroupedInspection;
+import 'package:MBG_Inspektionen/backend/incremental_backup.dart';
 import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
 import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' show localPath;
@@ -485,24 +485,39 @@ class BackupTile extends StatefulWidget {
 }
 
 class _BackupTileState extends State<BackupTile> {
-  bool loading = false;
-  bool? success;
-  double progress = 0.0;
-  String currentFile = '';
-  String eta = '';
+  static bool _manualBackupRequested = false;
+
+  final _backupCoordinator = BackupCoordinator.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _backupCoordinator.addListener(_onBackupStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _backupCoordinator.removeListener(_onBackupStateChanged);
+    super.dispose();
+  }
+
+  void _onBackupStateChanged() {
+    if (mounted) setState(() {});
+  }
 
   // Eine private Version der _performBackup Methode für die BackupTile
-  Future<bool> _performLocalBackup(BuildContext context) async {
+  Future<IncrementalBackupResult?> _performLocalBackup(
+      BuildContext context) async {
     // Prüfe zuerst die Berechtigungen, bevor wir irgendetwas anderes tun
     if (!await _requestStoragePermission(context)) {
       showToast('Speicherberechtigung ist erforderlich für das Backup');
-      return false;
+      return null;
     }
 
     final externalDir = await getExternalStorageDirectory();
     if (externalDir == null) {
       showToast('Could not get external directory');
-      return false;
+      return null;
     }
 
     try {
@@ -511,78 +526,58 @@ class _BackupTileState extends State<BackupTile> {
         await backupDir.create();
       }
 
-      final backupPath =
-          '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
-
-      debugPrint('Starte Backup nach: $backupPath');
-
-      // Fortschrittsstream abonnieren und UI aktualisieren
-      await for (BackupProgress progressValue in backup(backupPath)) {
-        // Regelmäßiges Aktualisieren der UI garantieren
-        if (mounted) {
-          setState(() {
-            progress = progressValue.progress;
-            currentFile = progressValue.currentFile;
-            eta = progressValue.eta;
-          });
-        }
-
-        // Sende Fortschrittsbenachrichtigung alle 10%
-        if (progressValue.progress * 100 % 10 < 0.5) {
-          try {
-            await AwesomeNotifications().createNotification(
-              content: NotificationContent(
-                id: 20,
-                channelKey: 'mbg_all_notifications',
-                title: 'Backup Fortschritt',
-                body:
-                    '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
-                notificationLayout: NotificationLayout.ProgressBar,
-                progress: progressValue.progress,
-                autoDismissible: true,
-              ),
-            );
-          } catch (e) {
-            debugPrint(
-                'Fehler beim Senden der Fortschrittsbenachrichtigung: $e');
-            // Fehler ignorieren und weitermachen
+      var lastNotificationPercent = -10;
+      final backupResult = await _backupCoordinator.runBackup(
+        sourceDirectory: Directory(await localPath),
+        backupDirectory: backupDir,
+        onProgress: (progressValue) async {
+          final percent = (progressValue.progress * 100).floor();
+          if (percent >= lastNotificationPercent + 10 || percent >= 100) {
+            lastNotificationPercent = percent;
+            try {
+              await AwesomeNotifications().createNotification(
+                content: NotificationContent(
+                  id: 20,
+                  channelKey: 'mbg_all_notifications',
+                  title: 'Backup Fortschritt',
+                  body:
+                      '${(progressValue.progress * 100).toStringAsFixed(1)}% · Datei ${progressValue.processedFiles}/${progressValue.totalFiles} · ETA: ${progressValue.eta}',
+                  notificationLayout: NotificationLayout.ProgressBar,
+                  progress: progressValue.progress,
+                  autoDismissible: true,
+                ),
+              );
+            } catch (e) {
+              debugPrint(
+                  'Fehler beim Senden der Fortschrittsbenachrichtigung: $e');
+            }
           }
-        }
 
-        // Debug-Ausgabe für Fortschritt
-        if (progressValue.progress * 100 % 5 < 0.1) {
-          // Nur alle 5% loggen
-          debugPrint(
-              'Backup Fortschritt: ${(progressValue.progress * 100).toStringAsFixed(1)}% - ETA: ${progressValue.eta}');
-        }
-      }
+          if (progressValue.progress * 100 % 5 < 0.1) {
+            debugPrint(
+                'Backup Fortschritt: ${(progressValue.progress * 100).toStringAsFixed(1)}% - ETA: ${progressValue.eta}');
+          }
+        },
+      );
 
-      return true;
+      return backupResult;
     } catch (e) {
       debugPrint('Fehler beim Backup-Erstellen: $e');
-      return false;
+      return null;
     }
   }
 
   void onPress(BuildContext context) async {
-    // Prüfe zuerst die Berechtigungen, bevor wir irgendetwas anderes tun
-    if (!await _requestStoragePermission(context)) {
-      showToast('Speicherberechtigung ist erforderlich für das Backup');
+    if (_manualBackupRequested || _backupCoordinator.isRunning) {
+      showToast('Es läuft bereits ein Backup');
       return;
     }
-
-    // Benachrichtigungen initialisieren
-    await initNotifications();
-
-    setState(() {
-      loading = true;
-      progress = 0.0;
-      success = null;
-      currentFile = '';
-      eta = '';
-    });
+    _manualBackupRequested = true;
 
     try {
+      await initNotifications();
+      if (!mounted) return;
+
       // Benachrichtigung direkt am Anfang senden
       try {
         await AwesomeNotifications().createNotification(
@@ -601,24 +596,23 @@ class _BackupTileState extends State<BackupTile> {
       }
 
       // Führe das Backup durch
-      final backupSuccess = await _performLocalBackup(context);
+      final backupResult = await _performLocalBackup(context);
 
-      if (mounted) {
-        setState(() {
-          success = backupSuccess;
-          loading = false;
-        });
-      }
+      if (!mounted) return;
 
-      if (backupSuccess) {
+      if (backupResult != null) {
         // Sende Erfolgsbenachrichtigung
         try {
           await AwesomeNotifications().createNotification(
             content: NotificationContent(
               id: 30,
               channelKey: 'mbg_all_notifications',
-              title: 'Backup abgeschlossen',
-              body: 'Das Backup wurde erfolgreich erstellt',
+              title: backupResult.created
+                  ? 'Backup abgeschlossen'
+                  : 'Backup aktuell',
+              body: backupResult.created
+                  ? 'Das inkrementelle Backup wurde erfolgreich erstellt'
+                  : 'Seit dem letzten Backup gibt es keine neuen Daten',
               notificationLayout: NotificationLayout.Default,
               autoDismissible: true,
             ),
@@ -627,20 +621,18 @@ class _BackupTileState extends State<BackupTile> {
           debugPrint('Fehler beim Senden der Erfolgsbenachrichtigung: $e');
         }
 
-        // Teile das Backup
-        final externalDir = await getExternalStorageDirectory();
-        if (externalDir != null) {
-          final backupDir = Directory('${externalDir.parent.path}/MBGBackups');
-          final backupPath =
-              '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
-
-          showToast('Local backup finished at: $backupPath');
-          debugPrint('Backup erfolgreich abgeschlossen');
+        final backupFile = backupResult.backupFile;
+        if (backupFile == null) {
+          showToast('Keine neuen Daten seit dem letzten Backup');
+        } else {
+          showToast('Local backup finished at: ${backupFile.path}');
+          debugPrint(
+              'Inkrementelles Backup mit ${backupResult.changedFileCount} neuen oder geänderten Dateien abgeschlossen');
 
           Share.shareXFiles(
-            [XFile(backupPath)],
-            text: 'Backup from MBG Inspektionen',
-            subject: 'Backup from MBG Inspektionen',
+            [XFile(backupFile.path)],
+            text: 'Inkrementelles Backup von MBG Inspektionen',
+            subject: 'Inkrementelles Backup von MBG Inspektionen',
           );
         }
       } else {
@@ -664,12 +656,6 @@ class _BackupTileState extends State<BackupTile> {
       }
     } catch (e) {
       debugPrint('Fehler beim Backup-Erstellen: $e');
-      if (mounted) {
-        setState(() {
-          success = false;
-          loading = false;
-        });
-      }
 
       // Sende Fehlerbenachrichtigung
       try {
@@ -689,12 +675,20 @@ class _BackupTileState extends State<BackupTile> {
       }
 
       showToast('Could not create backup');
+    } finally {
+      _manualBackupRequested = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Verbesserte Formatierung für den Fortschritt
+    final loading = _backupCoordinator.isRunning;
+    final progress = _backupCoordinator.progress;
+    final currentFile = _backupCoordinator.currentFile;
+    final eta = _backupCoordinator.eta;
+    final processedFiles = _backupCoordinator.processedFiles;
+    final totalFiles = _backupCoordinator.totalFiles;
+    final success = _backupCoordinator.success;
     String tileText;
     if (loading) {
       final percent = (progress * 100).floor();
@@ -705,7 +699,9 @@ class _BackupTileState extends State<BackupTile> {
               : currentFile)
           : '';
 
-      tileText = '$percent% Backup läuft\n$fileName\n$etaText';
+      final filesText =
+          totalFiles > 0 ? ' · Datei $processedFiles/$totalFiles' : '';
+      tileText = '$percent% Backup$filesText\n$fileName\n$etaText';
     } else {
       tileText = 'Backup';
     }
@@ -738,75 +734,16 @@ class _BackupTileState extends State<BackupTile> {
             )
           : (success != null
               ? Icon(
-                  success! ? Icons.check : Icons.error,
-                  color: success! ? Colors.green : Colors.red,
+                  success ? Icons.check : Icons.error,
+                  color: success ? Colors.green : Colors.red,
                 )
               : null),
     );
   }
 
   void showToast(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-}
-
-class BackupProgress {
-  final double progress;
-  final String currentFile;
-  final String eta;
-
-  BackupProgress({
-    required this.progress,
-    required this.currentFile,
-    required this.eta,
-  });
-}
-
-/// Backups everything in localPath as a zip, providing a progress stream.
-Stream<BackupProgress> backup(String to) async* {
-  final encoder = ZipFileEncoder();
-  encoder.create(to);
-
-  try {
-    final directory = Directory(await localPath);
-    final entities = directory.listSync(recursive: true);
-
-    final totalSize = entities.whereType<File>().fold<int>(
-          0,
-          (sum, file) => sum + file.lengthSync(),
-        );
-    int processedSize = 0;
-    DateTime startTime = DateTime.now();
-
-    for (final entity in entities) {
-      if (entity is File) {
-        final relativePath = entity.path.replaceFirst(directory.path, '');
-        encoder.addFile(entity, relativePath);
-        processedSize += entity.lengthSync();
-
-        // Berechne ETA
-        final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-        final speed = processedSize / elapsed;
-        final remaining = totalSize - processedSize;
-        var etaMs = remaining / speed;
-        if (etaMs.isInfinite || etaMs.isNaN) {
-          etaMs =
-              0; // Skip if                               ETA calculation is invalid
-        }
-        final etaDuration = Duration(milliseconds: etaMs.round());
-        final etaStr = etaDuration.inMinutes >= 1
-            ? '${etaDuration.inMinutes} min'
-            : '${etaDuration.inSeconds} s';
-
-        yield BackupProgress(
-          progress: processedSize / totalSize,
-          currentFile: relativePath,
-          eta: etaStr,
-        );
-      }
-    }
-  } finally {
-    encoder.close();
   }
 }
 
@@ -876,6 +813,9 @@ class _UploadSyncTile extends StatefulWidget {
 }
 
 class _UploadSyncTileState extends State<_UploadSyncTile> {
+  static bool _workflowInProgress = false;
+
+  final _backupCoordinator = BackupCoordinator.instance;
   final _inspectionVisibility = InspectionVisibility();
   bool isSynced = false;
   bool showCompleted = false;
@@ -883,7 +823,18 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   @override
   void initState() {
     super.initState();
+    _backupCoordinator.addListener(_onBackupStateChanged);
     _checkSyncStatus();
+  }
+
+  @override
+  void dispose() {
+    _backupCoordinator.removeListener(_onBackupStateChanged);
+    super.dispose();
+  }
+
+  void _onBackupStateChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _checkSyncStatus() async {
@@ -891,6 +842,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       await API().local.getAllFailedRequests() ?? [],
     );
     final nextIsSynced = failedReqs.isEmpty;
+    if (!mounted) return;
     setState(() {
       isSynced = nextIsSynced;
     });
@@ -900,6 +852,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   }
 
   Future<void> _analyzeRequests() async {
+    if (!mounted) return;
     final inspectionData = context.read<InspectionData>();
     if (inspectionData.isAnalyzing) {
       debugPrint('Analyse läuft bereits, überspringe...');
@@ -914,16 +867,39 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
           await FailedRequestmanager().getGroupedFailedRequests();
       debugPrint(
           'Analyse abgeschlossen. Gefundene Inspektionen: ${inspections.length}');
-      inspectionData.setAnalyzedInspections(inspections);
+      if (mounted) {
+        inspectionData.setAnalyzedInspections(inspections);
+      }
     } catch (e) {
       debugPrint('Error analyzing requests: $e');
       showToast('Fehler bei der Analyse der Requests');
     } finally {
-      inspectionData.setAnalyzing(false);
+      if (mounted) {
+        inspectionData.setAnalyzing(false);
+      }
     }
   }
 
   Future<void> onPress() async {
+    if (_workflowInProgress) {
+      showToast('Backup und Synchronisierung laufen bereits');
+      return;
+    }
+    _workflowInProgress = true;
+    try {
+      await _runBackupAndSync();
+    } catch (e, stackTrace) {
+      debugPrint('Backup-/Sync-Ablauf fehlgeschlagen: $e\n$stackTrace');
+      showToast('Backup oder Synchronisierung fehlgeschlagen');
+    } finally {
+      _workflowInProgress = false;
+    }
+  }
+
+  Future<void> _runBackupAndSync() async {
+    if (!mounted) return;
+    final navigatorContext = Navigator.of(context).context;
+
     if (isSynced) {
       showToast('Alle Inspektionen sind bereits synchronisiert');
       return;
@@ -939,14 +915,12 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     await _analyzeRequests();
 
     ExtendedProgressStateUpdater? updater;
-    try {
-      updater = context.read<ExtendedProgressStateUpdater>();
-    } catch (e) {
-      debugPrint('ExtendedProgressStateUpdater not available: $e');
-    }
-
-    if (updater?.loading ?? false) {
-      return;
+    if (mounted) {
+      try {
+        updater = context.read<ExtendedProgressStateUpdater>();
+      } catch (e) {
+        debugPrint('ExtendedProgressStateUpdater not available: $e');
+      }
     }
 
     final failedReqs = await _inspectionVisibility.filterVisibleFailedRequests(
@@ -1001,7 +975,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       showToast('Backup wird erstellt...');
 
       // Zuerst Speicherberechtigung prüfen, bevor das Backup gestartet wird
-      if (!await _requestStoragePermission(context)) {
+      if (!await _requestStoragePermission(navigatorContext)) {
         showToast('Speicherberechtigung ist erforderlich für das Backup');
         // Trotzdem mit Synchronisierung fortfahren, aber ohne Backup
         debugPrint(
@@ -1031,16 +1005,27 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
           debugPrint('Could not reset progress: $e');
         }
 
-        backupSuccess = await _performBackup(updater, context);
+        backupSuccess = await _performBackup(updater, navigatorContext);
       }
     }
 
     // Nur wenn Backup erfolgreich war oder übersprungen wurde, Sync starten
     if (backupSuccess) {
+      final progressWriter = UploadProgressWriter();
+      await progressWriter.awaitInitDone();
+      await progressWriter.prepareForSync();
+      updater?.setDetailedProgress(
+        overallProgress: 0.0,
+        success: null,
+        inspectionId: '',
+        inspProgress: 0.0,
+        etaString: '',
+      );
+
       debugPrint('Starting sync process...');
       showToast('Synchronisierung wird gestartet...');
       bool success = await FailedRequestmanager().retryFailedrequests(
-        context: context,
+        context: navigatorContext,
         onProgress: (overall, maybeSuccess, inspId, inspProg, etaStr) async {
           debugPrint(
               'Sync progress: ${(overall * 100).toStringAsFixed(1)}% - Current inspection: $inspId');
@@ -1081,9 +1066,11 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
             debugPrint('Error extracting PJNr: $e');
           }
 
-          inspectionData.updateProgress(pjNr, inspProg);
+          if (mounted) {
+            inspectionData.updateProgress(pjNr, inspProg);
+          }
 
-          if (maybeSuccess == true && inspProg >= 1.0) {
+          if (mounted && maybeSuccess == true && inspProg >= 1.0) {
             inspectionData.markAsCompleted(pjNr);
           }
 
@@ -1130,14 +1117,10 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
         await backupDir.create();
       }
 
-      final backupPath =
-          '${backupDir.path}/backup-${DateTime.now().millisecondsSinceEpoch}.zip';
-      debugPrint('Starting backup to: $backupPath');
-
       final upsn = UploadProgressWriter();
       await upsn.awaitInitDone();
-      upsn.setLoading(true);
-      await upsn.setProgress(0.0);
+      await upsn.startBackup();
+      var lastNotificationPercent = -10;
 
       // Prüfe Benachrichtigungsberechtigung
       final isAllowed = await AwesomeNotifications().isNotificationAllowed();
@@ -1147,56 +1130,66 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
         await AwesomeNotifications().requestPermissionToSendNotifications();
       }
 
-      await for (BackupProgress progressValue in backup(backupPath)) {
-        debugPrint(
-            'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
-        await upsn.setBackupProgress(progressValue);
+      final backupResult = await _backupCoordinator.runBackup(
+        sourceDirectory: Directory(await localPath),
+        backupDirectory: backupDir,
+        onProgress: (progressValue) async {
+          debugPrint(
+              'Backup progress: ${(progressValue.progress * 100).toStringAsFixed(1)}%');
+          await upsn.setBackupProgress(progressValue);
 
-        // Prüfe, ob updater nicht null und nicht disposed ist
-        if (updater != null) {
-          try {
-            updater.setDetailedProgress(
-              overallProgress: progressValue.progress,
-              success: null,
-              inspectionId: 'Backup',
-              inspProgress: progressValue.progress,
-              etaString: '',
-            );
-          } catch (e) {
-            debugPrint('Could not update progress: $e');
-            // Kein Abbruch wegen UI-Fehler, Backup soll weiterlaufen
+          if (updater != null) {
+            try {
+              updater.setDetailedProgress(
+                overallProgress: progressValue.progress,
+                success: null,
+                inspectionId: 'Backup',
+                inspProgress: progressValue.progress,
+                etaString: progressValue.eta,
+              );
+            } catch (e) {
+              debugPrint('Could not update progress: $e');
+            }
           }
-        }
 
-        try {
-          await AwesomeNotifications().createNotification(
-            content: NotificationContent(
-              id: 1,
-              channelKey: 'mbg_all_notifications',
-              title: 'Backup wird erstellt',
-              body:
-                  '${(progressValue.progress * 100).toStringAsFixed(1)}% - ${progressValue.currentFile}',
-              notificationLayout: NotificationLayout.Default,
-              progress: progressValue.progress,
-              autoDismissible: true,
-            ),
-          );
-        } catch (e) {
-          debugPrint('Fehler beim Senden der Benachrichtigung: $e');
-        }
-      }
+          final percent = (progressValue.progress * 100).floor();
+          if (percent >= lastNotificationPercent + 10 || percent >= 100) {
+            lastNotificationPercent = percent;
+            try {
+              await AwesomeNotifications().createNotification(
+                content: NotificationContent(
+                  id: 1,
+                  channelKey: 'mbg_all_notifications',
+                  title: 'Backup wird erstellt',
+                  body:
+                      '$percent% · Datei ${progressValue.processedFiles}/${progressValue.totalFiles} · ETA: ${progressValue.eta}',
+                  notificationLayout: NotificationLayout.Default,
+                  progress: progressValue.progress,
+                  autoDismissible: true,
+                ),
+              );
+            } catch (e) {
+              debugPrint('Fehler beim Senden der Benachrichtigung: $e');
+            }
+          }
+        },
+      );
       debugPrint('Backup completed successfully');
-      upsn.setLoading(false);
-      upsn.setSuccess(true);
-      showToast('Backup erfolgreich erstellt');
+      await upsn.finishBackup(success: true);
+      showToast(backupResult.created
+          ? 'Inkrementelles Backup erfolgreich erstellt'
+          : 'Keine neuen Daten seit dem letzten Backup');
 
       try {
         await AwesomeNotifications().createNotification(
           content: NotificationContent(
             id: 1,
             channelKey: 'mbg_all_notifications',
-            title: 'Backup erfolgreich',
-            body: 'Das Backup wurde erfolgreich erstellt',
+            title:
+                backupResult.created ? 'Backup erfolgreich' : 'Backup aktuell',
+            body: backupResult.created
+                ? 'Das inkrementelle Backup wurde erfolgreich erstellt'
+                : 'Seit dem letzten Backup gibt es keine neuen Daten',
             notificationLayout: NotificationLayout.Default,
             autoDismissible: true,
           ),
@@ -1206,6 +1199,9 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
       }
       return true;
     } catch (e) {
+      final upsn = UploadProgressWriter();
+      await upsn.awaitInitDone();
+      await upsn.finishBackup(success: false);
       debugPrint('Backup failed: $e');
       showToast('Backup fehlgeschlagen');
 
@@ -1231,10 +1227,16 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   Widget build(BuildContext context) {
     final updater = context.watch<ExtendedProgressStateUpdater>();
     final inspectionData = context.watch<InspectionData>();
-    final loading = updater.loading;
-    final progress = updater.progress ?? 0.0;
+    final backupRunning = _backupCoordinator.isRunning;
+    final loading = backupRunning || updater.loading;
+    final progress =
+        backupRunning ? _backupCoordinator.progress : updater.progress ?? 0.0;
     final success = updater.success;
-    final inspId = updater.currentInspection ?? '';
+    final inspId = backupRunning ? 'Backup' : updater.currentInspection ?? '';
+    final eta = backupRunning ? _backupCoordinator.eta : updater.eta ?? '';
+    final processedFiles =
+        backupRunning ? _backupCoordinator.processedFiles : 0;
+    final totalFiles = backupRunning ? _backupCoordinator.totalFiles : 0;
 
     ////debugPrint(
     // 'Build: isAnalyzing=${inspectionData.isAnalyzing}, analyzedInspections=${inspectionData.analyzedInspections?.length ?? 0}');
@@ -1242,7 +1244,11 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     String tileText = '';
     if (loading) {
       if (inspId == 'Backup') {
-        tileText = 'Backup wird\nerstellt';
+        final filesText =
+            totalFiles > 0 ? 'Datei $processedFiles/$totalFiles\n' : '';
+        tileText = eta.isEmpty
+            ? 'Backup wird\nerstellt'
+            : 'Backup läuft\n${filesText}ETA: $eta';
       } else {
         tileText = 'Fortschritt:';
       }
