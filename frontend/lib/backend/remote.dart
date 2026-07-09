@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:MBG_Inspektionen/backend/backend_reachability.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
@@ -157,6 +158,17 @@ class Remote {
   // ignore: non_constant_identifier_names
   final _api_key = Env.mbgKey;
 
+  bool _logReachabilityFailureOnce(Object error) {
+    if (!BackendReachability.isBackendReachabilityFailure(error)) return false;
+    if (!BackendReachability.instance.markFailure(error)) return true;
+
+    final seconds =
+        BackendReachability.defaultOfflineCooldown.inSeconds.toString();
+    debugPrint(
+        'Backend nicht erreichbar (${BackendReachability.instance.lastFailureMessage}); weitere Online-Requests werden $seconds s übersprungen.');
+    return true;
+  }
+
   // MARK: available Helpers
 
   /// checks whether a connection to the backend is possible
@@ -258,9 +270,13 @@ class Remote {
           );
 
     try {
-      return await runner;
+      final response = await runner;
+      BackendReachability.instance.clearFailure();
+      return response;
     } on SocketException catch (e) {
-      debugPrint('Socket-Fehler beim Senden des Requests: ${e.message}');
+      if (!_logReachabilityFailureOnce(e)) {
+        debugPrint('Socket-Fehler beim Senden des Requests: ${e.message}');
+      }
       if (e.message.contains('Software caused connection abort') ||
           e.message.contains('Write failed')) {
         debugPrint(
@@ -268,7 +284,9 @@ class Remote {
       }
       rethrow;
     } catch (e) {
-      debugPrint('Fehler beim Senden des Requests: $e');
+      if (!_logReachabilityFailureOnce(e)) {
+        debugPrint('Fehler beim Senden des Requests: $e');
+      }
       rethrow;
     }
   }
@@ -363,9 +381,12 @@ class Remote {
           var res = (rd.timeout == null)
               ? await _client.send(mreq)
               : await _client.send(mreq).timeout(rd.timeout!);
+          BackendReachability.instance.clearFailure();
           return res;
         } on SocketException catch (e) {
-          debugPrint('Socket-Fehler bei Multipart-Request: ${e.message}');
+          if (!_logReachabilityFailureOnce(e)) {
+            debugPrint('Socket-Fehler bei Multipart-Request: ${e.message}');
+          }
           if (e.message.contains('Write failed') ||
               e.message.contains('connection abort') ||
               e.message.contains('Connection refused') ||
@@ -392,7 +413,9 @@ class Remote {
 
           return response;
         } on SocketException catch (e) {
-          debugPrint('Socket-Fehler bei HTTP-Request: ${e.message}');
+          if (!_logReachabilityFailureOnce(e)) {
+            debugPrint('Socket-Fehler bei HTTP-Request: ${e.message}');
+          }
           if (e.message.contains('Write failed') ||
               e.message.contains('connection abort') ||
               e.message.contains('Connection refused') ||
@@ -402,7 +425,9 @@ class Remote {
           }
           rethrow;
         } catch (e) {
-          debugPrint('request failed: $e');
+          if (!_logReachabilityFailureOnce(e)) {
+            debugPrint('request failed: $e');
+          }
           rethrow;
         }
       }
@@ -413,7 +438,9 @@ class Remote {
       if (msg.contains('Out of Memory') || msg.contains('Exhausted heap')) {
         rethrow;
       }
-      debugPrint("request failed, cause : $e");
+      if (!_logReachabilityFailureOnce(e)) {
+        debugPrint("request failed, cause : $e");
+      }
       return null;
     }
   }

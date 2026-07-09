@@ -66,6 +66,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   final String name;
   final Function(Map<String, dynamic>)? onSet;
   final Function()? onCancel;
+  final String? title;
 
   final List<JsonExtractable> children;
 
@@ -81,6 +82,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
     this.name, {
     this.onSet,
     this.onCancel,
+    this.title,
     this.textfieldList = const [],
     this.children = const [],
   })  : assert(textfieldList ==
@@ -137,6 +139,7 @@ class Adder extends StatelessWidget implements JsonExtractable {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: title == null ? null : AppBar(title: Text(title!)),
       body: Align(
         alignment: Alignment.bottomCenter,
         child: SingleChildScrollView(
@@ -181,21 +184,31 @@ class Adder extends StatelessWidget implements JsonExtractable {
           ),
         ),
       ),
-      bottomNavigationBar: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          _PaddedButton(
-            icon: Icons.cancel_outlined,
-            onPressed: onCancel,
+      bottomNavigationBar: AnimatedPadding(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _PaddedButton(
+                icon: Icons.cancel_outlined,
+                onPressed: onCancel,
+              ),
+              //if (textfield_list.isNotEmpty) _mainField(set),
+              _PaddedButton(
+                icon: Icons.check_circle_outline,
+                onPressed: () {
+                  if (set(context)) onCancel?.call(); //as requested by #118
+                },
+              ),
+            ],
           ),
-          //if (textfield_list.isNotEmpty) _mainField(set),
-          _PaddedButton(
-            icon: Icons.check_circle_outline,
-            onPressed: () {
-              if (set(context)) onCancel?.call(); //as requested by #118
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

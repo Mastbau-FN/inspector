@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'dart:math';
 import 'dart:async';
 
+import 'package:MBG_Inspektionen/backend/photo_batch_save_queue.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:MBG_Inspektionen/fragments/MainDrawer.dart';
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
@@ -391,11 +392,22 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
   bool expanded = false;
   bool withCamera = false;
   bool uploadingImage = false;
-  List<XFile> queue = [];
+  late final PhotoBatchSaveQueue _photoQueue;
 
   @override
   void initState() {
     super.initState();
+    _photoQueue = PhotoBatchSaveQueue(
+      saveBatch: widget.onNewImages,
+      onChanged: () {
+        if (mounted) setState(() {});
+      },
+      onBackgroundError: (error, _) {
+        if (mounted) {
+          showToast("Fehler beim Speichern im Hintergrund: $error");
+        }
+      },
+    );
     controller = AnimationController(duration: animationDuration, vsync: this);
     animation = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
       parent: controller,
@@ -415,6 +427,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
 
   @override
   void dispose() {
+    _photoQueue.dispose();
     controller.dispose();
     super.dispose();
   }
@@ -470,29 +483,24 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
     final pic = model.latestPic;
 
     if (pic != null) {
-      setState(() {
-        queue.add(pic);
-      });
+      _photoQueue.add(pic);
       model.discardPic();
     }
   }
 
   void uploadShots(BuildContext context) async {
-    if (queue.isEmpty) return;
+    if (!_photoQueue.hasWork) return;
 
     setState(() {
       uploadingImage = true;
     });
 
     try {
-      final result = await widget.onNewImages(queue);
+      final result = await _photoQueue.flushRemaining();
       if (kDebugMode) {
         showToast(result ??
             S.of(context).uploadFinishedNoIdeaWhetherSuccessedOrFailedTho);
       }
-      setState(() {
-        queue = [];
-      });
     } catch (e) {
       showToast("Fehler beim Hochladen: $e");
     } finally {
@@ -575,7 +583,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                       alignment: Alignment.bottomRight,
                       children: [
                         // Bilderwarteschlange (nur anzeigen, wenn es Bilder in der Queue gibt)
-                        if (queue.isNotEmpty && withCamera)
+                        if (_photoQueue.hasVisibleFiles && withCamera)
                           Transform.translate(
                             offset: isLandscape
                                 ? Offset(-60,
@@ -743,7 +751,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
       child: Icon(expanded ? Icons.close : Icons.add_a_photo),
       onPressed: expanded
           ? () {
-              if (queue.isEmpty) {
+              if (!_photoQueue.hasVisibleFiles) {
                 Provider.of<CameraModel>(context, listen: false).discardPic();
                 collapse();
                 return;
@@ -751,10 +759,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
 
               // Letztes Bild aus der Warteschlange anzeigen
               final model = Provider.of<CameraModel>(context, listen: false);
-              model.latestPic = queue.last;
-              setState(() {
-                queue.removeLast();
-              });
+              model.latestPic = _photoQueue.removeLastVisible();
             }
           : expand,
       tooltip: expanded ? 'Abbrechen' : 'Bilder hinzufügen',
@@ -971,6 +976,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
 
   // Anzeige der Bild-Warteschlange
   Widget _buildImageQueue() {
+    final queue = _photoQueue.visibleFiles;
     int totalImages = queue.length;
     if (totalImages == 0) return Container();
 

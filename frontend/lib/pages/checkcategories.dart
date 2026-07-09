@@ -158,23 +158,10 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     final cutoff = effectiveNow.subtract(CategoryProgressState.recentWindow);
     final defectsModel = checkPointsModel.generateNextModel(checkpoint);
     final defects = await defectsModel.all().last;
-    return defects.any((defect) => _isRecentRealDefect(defect, cutoff));
-  }
-
-  bool _isRecentRealDefect(CheckPointDefect defect, DateTime cutoff) {
-    if (defect.ereArt == 5204) {
-      return false;
-    }
-    if (defect.erDate != null && defect.erDate!.isAfter(cutoff)) {
-      return true;
-    }
-    if (defect.forceOffline) {
-      return true;
-    }
-    if (defect.id.startsWith(LOCALLY_ADDED_PREFIX)) {
-      return true;
-    }
-    return false;
+    return defects.any((defect) => isRecentCheckpointProgressEntry(
+          defect,
+          cutoff,
+        ));
   }
 
   @override
@@ -196,9 +183,11 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
     required onCancel(),
     required onDone(CheckCategory category),
     CheckCategory? currentCategory,
+    String? title,
   }) {
     return Adder(
       'category',
+      title: title,
       onSet: (json) {
         Map<String, dynamic> category = json['category'];
         if (currentCategory != null) {
@@ -226,4 +215,20 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
       ],
     );
   }
+}
+
+bool isRecentCheckpointProgressEntry(
+  CheckPointDefect defect,
+  DateTime cutoff,
+) {
+  if (defect.erDate != null && defect.erDate!.isAfter(cutoff)) {
+    return true;
+  }
+  if (defect.forceOffline) {
+    return true;
+  }
+  if (defect.id.startsWith(LOCALLY_ADDED_PREFIX)) {
+    return true;
+  }
+  return false;
 }

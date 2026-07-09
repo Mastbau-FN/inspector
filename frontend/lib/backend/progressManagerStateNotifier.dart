@@ -1,6 +1,6 @@
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
     show sync_in_progress_str, sync_progress_str, sync_success_str;
-import 'package:MBG_Inspektionen/pages/settings/settingsView.dart'
+import 'package:MBG_Inspektionen/backend/incremental_backup.dart'
     show BackupProgress;
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,6 +86,33 @@ class UploadProgressWriter {
       await prefs.setDouble(sync_progress_str, progress.progress);
     } catch (e) {
       debugPrint('Error setting backup progress: $e');
+    }
+  }
+
+  Future<void> startBackup() async {
+    await _clearSuccess();
+    await setProgress(0.0);
+    await setLoading(true);
+  }
+
+  Future<void> finishBackup({required bool success}) async {
+    await setSuccess(success);
+    await setLoading(false);
+  }
+
+  Future<void> prepareForSync() async {
+    await setLoading(false);
+    await _clearSuccess();
+    await setProgress(0.0);
+  }
+
+  Future<void> _clearSuccess() async {
+    _success = null;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.remove(sync_success_str);
+    } catch (e) {
+      debugPrint('Error clearing success state: $e');
     }
   }
 

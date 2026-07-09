@@ -70,25 +70,20 @@ class CheckCategory extends Data
             debugPrint("no context from wich we could alert");
             return;
           }
-          return showDialog(
-            barrierColor: Colors.black54,
-            context: context,
-            // barrierDismissible: false, // user must tap button!
-            barrierDismissible: true,
-            builder: (BuildContext innerContext) {
-              return AlertDialog(
-                title: Text('Kategorie bearbeiten'),
-                content: CategoryModel.adder(
-                    parent: Provider.of<CategoryModel>(context).currentData,
-                    currentCategory: this,
-                    onCancel: () => Navigator.of(context).pop(),
-                    onDone: (data) {
-                      Provider.of<CategoryModel>(context, listen: false)
-                          .update(data);
-                      // Navigator.of(context).pop();
-                    }),
-              );
-            },
+          final model = Provider.of<CategoryModel>(context, listen: false);
+          final parent = model.currentData;
+
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (routeContext) => CategoryModel.adder(
+                title: 'Kategorie bearbeiten',
+                parent: parent,
+                currentCategory: this,
+                onCancel: () => Navigator.of(routeContext).pop(),
+                onDone: (data) => model.update(data),
+              ),
+            ),
           );
         },
       );

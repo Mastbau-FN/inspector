@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 
 import '../backend/api.dart';
 import '../backend/categoryProgressState.dart';
+import '../backend/photo_batch_save_queue.dart';
 import '../classes/data/checkpoint.dart';
 import '../helpers/toast.dart';
 import '../options.dart';
@@ -364,8 +365,10 @@ class _CameraForAdderState extends State<CameraForAdder>
       caller.forceOffline = true;
     }
 
-    await API()
-        .uploadNewImagesOrFiles(cp, queue, caller: caller, forceUpdate: true);
+    for (final batch in chunked(queue, defaultPhotoBatchSize)) {
+      await API()
+          .uploadNewImagesOrFiles(cp, batch, caller: caller, forceUpdate: true);
+    }
   }
 
   // Bilder hochladen und neuen Defekt erstellen

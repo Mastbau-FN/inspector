@@ -7,6 +7,20 @@ import 'package:provider/provider.dart';
 import 'dart:math';
 import '../../../widgets/error.dart';
 
+double cameraPreviewRotationAngle({
+  required CameraDescription camera,
+  required Orientation orientation,
+}) {
+  if (orientation == Orientation.portrait && camera.sensorOrientation == 270) {
+    return -pi / 2;
+  }
+  return pi / 2;
+}
+
+double cameraPreviewScaleX(CameraDescription camera) {
+  return camera.lensDirection == CameraLensDirection.front ? -1 : 1;
+}
+
 /// Hauptkomponente für die Kameravorschau mit optionalen Steuerelementen
 class CameraPreviewOnly extends StatelessWidget {
   final List<Widget> children;
@@ -251,14 +265,15 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
 
   /// Baut die Kameravorschau mit korrekter Ausrichtung
   Widget _buildCameraPreview() {
-    // Holen der Geräte-Orientierung (Portrait/Landscape)
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
 
-    // Rotation für Hoch- und Querformat
     final shouldRotate = !isLandscape;
-    // Im Hochformat um 90° drehen, im Querformat keine Drehung
-    final double rotationAngle = shouldRotate ? pi / 2 : pi / 2;
+    final rotationAngle = cameraPreviewRotationAngle(
+      camera: widget.controller.description,
+      orientation: orientation,
+    );
+    final scaleX = cameraPreviewScaleX(widget.controller.description);
 
     // Bildschirmgröße ermitteln
     final screenSize = MediaQuery.of(context).size;
@@ -286,21 +301,25 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
             color: Colors.black,
           ),
           child: ClipRect(
-            child: Transform.rotate(
-              angle: rotationAngle,
+            child: Transform.scale(
+              scaleX: scaleX,
               alignment: Alignment.center,
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: shouldRotate ? 3 / 4 : 4 / 3,
-                  child: SizedBox.expand(
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width:
-                            widget.controller.value.previewSize?.width ?? 1920,
-                        height:
-                            widget.controller.value.previewSize?.height ?? 1080,
-                        child: CameraPreview(widget.controller),
+              child: Transform.rotate(
+                angle: rotationAngle,
+                alignment: Alignment.center,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: shouldRotate ? 3 / 4 : 4 / 3,
+                    child: SizedBox.expand(
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: widget.controller.value.previewSize?.width ??
+                              1920,
+                          height: widget.controller.value.previewSize?.height ??
+                              1080,
+                          child: CameraPreview(widget.controller),
+                        ),
                       ),
                     ),
                   ),
