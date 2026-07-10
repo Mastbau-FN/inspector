@@ -70,8 +70,9 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget generateCheckPointDefectsSliverList(
     BuildContext context, List&lt;CheckPointDefect&gt; childrenData) {
+  final displayData = normalizeCheckpointDefectsForDisplay(childrenData);
   return SliverList.list(
-    children: childrenData.map((cd) {
+    children: displayData.map((cd) {
       return DefectWidgetAuto(data: cd);
     }).toList(),
   );

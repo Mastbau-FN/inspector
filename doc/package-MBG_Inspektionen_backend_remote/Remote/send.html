@@ -139,9 +139,13 @@
         );
 
   try {
-    return await runner;
+    final response = await runner;
+    BackendReachability.instance.clearFailure();
+    return response;
   } on SocketException catch (e) {
-    debugPrint(&#39;Socket-Fehler beim Senden des Requests: ${e.message}&#39;);
+    if (!_logReachabilityFailureOnce(e)) {
+      debugPrint(&#39;Socket-Fehler beim Senden des Requests: ${e.message}&#39;);
+    }
     if (e.message.contains(&#39;Software caused connection abort&#39;) ||
         e.message.contains(&#39;Write failed&#39;)) {
       debugPrint(
@@ -149,7 +153,9 @@
     }
     rethrow;
   } catch (e) {
-    debugPrint(&#39;Fehler beim Senden des Requests: $e&#39;);
+    if (!_logReachabilityFailureOnce(e)) {
+      debugPrint(&#39;Fehler beim Senden des Requests: $e&#39;);
+    }
     rethrow;
   }
 }</code></pre>

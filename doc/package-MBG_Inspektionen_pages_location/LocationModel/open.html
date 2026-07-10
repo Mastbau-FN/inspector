@@ -84,20 +84,21 @@ void open(
   MyListTileData tiledata,
 ) {
   currentlyChosenChildData = Future.value(data);
+  if (tiledata.title == _nextViewTitle) {
+    unawaited(_openInspection(context, data));
+    return;
+  }
+
   Navigator.of(context).push(
     MaterialPageRoute(builder: (context) {
       switch (tiledata.title) {
-        case _nextViewTitle:
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            unawaited(checkFilesAndShowToast(data.pjNr, data, context));
-          });
-
-          return nextModel&lt;CheckCategory, InspectionLocation, CategoryModel&gt;(
-              generateNextModel(data));
         case &#39;Fotos&#39;:
           return standard_statefulImageView(this, data);
         case &#39;Docs&#39;:
-          return DokusList(dokus: data.dokuspaths, scope: data.id);
+          return DokusList(
+            dokus: data.dokuspaths,
+            scope: API().local.scopeFor(data),
+          );
         default:
           return LocationDetailPage(
             locationdata: data,

@@ -74,12 +74,56 @@
   final effectiveScope = (scope != null &amp;&amp; scope.isNotEmpty)
       ? scope
       : (owner != null ? local.scopeFor(owner) : null);
-  return _run(
-    itPrefersCache: false,
-    offline: () =&gt; local.getDocument(path, scope: effectiveScope),
-    online: () =&gt; remote.getDocument(path, scope: effectiveScope),
-    requestType: requestType,
-  ).last;
+
+  try {
+    return await local.getDocument(path, scope: effectiveScope);
+  } catch (_) {}
+
+  final key = &#39;${effectiveScope ?? &#39;&#39;}|$path&#39;;
+  final existing = _inflightDocumentFetches[key];
+  if (existing != null) return existing;
+
+  Future&lt;File?&gt; fetch() async {
+    final progressSession = DownloadProgress.instance.active;
+    final progressToken = progressSession?.beginTask(
+      &#39;&#47;doc&#47;get&#39;,
+      key: &#39;&#47;doc&#47;get|$path&#39;,
+      step: 3,
+    );
+    try {
+      await tryNetwork(requestType: requestType);
+      final request = remote.getDocument(path, scope: effectiveScope);
+      final response = await remote.postJSON(request.rd);
+      if (response == null) {
+        if (progressToken != null) {
+          progressSession?.endTask(progressToken, success: false);
+        }
+        return null;
+      }
+      final document = await request.parser(response);
+      if (progressToken != null) {
+        progressSession?.endTask(progressToken, success: document != null);
+      }
+      return document;
+    } catch (_) {
+      if (progressToken != null) {
+        progressSession?.endTask(progressToken, success: false);
+      }
+      try {
+        return await local.getDocument(path, scope: effectiveScope);
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  final future = fetch();
+  _inflightDocumentFetches[key] = future;
+  try {
+    return await future;
+  } finally {
+    _inflightDocumentFetches.remove(key);
+  }
 }</code></pre>
 </section>
 

@@ -110,6 +110,7 @@ and</li>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
   return Scaffold(
+    appBar: title == null ? null : AppBar(title: Text(title!)),
     body: Align(
       alignment: Alignment.bottomCenter,
       child: SingleChildScrollView(
@@ -154,21 +155,31 @@ Widget build(BuildContext context) {
         ),
       ),
     ),
-    bottomNavigationBar: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: &lt;Widget&gt;[
-        _PaddedButton(
-          icon: Icons.cancel_outlined,
-          onPressed: onCancel,
+    bottomNavigationBar: AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: &lt;Widget&gt;[
+            _PaddedButton(
+              icon: Icons.cancel_outlined,
+              onPressed: onCancel,
+            ),
+            &#47;&#47;if (textfield_list.isNotEmpty) _mainField(set),
+            _PaddedButton(
+              icon: Icons.check_circle_outline,
+              onPressed: () {
+                if (set(context)) onCancel?.call(); &#47;&#47;as requested by #118
+              },
+            ),
+          ],
         ),
-        &#47;&#47;if (textfield_list.isNotEmpty) _mainField(set),
-        _PaddedButton(
-          icon: Icons.check_circle_outline,
-          onPressed: () {
-            if (set(context)) onCancel?.call(); &#47;&#47;as requested by #118
-          },
-        ),
-      ],
+      ),
     ),
   );
 }</code></pre>

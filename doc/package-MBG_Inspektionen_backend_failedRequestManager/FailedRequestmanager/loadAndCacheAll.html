@@ -84,11 +84,77 @@
 }) async {
   final progressSession = DownloadProgress.instance.active;
 
+  Future&lt;void&gt; cacheDocuments(InspectionLocation location) async {
+    final documents = location.dokuspaths ?? const [];
+    if (documents.isEmpty) return;
+
+    final scope = API().local.scopeFor(location);
+    final documentsToDownload = &lt;DocumentData&gt;[];
+    for (final document in documents) {
+      final path = document.docupath.trim();
+      if (path.isEmpty) {
+        throw StateError(&#39;Dokument ohne gültigen Pfad gefunden&#39;);
+      }
+
+      var isCached = false;
+      try {
+        final localFile = await API().local.getDocument(path, scope: scope);
+        isCached = localFile != null &amp;&amp; await localFile.exists();
+      } catch (_) {}
+      if (isCached) continue;
+
+      documentsToDownload.add(document);
+      progressSession?.reserveTask(
+        &#39;&#47;doc&#47;get|$path&#39;,
+        step: 3,
+        label: &#39;Step 3&#47;3: Dateien&#39;,
+      );
+    }
+
+    for (var index = 0; index &lt; documentsToDownload.length; index++) {
+      final document = documentsToDownload[index];
+      progressSession?.setStep(
+        3,
+        label:
+            &#39;Step 3&#47;3: Dokument ${index + 1}&#47;${documentsToDownload.length}&#39;,
+      );
+      final file = await API().getDocument(
+        document.docupath,
+        owner: location,
+        scope: scope,
+      );
+      if (file == null || !await file.exists()) {
+        throw StateError(
+          &#39;Dokument &quot;${document.filename}&quot; konnte nicht gespeichert werden&#39;,
+        );
+      }
+    }
+  }
+
   Future&lt;void&gt; awaitAllImagesForData(Data data) async {
     final futures = &lt;Future&gt;[];
     futures.add(data.mainImage);
     if (data.imageFutures != null) futures.addAll(data.imageFutures!);
     await Future.wait(futures.map((f) =&gt; f.catchError((_) =&gt; null)));
+
+    final hashes = &lt;String&gt;{
+      if (data.mainhash != null &amp;&amp;
+          data.mainhash != Options().no_image_placeholder_name)
+        data.mainhash!,
+      ...?data.imagehashes,
+    };
+    for (final hash in hashes.where((value) =&gt; value.isNotEmpty)) {
+      try {
+        final image = await API().local.getImageByHash(hash, owner: data);
+        if (image == null) {
+          throw StateError(&#39;Bild $hash fehlt&#39;);
+        }
+      } catch (_) {
+        throw StateError(
+          &#39;Bild $hash konnte nicht offline gespeichert werden&#39;,
+        );
+      }
+    }
   }
 
   Future&lt;void&gt; reserveImagesForData(Data data) async {
@@ -115,7 +181,7 @@
         progressSession.reserveTask(
           key,
           step: 3,
-          label: &#39;Step 3&#47;3: Images&#39;,
+          label: &#39;Step 3&#47;3: Dateien&#39;,
         );
       }
     }
@@ -127,6 +193,14 @@
   try {
     &#47;&#47;fail early if no connection
     await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+
+    await reserveImagesForData(caller.currentData);
+    await awaitAllImagesForData(caller.currentData);
+
+    if (caller.currentData is InspectionLocation) {
+      await cacheDocuments(caller.currentData as InspectionLocation);
+    }
+
     &#47;&#47;get all children, this will also cache them internally
     var children = await caller.all(preloadFullImages: true).last;
 
@@ -135,20 +209,6 @@
       await reserveImagesForData(child);
       await awaitAllImagesForData(child);
       await Future&lt;void&gt;.delayed(Duration.zero);
-    }
-
-    if (caller.currentData is InspectionLocation) {
-      final location = caller.currentData as InspectionLocation;
-      if (location.dokuspaths != null &amp;&amp; location.dokuspaths!.isNotEmpty) {
-        var docus = location.dokuspaths;
-        if (docus != null) {
-          assert((await API().user) != null,
-              &#39;Niemand eingeloggt&#39;); &#47;&#47; Using string directly instead of S.current
-          for (var doc in docus) {
-            await API().getDocument(doc.docupath, owner: location);
-          }
-        }
-      }
     }
 
     var didSucceed = await Future.wait(children.map(

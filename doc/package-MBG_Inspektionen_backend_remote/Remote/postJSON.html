@@ -124,9 +124,12 @@
         var res = (rd.timeout == null)
             ? await _client.send(mreq)
             : await _client.send(mreq).timeout(rd.timeout!);
+        BackendReachability.instance.clearFailure();
         return res;
       } on SocketException catch (e) {
-        debugPrint(&#39;Socket-Fehler bei Multipart-Request: ${e.message}&#39;);
+        if (!_logReachabilityFailureOnce(e)) {
+          debugPrint(&#39;Socket-Fehler bei Multipart-Request: ${e.message}&#39;);
+        }
         if (e.message.contains(&#39;Write failed&#39;) ||
             e.message.contains(&#39;connection abort&#39;) ||
             e.message.contains(&#39;Connection refused&#39;) ||
@@ -153,7 +156,9 @@
 
         return response;
       } on SocketException catch (e) {
-        debugPrint(&#39;Socket-Fehler bei HTTP-Request: ${e.message}&#39;);
+        if (!_logReachabilityFailureOnce(e)) {
+          debugPrint(&#39;Socket-Fehler bei HTTP-Request: ${e.message}&#39;);
+        }
         if (e.message.contains(&#39;Write failed&#39;) ||
             e.message.contains(&#39;connection abort&#39;) ||
             e.message.contains(&#39;Connection refused&#39;) ||
@@ -163,7 +168,9 @@
         }
         rethrow;
       } catch (e) {
-        debugPrint(&#39;request failed: $e&#39;);
+        if (!_logReachabilityFailureOnce(e)) {
+          debugPrint(&#39;request failed: $e&#39;);
+        }
         rethrow;
       }
     }
@@ -174,7 +181,9 @@
     if (msg.contains(&#39;Out of Memory&#39;) || msg.contains(&#39;Exhausted heap&#39;)) {
       rethrow;
     }
-    debugPrint(&quot;request failed, cause : $e&quot;);
+    if (!_logReachabilityFailureOnce(e)) {
+      debugPrint(&quot;request failed, cause : $e&quot;);
+    }
     return null;
   }
 }</code></pre>

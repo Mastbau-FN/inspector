@@ -115,14 +115,13 @@ Widget build(BuildContext context) {
     child: TextButton(
       style: TextButton.styleFrom(
         &#47;&#47; iconColor: Theme.of(context).colorScheme.onSurface,
-        foregroundColor:
-            CheckPointDefect.ereArtToColor(data.ereArt),
+        foregroundColor: CheckPointDefect.ereArtToColor(data.ereArt),
         &#47;&#47; primary: Theme.of(context).colorScheme.onSurface,
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 10,
         &#47;&#47;     CheckPointDefect.ereArtToColor(data.ereArt).withOpacity(0.4),
-        shadowColor:
-            CheckPointDefect.ereArtToColor(data.ereArt).withValues(alpha: 0.8),
+        shadowColor: CheckPointDefect.ereArtToColor(data.ereArt)
+            .withValues(alpha: 0.8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),

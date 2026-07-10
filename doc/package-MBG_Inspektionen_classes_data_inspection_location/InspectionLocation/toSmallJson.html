@@ -72,7 +72,15 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
-Map&lt;String, dynamic&gt; toSmallJson() =&gt; {&#39;PjNr&#39;: pjNr, &#39;local_id&#39;: id};</code></pre>
+Map&lt;String, dynamic&gt; toSmallJson() {
+  return {
+    &#39;PjNr&#39;: pjNr,
+    &#39;StONr&#39;: stONr,
+    if (login_id_pruefer != null &amp;&amp; login_id_pruefer!.trim().isNotEmpty)
+      &#39;Login_ID_Pruefer&#39;: login_id_pruefer,
+    &#39;local_id&#39;: id,
+  };
+}</code></pre>
 </section>
 
 

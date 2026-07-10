@@ -60,6 +60,7 @@
 <li><span class="parameter" id="adder-param-onDone"><span>required</span> <span class="type-annotation">dynamic</span> <span class="parameter-name">onDone</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="onDone-param-category"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a></span> <span class="parameter-name">category</span></span></li>
 </ol>), </span></li>
 <li><span class="parameter" id="adder-param-currentCategory"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_data_checkcategory/CheckCategory-class.html">CheckCategory</a>?</span> <span class="parameter-name">currentCategory</span>, </span></li>
+<li><span class="parameter" id="adder-param-title"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">title</span>, </span></li>
 </ol>})
 
       
@@ -76,9 +77,11 @@
   required onCancel(),
   required onDone(CheckCategory category),
   CheckCategory? currentCategory,
+  String? title,
 }) {
   return Adder(
     &#39;category&#39;,
+    title: title,
     onSet: (json) {
       Map&lt;String, dynamic&gt; category = json[&#39;category&#39;];
       if (currentCategory != null) {

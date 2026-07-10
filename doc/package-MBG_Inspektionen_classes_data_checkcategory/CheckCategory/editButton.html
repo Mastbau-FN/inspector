@@ -75,25 +75,20 @@
           debugPrint(&quot;no context from wich we could alert&quot;);
           return;
         }
-        return showDialog(
-          barrierColor: Colors.black54,
-          context: context,
-          &#47;&#47; barrierDismissible: false, &#47;&#47; user must tap button!
-          barrierDismissible: true,
-          builder: (BuildContext innerContext) {
-            return AlertDialog(
-              title: Text(&#39;Kategorie bearbeiten&#39;),
-              content: CategoryModel.adder(
-                  parent: Provider.of&lt;CategoryModel&gt;(context).currentData,
-                  currentCategory: this,
-                  onCancel: () =&gt; Navigator.of(context).pop(),
-                  onDone: (data) {
-                    Provider.of&lt;CategoryModel&gt;(context, listen: false)
-                        .update(data);
-                    &#47;&#47; Navigator.of(context).pop();
-                  }),
-            );
-          },
+        final model = Provider.of&lt;CategoryModel&gt;(context, listen: false);
+        final parent = model.currentData;
+
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (routeContext) =&gt; CategoryModel.adder(
+              title: &#39;Kategorie bearbeiten&#39;,
+              parent: parent,
+              currentCategory: this,
+              onCancel: () =&gt; Navigator.of(routeContext).pop(),
+              onDone: (data) =&gt; model.update(data),
+            ),
+          ),
         );
       },
     );</code></pre>

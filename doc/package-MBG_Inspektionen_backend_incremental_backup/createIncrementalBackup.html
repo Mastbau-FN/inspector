@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the createIncrementalBackup function from the incremental_backup library, for the Dart programming language.">
+  <title>createIncrementalBackup function - incremental_backup library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../package-MBG_Inspektionen_backend_incremental_backup/">backend&#47;incremental_backup.dart</a></li>
+    <li class="self-crumb">createIncrementalBackup function</li>
+  </ol>
+  <div class="self-name">createIncrementalBackup</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="package-MBG_Inspektionen_backend_incremental_backup&#47;package-MBG_Inspektionen_backend_incremental_backup-library-sidebar.html"
+      data-below-sidebar="">
+      <div>
+<h1><span class="kind-function">createIncrementalBackup</span> function 
+ 
+</h1></div>
+
+    <section class="multi-line-signature">
+        
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../package-MBG_Inspektionen_backend_incremental_backup/IncrementalBackupResult-class.html">IncrementalBackupResult</a></span>&gt;</span></span>
+<span class="name ">createIncrementalBackup</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="createIncrementalBackup-param-sourceDirectory"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">sourceDirectory</span>, </span></li>
+<li><span class="parameter" id="createIncrementalBackup-param-backupDirectory"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">backupDirectory</span>, </span></li>
+<li><span class="parameter" id="createIncrementalBackup-param-onProgress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onProgress</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-progress"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_incremental_backup/BackupProgress-class.html">BackupProgress</a></span> <span class="parameter-name">progress</span></span></li>
+</ol>)?, </span></li>
+</ol>})
+
+        
+
+    </section>
+    
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;IncrementalBackupResult&gt; createIncrementalBackup({
+  required Directory sourceDirectory,
+  required Directory backupDirectory,
+  Future&lt;void&gt; Function(BackupProgress progress)? onProgress,
+}) async {
+  await backupDirectory.create(recursive: true);
+  final existingBackups = await listManagedLocalBackups(backupDirectory);
+  final stateFile =
+      File(&#39;${backupDirectory.path}&#47;$_incrementalBackupStateName&#39;);
+  final stateFileExists = await stateFile.exists();
+  var forceFullBackup =
+      await File(&#39;${backupDirectory.path}&#47;$_forceFullBackupMarkerName&#39;)
+          .exists();
+  var previousState =
+      forceFullBackup ? null : await _readState(backupDirectory);
+
+  if (!forceFullBackup &amp;&amp; stateFileExists &amp;&amp; previousState == null) {
+    forceFullBackup = true;
+  }
+  if (previousState != null &amp;&amp;
+      !_isBackupChainComplete(previousState.backupChain, existingBackups)) {
+    previousState = null;
+    forceFullBackup = true;
+  }
+
+  final snapshot = await _readSourceSnapshot(
+    sourceDirectory,
+    reusableSignatures: previousState?.files,
+  );
+  previousState ??= forceFullBackup
+      ? const _BackupState(files: {}, backupChain: [])
+      : await _stateFromLegacyBackup(snapshot, existingBackups);
+  previousState = await _recoverMissingContentHashes(
+    previousState,
+    snapshot,
+    backupDirectory,
+  );
+
+  final changedPaths = snapshot.signatures.keys
+      .where((path) =&gt; previousState!.files[path] != snapshot.signatures[path])
+      .toList()
+    ..sort();
+  final deletedPaths = previousState.files.keys
+      .where((path) =&gt; !snapshot.signatures.containsKey(path))
+      .toList()
+    ..sort();
+
+  debugPrint(
+    &#39;Incremental backup plan: ${snapshot.signatures.length} files, &#39;
+    &#39;${changedPaths.length} changed, ${deletedPaths.length} deleted&#39;,
+  );
+
+  if (changedPaths.isEmpty &amp;&amp; deletedPaths.isEmpty) {
+    await _writeState(
+      backupDirectory,
+      _BackupState(
+        files: snapshot.signatures,
+        backupChain: previousState.backupChain,
+      ),
+    );
+    return const IncrementalBackupResult(
+      backupFile: null,
+      changedFileCount: 0,
+      deletedFileCount: 0,
+    );
+  }
+
+  final backupFile = await _nextBackupFile(backupDirectory);
+  final temporaryFile = File(&#39;${backupFile.path}.partial&#39;);
+  File? completedBackup;
+
+  try {
+    final manifest = {
+      &#39;version&#39;: 1,
+      &#39;createdAt&#39;: DateTime.now().toUtc().toIso8601String(),
+      &#39;baseBackup&#39;: previousState.backupChain.isEmpty
+          ? null
+          : previousState.backupChain.last,
+      &#39;changedFiles&#39;: changedPaths,
+      &#39;deletedFiles&#39;: deletedPaths,
+      &#39;snapshot&#39;: snapshot.signatures.map(
+        (path, signature) =&gt; MapEntry(path, signature.toJson()),
+      ),
+      &#39;backupChain&#39;: [
+        ...previousState.backupChain,
+        _basename(backupFile.path),
+      ],
+    };
+    await _writeArchiveInBackground(
+      sourceDirectory: sourceDirectory,
+      temporaryFile: temporaryFile,
+      changedPaths: changedPaths,
+      manifestJson: jsonEncode(manifest),
+      onProgress: onProgress,
+    );
+
+    completedBackup = await temporaryFile.rename(backupFile.path);
+    final nextState = _BackupState(
+      files: snapshot.signatures,
+      backupChain: [
+        ...previousState.backupChain,
+        _basename(completedBackup.path),
+      ],
+    );
+    await _writeState(backupDirectory, nextState);
+
+    final forceMarker =
+        File(&#39;${backupDirectory.path}&#47;$_forceFullBackupMarkerName&#39;);
+    if (await forceMarker.exists()) {
+      await forceMarker.delete();
+    }
+
+    if (changedPaths.isEmpty) {
+      await onProgress?.call(
+        const BackupProgress(
+          progress: _archiveProgressLimit,
+          currentFile: &#39;Gelöschte Dateien&#39;,
+          eta: &#39;weniger als 10 s&#39;,
+          processedFiles: 0,
+          totalFiles: 0,
+        ),
+      );
+    }
+
+    await onProgress?.call(
+      BackupProgress(
+        progress: 1,
+        currentFile: &#39;Backup abgeschlossen&#39;,
+        eta: &#39;0 s&#39;,
+        processedFiles: changedPaths.length,
+        totalFiles: changedPaths.length,
+      ),
+    );
+
+    return IncrementalBackupResult(
+      backupFile: completedBackup,
+      changedFileCount: changedPaths.length,
+      deletedFileCount: deletedPaths.length,
+    );
+  } catch (_) {
+    if (await temporaryFile.exists()) {
+      await temporaryFile.delete();
+    }
+    if (completedBackup != null &amp;&amp; await completedBackup.exists()) {
+      await completedBackup.delete();
+    }
+    rethrow;
+  }
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">MBG_Inspektionen</a></li>
+    <li><a href="../package-MBG_Inspektionen_backend_incremental_backup/">incremental_backup</a></li>
+    <li class="self-crumb">createIncrementalBackup function</li>
+</ol>
+
+    <h5>incremental_backup library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-left-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    MBG_Inspektionen
+      1.2.8+58
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

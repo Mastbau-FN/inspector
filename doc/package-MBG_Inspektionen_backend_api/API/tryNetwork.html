@@ -77,6 +77,13 @@ throws <a href="../../package-MBG_Inspektionen_classes_exceptions/NoConnectionTo
   required Helper.SimulatedRequestType requestType,
 }) async {
   &#47;&#47;check network
+  final offlineCooldown =
+      BackendReachability.instance.remainingOfflineCooldown;
+  if (offlineCooldown != null) {
+    final seconds = offlineCooldown.inSeconds + 1;
+    throw NoConnectionToBackendException(
+        &#39;Backend momentan nicht erreichbar. Nächster Online-Versuch in $seconds s.&#39;);
+  }
   if (Options().forceOffline)
     throw NoConnectionToBackendException(
         S.current!.nonetwork_forcedOfflineMode);
