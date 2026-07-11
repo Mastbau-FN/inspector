@@ -497,70 +497,75 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  (cd.runtimeType == InspectionLocation)
-                      ? ExpansionTile(
-                          title: Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 50,
-                                  child: PreviewImageCircle(
-                                    previewImage: cd.previewImage,
-                                  ),
-                                ),
-                                offlineIndicator(cd),
-                                Expanded(
-                                  child: Hero(
-                                    tag:
-                                        "dropdown.item.title.${cd.runtimeType}.${cd.id}",
-                                    child: Text(
-                                      cd.title,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
-                                ...cd.extras(context: context),
-                              ],
-                            ),
-                          ),
+                  (cd is InspectionLocation)
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (actions.length > 1)
-                              Row(
-                                children: actions.indexed.map<Widget>((a) {
-                                  final (int i, MyListTileData actionTileData) =
-                                      a;
-                                  if (i == 0) return Container();
-
-                                  final int totalTiles = actions.length;
-                                  // The three tiles immediately preceding the last one:
-                                  final bool isBeforeLastThree =
-                                      i >= totalTiles - 4 && i < totalTiles - 1;
-
-                                  // Use flex 3 normally, but flex 2 for these three tiles.
-                                  final int flexValue =
-                                      isBeforeLastThree ? 2 : 3;
-
-                                  return Expanded(
-                                    flex: flexValue,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 10, horizontal: 5),
-                                      child: MyCardListTileB(
-                                        text: actionTileData.title,
-                                        icon: actionTileData.icon,
-                                        onTap: () => onAction(actionTileData),
+                            ExpansionTile(
+                              title: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 50,
+                                      child: PreviewImageCircle(
+                                        previewImage: cd.previewImage,
                                       ),
                                     ),
-                                  );
-                                }).toList(),
-                              )
-                            else
-                              SizedBox(height: 5),
+                                    offlineIndicator(cd),
+                                    Expanded(
+                                      child: Hero(
+                                        tag:
+                                            "dropdown.item.title.${cd.runtimeType}.${cd.id}",
+                                        child:
+                                            dropdownItemTitleText(context, cd),
+                                      ),
+                                    ),
+                                    ...cd.extras(context: context),
+                                  ],
+                                ),
+                              ),
+                              children: [
+                                if (actions.length > 1)
+                                  Row(
+                                    children: actions.indexed.map<Widget>((a) {
+                                      final (
+                                        int i,
+                                        MyListTileData actionTileData
+                                      ) = a;
+                                      if (i == 0) return Container();
+
+                                      final int totalTiles = actions.length;
+                                      final bool isBeforeLastThree =
+                                          i >= totalTiles - 4 &&
+                                              i < totalTiles - 1;
+                                      final int flexValue =
+                                          isBeforeLastThree ? 2 : 3;
+
+                                      return Expanded(
+                                        flex: flexValue,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 5),
+                                          child: MyCardListTileB(
+                                            text: actionTileData.title,
+                                            icon: actionTileData.icon,
+                                            onTap: () =>
+                                                onAction(actionTileData),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  )
+                                else
+                                  SizedBox(height: 5),
+                              ],
+                            ),
+                            InspectionDownloadProgressPanel(
+                              location: cd as InspectionLocation,
+                            ),
                           ],
                         )
                       : Padding(
@@ -578,13 +583,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                                 child: Hero(
                                   tag:
                                       "dropdown.item.title.${cd.runtimeType}.${cd.id}",
-                                  child: Text(
-                                    cd.title,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                  child: dropdownItemTitleText(context, cd),
                                 ),
                               ),
                               if (showCompletionLabel)
@@ -640,6 +639,17 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
       ),
     );
   }
+}
+
+Text dropdownItemTitleText(BuildContext context, WithLangText data) {
+  final isInspection = data is InspectionLocation;
+  return Text(
+    data.title,
+    style: Theme.of(context).textTheme.titleMedium,
+    maxLines: isInspection ? 2 : null,
+    overflow: isInspection ? TextOverflow.ellipsis : TextOverflow.visible,
+    softWrap: true,
+  );
 }
 
 class MyCardListTileB extends StatelessWidget {

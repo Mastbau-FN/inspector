@@ -614,7 +614,7 @@ module.exports = {
 const hashImagesAndCreateIds = async (tthis) => {
 
   for (var thingy of tthis) {
-    if (thingy.Link) {
+    if (thingy.Link || thingy.LinkOrdner) {
       let { rootfolder, link, filename } = await getLink(thingy);
 
       // get all *other* image names
@@ -626,8 +626,10 @@ const hashImagesAndCreateIds = async (tthis) => {
         await imgfiler.getAllImagenamesFrom(rootfolder, link)
       )
 
-      const cleaninsplinkOrdner = thingy.LinkOrdner.replace(/^S:/, 'S');
-      const dokusPath = path.join("/home/administrator/images/",cleaninsplinkOrdner, 'Dokus');
+      const baseFolder = thingy.LinkOrdner != null && thingy.LinkOrdner !== ""
+        ? imgfiler.formatpath(thingy.LinkOrdner)
+        : imgfiler.formatpath(path.join(rootfolder, link));
+      const dokusPath = path.join(baseFolder, 'Dokus');
       if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
         thingy.DokusPath = dokusPath;
         

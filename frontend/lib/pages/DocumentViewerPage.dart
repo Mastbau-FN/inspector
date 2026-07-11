@@ -1,8 +1,118 @@
+import 'dart:io';
+
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:open_file/open_file.dart';
 
 import '../backend/api.dart';
+
+const MethodChannel _documentChooserChannel =
+    MethodChannel('mbg/open_document_chooser');
+
+enum DocumentOpenMode { chooser, defaultApp, noApp }
+
+class DocumentOpenResult {
+  final DocumentOpenMode mode;
+  final String message;
+
+  const DocumentOpenResult(this.mode, this.message);
+}
+
+bool shouldForceDocumentOpenChooser(String path) {
+  final extension = _extensionFromPath(path);
+  return extension == 'docx' || extension == 'xlsx';
+}
+
+String? mimeTypeForDocumentPath(String path) {
+  switch (_extensionFromPath(path)) {
+    case 'docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'xlsx':
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    case 'pdf':
+      return 'application/pdf';
+    default:
+      return null;
+  }
+}
+
+String _extensionFromPath(String path) {
+  final base = path.split('/').last.split('?').first.toLowerCase();
+  final index = base.lastIndexOf('.');
+  if (index < 0 || index == base.length - 1) return '';
+  return base.substring(index + 1);
+}
+
+Future<DocumentOpenResult> openDocumentFile(
+  File file, {
+  Future<OpenResult> Function(String path, {String? type})? defaultOpener,
+  Future<void> Function(String path, String mimeType, String title)?
+      chooserOpener,
+}) async {
+  final path = file.path;
+  final mimeType = mimeTypeForDocumentPath(path);
+  final opener = defaultOpener ?? OpenFile.open;
+
+  if (shouldForceDocumentOpenChooser(path)) {
+    try {
+      final chooser = chooserOpener ?? _openWithAndroidChooser;
+      await chooser(
+        path,
+        mimeType ?? 'application/octet-stream',
+        'Dokument öffnen mit',
+      );
+      return const DocumentOpenResult(
+        DocumentOpenMode.chooser,
+        'Dokumentauswahl geöffnet.',
+      );
+    } on MissingPluginException {
+      final result = await opener(path, type: mimeType);
+      return _resultFromOpenFile(result);
+    } on PlatformException catch (error) {
+      if (error.code == 'NO_APP') {
+        return const DocumentOpenResult(
+          DocumentOpenMode.noApp,
+          'Keine App zum Öffnen des Dokuments gefunden.',
+        );
+      }
+      rethrow;
+    }
+  }
+
+  final result = await opener(path, type: mimeType);
+  return _resultFromOpenFile(result);
+}
+
+Future<void> _openWithAndroidChooser(
+  String path,
+  String mimeType,
+  String title,
+) async {
+  await _documentChooserChannel.invokeMethod<void>(
+    'openWithChooser',
+    {
+      'path': path,
+      'mimeType': mimeType,
+      'title': title,
+    },
+  );
+}
+
+DocumentOpenResult _resultFromOpenFile(OpenResult result) {
+  if (result.type == ResultType.noAppToOpen) {
+    return const DocumentOpenResult(
+      DocumentOpenMode.noApp,
+      'Keine App zum Öffnen des Dokuments gefunden.',
+    );
+  }
+  return DocumentOpenResult(
+    DocumentOpenMode.defaultApp,
+    result.message.isEmpty
+        ? 'Document opened. Please check your native viewer.'
+        : result.message,
+  );
+}
 
 class DocumentViewerPage extends StatefulWidget {
   /// The Base64-encoded file data.
@@ -34,23 +144,21 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
   Future<void> _openDocument() async {
     try {
       // Fetch the Base64-encoded file from your API
-      final file = await API().getDocument(widget.docupath, scope: widget.scope);
+      final file =
+          await API().getDocument(widget.docupath, scope: widget.scope);
 
-      // Open the file with the native viewer.
-      showToast(file!.path);
-      final result = await OpenFile.open(file.path);
-      debugPrint('OpenFile result: ${result.message}');
+      if (file == null || !await file.exists()) {
+        throw StateError('Document not cached');
+      }
+
+      showToast(file.path);
+      final result = await openDocumentFile(file);
+      debugPrint('Document open result: ${result.mode} ${result.message}');
 
       setState(() {
         _isOpening = false;
-        _message = 'Document opened. Please check your native viewer.';
+        _message = result.message;
       });
-      if (result.type == ResultType.noAppToOpen) {
-        setState(() {
-          _isOpening = false;
-          _message = 'Keine App zum Öffnen des Dokuments gefunden.';
-        });
-      }
     } catch (e) {
       debugPrint("Error opening document: $e");
       setState(() {

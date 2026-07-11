@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:MBG_Inspektionen/backend/backend_reachability.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
 import 'package:MBG_Inspektionen/backend/remote.dart';
@@ -221,6 +220,18 @@ class API {
   }
 
   @visibleForTesting
+  static List<InspectionLocation> staleLocalRootInspections({
+    required List<InspectionLocation> local,
+    required List<InspectionLocation> remote,
+  }) {
+    final remoteIds = remote.map((inspection) => inspection.id).toSet();
+    return local.where((inspection) {
+      if (inspection.forceOffline) return false;
+      return !remoteIds.contains(inspection.id);
+    }).toList();
+  }
+
+  @visibleForTesting
   static bool shouldForceOnlineAfterOfflineMiss({
     required bool onlineSucceeded,
     required bool offlineSucceeded,
@@ -230,6 +241,38 @@ class API {
     if (onlineSucceeded || offlineSucceeded) return false;
     if (prefersCache || forceOffline) return false;
     return true;
+  }
+
+  Future<void> _pruneStaleRootInspectionCache(
+    List<InspectionLocation> remoteInspections,
+  ) async {
+    try {
+      final localInspections =
+          await local.getNextDatapoint<InspectionLocation, WithOffline?>(null);
+      final stale = API.staleLocalRootInspections(
+        local: localInspections,
+        remote: remoteInspections,
+      );
+      if (stale.isEmpty) return;
+
+      final rootId = await rootID;
+      for (final inspection in stale) {
+        try {
+          await deleteData<InspectionLocation>(inspection.id, parentId: rootId);
+          await InspectionVisibility()
+              .removeFailedRequestsForInspection(inspection.pjNr.toString());
+          debugPrint(
+            'Pruned stale local inspection ${inspection.id} (${inspection.pjNr})',
+          );
+        } catch (e) {
+          debugPrint(
+            'Failed pruning stale local inspection ${inspection.id}: $e',
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed pruning stale root inspection cache: $e');
+    }
   }
 
   Stream<T> _run<R extends http.BaseResponse, T>({
@@ -307,23 +350,19 @@ class API {
                 String? stepLabel;
                 try {
                   final r = rap.rd.route;
-                  if (r.contains('checkcategory') || r.contains('checkpoint')) {
-                    step = 1;
-                    stepLabel = 'Step 1/3: Checkpoints';
+                  if (r.contains('category')) {
+                    step = InspectionDownloadSteps.categories;
+                    stepLabel = InspectionDownloadSteps.categoriesLabel;
+                  } else if (r.contains('checkpoint')) {
+                    step = InspectionDownloadSteps.checkpoints;
+                    stepLabel = InspectionDownloadSteps.checkpointsLabel;
                   } else if (r.contains('defect')) {
-                    step = 2;
-                    stepLabel = 'Step 2/3: Defects';
-                  } else if (r.contains('/image/get') ||
-                      r.contains('/doc/get')) {
-                    // If image downloads start before we fetched any checkpoints/defects,
-                    // treat them as a pre-step "0/3" to make the UX clearer.
-                    if (currentStep == 0) {
-                      step = 0;
-                      stepLabel = 'Step 0/3: Inspektionsdateien';
-                    } else {
-                      step = 3;
-                      stepLabel = 'Step 3/3: Dateien';
-                    }
+                    step = InspectionDownloadSteps.defects;
+                    stepLabel = InspectionDownloadSteps.defectsLabel;
+                  } else if (r.contains('/image/get')) {
+                    step = InspectionDownloadSteps.photos;
+                  } else if (r.contains('/doc/get')) {
+                    step = InspectionDownloadSteps.documents;
                   }
                 } catch (_) {}
                 try {
@@ -344,7 +383,7 @@ class API {
                   session?.setStep(step, label: stepLabel);
                 }
                 final token = session?.beginTask(
-                  rap.rd.route,
+                  stepLabel ?? '',
                   key: key,
                   step: step,
                 );
@@ -427,13 +466,6 @@ class API {
     required Helper.SimulatedRequestType requestType,
   }) async {
     //check network
-    final offlineCooldown =
-        BackendReachability.instance.remainingOfflineCooldown;
-    if (offlineCooldown != null) {
-      final seconds = offlineCooldown.inSeconds + 1;
-      throw NoConnectionToBackendException(
-          'Backend momentan nicht erreichbar. Nächster Online-Versuch in $seconds s.');
-    }
     if (Options().forceOffline)
       throw NoConnectionToBackendException(
           S.current!.nonetwork_forcedOfflineMode);
@@ -761,6 +793,12 @@ class API {
       },
       onlineSuccessCB: (childDatas) async {
         _cachePrueferIdsFromLocations(childDatas);
+        if (typeOf<ChildData>() == typeOf<InspectionLocation>() &&
+            data == null) {
+          await _pruneStaleRootInspectionCache(
+            childDatas.whereType<InspectionLocation>().toList(),
+          );
+        }
         for (final childData in childDatas) {
           // "offline" is a local-only flag; online data should clear it to avoid stale UI indicators.
           try {
@@ -870,27 +908,60 @@ class API {
     // For local-scoped names we never download remotely.
     if (isLocalScoped) return null;
 
+    final activeDownload = DownloadProgress.instance.active;
+    if (activeDownload != null &&
+        activeDownload.notifier.value.stepIndex <
+            InspectionDownloadSteps.photos) {
+      return null;
+    }
+
     // Deduplicate in-flight downloads for the same hash to prevent repeated
     // downloads on rebuild/opening views.
     final key = hash;
     final existing = _inflightImageFetches[key];
     if (existing != null) return await existing;
 
-    Future<ImageData?> fetch() async {
+    Future<ImageData?> fetchRemote() async {
+      final progressSession = DownloadProgress.instance.active;
+      final progressToken = progressSession?.beginTask(
+        '',
+        key: '/image/get|$hash',
+        step: InspectionDownloadSteps.photos,
+      );
+
+      void completeProgress(bool success) {
+        if (progressToken != null) {
+          progressSession?.endTask(progressToken, success: success);
+        }
+      }
+
       try {
         await tryNetwork(requestType: Helper.SimulatedRequestType.GET);
         final rap = remote.getImageByHash(hash, owner: owner);
         final res = await remote.postJSON(rap.rd);
-        if (res == null) return null;
+        if (res == null) {
+          completeProgress(false);
+          return null;
+        }
         final parsed = await rap.parser(res);
+        completeProgress(parsed != null);
         if (parsed != null) return parsed;
       } catch (_) {}
       // last-chance local read (in case another concurrent fetch stored it)
       try {
-        return await local.getImageByHash(hash, owner: owner);
+        final cached = await local.getImageByHash(hash, owner: owner);
+        completeProgress(cached != null);
+        return cached;
       } catch (_) {
+        completeProgress(false);
         return null;
       }
+    }
+
+    Future<ImageData?> fetch() async {
+      final session = DownloadProgress.instance.active;
+      if (session == null) return fetchRemote();
+      return session.enqueueDownload(fetchRemote);
     }
 
     final future = fetch();
@@ -916,12 +987,12 @@ class API {
     final existing = _inflightDocumentFetches[key];
     if (existing != null) return existing;
 
-    Future<File?> fetch() async {
+    Future<File?> fetchRemote() async {
       final progressSession = DownloadProgress.instance.active;
       final progressToken = progressSession?.beginTask(
-        '/doc/get',
+        '',
         key: '/doc/get|$path',
-        step: 3,
+        step: InspectionDownloadSteps.documents,
       );
       try {
         await tryNetwork(requestType: requestType);
@@ -948,6 +1019,12 @@ class API {
           return null;
         }
       }
+    }
+
+    Future<File?> fetch() async {
+      final session = DownloadProgress.instance.active;
+      if (session == null) return fetchRemote();
+      return session.enqueueDownload(fetchRemote);
     }
 
     final future = fetch();

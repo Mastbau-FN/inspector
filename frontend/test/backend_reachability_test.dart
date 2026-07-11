@@ -9,23 +9,24 @@ void main() {
     BackendReachability.instance.resetForTest();
   });
 
-  test('marks failed host lookup once during cooldown', () {
+  test('throttles repeated failed host lookup logs without blocking retries',
+      () {
     final reachability = BackendReachability.instance;
     final error =
         SocketException("Failed host lookup: 'inspection.mbg-solutions.com'");
 
     expect(reachability.markFailure(error), isTrue);
-    expect(reachability.remainingOfflineCooldown, isNotNull);
     expect(reachability.lastFailureMessage, contains('Failed host lookup'));
 
     expect(reachability.markFailure(error), isFalse);
+    expect(reachability.lastFailureMessage, contains('Failed host lookup'));
   });
 
   test('ignores unrelated request errors', () {
     final reachability = BackendReachability.instance;
 
     expect(reachability.markFailure(Exception('HTTP 500')), isFalse);
-    expect(reachability.remainingOfflineCooldown, isNull);
+    expect(reachability.lastFailureMessage, isNull);
   });
 
   test('does not force online retry for offline or cache-preferred data', () {

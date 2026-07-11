@@ -12,8 +12,12 @@
 - Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; nach `Failed host lookup` werden Online-Versuche kurz pausiert.
 - Standort-Infos sind im Bearbeitungsmodus wieder wirklich editierbar.
 - Kategorien können wieder im Vollbild bearbeitet werden, inklusive Kategorienamen.
+- Lange Namen von Prüfkategorien und Prüfpunkten werden vollständig mehrzeilig angezeigt statt mit `…` gekürzt.
 - Bestätigungsbuttons bleiben beim Bearbeiten über der eingeblendeten Tastatur.
 - Inspektionen laden beim Downloadbutton jetzt alle Bestandteile inklusive Dokumenten direkt herunter und stellen sie offline bereit.
+- Der Inspektionsdownload versucht Dokumente vollständig weiterzuladen, auch wenn einzelne Dateien/Assets fehlschlagen, und zeigt den grünen Haken stabil an.
+- DOCX- und XLSX-Dokumente öffnen jetzt über den Android-Auswahldialog statt direkt mit der Standard-App.
+- Serverseitig gelöschte Inspektionen werden beim Online-Refresh auch aus dem lokalen Root-Cache entfernt, damit sie offline nicht wieder erscheinen.
 - Inspektionen zeigen den Sperr-/Mängel-Hinweis nur noch, wenn in genau dieser Inspektion Einträge vorhanden sind.
 - `Mängelfrei` zählt weiterhin als vorhandener Eintrag und wird nicht ausgeschlossen.
 - Während der Mängelprüfung beim Sperren einer Inspektion wird ein kurzer Prüf-Dialog angezeigt.

@@ -2,6 +2,7 @@ const queries = require("./db/queries");
 const location = require("./extern/location");
 
 const imghasher = require("./images/hash");
+const imgfiler = require("./images/filesystem");
 const path = require("path");
 const options = require("./options");
 
@@ -301,7 +302,16 @@ const getFileFromHash = async (req, res) => {
 
 const getDocFromPath = async (req, res) => {
   try {
-    let img = await fsp.readFile(req.body.docPath);
+    let docPath = imgfiler.formatpath(req.body.docPath);
+    const filename = req.body?.filename;
+    const stat = await fsp.stat(docPath);
+    if (stat.isDirectory()) {
+      if (filename == null || String(filename).trim().length === 0) {
+        throw new Error("docPath points to directory without filename");
+      }
+      docPath = path.join(docPath, path.basename(String(filename)));
+    }
+    let img = await fsp.readFile(docPath);
 
     res.writeHead(200, { "Content-type": "application/octet-stream" });
     res.end(img);

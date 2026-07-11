@@ -31,6 +31,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
+import 'package:MBG_Inspektionen/classes/imageData.dart';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:http/http.dart' as http;
@@ -56,6 +57,256 @@ InspectionLocation? selectRefreshedInspectionForDownload(
     }
   }
   return null;
+}
+
+@visibleForTesting
+void preserveExistingDocumentsForDownload(
+  InspectionLocation current,
+  InspectionLocation refreshed,
+) {
+  if ((refreshed.dokuspaths == null || refreshed.dokuspaths!.isEmpty) &&
+      current.dokuspaths != null &&
+      current.dokuspaths!.isNotEmpty) {
+    refreshed.dokuspaths = current.dokuspaths;
+  }
+}
+
+typedef DocumentCacheLookup = Future<File?> Function(
+  String path,
+  String scope,
+);
+typedef DocumentDownloadLookup = Future<File?> Function(
+  String path,
+  InspectionLocation owner,
+  String scope,
+);
+typedef ImageCacheLookup = Future<ImageData?> Function(
+  String hash,
+  Data owner,
+);
+typedef ImageDownloadLookup = Future<ImageData?> Function(
+  String hash,
+  Data owner,
+);
+
+String _downloadPathForDocument(DocumentData document) {
+  final path = document.docupath.trim();
+  final filename = document.filename.trim();
+  if (path.isEmpty || filename.isEmpty) return path;
+  final normalized = path.replaceAll('\\', '/');
+  final parts = normalized.split('/').where((part) => part.isNotEmpty).toList();
+  final basename = parts.isEmpty ? '' : parts.last;
+  if (basename == 'Dokus' || !basename.contains('.')) {
+    return '$normalized/$filename';
+  }
+  return path;
+}
+
+List<String> _imageHashesForData(Data data) {
+  return <String>{
+    if (data.mainhash != null &&
+        data.mainhash != Options().no_image_placeholder_name)
+      data.mainhash!,
+    ...?data.imagehashes,
+  }.where((value) => value.isNotEmpty).toList();
+}
+
+@visibleForTesting
+Future<bool> cacheInspectionImagesForDownload(
+  List<Data> assets, {
+  DownloadProgressSession? progressSession,
+  ImageCacheLookup? readCachedImage,
+  ImageDownloadLookup? downloadImage,
+}) async {
+  final readCached = readCachedImage ??
+      (String hash, Data owner) => API().local.getImageByHash(
+            hash,
+            owner: owner,
+          );
+  final download = downloadImage ??
+      (String hash, Data owner) => API().getImageByHash(
+            hash,
+            owner: owner,
+          );
+
+  final jobs = <({Data data, String hash})>[];
+  final seen = <String>{};
+  for (final data in assets) {
+    for (final hash in _imageHashesForData(data)) {
+      final key = '${data.id}|$hash';
+      if (!seen.add(key)) continue;
+      jobs.add((data: data, hash: hash));
+    }
+  }
+
+  progressSession?.setStep(
+    InspectionDownloadSteps.photos,
+    label: jobs.isEmpty
+        ? InspectionDownloadSteps.noPhotosLabel
+        : InspectionDownloadSteps.photosLabel,
+  );
+
+  if (jobs.isEmpty) return true;
+
+  for (final job in jobs) {
+    progressSession?.reserveTask(
+      '/image/get|${job.hash}',
+      step: InspectionDownloadSteps.photos,
+    );
+  }
+
+  var allSucceeded = true;
+  for (var index = 0; index < jobs.length; index++) {
+    final job = jobs[index];
+    final current = index + 1;
+    final total = jobs.length;
+    final key = '/image/get|${job.hash}';
+    final token = progressSession?.beginTask(
+      'Fotos prüfen ($current/$total)',
+      key: key,
+      step: InspectionDownloadSteps.photos,
+    );
+
+    var isCached = false;
+    try {
+      final image = await readCached(job.hash, job.data);
+      isCached = image != null;
+    } catch (_) {}
+    if (isCached) {
+      if (token != null) progressSession?.endTask(token, success: true);
+      continue;
+    }
+
+    progressSession?.setStep(
+      InspectionDownloadSteps.photos,
+      label: 'Fotos speichern ($current/$total)',
+    );
+    try {
+      final image = await download(job.hash, job.data);
+      final succeeded = image != null;
+      if (!succeeded) {
+        allSucceeded = false;
+        debugPrint(
+          'Bild ${job.hash} konnte nicht offline gespeichert werden',
+        );
+      }
+      if (token != null) progressSession?.endTask(token, success: succeeded);
+    } catch (_) {
+      allSucceeded = false;
+      if (token != null) progressSession?.endTask(token, success: false);
+      debugPrint(
+        'Bild ${job.hash} konnte nicht offline gespeichert werden',
+      );
+    }
+  }
+
+  return allSucceeded;
+}
+
+@visibleForTesting
+Future<bool> cacheInspectionDocumentsForDownload(
+  InspectionLocation location, {
+  DownloadProgressSession? progressSession,
+  String? scope,
+  DocumentCacheLookup? readCachedDocument,
+  DocumentDownloadLookup? downloadDocument,
+}) async {
+  final documents = location.dokuspaths ?? const [];
+
+  final effectiveScope = scope ?? API().local.scopeFor(location);
+  final readCached = readCachedDocument ??
+      (String path, String scope) =>
+          API().local.getDocument(path, scope: scope);
+  final download = downloadDocument ??
+      (String path, InspectionLocation owner, String scope) =>
+          API().getDocument(path, owner: owner, scope: scope);
+
+  var allSucceeded = true;
+  progressSession?.setStep(
+    InspectionDownloadSteps.documents,
+    label: InspectionDownloadSteps.documentsPrepareLabel,
+  );
+  if (documents.isEmpty) {
+    progressSession?.setStep(
+      InspectionDownloadSteps.documents,
+      label: InspectionDownloadSteps.noDocumentsLabel,
+    );
+    return true;
+  }
+
+  final validDocuments = <DocumentData>[];
+  for (final document in documents) {
+    final path = _downloadPathForDocument(document);
+    if (path.isEmpty) {
+      debugPrint('Dokument ohne gültigen Pfad gefunden');
+      allSucceeded = false;
+      continue;
+    }
+    validDocuments.add(document);
+    progressSession?.reserveTask(
+      '/doc/get|$path',
+      step: InspectionDownloadSteps.documents,
+    );
+  }
+
+  for (var index = 0; index < validDocuments.length; index++) {
+    final total = validDocuments.length;
+    final document = validDocuments[index];
+    final path = _downloadPathForDocument(document);
+    final current = index + 1;
+    DownloadTaskToken? token;
+
+    progressSession?.setStep(
+      InspectionDownloadSteps.documents,
+      label: InspectionDownloadSteps.documentCheckLabel(
+        current,
+        total,
+      ),
+    );
+    token = progressSession?.beginTask(
+      InspectionDownloadSteps.documentCheckLabel(current, total),
+      key: '/doc/get|$path',
+      step: InspectionDownloadSteps.documents,
+    );
+
+    var isCached = false;
+    try {
+      final localFile = await readCached(path, effectiveScope);
+      isCached = localFile != null && await localFile.exists();
+    } catch (_) {}
+    if (isCached) {
+      if (token != null) progressSession?.endTask(token, success: true);
+      continue;
+    }
+
+    progressSession?.setStep(
+      InspectionDownloadSteps.documents,
+      label: InspectionDownloadSteps.documentLabel(
+        current,
+        total,
+      ),
+    );
+    try {
+      final file = await download(path, location, effectiveScope);
+      final succeeded = file != null && await file.exists();
+      if (!succeeded) {
+        allSucceeded = false;
+        debugPrint(
+          'Dokument "${document.filename}" konnte nicht gespeichert werden',
+        );
+      }
+      if (token != null) progressSession?.endTask(token, success: succeeded);
+    } catch (error) {
+      allSucceeded = false;
+      if (token != null) progressSession?.endTask(token, success: false);
+      debugPrint(
+        'Dokument "${document.filename}" konnte nicht gespeichert werden: '
+        '$error',
+      );
+    }
+  }
+
+  return allSucceeded;
 }
 
 /// Hilfsklasse, um globale und Inspektions-spezifische Upload-Fortschritte
@@ -1392,12 +1643,19 @@ class FailedRequestmanager {
   Future<InspectionLocation> refreshInspectionForDownload(
     InspectionLocation current,
   ) async {
-    final inspections = await API()
-        .getNextDatapoint<InspectionLocation, WithOffline?>(
-          null,
-          preloadFullImages: true,
-        )
-        .last;
+    await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+    final request =
+        API().remote.getNextDatapoint<InspectionLocation, WithOffline?>(
+              null,
+              preloadFullImages: false,
+            );
+    final response = await API().remote.postJSON(request.rd);
+    if (response is! http.Response) {
+      throw StateError(
+        'Inspektionen konnten nicht direkt vom Server geladen werden',
+      );
+    }
+    final inspections = await request.parser(response);
     final refreshed =
         selectRefreshedInspectionForDownload(current, inspections);
     if (refreshed == null) {
@@ -1405,6 +1663,7 @@ class FailedRequestmanager {
         'Inspektion ${current.pjNr}/${current.stONr} konnte nicht aktualisiert werden',
       );
     }
+    preserveExistingDocumentsForDownload(current, refreshed);
     return refreshed;
   }
 
@@ -1587,110 +1846,14 @@ class FailedRequestmanager {
     int depth, {
     String? name,
     String? parentID,
+    List<Data>? assetCollector,
   }) async {
     final progressSession = DownloadProgress.instance.active;
+    final isRootDownloadCall = assetCollector == null;
+    final collectedAssets = assetCollector ?? <Data>[];
 
-    Future<void> cacheDocuments(InspectionLocation location) async {
-      final documents = location.dokuspaths ?? const [];
-      if (documents.isEmpty) return;
-
-      final scope = API().local.scopeFor(location);
-      final documentsToDownload = <DocumentData>[];
-      for (final document in documents) {
-        final path = document.docupath.trim();
-        if (path.isEmpty) {
-          throw StateError('Dokument ohne gültigen Pfad gefunden');
-        }
-
-        var isCached = false;
-        try {
-          final localFile = await API().local.getDocument(path, scope: scope);
-          isCached = localFile != null && await localFile.exists();
-        } catch (_) {}
-        if (isCached) continue;
-
-        documentsToDownload.add(document);
-        progressSession?.reserveTask(
-          '/doc/get|$path',
-          step: 3,
-          label: 'Step 3/3: Dateien',
-        );
-      }
-
-      for (var index = 0; index < documentsToDownload.length; index++) {
-        final document = documentsToDownload[index];
-        progressSession?.setStep(
-          3,
-          label:
-              'Step 3/3: Dokument ${index + 1}/${documentsToDownload.length}',
-        );
-        final file = await API().getDocument(
-          document.docupath,
-          owner: location,
-          scope: scope,
-        );
-        if (file == null || !await file.exists()) {
-          throw StateError(
-            'Dokument "${document.filename}" konnte nicht gespeichert werden',
-          );
-        }
-      }
-    }
-
-    Future<void> awaitAllImagesForData(Data data) async {
-      final futures = <Future>[];
-      futures.add(data.mainImage);
-      if (data.imageFutures != null) futures.addAll(data.imageFutures!);
-      await Future.wait(futures.map((f) => f.catchError((_) => null)));
-
-      final hashes = <String>{
-        if (data.mainhash != null &&
-            data.mainhash != Options().no_image_placeholder_name)
-          data.mainhash!,
-        ...?data.imagehashes,
-      };
-      for (final hash in hashes.where((value) => value.isNotEmpty)) {
-        try {
-          final image = await API().local.getImageByHash(hash, owner: data);
-          if (image == null) {
-            throw StateError('Bild $hash fehlt');
-          }
-        } catch (_) {
-          throw StateError(
-            'Bild $hash konnte nicht offline gespeichert werden',
-          );
-        }
-      }
-    }
-
-    Future<void> reserveImagesForData(Data data) async {
-      if (progressSession == null) return;
-
-      final hashes = <String>{};
-      if (data.mainhash != null &&
-          data.mainhash != Options().no_image_placeholder_name) {
-        hashes.add(data.mainhash!);
-      }
-      if (data.imagehashes != null) {
-        hashes.addAll(data.imagehashes!.where((h) => h.isNotEmpty));
-      }
-
-      for (final hash in hashes) {
-        // Only reserve tasks for images that are not already cached locally.
-        bool cached = false;
-        try {
-          await API().local.getImageByHash(hash, owner: data);
-          cached = true;
-        } catch (_) {}
-        if (!cached) {
-          final key = '/image/get|$hash';
-          progressSession.reserveTask(
-            key,
-            step: 3,
-            label: 'Step 3/3: Dateien',
-          );
-        }
-      }
+    void collectAssetData(Data data) {
+      collectedAssets.add(data);
     }
 
     // base-case: CheckPointDefects have no children
@@ -1700,36 +1863,68 @@ class FailedRequestmanager {
       //fail early if no connection
       await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
 
-      await reserveImagesForData(caller.currentData);
-      await awaitAllImagesForData(caller.currentData);
-
-      if (caller.currentData is InspectionLocation) {
-        await cacheDocuments(caller.currentData as InspectionLocation);
-      }
+      var localAssetsSucceeded = true;
+      collectAssetData(caller.currentData);
 
       //get all children, this will also cache them internally
-      var children = await caller.all(preloadFullImages: true).last;
-
-      // Ensure image downloads complete (and errors are absorbed) during manual download.
+      if (caller.currentData is CheckPoint) {
+        progressSession?.setStep(
+          InspectionDownloadSteps.defects,
+          label: InspectionDownloadSteps.defectsLabel,
+        );
+      } else if (caller.currentData is CheckCategory) {
+        progressSession?.setStep(
+          InspectionDownloadSteps.checkpoints,
+          label: InspectionDownloadSteps.checkpointsLabel,
+        );
+      } else {
+        progressSession?.setStep(
+          InspectionDownloadSteps.categories,
+          label: InspectionDownloadSteps.categoriesLabel,
+        );
+      }
+      var children = await caller.all(preloadFullImages: false).last;
       for (final child in children) {
-        await reserveImagesForData(child);
-        await awaitAllImagesForData(child);
-        await Future<void>.delayed(Duration.zero);
+        collectAssetData(child as Data);
       }
 
-      var didSucceed = await Future.wait(children.map(
-        (child) async {
-          if (depth == 0)
-            return true; //base-case as to not call generateNextModel
-          bool childSucceeded = await loadAndCacheAll(
-              caller.generateNextModel(child), depth,
-              name: name, parentID: caller.currentData.id);
-          return childSucceeded;
-        },
-      ));
+      final childResults = <bool>[];
+      for (final child in children) {
+        if (depth == 0) {
+          childResults.add(true); //base-case as to not call generateNextModel
+          continue;
+        }
+        final childSucceeded = await loadAndCacheAll(
+          caller.generateNextModel(child),
+          depth,
+          name: name,
+          parentID: caller.currentData.id,
+          assetCollector: collectedAssets,
+        );
+        childResults.add(childSucceeded);
+      }
+
+      if (caller.currentData is InspectionLocation) {
+        if (isRootDownloadCall) {
+          final photosSucceeded = await cacheInspectionImagesForDownload(
+            collectedAssets,
+            progressSession: progressSession,
+          );
+          localAssetsSucceeded = localAssetsSucceeded && photosSucceeded;
+        }
+        progressSession?.setStep(
+          InspectionDownloadSteps.documents,
+          label: InspectionDownloadSteps.documentsPrepareLabel,
+        );
+        final documentsSucceeded = await cacheInspectionDocumentsForDownload(
+          caller.currentData as InspectionLocation,
+          progressSession: progressSession,
+        );
+        localAssetsSucceeded = localAssetsSucceeded && documentsSucceeded;
+      }
 
       //if all children succeeded recursive calling succeeded
-      bool success = didSucceed.every((el) => el);
+      bool success = localAssetsSucceeded && childResults.every((el) => el);
       if (success) {
         caller.currentData.forceOffline = true;
         if (parentID == null) return false;

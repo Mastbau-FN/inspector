@@ -6,39 +6,31 @@ class BackendReachability {
   BackendReachability._();
 
   static final BackendReachability instance = BackendReachability._();
-  static const Duration defaultOfflineCooldown = Duration(seconds: 30);
+  static const Duration defaultFailureLogThrottle = Duration(seconds: 30);
 
-  DateTime? _skipOnlineUntil;
+  DateTime? _lastFailureLoggedAt;
   String? _lastFailureMessage;
-
-  Duration? get remainingOfflineCooldown {
-    final until = _skipOnlineUntil;
-    if (until == null) return null;
-
-    final remaining = until.difference(DateTime.now());
-    if (remaining <= Duration.zero) {
-      clearFailure();
-      return null;
-    }
-    return remaining;
-  }
 
   String? get lastFailureMessage => _lastFailureMessage;
 
   bool markFailure(
     Object error, {
-    Duration cooldown = defaultOfflineCooldown,
+    Duration logThrottle = defaultFailureLogThrottle,
   }) {
     if (!isBackendReachabilityFailure(error)) return false;
 
-    final wasAlreadySkipping = remainingOfflineCooldown != null;
-    _skipOnlineUntil = DateTime.now().add(cooldown);
-    _lastFailureMessage = _messageFrom(error);
-    return !wasAlreadySkipping;
+    final message = _messageFrom(error);
+    final now = DateTime.now();
+    final shouldLog = _lastFailureLoggedAt == null ||
+        _lastFailureMessage != message ||
+        now.difference(_lastFailureLoggedAt!) >= logThrottle;
+    _lastFailureLoggedAt = shouldLog ? now : _lastFailureLoggedAt;
+    _lastFailureMessage = message;
+    return shouldLog;
   }
 
   void clearFailure() {
-    _skipOnlineUntil = null;
+    _lastFailureLoggedAt = null;
     _lastFailureMessage = null;
   }
 

@@ -162,10 +162,8 @@ class Remote {
     if (!BackendReachability.isBackendReachabilityFailure(error)) return false;
     if (!BackendReachability.instance.markFailure(error)) return true;
 
-    final seconds =
-        BackendReachability.defaultOfflineCooldown.inSeconds.toString();
     debugPrint(
-        'Backend nicht erreichbar (${BackendReachability.instance.lastFailureMessage}); weitere Online-Requests werden $seconds s übersprungen.');
+        'Backend nicht erreichbar (${BackendReachability.instance.lastFailureMessage}); Online-Request fehlgeschlagen.');
     return true;
   }
 
