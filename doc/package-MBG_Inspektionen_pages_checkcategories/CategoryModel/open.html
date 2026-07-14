@@ -86,18 +86,14 @@ void open(
   currentlyChosenChildData = Future.value(data);
   if (tiledata.title == _nextViewTitle) {
     final checkPointsModel = generateNextModel(data);
-    Navigator.of(context)
-        .push(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (newcontext) =&gt;
             nextModel&lt;CheckPoint, CheckCategory, CheckPointsModel&gt;(
           checkPointsModel,
         ),
       ),
-    )
-        .then((_) {
-      unawaited(_updateRecentCategoryProgress(data, checkPointsModel));
-    });
+    );
     return;
   }
 

@@ -56,7 +56,7 @@
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
 <span class="name ">markFailure</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="markFailure-param-error"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">error</span>, {</span></li>
-<li><span class="parameter" id="markFailure-param-cooldown"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a></span> <span class="parameter-name">cooldown</span> = <span class="default-value">defaultOfflineCooldown</span>, </span></li>
+<li><span class="parameter" id="markFailure-param-logThrottle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a></span> <span class="parameter-name">logThrottle</span> = <span class="default-value">defaultFailureLogThrottle</span>, </span></li>
 </ol>})
 
       
@@ -70,14 +70,18 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">bool markFailure(
   Object error, {
-  Duration cooldown = defaultOfflineCooldown,
+  Duration logThrottle = defaultFailureLogThrottle,
 }) {
   if (!isBackendReachabilityFailure(error)) return false;
 
-  final wasAlreadySkipping = remainingOfflineCooldown != null;
-  _skipOnlineUntil = DateTime.now().add(cooldown);
-  _lastFailureMessage = _messageFrom(error);
-  return !wasAlreadySkipping;
+  final message = _messageFrom(error);
+  final now = DateTime.now();
+  final shouldLog = _lastFailureLoggedAt == null ||
+      _lastFailureMessage != message ||
+      now.difference(_lastFailureLoggedAt!) &gt;= logThrottle;
+  _lastFailureLoggedAt = shouldLog ? now : _lastFailureLoggedAt;
+  _lastFailureMessage = message;
+  return shouldLog;
 }</code></pre>
 </section>
 

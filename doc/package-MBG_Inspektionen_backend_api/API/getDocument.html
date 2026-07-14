@@ -83,12 +83,12 @@
   final existing = _inflightDocumentFetches[key];
   if (existing != null) return existing;
 
-  Future&lt;File?&gt; fetch() async {
+  Future&lt;File?&gt; fetchRemote() async {
     final progressSession = DownloadProgress.instance.active;
     final progressToken = progressSession?.beginTask(
-      &#39;&#47;doc&#47;get&#39;,
+      &#39;&#39;,
       key: &#39;&#47;doc&#47;get|$path&#39;,
-      step: 3,
+      step: InspectionDownloadSteps.documents,
     );
     try {
       await tryNetwork(requestType: requestType);
@@ -115,6 +115,12 @@
         return null;
       }
     }
+  }
+
+  Future&lt;File?&gt; fetch() async {
+    final session = DownloadProgress.instance.active;
+    if (session == null) return fetchRemote();
+    return session.enqueueDownload(fetchRemote);
   }
 
   final future = fetch();

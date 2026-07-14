@@ -69,10 +69,6 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">List&lt;CheckPointDefect&gt; normalizeCheckpointDefectsForDisplay(
     List&lt;CheckPointDefect&gt; defects) {
-  final actualDefects =
-      defects.where((defect) =&gt; !isNoDefectMarker(defect)).toList();
-  if (actualDefects.isNotEmpty) return actualDefects;
-
   CheckPointDefect? preferredNoDefect;
   for (final defect in defects.where(isNoDefectMarker)) {
     if (preferredNoDefect == null ||
@@ -81,7 +77,19 @@
     }
   }
 
-  return preferredNoDefect == null ? [] : [preferredNoDefect];
+  if (preferredNoDefect == null) return defects;
+
+  final visibleDefects = &lt;CheckPointDefect&gt;[];
+  var noDefectAdded = false;
+  for (final defect in defects) {
+    if (!isNoDefectMarker(defect)) {
+      visibleDefects.add(defect);
+    } else if (!noDefectAdded) {
+      visibleDefects.add(preferredNoDefect);
+      noDefectAdded = true;
+    }
+  }
+  return visibleDefects;
 }</code></pre>
 </section>
 

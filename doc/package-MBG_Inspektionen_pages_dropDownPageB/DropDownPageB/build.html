@@ -332,13 +332,22 @@ Widget build(BuildContext context) {
                                 ? CategoryProgressState.instance
                                     .entryFor(cd.id)
                                 : null;
+                            final checkpointCompleted = cd is CheckPoint &amp;&amp;
+                                CategoryProgressState.instance
+                                    .checkpointCompleted(
+                                  checkpointId: cd.id,
+                                  pjNr: cd.pjNr,
+                                  categoryIndex: cd.category_index,
+                                  checkpointIndex: cd.index,
+                                );
                             final totalCheckpoints = cd is CheckCategory
                                 ? (progressEntry?.totalCheckpoints ??
                                     CategoryProgressState.instance
                                         .totalFor(cd.id))
                                 : null;
-                            final completionPercent =
-                                progressEntry?.progress ?? 0.0;
+                            final completionPercent = checkpointCompleted
+                                ? 1.0
+                                : progressEntry?.progress ?? 0.0;
                             final completionLabel = totalCheckpoints == null
                                 ? null
                                 : &#39;${progressEntry?.completedCheckpoints ?? 0}&#47;$totalCheckpoints bearbeitet&#39;;
@@ -351,19 +360,32 @@ Widget build(BuildContext context) {
                               onAction: (actionTileData) {
                                 ddmodel.open(context, cd, actionTileData);
                               },
-                              onDelete: () =&gt; API()
-                                  .delete&lt;ChildData&gt;(cd,
-                                      caller: ddmodel.currentData)
-                                  .then((value) =&gt; value != null
-                                      ? () {
-                                          (kDebugMode
-                                              ? showToast(value)
-                                              : (_) {});
-                                          ddmodel
-                                              .refresh(); &#47;&#47;quickfix for #336
-                                        }()
-                                      : showToast(
-                                          S.of(context).deleteUnseccessful)),
+                              onDelete: () async {
+                                final value = await API().delete&lt;ChildData&gt;(
+                                  cd,
+                                  caller: ddmodel.currentData,
+                                );
+                                if (value == null) {
+                                  showToast(
+                                    S.of(context).deleteUnseccessful,
+                                  );
+                                  return;
+                                }
+                                if (kDebugMode) showToast(value);
+                                final parent = ddmodel.currentData;
+                                if (cd is CheckPoint &amp;&amp;
+                                    parent is CheckCategory) {
+                                  CategoryProgressState.instance
+                                      .checkpointRemoved(
+                                    categoryId: parent.id,
+                                    checkpointId: cd.id,
+                                    pjNr: cd.pjNr,
+                                    categoryIndex: cd.category_index,
+                                    checkpointIndex: cd.index,
+                                  );
+                                }
+                                ddmodel.refresh(); &#47;&#47;quickfix for #336
+                              },
                             );
                           }).toList(),
                         );

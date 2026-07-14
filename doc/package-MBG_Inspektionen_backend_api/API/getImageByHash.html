@@ -87,27 +87,60 @@
   &#47;&#47; For local-scoped names we never download remotely.
   if (isLocalScoped) return null;
 
+  final activeDownload = DownloadProgress.instance.active;
+  if (activeDownload != null &amp;&amp;
+      activeDownload.notifier.value.stepIndex &lt;
+          InspectionDownloadSteps.photos) {
+    return null;
+  }
+
   &#47;&#47; Deduplicate in-flight downloads for the same hash to prevent repeated
   &#47;&#47; downloads on rebuild&#47;opening views.
   final key = hash;
   final existing = _inflightImageFetches[key];
   if (existing != null) return await existing;
 
-  Future&lt;ImageData?&gt; fetch() async {
+  Future&lt;ImageData?&gt; fetchRemote() async {
+    final progressSession = DownloadProgress.instance.active;
+    final progressToken = progressSession?.beginTask(
+      &#39;&#39;,
+      key: &#39;&#47;image&#47;get|$hash&#39;,
+      step: InspectionDownloadSteps.photos,
+    );
+
+    void completeProgress(bool success) {
+      if (progressToken != null) {
+        progressSession?.endTask(progressToken, success: success);
+      }
+    }
+
     try {
       await tryNetwork(requestType: Helper.SimulatedRequestType.GET);
       final rap = remote.getImageByHash(hash, owner: owner);
       final res = await remote.postJSON(rap.rd);
-      if (res == null) return null;
+      if (res == null) {
+        completeProgress(false);
+        return null;
+      }
       final parsed = await rap.parser(res);
+      completeProgress(parsed != null);
       if (parsed != null) return parsed;
     } catch (_) {}
     &#47;&#47; last-chance local read (in case another concurrent fetch stored it)
     try {
-      return await local.getImageByHash(hash, owner: owner);
+      final cached = await local.getImageByHash(hash, owner: owner);
+      completeProgress(cached != null);
+      return cached;
     } catch (_) {
+      completeProgress(false);
       return null;
     }
+  }
+
+  Future&lt;ImageData?&gt; fetch() async {
+    final session = DownloadProgress.instance.active;
+    if (session == null) return fetchRemote();
+    return session.enqueueDownload(fetchRemote);
   }
 
   final future = fetch();

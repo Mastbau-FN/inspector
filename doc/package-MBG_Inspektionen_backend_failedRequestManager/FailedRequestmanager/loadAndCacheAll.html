@@ -59,15 +59,13 @@
 <li><span class="parameter" id="loadAndCacheAll-param-depth"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">depth</span>, {</span></li>
 <li><span class="parameter" id="loadAndCacheAll-param-name"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">name</span>, </span></li>
 <li><span class="parameter" id="loadAndCacheAll-param-parentID"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">parentID</span>, </span></li>
+<li><span class="parameter" id="loadAndCacheAll-param-assetCollector"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_dropdownClasses/Data-class.html">Data</a></span>&gt;</span>?</span> <span class="parameter-name">assetCollector</span>, </span></li>
 </ol>})
 
       
 
     </section>
     
-<section class="desc markdown">
-  <p>Andere Methoden wie loadAndCacheAll, setOnlineAll etc. können hier bleiben ...</p>
-</section>
 
 
     
@@ -81,110 +79,14 @@
   int depth, {
   String? name,
   String? parentID,
+  List&lt;Data&gt;? assetCollector,
 }) async {
   final progressSession = DownloadProgress.instance.active;
+  final isRootDownloadCall = assetCollector == null;
+  final collectedAssets = assetCollector ?? &lt;Data&gt;[];
 
-  Future&lt;void&gt; cacheDocuments(InspectionLocation location) async {
-    final documents = location.dokuspaths ?? const [];
-    if (documents.isEmpty) return;
-
-    final scope = API().local.scopeFor(location);
-    final documentsToDownload = &lt;DocumentData&gt;[];
-    for (final document in documents) {
-      final path = document.docupath.trim();
-      if (path.isEmpty) {
-        throw StateError(&#39;Dokument ohne gültigen Pfad gefunden&#39;);
-      }
-
-      var isCached = false;
-      try {
-        final localFile = await API().local.getDocument(path, scope: scope);
-        isCached = localFile != null &amp;&amp; await localFile.exists();
-      } catch (_) {}
-      if (isCached) continue;
-
-      documentsToDownload.add(document);
-      progressSession?.reserveTask(
-        &#39;&#47;doc&#47;get|$path&#39;,
-        step: 3,
-        label: &#39;Step 3&#47;3: Dateien&#39;,
-      );
-    }
-
-    for (var index = 0; index &lt; documentsToDownload.length; index++) {
-      final document = documentsToDownload[index];
-      progressSession?.setStep(
-        3,
-        label:
-            &#39;Step 3&#47;3: Dokument ${index + 1}&#47;${documentsToDownload.length}&#39;,
-      );
-      final file = await API().getDocument(
-        document.docupath,
-        owner: location,
-        scope: scope,
-      );
-      if (file == null || !await file.exists()) {
-        throw StateError(
-          &#39;Dokument &quot;${document.filename}&quot; konnte nicht gespeichert werden&#39;,
-        );
-      }
-    }
-  }
-
-  Future&lt;void&gt; awaitAllImagesForData(Data data) async {
-    final futures = &lt;Future&gt;[];
-    futures.add(data.mainImage);
-    if (data.imageFutures != null) futures.addAll(data.imageFutures!);
-    await Future.wait(futures.map((f) =&gt; f.catchError((_) =&gt; null)));
-
-    final hashes = &lt;String&gt;{
-      if (data.mainhash != null &amp;&amp;
-          data.mainhash != Options().no_image_placeholder_name)
-        data.mainhash!,
-      ...?data.imagehashes,
-    };
-    for (final hash in hashes.where((value) =&gt; value.isNotEmpty)) {
-      try {
-        final image = await API().local.getImageByHash(hash, owner: data);
-        if (image == null) {
-          throw StateError(&#39;Bild $hash fehlt&#39;);
-        }
-      } catch (_) {
-        throw StateError(
-          &#39;Bild $hash konnte nicht offline gespeichert werden&#39;,
-        );
-      }
-    }
-  }
-
-  Future&lt;void&gt; reserveImagesForData(Data data) async {
-    if (progressSession == null) return;
-
-    final hashes = &lt;String&gt;{};
-    if (data.mainhash != null &amp;&amp;
-        data.mainhash != Options().no_image_placeholder_name) {
-      hashes.add(data.mainhash!);
-    }
-    if (data.imagehashes != null) {
-      hashes.addAll(data.imagehashes!.where((h) =&gt; h.isNotEmpty));
-    }
-
-    for (final hash in hashes) {
-      &#47;&#47; Only reserve tasks for images that are not already cached locally.
-      bool cached = false;
-      try {
-        await API().local.getImageByHash(hash, owner: data);
-        cached = true;
-      } catch (_) {}
-      if (!cached) {
-        final key = &#39;&#47;image&#47;get|$hash&#39;;
-        progressSession.reserveTask(
-          key,
-          step: 3,
-          label: &#39;Step 3&#47;3: Dateien&#39;,
-        );
-      }
-    }
+  void collectAssetData(Data data) {
+    collectedAssets.add(data);
   }
 
   &#47;&#47; base-case: CheckPointDefects have no children
@@ -194,36 +96,68 @@
     &#47;&#47;fail early if no connection
     await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
 
-    await reserveImagesForData(caller.currentData);
-    await awaitAllImagesForData(caller.currentData);
-
-    if (caller.currentData is InspectionLocation) {
-      await cacheDocuments(caller.currentData as InspectionLocation);
-    }
+    var localAssetsSucceeded = true;
+    collectAssetData(caller.currentData);
 
     &#47;&#47;get all children, this will also cache them internally
-    var children = await caller.all(preloadFullImages: true).last;
-
-    &#47;&#47; Ensure image downloads complete (and errors are absorbed) during manual download.
+    if (caller.currentData is CheckPoint) {
+      progressSession?.setStep(
+        InspectionDownloadSteps.defects,
+        label: InspectionDownloadSteps.defectsLabel,
+      );
+    } else if (caller.currentData is CheckCategory) {
+      progressSession?.setStep(
+        InspectionDownloadSteps.checkpoints,
+        label: InspectionDownloadSteps.checkpointsLabel,
+      );
+    } else {
+      progressSession?.setStep(
+        InspectionDownloadSteps.categories,
+        label: InspectionDownloadSteps.categoriesLabel,
+      );
+    }
+    var children = await caller.all(preloadFullImages: false).last;
     for (final child in children) {
-      await reserveImagesForData(child);
-      await awaitAllImagesForData(child);
-      await Future&lt;void&gt;.delayed(Duration.zero);
+      collectAssetData(child as Data);
     }
 
-    var didSucceed = await Future.wait(children.map(
-      (child) async {
-        if (depth == 0)
-          return true; &#47;&#47;base-case as to not call generateNextModel
-        bool childSucceeded = await loadAndCacheAll(
-            caller.generateNextModel(child), depth,
-            name: name, parentID: caller.currentData.id);
-        return childSucceeded;
-      },
-    ));
+    final childResults = &lt;bool&gt;[];
+    for (final child in children) {
+      if (depth == 0) {
+        childResults.add(true); &#47;&#47;base-case as to not call generateNextModel
+        continue;
+      }
+      final childSucceeded = await loadAndCacheAll(
+        caller.generateNextModel(child),
+        depth,
+        name: name,
+        parentID: caller.currentData.id,
+        assetCollector: collectedAssets,
+      );
+      childResults.add(childSucceeded);
+    }
+
+    if (caller.currentData is InspectionLocation) {
+      if (isRootDownloadCall) {
+        final photosSucceeded = await cacheInspectionImagesForDownload(
+          collectedAssets,
+          progressSession: progressSession,
+        );
+        localAssetsSucceeded = localAssetsSucceeded &amp;&amp; photosSucceeded;
+      }
+      progressSession?.setStep(
+        InspectionDownloadSteps.documents,
+        label: InspectionDownloadSteps.documentsPrepareLabel,
+      );
+      final documentsSucceeded = await cacheInspectionDocumentsForDownload(
+        caller.currentData as InspectionLocation,
+        progressSession: progressSession,
+      );
+      localAssetsSucceeded = localAssetsSucceeded &amp;&amp; documentsSucceeded;
+    }
 
     &#47;&#47;if all children succeeded recursive calling succeeded
-    bool success = didSucceed.every((el) =&gt; el);
+    bool success = localAssetsSucceeded &amp;&amp; childResults.every((el) =&gt; el);
     if (success) {
       caller.currentData.forceOffline = true;
       if (parentID == null) return false;

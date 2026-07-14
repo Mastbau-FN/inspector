@@ -110,7 +110,8 @@ and</li>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
   final progress = completionPercent.clamp(0.0, 1.0);
-  final showCompletion = cd is CheckCategory &amp;&amp; progress &gt; 0;
+  final showCompletion =
+      (cd is CheckCategory || cd is CheckPoint) &amp;&amp; progress &gt; 0;
   final showCompletionLabel = cd is CheckCategory &amp;&amp; completionLabel != null;
   const progressColor = Color(0xFF2E7D32);
 
@@ -147,6 +148,7 @@ Widget build(BuildContext context) {
             ),
             if (showCompletion)
               Positioned.fill(
+                key: Key(&#39;dropdown.completion.${cd.id}&#39;),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final overlayWidth = constraints.maxWidth * progress;
@@ -178,136 +180,178 @@ Widget build(BuildContext context) {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                (cd.runtimeType == InspectionLocation)
-                    ? ExpansionTile(
-                        title: Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 50,
-                                child: PreviewImageCircle(
-                                  previewImage: cd.previewImage,
-                                ),
-                              ),
-                              offlineIndicator(cd),
-                              Expanded(
-                                child: Hero(
-                                  tag:
-                                      &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
-                                  child: Text(
-                                    cd.title,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                              ...cd.extras(context: context),
-                            ],
-                          ),
-                        ),
+                (cd is InspectionLocation)
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (actions.length &gt; 1)
-                            Row(
-                              children: actions.indexed.map&lt;Widget&gt;((a) {
-                                final (int i, MyListTileData actionTileData) =
-                                    a;
-                                if (i == 0) return Container();
-
-                                final int totalTiles = actions.length;
-                                &#47;&#47; The three tiles immediately preceding the last one:
-                                final bool isBeforeLastThree =
-                                    i &gt;= totalTiles - 4 &amp;&amp; i &lt; totalTiles - 1;
-
-                                &#47;&#47; Use flex 3 normally, but flex 2 for these three tiles.
-                                final int flexValue =
-                                    isBeforeLastThree ? 2 : 3;
-
-                                return Expanded(
-                                  flex: flexValue,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10, horizontal: 5),
-                                    child: MyCardListTileB(
-                                      text: actionTileData.title,
-                                      icon: actionTileData.icon,
-                                      onTap: () =&gt; onAction(actionTileData),
+                          ExpansionTile(
+                            title: Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 50,
+                                    child: PreviewImageCircle(
+                                      previewImage: cd.previewImage,
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            )
-                          else
-                            SizedBox(height: 5),
+                                  offlineIndicator(cd),
+                                  Expanded(
+                                    child: Hero(
+                                      key: Key(&#39;dropdown.title.${cd.id}&#39;),
+                                      tag:
+                                          &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
+                                      child:
+                                          dropdownItemTitleText(context, cd),
+                                    ),
+                                  ),
+                                  ...cd.extras(context: context),
+                                ],
+                              ),
+                            ),
+                            children: [
+                              if (actions.length &gt; 1)
+                                Row(
+                                  children: actions.indexed.map&lt;Widget&gt;((a) {
+                                    final (
+                                      int i,
+                                      MyListTileData actionTileData
+                                    ) = a;
+                                    if (i == 0) return Container();
+
+                                    final int totalTiles = actions.length;
+                                    final bool isBeforeLastThree =
+                                        i &gt;= totalTiles - 4 &amp;&amp;
+                                            i &lt; totalTiles - 1;
+                                    final int flexValue =
+                                        isBeforeLastThree ? 2 : 3;
+
+                                    return Expanded(
+                                      flex: flexValue,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10, horizontal: 5),
+                                        child: MyCardListTileB(
+                                          text: actionTileData.title,
+                                          icon: actionTileData.icon,
+                                          onTap: () =&gt;
+                                              onAction(actionTileData),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                )
+                              else
+                                SizedBox(height: 5),
+                            ],
+                          ),
+                          InspectionDownloadProgressPanel(
+                            location: cd as InspectionLocation,
+                          ),
                         ],
                       )
                     : Padding(
                         padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(
-                              width: 50,
-                              child: PreviewImageCircle(
-                                previewImage: cd.previewImage,
-                              ),
-                            ),
-                            offlineIndicator(cd),
-                            Expanded(
-                              child: Hero(
-                                tag:
-                                    &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
-                                child: Text(
-                                  cd.title,
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 50,
+                                  child: PreviewImageCircle(
+                                    previewImage: cd.previewImage,
+                                  ),
                                 ),
-                              ),
-                            ),
-                            if (showCompletionLabel)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                child: Text(
-                                  completionLabel!,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w700,
+                                offlineIndicator(cd),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 4,
+                                      top: 6,
+                                      bottom: 6,
+                                    ),
+                                    child: Hero(
+                                      key: Key(&#39;dropdown.title.${cd.id}&#39;),
+                                      tag:
+                                          &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
+                                      child:
+                                          dropdownItemTitleText(context, cd),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Transform.translate(
+                                        offset: const Offset(4, 0),
+                                        child: Icon(
+                                          actions.first.icon,
+                                          size: 10,
+                                        ),
                                       ),
+                                      const Icon(Icons.chevron_right),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ...cd.extras(context: context),
-                            FutureBuilder(
-                              future: API().user,
-                              builder: (BuildContext context,
-                                  AsyncSnapshot&lt;DisplayUser?&gt; snapshot2) {
-                                &#47;&#47;assert(data.runtimeType==DataT);
-                                try {
-                                  if (cd.runtimeType ==
-                                          CheckPointDefect &#47;&#47;alle mängel dürfen gelöscht werden (#380)
-                                      ||
-                                      (snapshot2.hasData &amp;&amp;
-                                          cd.toJson()[&#39;Autor&#39;] ==
-                                              snapshot2.data?.name))
-                                    return TrashButton(
-                                      delete: onDelete,
-                                      confirmName: cd.title,
-                                    );
-                                } catch (e) {}
-                                return Container();
-                              },
-                            ), &#47;&#47; Spacer(),
-                            Transform.translate(
-                              offset: Offset(4, 0),
-                              child: Icon(actions.first.icon, size: 10),
+                              ],
                             ),
-                            Icon(Icons.chevron_right),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 50),
+                              child: Row(
+                                children: [
+                                  if (showCompletionLabel)
+                                    Expanded(
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 4),
+                                        child: Text(
+                                          key: Key(
+                                            &#39;dropdown.progress-label.${cd.id}&#39;,
+                                          ),
+                                          completionLabel!,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    const Spacer(),
+                                  ...cd.extras(context: context),
+                                  FutureBuilder(
+                                    future: API().user,
+                                    builder: (
+                                      BuildContext context,
+                                      AsyncSnapshot&lt;DisplayUser?&gt; snapshot2,
+                                    ) {
+                                      try {
+                                        if (cd.runtimeType ==
+                                                CheckPointDefect ||
+                                            (snapshot2.hasData &amp;&amp;
+                                                cd.toJson()[&#39;Autor&#39;] ==
+                                                    snapshot2.data?.name)) {
+                                          return TrashButton(
+                                            delete: onDelete,
+                                            confirmName: cd.title,
+                                          );
+                                        }
+                                      } catch (_) {}
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),

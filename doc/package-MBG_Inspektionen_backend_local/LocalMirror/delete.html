@@ -78,6 +78,7 @@
   &#47;&#47;offline procedure, needs some stuff changed and added..
   if (caller != null &amp;&amp; data != null) {
     await OP.deleteData&lt;DataT&gt;(data.id, parentId: caller.id);
+    await deleteCachedAssets(data, caller: caller);
     return &#39;success&#39;;
   }
   return null;

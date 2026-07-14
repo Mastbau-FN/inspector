@@ -70,12 +70,19 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;InspectionLocation&gt; refreshInspectionForDownload(
   InspectionLocation current,
 ) async {
-  final inspections = await API()
-      .getNextDatapoint&lt;InspectionLocation, WithOffline?&gt;(
-        null,
-        preloadFullImages: true,
-      )
-      .last;
+  await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+  final request =
+      API().remote.getNextDatapoint&lt;InspectionLocation, WithOffline?&gt;(
+            null,
+            preloadFullImages: false,
+          );
+  final response = await API().remote.postJSON(request.rd);
+  if (response is! http.Response) {
+    throw StateError(
+      &#39;Inspektionen konnten nicht direkt vom Server geladen werden&#39;,
+    );
+  }
+  final inspections = await request.parser(response);
   final refreshed =
       selectRefreshedInspectionForDownload(current, inspections);
   if (refreshed == null) {
@@ -83,6 +90,7 @@
       &#39;Inspektion ${current.pjNr}&#47;${current.stONr} konnte nicht aktualisiert werden&#39;,
     );
   }
+  preserveExistingDocumentsForDownload(current, refreshed);
   return refreshed;
 }</code></pre>
 </section>

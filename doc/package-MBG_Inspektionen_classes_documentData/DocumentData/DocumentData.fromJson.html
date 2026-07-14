@@ -63,8 +63,46 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">factory DocumentData.fromJson(Map&lt;String, dynamic&gt; json) =&gt;
-    _$DocumentDataFromJson(json);</code></pre>
+  <pre class="language-dart"><code class="language-dart">factory DocumentData.fromJson(Map&lt;String, dynamic&gt; json) {
+  final normalized = Map&lt;String, dynamic&gt;.from(json);
+  final path = normalized[&#39;docupath&#39;] ??
+      normalized[&#39;docuPath&#39;] ??
+      normalized[&#39;DocuPath&#39;] ??
+      normalized[&#39;docPath&#39;] ??
+      normalized[&#39;path&#39;];
+  if (path != null) normalized[&#39;docupath&#39;] = path.toString();
+
+  final filename = normalized[&#39;filename&#39;] ??
+      normalized[&#39;fileName&#39;] ??
+      normalized[&#39;Filename&#39;] ??
+      normalized[&#39;name&#39;];
+  if (filename != null) {
+    normalized[&#39;filename&#39;] = filename.toString();
+  } else if (normalized[&#39;docupath&#39;] != null) {
+    normalized[&#39;filename&#39;] = normalized[&#39;docupath&#39;]
+        .toString()
+        .replaceAll(&#39;\\&#39;, &#39;&#47;&#39;)
+        .split(&#39;&#47;&#39;)
+        .last;
+  }
+
+  final docPath = normalized[&#39;docupath&#39;]?.toString().trim();
+  final docFilename = normalized[&#39;filename&#39;]?.toString().trim();
+  if (docPath != null &amp;&amp;
+      docPath.isNotEmpty &amp;&amp;
+      docFilename != null &amp;&amp;
+      docFilename.isNotEmpty) {
+    final normalizedPath = docPath.replaceAll(&#39;\\&#39;, &#39;&#47;&#39;);
+    final pathParts =
+        normalizedPath.split(&#39;&#47;&#39;).where((part) =&gt; part.isNotEmpty).toList();
+    final basename = pathParts.isEmpty ? &#39;&#39; : pathParts.last;
+    if (basename == &#39;Dokus&#39; || !basename.contains(&#39;.&#39;)) {
+      normalized[&#39;docupath&#39;] = &#39;$normalizedPath&#47;$docFilename&#39;;
+    }
+  }
+
+  return _$DocumentDataFromJson(normalized);
+}</code></pre>
 </section>
 
 

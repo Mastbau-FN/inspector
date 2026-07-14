@@ -70,7 +70,7 @@
   <pre class="language-dart"><code class="language-dart">ohneMaengelAction(context) async {
   if ((await all().last).isEmpty) {
     &#47;&#47; final x = currentData;
-    await API().setNew&lt;CheckPointDefect&gt;(
+    final newDefect = await API().setNew&lt;CheckPointDefect&gt;(
       CheckPointDefect(
         pjNr: currentData.pjNr,
         category_index: currentData.category_index,
@@ -92,6 +92,15 @@
       &#47;&#47; ..height = &quot;----&quot;,
       caller: currentData,
     ); &#47;&#47;TO-DO: does not work in online mode #387
+    if (newDefect != null) {
+      CategoryProgressState.instance.markCheckpointEditedByCoordinates(
+        pjNr: currentData.pjNr,
+        categoryIndex: currentData.category_index,
+        checkpointIndex: currentData.index,
+        categoryId: currentData.parentId,
+        checkpointId: currentData.id,
+      );
+    }
     notifyListeners();
     return;
   } else {

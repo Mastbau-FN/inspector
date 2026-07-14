@@ -71,7 +71,10 @@
   if (!identical(_active, session)) return;
   session.markFinished();
   _active = null;
-  &#47;&#47; session is disposed by the UI owner.
+  _activeKey = null;
+  _lastFinished = session;
+  revision.value++;
+  &#47;&#47; Keep the finished notifier alive until the next download replaces it.
 }</code></pre>
 </section>
 

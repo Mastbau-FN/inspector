@@ -70,6 +70,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void setStep(int stepIndex, {String? label}) {
   final next = stepIndex.clamp(0, _stepCount);
+  if (next &lt; _currentStep) return;
   if (next &gt; _currentStep) {
     for (int s = _currentStep; s &lt; next; s++) {
       _finishedSteps.add(s);

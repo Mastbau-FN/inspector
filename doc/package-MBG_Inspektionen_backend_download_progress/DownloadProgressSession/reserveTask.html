@@ -83,7 +83,7 @@
   _totalByStep[stepIndex] = (_totalByStep[stepIndex] ?? 0) + 1;
   final token = DownloadTaskToken(_nextId++, stepIndex);
   _reservedByKey[key] = token;
-  _emit(currentLabel: label);
+  _emit(currentLabel: label.isEmpty ? null : label);
   return token;
 }</code></pre>
 </section>

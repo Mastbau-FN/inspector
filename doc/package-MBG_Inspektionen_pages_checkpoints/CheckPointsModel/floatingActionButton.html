@@ -83,7 +83,13 @@ Widget? floatingActionButton(BuildContext context) {
       parent: currentData,
       onCancel: onCancel,
       onDone: (category) async {
-        await API().setNew(category, caller: currentData);
+        final createdCheckpoint =
+            await API().setNew(category, caller: currentData);
+        if (createdCheckpoint != null) {
+          CategoryProgressState.instance.checkpointAdded(
+            categoryId: currentData.id,
+          );
+        }
         notifyListeners();
       },
     ),

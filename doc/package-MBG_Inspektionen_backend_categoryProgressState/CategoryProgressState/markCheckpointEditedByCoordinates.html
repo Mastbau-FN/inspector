@@ -58,6 +58,8 @@
 <span class="name ">markCheckpointEditedByCoordinates</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="markCheckpointEditedByCoordinates-param-pjNr"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">pjNr</span>, </span></li>
 <li><span class="parameter" id="markCheckpointEditedByCoordinates-param-categoryIndex"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">categoryIndex</span>, </span></li>
 <li><span class="parameter" id="markCheckpointEditedByCoordinates-param-checkpointIndex"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">checkpointIndex</span>, </span></li>
+<li><span class="parameter" id="markCheckpointEditedByCoordinates-param-categoryId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">categoryId</span>, </span></li>
+<li><span class="parameter" id="markCheckpointEditedByCoordinates-param-checkpointId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">checkpointId</span>, </span></li>
 <li><span class="parameter" id="markCheckpointEditedByCoordinates-param-editedAt"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/DateTime-class.html">DateTime</a>?</span> <span class="parameter-name">editedAt</span>, </span></li>
 </ol>})
 
@@ -74,14 +76,34 @@
   required int pjNr,
   required int categoryIndex,
   required int checkpointIndex,
+  String? categoryId,
+  String? checkpointId,
   DateTime? editedAt,
 }) {
-  final key = checkpointKey(
+  final key = checkpointId?.trim().isNotEmpty == true
+      ? checkpointId!.trim()
+      : checkpointKey(
+          pjNr: pjNr,
+          categoryIndex: categoryIndex,
+          checkpointIndex: checkpointIndex,
+        );
+  final categoryCoordinate = categoryCoordinateKey(
     pjNr: pjNr,
     categoryIndex: categoryIndex,
-    checkpointIndex: checkpointIndex,
   );
   _editedCheckpointAtByKey[key] = editedAt ?? DateTime.now();
+  _categoryCoordinateByCheckpointKey[key] = categoryCoordinate;
+  final explicitCategoryId = categoryId?.trim();
+  final effectiveCategoryId =
+      explicitCategoryId?.isNotEmpty == true ? explicitCategoryId : null;
+  final coordinateCategoryId = _categoryIdByCoordinate[categoryCoordinate];
+  final resolvedCategoryId = categoryIndex &lt; 0
+      ? effectiveCategoryId ?? coordinateCategoryId
+      : coordinateCategoryId ?? effectiveCategoryId;
+  if (resolvedCategoryId != null) {
+    _categoryIdByCheckpointKey[key] = resolvedCategoryId;
+    _refreshCategoryEntry(resolvedCategoryId, categoryCoordinate);
+  }
   revision.value++;
 }</code></pre>
 </section>

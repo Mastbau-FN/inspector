@@ -78,14 +78,18 @@
   if (key != null) {
     final reserved = _reservedByKey[key];
     if (reserved != null) {
-      _emit(currentLabel: label);
+      _emit(currentLabel: label.isEmpty ? null : label);
       return reserved;
     }
   }
 
   _totalByStep[stepIndex] = (_totalByStep[stepIndex] ?? 0) + 1;
-  _emit(currentLabel: label);
-  return DownloadTaskToken(_nextId++, stepIndex);
+  _emit(currentLabel: label.isEmpty ? null : label);
+  final token = DownloadTaskToken(_nextId++, stepIndex);
+  if (key != null) {
+    _reservedByKey[key] = token;
+  }
+  return token;
 }</code></pre>
 </section>
 

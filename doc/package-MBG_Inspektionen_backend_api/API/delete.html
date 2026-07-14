@@ -85,6 +85,7 @@
     itPrefersCache: _dataPrefersCache(caller, type: requestType),
     offline: () =&gt; local.delete(data, caller: caller),
     online: () =&gt; remote.delete(data),
+    onlineSuccessCB: (_) =&gt; local.deleteCachedAssets(data, caller: caller),
     requestType: requestType,
   ).last;
 }</code></pre>

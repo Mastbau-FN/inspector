@@ -56,6 +56,8 @@
       
 <span class="returntype"><a href="../../package-MBG_Inspektionen_backend_download_progress/DownloadProgressSession-class.html">DownloadProgressSession</a></span>
 <span class="name ">start</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="start-param-label"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">label</span> = <span class="default-value">&#39;&#39;</span>, </span></li>
+<li><span class="parameter" id="start-param-stepCount"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">stepCount</span> = <span class="default-value">3</span>, </span></li>
+<li><span class="parameter" id="start-param-key"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">key</span>, </span></li>
 </ol>})
 
       
@@ -67,10 +69,25 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">DownloadProgressSession start({String label = &#39;&#39;}) {
+  <pre class="language-dart"><code class="language-dart">DownloadProgressSession start({
+  String label = &#39;&#39;,
+  int stepCount = 3,
+  String? key,
+}) {
+  final active = _active;
+  if (key != null &amp;&amp; active != null &amp;&amp; _activeKey == key) {
+    return active;
+  }
+  _lastFinished?.dispose();
+  _lastFinished = null;
   _active?.dispose();
-  final session = DownloadProgressSession(initialLabel: label);
+  final session = DownloadProgressSession(
+    initialLabel: label,
+    stepCount: stepCount,
+  );
   _active = session;
+  _activeKey = key;
+  revision.value++;
   return session;
 }</code></pre>
 </section>

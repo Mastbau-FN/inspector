@@ -107,6 +107,28 @@
     snapshot,
     backupDirectory,
   );
+  previousState = await _recoverMissingComparisonHashes(
+    previousState,
+    backupDirectory,
+  );
+  previousState = _withoutOperationalBackupFiles(previousState);
+  final localIdMappings = await _readLocalIdMappings(sourceDirectory);
+  final remappedState = _remapBackupState(
+    previousState,
+    localIdMappings,
+    snapshot.signatures.keys.toSet(),
+  );
+  previousState = remappedState.state;
+  final equivalentImageRemap = _remapEquivalentImagePaths(
+    previousState,
+    snapshot,
+  );
+  previousState = equivalentImageRemap.state;
+  final movedFiles = &lt;String, String&gt;{
+    ...previousState.pendingMovedFiles,
+    ...remappedState.movedFiles,
+    ...equivalentImageRemap.movedFiles,
+  };
 
   final changedPaths = snapshot.signatures.keys
       .where((path) =&gt; previousState!.files[path] != snapshot.signatures[path])
@@ -128,6 +150,7 @@
       _BackupState(
         files: snapshot.signatures,
         backupChain: previousState.backupChain,
+        pendingMovedFiles: movedFiles,
       ),
     );
     return const IncrementalBackupResult(
@@ -150,6 +173,7 @@
           : previousState.backupChain.last,
       &#39;changedFiles&#39;: changedPaths,
       &#39;deletedFiles&#39;: deletedPaths,
+      &#39;movedFiles&#39;: movedFiles,
       &#39;snapshot&#39;: snapshot.signatures.map(
         (path, signature) =&gt; MapEntry(path, signature.toJson()),
       ),
@@ -163,6 +187,7 @@
       temporaryFile: temporaryFile,
       changedPaths: changedPaths,
       manifestJson: jsonEncode(manifest),
+      readableStructure: _buildReadableBackupStructure(snapshot),
       onProgress: onProgress,
     );
 

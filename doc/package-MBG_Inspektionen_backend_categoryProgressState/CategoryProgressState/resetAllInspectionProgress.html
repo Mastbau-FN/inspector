@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the remainingOfflineCooldown property from the BackendReachability class, for the Dart programming language.">
-  <title>remainingOfflineCooldown property - BackendReachability class - backend_reachability library - Dart API</title>
+  <meta name="description" content="API docs for the resetAllInspectionProgress method from the CategoryProgressState class, for the Dart programming language.">
+  <title>resetAllInspectionProgress method - CategoryProgressState class - categoryProgressState library - Dart API</title>
 
 
   
@@ -25,11 +25,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backend_reachability/">backend&#47;backend_reachability.dart</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backend_reachability/BackendReachability-class.html">BackendReachability</a></li>
-    <li class="self-crumb">remainingOfflineCooldown property</li>
+    <li><a href="../../package-MBG_Inspektionen_backend_categoryProgressState/">backend&#47;categoryProgressState.dart</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_categoryProgressState/CategoryProgressState-class.html">CategoryProgressState</a></li>
+    <li class="self-crumb">resetAllInspectionProgress method</li>
   </ol>
-  <div class="self-name">remainingOfflineCooldown</div>
+  <div class="self-name">resetAllInspectionProgress</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -46,49 +46,42 @@
 <div
     id="dartdoc-main-content"
     class="main-content"
-    data-above-sidebar="package-MBG_Inspektionen_backend_backend_reachability&#47;BackendReachability-class-sidebar.html"
+    data-above-sidebar="package-MBG_Inspektionen_backend_categoryProgressState&#47;CategoryProgressState-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-property">remainingOfflineCooldown</span> property 
+<h1><span class="kind-method">resetAllInspectionProgress</span> method 
 </h1></div>
 
-    
-
-    
-        
-  <section id="getter">
     <section class="multi-line-signature">
       
-      <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a>?</span>
-      get
-      <span class="name ">remainingOfflineCooldown</span>
+<span class="returntype">void</span>
+<span class="name ">resetAllInspectionProgress</span>(<wbr>)
+
       
 
     </section>
     
 
+
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Duration? get remainingOfflineCooldown {
-  final until = _skipOnlineUntil;
-  if (until == null) return null;
-
-  final remaining = until.difference(DateTime.now());
-  if (remaining &lt;= Duration.zero) {
-    clearFailure();
-    return null;
-  }
-  return remaining;
+  <pre class="language-dart"><code class="language-dart">void resetAllInspectionProgress() {
+  _entriesByCategoryId.clear();
+  _totalCheckpointsByCategoryId.clear();
+  _editedCheckpointAtByKey.clear();
+  _categoryIdByCoordinate.clear();
+  _categoryCoordinateById.clear();
+  _categoryCoordinateByCheckpointKey.clear();
+  _categoryIdByCheckpointKey.clear();
+  revision.value++;
 }</code></pre>
 </section>
 
-  </section>
 
-
-</div> <!-- /.main-content -->
-<div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
-  <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
 <header id="header-search-sidebar" class="hidden-l">
   <form class="search-sidebar" role="search">
     <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
@@ -96,15 +89,15 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backend_reachability/">backend_reachability</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backend_reachability/BackendReachability-class.html">BackendReachability</a></li>
-    <li class="self-crumb">remainingOfflineCooldown property</li>
+    <li><a href="../../package-MBG_Inspektionen_backend_categoryProgressState/">categoryProgressState</a></li>
+    <li><a href="../../package-MBG_Inspektionen_backend_categoryProgressState/CategoryProgressState-class.html">CategoryProgressState</a></li>
+    <li class="self-crumb">resetAllInspectionProgress method</li>
 </ol>
 
-  <h5>BackendReachability class</h5>
-  <div id="dartdoc-sidebar-left-content"></div>
-</div><!--/.sidebar-offcanvas-->
-<div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+    <h5>CategoryProgressState class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
 </div><!--/.sidebar-offcanvas-->
 </main>
 <footer>

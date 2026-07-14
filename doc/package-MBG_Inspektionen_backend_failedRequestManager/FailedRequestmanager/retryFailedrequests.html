@@ -138,8 +138,8 @@
   onProgress?.call(1.0, finalSuccess, null, 1.0, &#39;&#39;);
 
   if (finalSuccess) {
-    &#47;&#47; Ensure all open dropdown pages rebuild and re-fetch data so indicators update immediately.
-    SyncEvents.instance.notifyLocalDataChanged();
+    &#47;&#47; Ensure all open dropdown pages rebuild and clear locally completed states.
+    SyncEvents.instance.notifySyncCompleted();
   }
 
   return finalSuccess;
