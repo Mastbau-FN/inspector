@@ -8,17 +8,34 @@
 - Es kann nur noch ein Backup gleichzeitig laufen.
 - Die Backup-Fortschrittsberechnung wurde angepasst, damit der letzte Prozentpunkt nicht mehr irreführend lange stehen bleibt.
 - Backups arbeiten ressourcenschonender, damit die App währenddessen benutzbar bleibt.
+- Offline angelegte Prüfkategorien und Prüfpunkte werden nach der Vergabe ihrer DB-E-Nummern nicht erneut als Duplikate gesichert; Backups enthalten zusätzlich eine lesbare Namensstruktur mit separater E-Nummern-Übersicht.
+- Ein Sync, der ausschließlich lokale IDs und E-Nummern in Serverwerte umwandelt, erzeugt kein weiteres Backup; reine Sync-Verwaltungsdateien zählen nicht als neue oder geänderte Inspektionsdaten.
+- Identische temporäre Foto-Kopien, die nur für den Upload erzeugt und danach entfernt werden, lösen ebenfalls kein zusätzliches Backup aus.
 - Nach einem Backup-vor-Sync startet der Sync robuster automatisch weiter.
-- Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; nach `Failed host lookup` werden Online-Versuche kurz pausiert.
+- Der Sync-Button erkennt veraltete Laufstatus und meldet nicht mehr fälschlich, dass Backup und Synchronisierung bereits laufen.
+- Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; erneute Online-Versuche werden dabei nicht mehr für 30 Sekunden gesperrt.
 - Standort-Infos sind im Bearbeitungsmodus wieder wirklich editierbar.
 - Kategorien können wieder im Vollbild bearbeitet werden, inklusive Kategorienamen.
+- Lange Namen von Prüfkategorien und Prüfpunkten werden vollständig mehrzeilig angezeigt statt mit `…` gekürzt.
 - Bestätigungsbuttons bleiben beim Bearbeiten über der eingeblendeten Tastatur.
 - Inspektionen laden beim Downloadbutton jetzt alle Bestandteile inklusive Dokumenten direkt herunter und stellen sie offline bereit.
+- Der Inspektionsdownload lädt Kategorien, Prüfpunkte und Mängel phasenweise; Schritt 4 basiert von Beginn an auf allen Prüfpunkt-Abfragen und zeigt 100 % erst nach Abschluss.
+- Bilder direkt im Inspektionsordner werden beim Download erfasst und zusammen mit den Bildern der Unterebenen offline gespeichert.
+- Der Inspektionsdownload versucht Dokumente vollständig weiterzuladen, auch wenn einzelne Dateien/Assets fehlschlagen, und zeigt den grünen Haken stabil an.
+- DOCX- und XLSX-Dokumente öffnen jetzt über den Android-Auswahldialog statt direkt mit der Standard-App.
+- Serverseitig gelöschte Inspektionen werden beim Online-Refresh auch aus dem lokalen Root-Cache entfernt, damit sie offline nicht wieder erscheinen.
 - Inspektionen zeigen den Sperr-/Mängel-Hinweis nur noch, wenn in genau dieser Inspektion Einträge vorhanden sind.
 - `Mängelfrei` zählt weiterhin als vorhandener Eintrag und wird nicht ausgeschlossen.
 - Während der Mängelprüfung beim Sperren einer Inspektion wird ein kurzer Prüf-Dialog angezeigt.
 - Der Fortschritt in Prüfkategorien zählt jetzt auch `Mängelfrei`-Einträge mit.
-- Doppelte oder widersprüchliche `ohne Mangel`-Einträge werden in der Mängelliste nicht mehr mehrfach angezeigt.
+- Der Bearbeitungsfortschritt steigt nur noch nach dem tatsächlichen Anlegen eines Mangels oder Mängelfrei-Eintrags; bloßes Öffnen von Prüfpunkten verändert ihn nicht mehr.
+- Der Kategorienfortschritt wird nach einem neuen Mangel oder Mängelfrei-Eintrag auch bei wechselnden lokalen IDs zuverlässig aktualisiert.
+- Neu angelegte oder gelöschte Prüfpunkte aktualisieren sofort die Gesamtzahl im Bearbeitungsstand der Prüfkategorie.
+- Nach einer erfolgreich abgeschlossenen oder bereits aktuellen Synchronisierung werden die Bearbeitungsstände aller Inspektionen vollständig zurückgesetzt; Kategorie- und Gesamtzahl-Caches werden anschließend sauber neu geladen.
+- Fertig bearbeitete Prüfpunkte werden vollständig grün dargestellt, während Kategorien weiterhin ihren anteiligen Fortschritt anzeigen.
+- Namen von Prüfkategorien und Prüfpunkten erhalten mehr Breite; Bearbeitungsstand sowie Bearbeiten-/Löschen-Aktionen stehen in einer separaten Zeile darunter.
+- Doppelte `ohne Mangel`-Einträge werden zusammengeführt; ein vorhandener Mängelfrei-Eintrag bleibt auch neben später angelegten Mängeln sichtbar.
+- Beim Löschen eines Mängelfrei-Eintrags werden dessen lokale und serverseitige Bilddaten entfernt, damit eine spätere Neuanlage keine Daten des alten Eintrags übernimmt.
 - Die Selfie-Kamera-Vorschau ist im Hochformat nicht mehr um 180 Grad gedreht.
 - Die Selfie-Kamera-Vorschau wird gespiegelt angezeigt, damit sie sich natürlicher bedienen lässt.
 - Bei vielen Fotos werden Aufnahmen alle 10 Bilder im Hintergrund gespeichert, damit die Kamera stabiler bleibt.

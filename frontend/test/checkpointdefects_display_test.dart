@@ -26,15 +26,16 @@ void main() {
     expect(visible.single.id, 'server-no-defect');
   });
 
-  test('hides no-defect marker when actual defects exist', () {
+  test('keeps no-defect marker visible when actual defects exist', () {
+    final noDefect = _defect(id: 'no-defect', ereArt: OufnessChooser.none);
     final actualDefect = _defect(id: 'actual-defect', ereArt: 5202);
 
     final visible = normalizeCheckpointDefectsForDisplay([
-      _defect(id: 'no-defect', ereArt: OufnessChooser.none),
+      noDefect,
       actualDefect,
     ]);
 
-    expect(visible, [actualDefect]);
+    expect(visible, [noDefect, actualDefect]);
   });
 }
 

@@ -156,16 +156,14 @@ class Remote {
 
   final _baseurl = Env.mbgUrl;
   // ignore: non_constant_identifier_names
-  final _api_key = Env.mbgKey;
-
+  final _api_key = Env.mbgKey;                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                         
   bool _logReachabilityFailureOnce(Object error) {
     if (!BackendReachability.isBackendReachabilityFailure(error)) return false;
     if (!BackendReachability.instance.markFailure(error)) return true;
 
-    final seconds =
-        BackendReachability.defaultOfflineCooldown.inSeconds.toString();
     debugPrint(
-        'Backend nicht erreichbar (${BackendReachability.instance.lastFailureMessage}); weitere Online-Requests werden $seconds s übersprungen.');
+        'Backend nicht erreichbar (${BackendReachability.instance.lastFailureMessage}); Online-Request fehlgeschlagen.');
     return true;
   }
 

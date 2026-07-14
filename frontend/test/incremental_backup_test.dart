@@ -125,6 +125,246 @@ void main() {
     expect(await listManagedLocalBackups(backupDirectory), hasLength(4));
   });
 
+  test('does not back up records again after sync assigns E numbers', () async {
+    const inspectionId = '6006395-undefined-undefined-undefined';
+    const localCategoryId = '__local_category';
+    const localCheckpointId = '__local_checkpoint';
+    const serverCategoryId = '6006395-4-undefined-undefined';
+    const serverCheckpointId = '6006395-4-9-undefined';
+    const originalImagePath = '6006395-4-9--1/14_07_2026_12_20_11.jpg';
+    const temporaryUploadPath = '6006395-4-9-0/14_07_2026_12_20_11.jpg';
+
+    await Directory('${sourceDirectory.path}/root').create();
+    await Directory('${sourceDirectory.path}/$inspectionId').create();
+    await Directory('${sourceDirectory.path}/$localCategoryId').create();
+    await Directory('${sourceDirectory.path}/failed-requests').create();
+    await Directory('${sourceDirectory.path}/image-index').create();
+    await File('${sourceDirectory.path}/root/$inspectionId').writeAsString(
+      jsonEncode({
+        'PjNr': 6006395,
+        'StONr': 34569,
+        'PjName': 'Müggelschlößchenweg',
+        'local_id': inspectionId,
+      }),
+    );
+    final localCategory = File(
+      '${sourceDirectory.path}/$inspectionId/$localCategoryId',
+    );
+    await localCategory.writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': -1,
+      'KurzText': 'Weg zum Mast',
+      'local_id': localCategoryId,
+      'parent_local_id': inspectionId,
+      'offline': true,
+    }));
+    final localCheckpoint = File(
+      '${sourceDirectory.path}/$localCategoryId/$localCheckpointId',
+    );
+    await localCheckpoint.writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': -1,
+      'E2': -1,
+      'KurzText': 'Kennzeichnung Zuwegung',
+      'local_id': localCheckpointId,
+      'parent_local_id': localCategoryId,
+      'offline': true,
+    }));
+    await File('${sourceDirectory.path}/failed-requests/request-1')
+        .writeAsString('pending sync request');
+    await File('${sourceDirectory.path}/image-index/local-image')
+        .writeAsString('temporary image mapping');
+    await File('${sourceDirectory.path}/$originalImagePath')
+        .create(recursive: true)
+        .then((file) => file.writeAsBytes([1, 2, 3, 4]));
+    await File('${sourceDirectory.path}/$temporaryUploadPath')
+        .create(recursive: true)
+        .then((file) => file.writeAsBytes([1, 2, 3, 4]));
+
+    final initialBackup = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+    expect(
+      _archiveNames(initialBackup.backupFile!),
+      isNot(contains('failed-requests/request-1')),
+    );
+    expect(
+      _archiveNames(initialBackup.backupFile!),
+      isNot(contains('image-index/local-image')),
+    );
+    final legacyStateFile =
+        File('${backupDirectory.path}/.mbg-backup-state-v1.json');
+    final legacyState = Map<String, dynamic>.from(
+      jsonDecode(await legacyStateFile.readAsString()) as Map,
+    );
+    for (final value in (legacyState['files'] as Map).values) {
+      (value as Map).remove('comparisonHash');
+      value.remove('metadata');
+    }
+    legacyState['version'] = 2;
+    await legacyStateFile.writeAsString(jsonEncode(legacyState), flush: true);
+
+    final serverCategory = File(
+      '${sourceDirectory.path}/$inspectionId/$serverCategoryId',
+    );
+    await serverCategory.writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': 4,
+      'E2': null,
+      'E3': null,
+      'KurzText': 'Weg zum Mast',
+      'local_id': serverCategoryId,
+      'parent_local_id': inspectionId,
+      'offline': false,
+    }));
+    await localCategory.delete();
+    await Directory('${sourceDirectory.path}/$serverCategoryId').create();
+    final serverCheckpoint = File(
+      '${sourceDirectory.path}/$serverCategoryId/$serverCheckpointId',
+    );
+    await serverCheckpoint.writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': 4,
+      'E2': 9,
+      'E3': null,
+      'KurzText': 'Kennzeichnung Zuwegung',
+      'local_id': serverCheckpointId,
+      'parent_local_id': serverCategoryId,
+      'offline': false,
+    }));
+    await localCheckpoint.delete();
+    await Directory('${sourceDirectory.path}/$localCategoryId')
+        .delete(recursive: true);
+    await Directory('${sourceDirectory.path}/other').create();
+    await File('${sourceDirectory.path}/other/__sync_maps__6006395')
+        .writeAsString(jsonEncode({
+      'localIdMap': {
+        localCategoryId: serverCategoryId,
+        localCheckpointId: serverCheckpointId,
+      },
+    }));
+    await Directory('${sourceDirectory.path}/failed-requests')
+        .delete(recursive: true);
+    await Directory('${sourceDirectory.path}/image-index')
+        .delete(recursive: true);
+    await File('${sourceDirectory.path}/$temporaryUploadPath').delete();
+
+    final afterSync = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+    expect(afterSync.backupFile, isNull);
+    expect(afterSync.changedFileCount, 0);
+    expect(afterSync.deletedFileCount, 0);
+    expect(await listManagedLocalBackups(backupDirectory), hasLength(1));
+
+    final state = Map<String, dynamic>.from(jsonDecode(
+      await File('${backupDirectory.path}/.mbg-backup-state-v1.json')
+          .readAsString(),
+    ) as Map);
+    expect(state['pendingMovedFiles'], {
+      '$inspectionId/$localCategoryId': '$inspectionId/$serverCategoryId',
+      '$localCategoryId/$localCheckpointId':
+          '$serverCategoryId/$serverCheckpointId',
+      temporaryUploadPath: originalImagePath,
+    });
+
+    await serverCheckpoint.writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': 4,
+      'E2': 9,
+      'E3': null,
+      'KurzText': 'Kennzeichnung Zuwegung',
+      'LangText': 'Tatsächlich geändert',
+      'local_id': serverCheckpointId,
+      'parent_local_id': serverCategoryId,
+      'offline': false,
+    }));
+    final afterRealChange = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+    final manifest = _readManifest(afterRealChange.backupFile!);
+
+    expect(manifest['changedFiles'], [
+      '$serverCategoryId/$serverCheckpointId',
+    ]);
+    expect(manifest['movedFiles'], {
+      '$inspectionId/$localCategoryId': '$inspectionId/$serverCategoryId',
+      '$localCategoryId/$localCheckpointId':
+          '$serverCategoryId/$serverCheckpointId',
+      temporaryUploadPath: originalImagePath,
+    });
+  });
+
+  test('adds readable named folders and keeps E numbers in the index',
+      () async {
+    const inspectionId = '6006395-undefined-undefined-undefined';
+    const categoryId = '6006395-4-undefined-undefined';
+    const checkpointId = '6006395-4-9-undefined';
+    await Directory('${sourceDirectory.path}/root').create();
+    await Directory('${sourceDirectory.path}/$inspectionId').create();
+    await Directory('${sourceDirectory.path}/$categoryId').create();
+    await File('${sourceDirectory.path}/root/$inspectionId').writeAsString(
+      jsonEncode({
+        'PjNr': 6006395,
+        'StONr': 34569,
+        'PjName': 'Müggelschlößchenweg',
+        'local_id': inspectionId,
+      }),
+    );
+    await File('${sourceDirectory.path}/$inspectionId/$categoryId')
+        .writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': 4,
+      'E2': null,
+      'E3': null,
+      'KurzText': 'Weg zum Mast',
+      'local_id': categoryId,
+      'parent_local_id': inspectionId,
+    }));
+    await File('${sourceDirectory.path}/$categoryId/$checkpointId')
+        .writeAsString(jsonEncode({
+      'PjNr': 6006395,
+      'E1': 4,
+      'E2': 9,
+      'E3': null,
+      'KurzText': 'Kennzeichnung Zuwegung',
+      'local_id': checkpointId,
+      'parent_local_id': categoryId,
+    }));
+
+    final backup = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+    final names = _archiveNames(backup.backupFile!);
+    final index = _readJsonArchiveFile(
+      backup.backupFile!,
+      backupContentsIndexName,
+    );
+
+    expect(
+      names,
+      contains(
+        'Backup-Struktur/Müggelschlößchenweg/Weg zum Mast/'
+        'Kennzeichnung Zuwegung/',
+      ),
+    );
+    final entries = index['Einträge'] as List;
+    final checkpoint = entries.cast<Map>().singleWhere(
+          (entry) => entry['Name'] == 'Kennzeichnung Zuwegung',
+        );
+    expect(checkpoint['E1'], 4);
+    expect(checkpoint['E2'], 9);
+    expect(
+      checkpoint['LesbarerOrdner'],
+      'Backup-Struktur/Müggelschlößchenweg/Weg zum Mast/'
+      'Kennzeichnung Zuwegung',
+    );
+  });
+
   test('adopts the newest legacy full backup as the baseline', () async {
     final existingFile = await File('${sourceDirectory.path}/existing.json')
         .writeAsString('already backed up');
@@ -432,9 +672,13 @@ Set<String> _archiveNames(File backup) {
 }
 
 Map<String, dynamic> _readManifest(File backup) {
+  return _readJsonArchiveFile(backup, incrementalBackupManifestName);
+}
+
+Map<String, dynamic> _readJsonArchiveFile(File backup, String name) {
   final archive = ZipDecoder().decodeBytes(backup.readAsBytesSync());
   final manifest = archive.files.singleWhere(
-    (file) => file.name == incrementalBackupManifestName,
+    (file) => file.name == name,
   );
   return Map<String, dynamic>.from(
     jsonDecode(utf8.decode(manifest.content as List<int>)),

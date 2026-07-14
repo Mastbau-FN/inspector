@@ -398,13 +398,14 @@ class _CameraForAdderState extends State<CameraForAdder>
                 }
                 CheckPointDefect? newDefect =
                     await API().setNew(defect, caller: widget.parent);
-                if (newDefect != null &&
-                    newDefect.ereArt != OufnessChooser.none) {
+                if (newDefect != null) {
                   CategoryProgressState.instance
                       .markCheckpointEditedByCoordinates(
                     pjNr: widget.parent.pjNr,
                     categoryIndex: widget.parent.category_index,
                     checkpointIndex: widget.parent.index,
+                    categoryId: widget.parent.parentId,
+                    checkpointId: widget.parent.id,
                   );
                 }
                 await API().update(newDefect!, caller: widget.parent);

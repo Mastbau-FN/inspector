@@ -3,9 +3,7 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
-import 'package:MBG_Inspektionen/backend/sync_events.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
-import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
@@ -15,6 +13,9 @@ import "package:latlong2/latlong.dart";
 import 'weather.dart';
 
 part 'inspection_location.g.dart';
+
+String inspectionDownloadKey(InspectionLocation inspection) =>
+    'inspection:${inspection.pjNr}:${inspection.stONr}';
 
 /// stores all the data needed for a specific location in a type-safe way
 
@@ -147,11 +148,10 @@ class InspectionLocation extends Data
 
   @override
   List<Widget> extras({BuildContext? context}) => [
-        if (!forceOffline)
-          _RecursiveDownloadButton(
-            key: ValueKey('recursive_download_${pjNr}_$stONr'),
-            caller: CategoryModel(this),
-          ),
+        _RecursiveDownloadButton(
+          key: ValueKey('recursive_download_${pjNr}_$stONr'),
+          caller: CategoryModel(this),
+        ),
       ];
 
   static InspectionLocation? fromJson(Map<String, dynamic> json) {
@@ -294,6 +294,13 @@ Map<String, dynamic> _normalizeInspectionLocationJson(
     normalizeString(key);
   }
 
+  final documents = normalized['DokusPaths'] ??
+      normalized['dokusPaths'] ??
+      normalized['dokuspaths'] ??
+      normalized['Dokus'] ??
+      normalized['Dokumente'];
+  if (documents != null) normalized['DokusPaths'] = documents;
+
   return normalized;
 }
 
@@ -312,13 +319,73 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   bool wasPressed = false;
   bool? success;
   DownloadProgressSession? _session;
+
+  String get _downloadKey {
+    final inspection = widget.caller.currentData;
+    return inspectionDownloadKey(inspection);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncDownloadState();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RecursiveDownloadButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncDownloadState();
+  }
+
+  void _syncDownloadState() {
+    final activeSession = DownloadProgress.instance.activeFor(_downloadKey);
+    if (activeSession != null) {
+      wasPressed = true;
+      success = null;
+      _session = activeSession;
+      return;
+    }
+    if (widget.caller.currentData.forceOffline && success != false) {
+      wasPressed = true;
+      success = true;
+      _session = null;
+    }
+  }
+
   void press() async {
+    final activeSession = DownloadProgress.instance.active;
+    final activeForThisInspection =
+        DownloadProgress.instance.activeFor(_downloadKey);
+    if (activeSession != null && activeForThisInspection == null) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(
+          content: Text('Es läuft bereits ein Inspektionsdownload.'),
+        ),
+      );
+      return;
+    }
+    if (activeForThisInspection != null) {
+      setState(() {
+        success = null;
+        wasPressed = true;
+        _session = activeForThisInspection;
+      });
+      return;
+    }
+
     setState(() {
       success = null;
       wasPressed = true;
     });
-    final session = DownloadProgress.instance.start(label: widget.caller.title);
-    _session?.dispose();
+    final session = DownloadProgress.instance.start(
+      label: InspectionDownloadSteps.refreshLabel,
+      stepCount: InspectionDownloadSteps.count,
+      key: _downloadKey,
+    );
+    session.setStep(
+      InspectionDownloadSteps.refresh,
+      label: InspectionDownloadSteps.refreshLabel,
+    );
     _session = session;
     if (mounted) {
       // Trigger rebuild so the percentage replaces the download icon immediately.
@@ -332,18 +399,12 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       );
       widget.caller.currentData = refreshed;
       final rootid = await API().rootID;
-      final succeeded = await manager.loadAndCacheAll(
-        widget.caller,
-        3,
-        name: widget.caller.title,
-        parentID: rootid,
+      final succeeded = await manager.downloadInspectionForOffline(
+        widget.caller.currentData,
+        rootId: rootid,
       );
 
       DownloadProgress.instance.finish(session);
-      session.dispose();
-      if (succeeded) {
-        SyncEvents.instance.notifyLocalDataChanged();
-      }
       if (!mounted) return;
       setState(() {
         _session = null;
@@ -352,7 +413,6 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
     } catch (e, stackTrace) {
       debugPrint('Inspektionsdownload fehlgeschlagen: $e\n$stackTrace');
       DownloadProgress.instance.finish(session);
-      session.dispose();
       if (!mounted) return;
       setState(() {
         _session = null;
@@ -363,6 +423,7 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
 
   @override
   Widget build(BuildContext context) {
+    _syncDownloadState();
     if (!wasPressed) {
       return IconButton(
           onPressed: press,
@@ -374,54 +435,30 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       final session = _session;
       if (session == null) {
         return IconButton(
-          onPressed: (() {}),
-          icon: Opacity(
-            child: LoadingView(),
-            opacity: 0.5,
+          onPressed: null,
+          icon: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
           ),
         );
       }
-      return ValueListenableBuilder<DownloadProgressState>(
-        valueListenable: session.notifier,
-        builder: (context, state, _) {
-          return IconButton(
-            onPressed: null,
-            icon: SizedBox(
-              width: 92,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      value: state.fraction,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Step ${state.stepIndex}/${state.stepCount}',
-                        style: const TextStyle(fontSize: 9),
-                      ),
-                      Text(
-                        '${state.percent}%',
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ],
+      return IconButton(
+        onPressed: null,
+        tooltip: 'Download läuft',
+        icon: ValueListenableBuilder<DownloadProgressState>(
+          valueListenable: session.notifier,
+          builder: (context, state, _) {
+            return SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                value: state.totalTasks == 0 ? null : state.fraction,
               ),
-            ),
-            tooltip: state.currentLabel.isEmpty
-                ? 'Step ${state.stepIndex}/${state.stepCount}'
-                : state.currentLabel,
-          );
-        },
+            );
+          },
+        ),
       );
     }
     if (success!) {
@@ -436,5 +473,121 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
           Icons.refresh,
           color: Colors.red,
         ));
+  }
+}
+
+class InspectionDownloadProgressPanel extends StatelessWidget {
+  const InspectionDownloadProgressPanel({
+    super.key,
+    required this.location,
+  });
+
+  final InspectionLocation location;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: DownloadProgress.instance.revision,
+      builder: (context, _, __) {
+        final session = DownloadProgress.instance
+            .activeFor(inspectionDownloadKey(location));
+        return AnimatedSize(
+          duration: const Duration(milliseconds: 180),
+          alignment: Alignment.topCenter,
+          child: session == null
+              ? const SizedBox.shrink()
+              : ValueListenableBuilder<DownloadProgressState>(
+                  valueListenable: session.notifier,
+                  builder: (context, state, _) {
+                    final colors = Theme.of(context).colorScheme;
+                    final label = state.currentLabel.isEmpty
+                        ? 'Download wird vorbereitet'
+                        : state.currentLabel;
+                    final stepText = state.stepIndex <= 0
+                        ? 'Vorbereitung'
+                        : 'Schritt ${state.stepIndex}/${state.stepCount}';
+                    final progressValue =
+                        state.totalTasks == 0 && state.fraction <= 0
+                            ? null
+                            : state.fraction;
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color:
+                                colors.primaryContainer.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: colors.primary.withValues(alpha: 0.24),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.cloud_download_outlined,
+                                      size: 20,
+                                      color: colors.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Inspektion offline speichern',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: colors.onPrimaryContainer,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${state.percent}%',
+                                      style: TextStyle(
+                                        color: colors.onPrimaryContainer,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(99),
+                                  child: LinearProgressIndicator(
+                                    value: progressValue,
+                                    minHeight: 7,
+                                    backgroundColor:
+                                        colors.surface.withValues(alpha: 0.65),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '$stepText · $label',
+                                  maxLines: 2,
+                                  softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: colors.onPrimaryContainer,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        );
+      },
+    );
   }
 }

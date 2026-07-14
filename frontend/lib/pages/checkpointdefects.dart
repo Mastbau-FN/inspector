@@ -12,6 +12,7 @@ import 'package:MBG_Inspektionen/fragments/adder.dart';
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:provider/provider.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
+import 'package:MBG_Inspektionen/backend/categoryProgressState.dart';
 
 import '../widgets/mySimpleAlertBox.dart';
 
@@ -89,7 +90,7 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
   ohneMaengelAction(context) async {
     if ((await all().last).isEmpty) {
       // final x = currentData;
-      await API().setNew<CheckPointDefect>(
+      final newDefect = await API().setNew<CheckPointDefect>(
         CheckPointDefect(
           pjNr: currentData.pjNr,
           category_index: currentData.category_index,
@@ -111,6 +112,15 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
         // ..height = "----",
         caller: currentData,
       ); //TO-DO: does not work in online mode #387
+      if (newDefect != null) {
+        CategoryProgressState.instance.markCheckpointEditedByCoordinates(
+          pjNr: currentData.pjNr,
+          categoryIndex: currentData.category_index,
+          checkpointIndex: currentData.index,
+          categoryId: currentData.parentId,
+          checkpointId: currentData.id,
+        );
+      }
       notifyListeners();
       return;
     } else {
@@ -333,10 +343,6 @@ bool isNoDefectMarker(CheckPointDefect defect) =>
 
 List<CheckPointDefect> normalizeCheckpointDefectsForDisplay(
     List<CheckPointDefect> defects) {
-  final actualDefects =
-      defects.where((defect) => !isNoDefectMarker(defect)).toList();
-  if (actualDefects.isNotEmpty) return actualDefects;
-
   CheckPointDefect? preferredNoDefect;
   for (final defect in defects.where(isNoDefectMarker)) {
     if (preferredNoDefect == null ||
@@ -345,7 +351,19 @@ List<CheckPointDefect> normalizeCheckpointDefectsForDisplay(
     }
   }
 
-  return preferredNoDefect == null ? [] : [preferredNoDefect];
+  if (preferredNoDefect == null) return defects;
+
+  final visibleDefects = <CheckPointDefect>[];
+  var noDefectAdded = false;
+  for (final defect in defects) {
+    if (!isNoDefectMarker(defect)) {
+      visibleDefects.add(defect);
+    } else if (!noDefectAdded) {
+      visibleDefects.add(preferredNoDefect);
+      noDefectAdded = true;
+    }
+  }
+  return visibleDefects;
 }
 
 bool _preferNoDefectMarker(

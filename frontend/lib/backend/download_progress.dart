@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 
 class DownloadProgressState {
@@ -17,7 +20,50 @@ class DownloadProgressState {
     required this.stepCount,
   });
 
-  int get percent => (fraction * 100).clamp(0, 100).round();
+  int get percent => math.min(100, (fraction * 100).floor());
+}
+
+String inspectionDownloadRequestKey(
+  String route,
+  Map<String, dynamic>? json,
+) {
+  if (route == '/image/get') {
+    return '$route|${json?['hash'] ?? ''}';
+  }
+  if (route == '/doc/get') {
+    return '$route|${json?['docPath'] ?? ''}';
+  }
+  return <Object?>[
+    route,
+    json?['PjNr'],
+    json?['E1'],
+    json?['E2'],
+    json?['E3'],
+  ].join('|');
+}
+
+class InspectionDownloadSteps {
+  static const int count = 6;
+  static const int refresh = 1;
+  static const int categories = 2;
+  static const int checkpoints = 3;
+  static const int defects = 4;
+  static const int photos = 5;
+  static const int documents = 6;
+
+  static const String refreshLabel = 'Inspektionsdaten aktualisieren';
+  static const String categoriesLabel = 'Prüfkategorien laden';
+  static const String checkpointsLabel = 'Prüfpunkte laden';
+  static const String defectsLabel = 'Mängel und Mängelfrei-Einträge laden';
+  static const String photosLabel = 'Fotos speichern';
+  static const String noPhotosLabel = 'Keine Fotos zu speichern';
+  static const String documentsPrepareLabel = 'Dokumente herunterladen';
+  static const String noDocumentsLabel = 'Keine Dokumente vorhanden';
+
+  static String documentCheckLabel(int current, int total) =>
+      'Dokumente prüfen ($current/$total)';
+  static String documentLabel(int current, int total) =>
+      'Dokumente speichern ($current/$total)';
 }
 
 class DownloadTaskToken {
@@ -30,6 +76,7 @@ class DownloadProgressSession {
   final ValueNotifier<DownloadProgressState> notifier;
 
   int _nextId = 1;
+  Future<void> _serialDownloadTail = Future<void>.value();
   final int _stepCount;
   int _currentStep = 0;
   final Map<int, int> _totalByStep = <int, int>{};
@@ -55,6 +102,7 @@ class DownloadProgressSession {
 
   void setStep(int stepIndex, {String? label}) {
     final next = stepIndex.clamp(0, _stepCount);
+    if (next < _currentStep) return;
     if (next > _currentStep) {
       for (int s = _currentStep; s < next; s++) {
         _finishedSteps.add(s);
@@ -78,7 +126,7 @@ class DownloadProgressSession {
     _totalByStep[stepIndex] = (_totalByStep[stepIndex] ?? 0) + 1;
     final token = DownloadTaskToken(_nextId++, stepIndex);
     _reservedByKey[key] = token;
-    _emit(currentLabel: label);
+    _emit(currentLabel: label.isEmpty ? null : label);
     return token;
   }
 
@@ -91,14 +139,18 @@ class DownloadProgressSession {
     if (key != null) {
       final reserved = _reservedByKey[key];
       if (reserved != null) {
-        _emit(currentLabel: label);
+        _emit(currentLabel: label.isEmpty ? null : label);
         return reserved;
       }
     }
 
     _totalByStep[stepIndex] = (_totalByStep[stepIndex] ?? 0) + 1;
-    _emit(currentLabel: label);
-    return DownloadTaskToken(_nextId++, stepIndex);
+    _emit(currentLabel: label.isEmpty ? null : label);
+    final token = DownloadTaskToken(_nextId++, stepIndex);
+    if (key != null) {
+      _reservedByKey[key] = token;
+    }
+    return token;
   }
 
   void endTask(DownloadTaskToken token, {required bool success}) {
@@ -106,6 +158,20 @@ class DownloadProgressSession {
     final stepIndex = token.step.clamp(0, _stepCount);
     _doneByStep[stepIndex] = (_doneByStep[stepIndex] ?? 0) + 1;
     _emit();
+  }
+
+  Future<T> enqueueDownload<T>(Future<T> Function() action) {
+    final completer = Completer<T>();
+    _serialDownloadTail = _serialDownloadTail.catchError((_) {}).then(
+      (_) async {
+        try {
+          completer.complete(await action());
+        } catch (error, stackTrace) {
+          completer.completeError(error, stackTrace);
+        }
+      },
+    );
+    return completer.future;
   }
 
   void markFinished() {
@@ -121,10 +187,12 @@ class DownloadProgressSession {
     final done = _doneByStep[_currentStep] ?? 0;
     final isStepFinished = _finishedSteps.contains(_currentStep) || _finished;
 
-    final denom = isStepFinished
-        ? (total == 0 ? 1 : total)
-        : (total > (done + 1) ? total : (done + 1));
-    final raw = denom == 0 ? 0.0 : (done / denom);
+    var raw = total == 0
+        ? (isStepFinished ? 1.0 : 0.0)
+        : (done / total).clamp(0.0, 1.0);
+    if (total > 0 && done >= total && !isStepFinished) {
+      raw = 0.999;
+    }
     notifier.value = DownloadProgressState(
       totalTasks: total,
       doneTasks: done,
@@ -144,13 +212,37 @@ class DownloadProgress {
   static final DownloadProgress instance = DownloadProgress._internal();
   DownloadProgress._internal();
 
+  final ValueNotifier<int> revision = ValueNotifier<int>(0);
   DownloadProgressSession? _active;
+  DownloadProgressSession? _lastFinished;
+  String? _activeKey;
   DownloadProgressSession? get active => _active;
+  String? get activeKey => _activeKey;
 
-  DownloadProgressSession start({String label = ''}) {
+  DownloadProgressSession? activeFor(String key) {
+    if (_activeKey != key) return null;
+    return _active;
+  }
+
+  DownloadProgressSession start({
+    String label = '',
+    int stepCount = 3,
+    String? key,
+  }) {
+    final active = _active;
+    if (key != null && active != null && _activeKey == key) {
+      return active;
+    }
+    _lastFinished?.dispose();
+    _lastFinished = null;
     _active?.dispose();
-    final session = DownloadProgressSession(initialLabel: label);
+    final session = DownloadProgressSession(
+      initialLabel: label,
+      stepCount: stepCount,
+    );
     _active = session;
+    _activeKey = key;
+    revision.value++;
     return session;
   }
 
@@ -158,6 +250,9 @@ class DownloadProgress {
     if (!identical(_active, session)) return;
     session.markFinished();
     _active = null;
-    // session is disposed by the UI owner.
+    _activeKey = null;
+    _lastFinished = session;
+    revision.value++;
+    // Keep the finished notifier alive until the next download replaces it.
   }
 }

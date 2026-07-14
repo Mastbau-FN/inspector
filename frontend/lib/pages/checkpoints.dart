@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
+import 'package:MBG_Inspektionen/backend/categoryProgressState.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
 import 'package:MBG_Inspektionen/options.dart';
@@ -190,6 +191,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
 
   @override
   CheckPointDefectsModel generateNextModel(CheckPoint data) {
+    data.parentId = currentData.id;
     return CheckPointDefectsModel(data);
   }
 
@@ -224,7 +226,13 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
         parent: currentData,
         onCancel: onCancel,
         onDone: (category) async {
-          await API().setNew(category, caller: currentData);
+          final createdCheckpoint =
+              await API().setNew(category, caller: currentData);
+          if (createdCheckpoint != null) {
+            CategoryProgressState.instance.checkpointAdded(
+              categoryId: currentData.id,
+            );
+          }
           notifyListeners();
         },
       ),

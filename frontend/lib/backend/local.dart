@@ -205,9 +205,17 @@ class LocalMirror {
     //offline procedure, needs some stuff changed and added..
     if (caller != null && data != null) {
       await OP.deleteData<DataT>(data.id, parentId: caller.id);
+      await deleteCachedAssets(data, caller: caller);
       return 'success';
     }
     return null;
+  }
+
+  Future<void> deleteCachedAssets(Data? data, {Data? caller}) async {
+    if (data is! CheckPointDefect) return;
+    final scope = _scopeForData(data, caller: caller).trim();
+    if (scope.isEmpty) return;
+    await OP.deleteScopedImages(scope);
   }
 
   //final _imageStreamController = BehaviorSubject<String>();

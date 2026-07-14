@@ -285,6 +285,58 @@ Future<List<String>> listScopedImageNames(String scope) async {
   return out;
 }
 
+Future<void> deleteScopedImages(String scope) async {
+  final canonicalScope = _canonicalizeScope(scope.trim());
+  if (canonicalScope.isEmpty) return;
+
+  if (!kIsWeb) {
+    final base = await localPath;
+    await deleteScopedImageFilesAt(canonicalScope, base);
+  }
+
+  try {
+    final indexedImages = await imageIndexCollection.get();
+    if (indexedImages == null) return;
+    for (final entry in indexedImages.entries) {
+      final value = entry.value;
+      if (value is! Map) continue;
+      final indexedScope = _canonicalizeScope(value['scope']?.toString() ?? '');
+      final storedName =
+          _canonicalizeScopedName(value['storedName']?.toString() ?? '');
+      if (indexedScope == canonicalScope ||
+          storedName.startsWith('$canonicalScope/')) {
+        await imageIndexCollection.doc(entry.key.split('/').last).delete();
+      }
+    }
+  } catch (_) {}
+}
+
+@visibleForTesting
+Future<void> deleteScopedImageFilesAt(String scope, String basePath) async {
+  final canonicalScope = _canonicalizeScope(scope.trim());
+  if (canonicalScope.isEmpty) return;
+  final scopes = <String>{
+    canonicalScope,
+    _legacyScopeForCanonical(canonicalScope),
+  };
+  for (final scopeName in scopes) {
+    final directory = Directory('$basePath/$scopeName');
+    if (!directory.existsSync()) continue;
+    for (final entity in directory.listSync(followLinks: false)) {
+      if (entity is File && _looksLikeImageFilename(entity.path)) {
+        try {
+          await entity.delete();
+        } catch (_) {}
+      }
+    }
+    try {
+      if (directory.existsSync() && directory.listSync().isEmpty) {
+        await directory.delete();
+      }
+    } catch (_) {}
+  }
+}
+
 Future<File?> readDoc(String name, {int? cacheSize}) async {
   final file = (await localFile(name, "jaman"));
   // ignore: unused_local_variable
