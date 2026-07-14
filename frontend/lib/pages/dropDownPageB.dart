@@ -269,13 +269,22 @@ class DropDownPageB<
                                   ? CategoryProgressState.instance
                                       .entryFor(cd.id)
                                   : null;
+                              final checkpointCompleted = cd is CheckPoint &&
+                                  CategoryProgressState.instance
+                                      .checkpointCompleted(
+                                    checkpointId: cd.id,
+                                    pjNr: cd.pjNr,
+                                    categoryIndex: cd.category_index,
+                                    checkpointIndex: cd.index,
+                                  );
                               final totalCheckpoints = cd is CheckCategory
                                   ? (progressEntry?.totalCheckpoints ??
                                       CategoryProgressState.instance
                                           .totalFor(cd.id))
                                   : null;
-                              final completionPercent =
-                                  progressEntry?.progress ?? 0.0;
+                              final completionPercent = checkpointCompleted
+                                  ? 1.0
+                                  : progressEntry?.progress ?? 0.0;
                               final completionLabel = totalCheckpoints == null
                                   ? null
                                   : '${progressEntry?.completedCheckpoints ?? 0}/$totalCheckpoints bearbeitet';
@@ -288,19 +297,32 @@ class DropDownPageB<
                                 onAction: (actionTileData) {
                                   ddmodel.open(context, cd, actionTileData);
                                 },
-                                onDelete: () => API()
-                                    .delete<ChildData>(cd,
-                                        caller: ddmodel.currentData)
-                                    .then((value) => value != null
-                                        ? () {
-                                            (kDebugMode
-                                                ? showToast(value)
-                                                : (_) {});
-                                            ddmodel
-                                                .refresh(); //quickfix for #336
-                                          }()
-                                        : showToast(
-                                            S.of(context).deleteUnseccessful)),
+                                onDelete: () async {
+                                  final value = await API().delete<ChildData>(
+                                    cd,
+                                    caller: ddmodel.currentData,
+                                  );
+                                  if (value == null) {
+                                    showToast(
+                                      S.of(context).deleteUnseccessful,
+                                    );
+                                    return;
+                                  }
+                                  if (kDebugMode) showToast(value);
+                                  final parent = ddmodel.currentData;
+                                  if (cd is CheckPoint &&
+                                      parent is CheckCategory) {
+                                    CategoryProgressState.instance
+                                        .checkpointRemoved(
+                                      categoryId: parent.id,
+                                      checkpointId: cd.id,
+                                      pjNr: cd.pjNr,
+                                      categoryIndex: cd.category_index,
+                                      checkpointIndex: cd.index,
+                                    );
+                                  }
+                                  ddmodel.refresh(); //quickfix for #336
+                                },
                               );
                             }).toList(),
                           );
@@ -394,8 +416,10 @@ class DropDownPageB<
           final checkpoints = await API()
               .getNextDatapoint<CheckPoint, CheckCategory>(category)
               .last;
-          CategoryProgressState.instance.setTotal(
+          CategoryProgressState.instance.registerCategory(
             categoryId: category.id,
+            pjNr: category.pjNr,
+            categoryIndex: category.index,
             totalCheckpoints: checkpoints.length,
           );
         } finally {
@@ -429,7 +453,8 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = completionPercent.clamp(0.0, 1.0);
-    final showCompletion = cd is CheckCategory && progress > 0;
+    final showCompletion =
+        (cd is CheckCategory || cd is CheckPoint) && progress > 0;
     final showCompletionLabel = cd is CheckCategory && completionLabel != null;
     const progressColor = Color(0xFF2E7D32);
 
@@ -466,6 +491,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
               ),
               if (showCompletion)
                 Positioned.fill(
+                  key: Key('dropdown.completion.${cd.id}'),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final overlayWidth = constraints.maxWidth * progress;
@@ -517,6 +543,7 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                                     offlineIndicator(cd),
                                     Expanded(
                                       child: Hero(
+                                        key: Key('dropdown.title.${cd.id}'),
                                         tag:
                                             "dropdown.item.title.${cd.runtimeType}.${cd.id}",
                                         child:
@@ -570,62 +597,104 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                         )
                       : Padding(
                           padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(
-                                width: 50,
-                                child: PreviewImageCircle(
-                                  previewImage: cd.previewImage,
-                                ),
-                              ),
-                              offlineIndicator(cd),
-                              Expanded(
-                                child: Hero(
-                                  tag:
-                                      "dropdown.item.title.${cd.runtimeType}.${cd.id}",
-                                  child: dropdownItemTitleText(context, cd),
-                                ),
-                              ),
-                              if (showCompletionLabel)
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    completionLabel!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 50,
+                                    child: PreviewImageCircle(
+                                      previewImage: cd.previewImage,
+                                    ),
                                   ),
-                                ),
-                              ...cd.extras(context: context),
-                              FutureBuilder(
-                                future: API().user,
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<DisplayUser?> snapshot2) {
-                                  //assert(data.runtimeType==DataT);
-                                  try {
-                                    if (cd.runtimeType ==
-                                            CheckPointDefect //alle mängel dürfen gelöscht werden (#380)
-                                        ||
-                                        (snapshot2.hasData &&
-                                            cd.toJson()['Autor'] ==
-                                                snapshot2.data?.name))
-                                      return TrashButton(
-                                        delete: onDelete,
-                                        confirmName: cd.title,
-                                      );
-                                  } catch (e) {}
-                                  return Container();
-                                },
-                              ), // Spacer(),
-                              Transform.translate(
-                                offset: Offset(4, 0),
-                                child: Icon(actions.first.icon, size: 10),
+                                  offlineIndicator(cd),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 4,
+                                        top: 6,
+                                        bottom: 6,
+                                      ),
+                                      child: Hero(
+                                        key: Key('dropdown.title.${cd.id}'),
+                                        tag:
+                                            "dropdown.item.title.${cd.runtimeType}.${cd.id}",
+                                        child:
+                                            dropdownItemTitleText(context, cd),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Transform.translate(
+                                          offset: const Offset(4, 0),
+                                          child: Icon(
+                                            actions.first.icon,
+                                            size: 10,
+                                          ),
+                                        ),
+                                        const Icon(Icons.chevron_right),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Icon(Icons.chevron_right),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 50),
+                                child: Row(
+                                  children: [
+                                    if (showCompletionLabel)
+                                      Expanded(
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(left: 4),
+                                          child: Text(
+                                            key: Key(
+                                              'dropdown.progress-label.${cd.id}',
+                                            ),
+                                            completionLabel!,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      const Spacer(),
+                                    ...cd.extras(context: context),
+                                    FutureBuilder(
+                                      future: API().user,
+                                      builder: (
+                                        BuildContext context,
+                                        AsyncSnapshot<DisplayUser?> snapshot2,
+                                      ) {
+                                        try {
+                                          if (cd.runtimeType ==
+                                                  CheckPointDefect ||
+                                              (snapshot2.hasData &&
+                                                  cd.toJson()['Autor'] ==
+                                                      snapshot2.data?.name)) {
+                                            return TrashButton(
+                                              delete: onDelete,
+                                              confirmName: cd.title,
+                                            );
+                                          }
+                                        } catch (_) {}
+                                        return const SizedBox.shrink();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),

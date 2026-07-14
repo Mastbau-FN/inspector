@@ -880,6 +880,7 @@ class API {
       itPrefersCache: _dataPrefersCache(caller, type: requestType),
       offline: () => local.delete(data, caller: caller),
       online: () => remote.delete(data),
+      onlineSuccessCB: (_) => local.deleteCachedAssets(data, caller: caller),
       requestType: requestType,
     ).last;
   }

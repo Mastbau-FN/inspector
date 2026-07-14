@@ -1830,8 +1830,8 @@ class FailedRequestmanager {
     onProgress?.call(1.0, finalSuccess, null, 1.0, '');
 
     if (finalSuccess) {
-      // Ensure all open dropdown pages rebuild and re-fetch data so indicators update immediately.
-      SyncEvents.instance.notifyLocalDataChanged();
+      // Ensure all open dropdown pages rebuild and clear locally completed states.
+      SyncEvents.instance.notifySyncCompleted();
     }
 
     return finalSuccess;

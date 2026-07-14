@@ -387,8 +387,12 @@ const delete_ = async (data, KZL) => {
   try {
     //delete image folders
     ld = await _addfoldername(ld)
-    if((ld.LinkOrdner != null || ld.LinkOrdner != "") && ld.LinkOrdner.length > 4)
-    await fsp.rmdir(require('../images/filesystem').formatpath(ld.LinkOrdner), { recursive: true, force: true });
+    if (typeof ld.LinkOrdner === "string" && ld.LinkOrdner.trim().length > 4) {
+      await fsp.rm(
+        require('../images/filesystem').formatpath(ld.LinkOrdner),
+        { recursive: true, force: true }
+      );
+    }
   } catch (error) {}
 
   switch (data.type) {

@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 
 const String incrementalBackupManifestName = '.mbg-backup-manifest.json';
+const String backupContentsIndexName = 'Backup-Inhalt.json';
 const String _incrementalBackupStateName = '.mbg-backup-state-v1.json';
 const String _forceFullBackupMarkerName = '.mbg-force-full-backup';
 const Duration _backupIoPause = Duration(milliseconds: 20);
@@ -181,28 +182,42 @@ class _FileSignature {
   final int size;
   final int modifiedAtMs;
   final String? contentHash;
+  final String? comparisonHash;
+  final Map<String, dynamic>? metadata;
 
   const _FileSignature({
     required this.size,
     required this.modifiedAtMs,
     required this.contentHash,
+    this.comparisonHash,
+    this.metadata,
   });
 
   factory _FileSignature.fromJson(Map<String, dynamic> json) => _FileSignature(
         size: (json['size'] as num?)?.toInt() ?? -1,
         modifiedAtMs: (json['modifiedAtMs'] as num?)?.toInt() ?? -1,
         contentHash: json['contentHash']?.toString(),
+        comparisonHash: json['comparisonHash']?.toString(),
+        metadata: json['metadata'] is Map
+            ? Map<String, dynamic>.from(json['metadata'] as Map)
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
         'size': size,
         'modifiedAtMs': modifiedAtMs,
         if (contentHash != null) 'contentHash': contentHash,
+        if (comparisonHash != null) 'comparisonHash': comparisonHash,
+        if (metadata != null) 'metadata': metadata,
       };
 
   @override
   bool operator ==(Object other) {
-    if (other is! _FileSignature || other.size != size) return false;
+    if (other is! _FileSignature) return false;
+    if (comparisonHash != null && other.comparisonHash != null) {
+      return comparisonHash == other.comparisonHash;
+    }
+    if (other.size != size) return false;
     if (contentHash != null && other.contentHash != null) {
       return contentHash == other.contentHash;
     }
@@ -210,16 +225,20 @@ class _FileSignature {
   }
 
   @override
-  int get hashCode => Object.hash(size, contentHash ?? modifiedAtMs);
+  int get hashCode =>
+      comparisonHash?.hashCode ??
+      Object.hash(size, contentHash ?? modifiedAtMs);
 }
 
 class _BackupState {
   final Map<String, _FileSignature> files;
   final List<String> backupChain;
+  final Map<String, String> pendingMovedFiles;
 
   const _BackupState({
     required this.files,
     required this.backupChain,
+    this.pendingMovedFiles = const {},
   });
 
   factory _BackupState.fromJson(Map<String, dynamic> json) {
@@ -240,14 +259,26 @@ class _BackupState {
     final backupChain = rawChain is List
         ? rawChain.map((value) => value.toString()).toList()
         : <String>[];
-    return _BackupState(files: files, backupChain: backupChain);
+    final rawPendingMoves = json['pendingMovedFiles'];
+    final pendingMovedFiles = rawPendingMoves is Map
+        ? rawPendingMoves.map(
+            (key, value) => MapEntry(key.toString(), value.toString()),
+          )
+        : <String, String>{};
+    return _BackupState(
+      files: files,
+      backupChain: backupChain,
+      pendingMovedFiles: pendingMovedFiles,
+    );
   }
 
   Map<String, dynamic> toJson() => {
-        'version': 2,
+        'version': 4,
         'files':
             files.map((path, signature) => MapEntry(path, signature.toJson())),
         'backupChain': backupChain,
+        if (pendingMovedFiles.isNotEmpty)
+          'pendingMovedFiles': pendingMovedFiles,
       };
 }
 
@@ -256,6 +287,16 @@ class _SourceSnapshot {
 
   const _SourceSnapshot({
     required this.signatures,
+  });
+}
+
+class _RemappedBackupState {
+  final _BackupState state;
+  final Map<String, String> movedFiles;
+
+  const _RemappedBackupState({
+    required this.state,
+    required this.movedFiles,
   });
 }
 
@@ -332,6 +373,28 @@ Future<IncrementalBackupResult> createIncrementalBackup({
     snapshot,
     backupDirectory,
   );
+  previousState = await _recoverMissingComparisonHashes(
+    previousState,
+    backupDirectory,
+  );
+  previousState = _withoutOperationalBackupFiles(previousState);
+  final localIdMappings = await _readLocalIdMappings(sourceDirectory);
+  final remappedState = _remapBackupState(
+    previousState,
+    localIdMappings,
+    snapshot.signatures.keys.toSet(),
+  );
+  previousState = remappedState.state;
+  final equivalentImageRemap = _remapEquivalentImagePaths(
+    previousState,
+    snapshot,
+  );
+  previousState = equivalentImageRemap.state;
+  final movedFiles = <String, String>{
+    ...previousState.pendingMovedFiles,
+    ...remappedState.movedFiles,
+    ...equivalentImageRemap.movedFiles,
+  };
 
   final changedPaths = snapshot.signatures.keys
       .where((path) => previousState!.files[path] != snapshot.signatures[path])
@@ -353,6 +416,7 @@ Future<IncrementalBackupResult> createIncrementalBackup({
       _BackupState(
         files: snapshot.signatures,
         backupChain: previousState.backupChain,
+        pendingMovedFiles: movedFiles,
       ),
     );
     return const IncrementalBackupResult(
@@ -375,6 +439,7 @@ Future<IncrementalBackupResult> createIncrementalBackup({
           : previousState.backupChain.last,
       'changedFiles': changedPaths,
       'deletedFiles': deletedPaths,
+      'movedFiles': movedFiles,
       'snapshot': snapshot.signatures.map(
         (path, signature) => MapEntry(path, signature.toJson()),
       ),
@@ -388,6 +453,7 @@ Future<IncrementalBackupResult> createIncrementalBackup({
       temporaryFile: temporaryFile,
       changedPaths: changedPaths,
       manifestJson: jsonEncode(manifest),
+      readableStructure: _buildReadableBackupStructure(snapshot),
       onProgress: onProgress,
     );
 
@@ -450,6 +516,7 @@ Future<void> _writeArchiveInBackground({
   required File temporaryFile,
   required List<String> changedPaths,
   required String manifestJson,
+  required ({String? indexJson, List<String> directories}) readableStructure,
   Future<void> Function(BackupProgress progress)? onProgress,
 }) async {
   final messages = ReceivePort();
@@ -461,6 +528,8 @@ Future<void> _writeArchiveInBackground({
       'targetPath': temporaryFile.path,
       'changedPaths': changedPaths,
       'manifestJson': manifestJson,
+      'readableIndexJson': readableStructure.indexJson,
+      'readableDirectories': readableStructure.directories,
     },
     onError: messages.sendPort,
     onExit: messages.sendPort,
@@ -515,6 +584,9 @@ Future<void> _archiveWorker(Map<String, Object?> input) async {
   final targetPath = input['targetPath'] as String;
   final changedPaths = (input['changedPaths'] as List).cast<String>();
   final manifestJson = input['manifestJson'] as String;
+  final readableIndexJson = input['readableIndexJson'] as String?;
+  final readableDirectories =
+      (input['readableDirectories'] as List).cast<String>();
   final encoder = ZipFileEncoder();
   var encoderOpen = false;
 
@@ -589,6 +661,16 @@ Future<void> _archiveWorker(Map<String, Object?> input) async {
       await Future<void>.delayed(_backupIoPause);
     }
 
+    for (final directory in readableDirectories) {
+      final archiveDirectory = ArchiveFile('$directory/', 0, null)
+        ..isFile = false;
+      encoder.addArchiveFile(archiveDirectory);
+    }
+    if (readableIndexJson != null) {
+      encoder.addArchiveFile(
+        ArchiveFile.string(backupContentsIndexName, readableIndexJson),
+      );
+    }
     encoder.addArchiveFile(
       ArchiveFile.string(incrementalBackupManifestName, manifestJson),
     );
@@ -660,25 +742,348 @@ Future<Map<String, Map<String, dynamic>>> _scanSourceSignatures(
       in sourceDirectory.list(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     final relativePath = _relativePath(sourceDirectory, entity);
+    if (!_isBackupSourcePath(relativePath)) continue;
     final stat = await entity.stat();
     final reusable = reusableSignatures[relativePath];
     final reusableSize = (reusable?['size'] as num?)?.toInt();
     final reusableModifiedAt = (reusable?['modifiedAtMs'] as num?)?.toInt();
     final reusableHash = reusable?['contentHash']?.toString();
+    final reusableComparisonHash = reusable?['comparisonHash']?.toString();
+    final reusableMetadata = reusable?['metadata'];
     final canReuseHash = reusableHash != null &&
         reusableSize == stat.size &&
         reusableModifiedAt == stat.modified.millisecondsSinceEpoch;
-    final contentHash = canReuseHash
-        ? reusableHash
-        : (await sha256.bind(entity.openRead()).first).toString();
+    String contentHash;
+    String? comparisonHash;
+    Map<String, dynamic>? metadata;
+    if (canReuseHash) {
+      contentHash = reusableHash;
+      comparisonHash = reusableComparisonHash;
+      if (reusableMetadata is Map) {
+        metadata = Map<String, dynamic>.from(reusableMetadata);
+      }
+    } else if (stat.size <= 2 * 1024 * 1024) {
+      final bytes = await entity.readAsBytes();
+      contentHash = sha256.convert(bytes).toString();
+      final jsonData = _tryReadBackupJson(bytes);
+      if (jsonData != null) {
+        comparisonHash = sha256
+            .convert(utf8.encode(jsonEncode(_normalizedBackupJson(jsonData))))
+            .toString();
+        metadata = _backupMetadata(jsonData, relativePath);
+      }
+    } else {
+      contentHash = (await sha256.bind(entity.openRead()).first).toString();
+    }
 
     signatures[relativePath] = {
       'size': stat.size,
       'modifiedAtMs': stat.modified.millisecondsSinceEpoch,
       'contentHash': contentHash,
+      if (comparisonHash != null) 'comparisonHash': comparisonHash,
+      if (metadata != null) 'metadata': metadata,
     };
   }
   return signatures;
+}
+
+bool _isBackupSourcePath(String relativePath) {
+  final normalized = relativePath.replaceAll('\\', '/');
+  final parts = normalized.split('/').where((part) => part.isNotEmpty).toList();
+  if (parts.isEmpty) return false;
+  const operationalCollections = {
+    'failed-requests',
+    'skipped-requests',
+    'image-index',
+  };
+  if (operationalCollections.contains(parts.first)) return false;
+  return !(parts.first == 'other' && parts.last.startsWith('__sync_maps__'));
+}
+
+_BackupState _withoutOperationalBackupFiles(_BackupState state) => _BackupState(
+      files: {
+        for (final entry in state.files.entries)
+          if (_isBackupSourcePath(entry.key)) entry.key: entry.value,
+      },
+      backupChain: state.backupChain,
+      pendingMovedFiles: state.pendingMovedFiles,
+    );
+
+_RemappedBackupState _remapEquivalentImagePaths(
+  _BackupState state,
+  _SourceSnapshot snapshot,
+) {
+  final currentImagesByHash = <String, List<String>>{};
+  for (final entry in snapshot.signatures.entries) {
+    final hash = entry.value.contentHash;
+    if (hash == null || !_isImageBackupPath(entry.key)) continue;
+    currentImagesByHash.putIfAbsent(hash, () => []).add(entry.key);
+  }
+
+  final remappedFiles = Map<String, _FileSignature>.from(state.files);
+  final movedFiles = <String, String>{};
+  for (final entry in state.files.entries) {
+    if (snapshot.signatures.containsKey(entry.key) ||
+        !_isImageBackupPath(entry.key)) {
+      continue;
+    }
+    final hash = entry.value.contentHash;
+    if (hash == null) continue;
+    final basename = _basename(entry.key);
+    final candidates = (currentImagesByHash[hash] ?? const <String>[])
+        .where((path) => _basename(path) == basename)
+        .toList()
+      ..sort();
+    if (candidates.isEmpty) continue;
+
+    final targetPath = candidates.first;
+    remappedFiles.remove(entry.key);
+    remappedFiles.putIfAbsent(targetPath, () => entry.value);
+    movedFiles[entry.key] = targetPath;
+  }
+
+  return _RemappedBackupState(
+    state: _BackupState(
+      files: remappedFiles,
+      backupChain: state.backupChain,
+      pendingMovedFiles: state.pendingMovedFiles,
+    ),
+    movedFiles: movedFiles,
+  );
+}
+
+bool _isImageBackupPath(String path) {
+  final lower = path.toLowerCase();
+  return lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.webp') ||
+      lower.endsWith('.heic') ||
+      lower.endsWith('.gif') ||
+      lower.endsWith('.img');
+}
+
+Map<String, dynamic>? _tryReadBackupJson(List<int> bytes) {
+  try {
+    final decoded = jsonDecode(utf8.decode(bytes));
+    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+  } catch (_) {}
+  return null;
+}
+
+dynamic _normalizedBackupJson(dynamic value) {
+  const ignoredKeys = {
+    'local_id',
+    'parent_local_id',
+    'offline',
+    'E1',
+    'E2',
+    'E3',
+  };
+  if (value is Map) {
+    final keys = value.keys.map((key) => key.toString()).toList()..sort();
+    return {
+      for (final key in keys)
+        if (!ignoredKeys.contains(key)) key: _normalizedBackupJson(value[key]),
+    };
+  }
+  if (value is List) return value.map(_normalizedBackupJson).toList();
+  return value;
+}
+
+Map<String, dynamic>? _backupMetadata(
+  Map<String, dynamic> json,
+  String relativePath,
+) {
+  String? readableValue(List<String> keys) {
+    for (final key in keys) {
+      final value = json[key]?.toString().trim();
+      if (value != null && value.isNotEmpty && value != 'null') return value;
+    }
+    return null;
+  }
+
+  final hasInspectionFields = json['StONr'] != null;
+  final hasE1 = json['E1'] != null;
+  final hasE2 = json['E2'] != null;
+  final hasE3 = json['E3'] != null;
+  final type = hasInspectionFields
+      ? 'Inspektion'
+      : hasE3
+          ? 'Mangel'
+          : hasE2
+              ? 'Prüfpunkt'
+              : hasE1
+                  ? 'Prüfkategorie'
+                  : null;
+  if (type == null) return null;
+
+  final fallbackName = type == 'Inspektion'
+      ? [json['Straße'], json['Ort']]
+          .where((value) => value != null && value.toString().trim().isNotEmpty)
+          .join(', ')
+      : null;
+  final name = readableValue(
+        type == 'Inspektion'
+            ? const ['PjName', 'KurzText', 'LangText']
+            : const ['KurzText', 'LangText'],
+      ) ??
+      (fallbackName?.isNotEmpty == true ? fallbackName! : type);
+  final pathParts = relativePath.split('/');
+  final sourceParentId =
+      pathParts.length > 1 ? pathParts[pathParts.length - 2] : null;
+  final parentId = readableValue(const ['parent_local_id']) ?? sourceParentId;
+
+  return {
+    'Typ': type,
+    'Name': name,
+    if (json['PjNr'] != null) 'PjNr': json['PjNr'],
+    if (json['E1'] != null) 'E1': json['E1'],
+    if (json['E2'] != null) 'E2': json['E2'],
+    if (json['E3'] != null) 'E3': json['E3'],
+    'localId': readableValue(const ['local_id']) ?? pathParts.last,
+    if (parentId != null) 'parentId': parentId,
+  };
+}
+
+Future<Map<String, String>> _readLocalIdMappings(
+  Directory sourceDirectory,
+) async {
+  final mappings = <String, String>{};
+  final otherDirectory = Directory('${sourceDirectory.path}/other');
+  if (!await otherDirectory.exists()) return mappings;
+
+  await for (final entity
+      in otherDirectory.list(recursive: false, followLinks: false)) {
+    if (entity is! File ||
+        !_basename(entity.path).startsWith('__sync_maps__')) {
+      continue;
+    }
+    try {
+      final decoded = jsonDecode(await entity.readAsString());
+      if (decoded is! Map || decoded['localIdMap'] is! Map) continue;
+      for (final entry in (decoded['localIdMap'] as Map).entries) {
+        final oldId = entry.key.toString().trim();
+        final newId = entry.value.toString().trim();
+        if (oldId.isNotEmpty && newId.isNotEmpty && oldId != newId) {
+          mappings[oldId] = newId;
+        }
+      }
+    } catch (_) {}
+  }
+  return mappings;
+}
+
+_RemappedBackupState _remapBackupState(
+  _BackupState state,
+  Map<String, String> mappings,
+  Set<String> currentPaths,
+) {
+  if (mappings.isEmpty || state.files.isEmpty) {
+    return _RemappedBackupState(state: state, movedFiles: const {});
+  }
+
+  String resolveId(String value) {
+    var current = value;
+    final visited = <String>{};
+    while (visited.add(current)) {
+      final next = mappings[current];
+      if (next == null || next == current) break;
+      current = next;
+    }
+    return current;
+  }
+
+  String mappedPath(String path) => path.split('/').map(resolveId).join('/');
+
+  final remappedFiles = <String, _FileSignature>{};
+  final movedFiles = <String, String>{};
+
+  for (final entry in state.files.entries.where(
+    (entry) => mappedPath(entry.key) == entry.key,
+  )) {
+    remappedFiles[entry.key] = entry.value;
+  }
+  for (final entry in state.files.entries.where(
+    (entry) => mappedPath(entry.key) != entry.key,
+  )) {
+    final targetPath = mappedPath(entry.key);
+    if (!currentPaths.contains(targetPath)) {
+      remappedFiles.putIfAbsent(entry.key, () => entry.value);
+      continue;
+    }
+    remappedFiles.putIfAbsent(targetPath, () => entry.value);
+    movedFiles[entry.key] = targetPath;
+  }
+
+  return _RemappedBackupState(
+    state: _BackupState(
+      files: remappedFiles,
+      backupChain: state.backupChain,
+      pendingMovedFiles: state.pendingMovedFiles,
+    ),
+    movedFiles: movedFiles,
+  );
+}
+
+({String? indexJson, List<String> directories}) _buildReadableBackupStructure(
+    _SourceSnapshot snapshot) {
+  final records = <Map<String, dynamic>>[];
+  final byLocalId = <String, Map<String, dynamic>>{};
+  for (final entry in snapshot.signatures.entries) {
+    final metadata = entry.value.metadata;
+    if (metadata == null) continue;
+    final record = Map<String, dynamic>.from(metadata)
+      ..['Quelldatei'] = entry.key;
+    records.add(record);
+    final localId = metadata['localId']?.toString();
+    if (localId != null && localId.isNotEmpty) byLocalId[localId] = record;
+  }
+  if (records.isEmpty) return (indexJson: null, directories: const []);
+
+  String safeName(Object? value) {
+    final cleaned = (value?.toString() ?? '')
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (cleaned.isEmpty) return 'Ohne Namen';
+    return cleaned.length <= 80 ? cleaned : cleaned.substring(0, 80).trim();
+  }
+
+  List<String> nameChain(Map<String, dynamic> record) {
+    final chain = <String>[];
+    Map<String, dynamic>? current = record;
+    final visited = <String>{};
+    while (current != null) {
+      final localId = current['localId']?.toString();
+      if (localId != null && !visited.add(localId)) break;
+      chain.add(safeName(current['Name']));
+      final parentId = current['parentId']?.toString();
+      current = parentId == null ? null : byLocalId[parentId];
+    }
+    return chain.reversed.toList();
+  }
+
+  final directories = <String>{};
+  for (final record in records) {
+    final folder = ['Backup-Struktur', ...nameChain(record)].join('/');
+    record['LesbarerOrdner'] = folder;
+    directories.add(folder);
+  }
+  records.sort(
+    (left, right) => left['LesbarerOrdner']
+        .toString()
+        .compareTo(right['LesbarerOrdner'].toString()),
+  );
+
+  return (
+    indexJson: const JsonEncoder.withIndent('  ').convert({
+      'Hinweis':
+          'Namen dienen nur der Lesbarkeit. PjNr und E-Nummern stehen separat.',
+      'Einträge': records,
+    }),
+    directories: directories.toList()..sort(),
+  );
 }
 
 Future<_BackupState?> _readState(Directory backupDirectory) async {
@@ -729,12 +1134,110 @@ Future<_BackupState> _recoverMissingContentHashes(
       size: previous.size,
       modifiedAtMs: previous.modifiedAtMs,
       contentHash: entry.value,
+      comparisonHash: previous.comparisonHash,
+      metadata: previous.metadata,
     );
   }
   return _BackupState(
     files: recoveredFiles,
     backupChain: state.backupChain,
+    pendingMovedFiles: state.pendingMovedFiles,
   );
+}
+
+Future<_BackupState> _recoverMissingComparisonHashes(
+  _BackupState state,
+  Directory backupDirectory,
+) async {
+  final pathsToRecover = state.files.entries
+      .where((entry) =>
+          entry.value.comparisonHash == null &&
+          _couldContainBackupJson(entry.key))
+      .map((entry) => entry.key)
+      .toList();
+  if (pathsToRecover.isEmpty || state.backupChain.isEmpty) return state;
+
+  final recovered = await Isolate.run(
+    () => _recoverJsonSignaturesFromArchives(
+      backupDirectory.path,
+      state.backupChain,
+      pathsToRecover,
+    ),
+  );
+  if (recovered.isEmpty) return state;
+
+  final recoveredFiles = Map<String, _FileSignature>.from(state.files);
+  for (final entry in recovered.entries) {
+    final previous = recoveredFiles[entry.key];
+    if (previous == null) continue;
+    recoveredFiles[entry.key] = _FileSignature(
+      size: previous.size,
+      modifiedAtMs: previous.modifiedAtMs,
+      contentHash: previous.contentHash,
+      comparisonHash: entry.value['comparisonHash']?.toString(),
+      metadata: entry.value['metadata'] is Map
+          ? Map<String, dynamic>.from(entry.value['metadata'] as Map)
+          : previous.metadata,
+    );
+  }
+  return _BackupState(
+    files: recoveredFiles,
+    backupChain: state.backupChain,
+    pendingMovedFiles: state.pendingMovedFiles,
+  );
+}
+
+bool _couldContainBackupJson(String path) {
+  final name = _basename(path);
+  return !name.contains('.') || name.toLowerCase().endsWith('.json');
+}
+
+Map<String, Map<String, dynamic>> _recoverJsonSignaturesFromArchives(
+  String backupDirectoryPath,
+  List<String> backupChain,
+  List<String> paths,
+) {
+  final unresolved = paths.toSet();
+  final recovered = <String, Map<String, dynamic>>{};
+
+  for (final backupName in backupChain.reversed) {
+    if (unresolved.isEmpty) break;
+    final backup = File(
+      '$backupDirectoryPath${Platform.pathSeparator}$backupName',
+    );
+    if (!backup.existsSync()) continue;
+
+    InputFileStream? input;
+    try {
+      input = InputFileStream(backup.path);
+      final archive = ZipDecoder().decodeBuffer(input);
+      for (final archivedFile in archive.files) {
+        if (!archivedFile.isFile || archivedFile.size > 2 * 1024 * 1024) {
+          continue;
+        }
+        final path = archivedFile.name.replaceFirst(RegExp(r'^/+'), '');
+        if (!unresolved.contains(path)) continue;
+        final jsonData = _tryReadBackupJson(
+          archivedFile.content as List<int>,
+        );
+        if (jsonData == null) continue;
+        final metadata = _backupMetadata(jsonData, path);
+        recovered[path] = {
+          'comparisonHash': sha256
+              .convert(utf8.encode(jsonEncode(_normalizedBackupJson(jsonData))))
+              .toString(),
+          if (metadata != null) 'metadata': metadata,
+        };
+        unresolved.remove(path);
+        archivedFile.clear();
+      }
+    } catch (_) {
+      continue;
+    } finally {
+      input?.closeSync();
+    }
+  }
+  return recovered;
 }
 
 Map<String, String> _recoverHashesFromArchives(

@@ -13,6 +13,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
+import 'package:MBG_Inspektionen/backend/backup_sync_workflow.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart'
     show FailedRequestmanager, sync_in_progress_str, GroupedInspection;
 import 'package:MBG_Inspektionen/backend/incremental_backup.dart';
@@ -813,9 +814,8 @@ class _UploadSyncTile extends StatefulWidget {
 }
 
 class _UploadSyncTileState extends State<_UploadSyncTile> {
-  static bool _workflowInProgress = false;
-
   final _backupCoordinator = BackupCoordinator.instance;
+  final _workflowGuard = BackupSyncWorkflowGuard.instance;
   final _inspectionVisibility = InspectionVisibility();
   bool isSynced = false;
   bool showCompleted = false;
@@ -881,18 +881,22 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
   }
 
   Future<void> onPress() async {
-    if (_workflowInProgress) {
-      showToast('Backup und Synchronisierung laufen bereits');
-      return;
-    }
-    _workflowInProgress = true;
+    final inspectionData = context.read<InspectionData>();
+    final updater = context.read<ExtendedProgressStateUpdater>();
+    final workflowToken = _workflowGuard.tryAcquire(
+      backupRunning: _backupCoordinator.isRunning,
+      syncRunning: updater.loading,
+      analyzing: inspectionData.isAnalyzing,
+    );
+    if (workflowToken == null) return;
+
     try {
       await _runBackupAndSync();
     } catch (e, stackTrace) {
       debugPrint('Backup-/Sync-Ablauf fehlgeschlagen: $e\n$stackTrace');
       showToast('Backup oder Synchronisierung fehlgeschlagen');
     } finally {
-      _workflowInProgress = false;
+      _workflowGuard.release(workflowToken);
     }
   }
 
@@ -901,6 +905,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     final navigatorContext = Navigator.of(context).context;
 
     if (isSynced) {
+      SyncEvents.instance.notifySyncCompleted();
       showToast('Alle Inspektionen sind bereits synchronisiert');
       return;
     }
@@ -928,6 +933,7 @@ class _UploadSyncTileState extends State<_UploadSyncTile> {
     );
     if (failedReqs.isEmpty) {
       debugPrint('No failed requests found, skipping backup and sync');
+      SyncEvents.instance.notifySyncCompleted();
       showToast('Keine Inspektionen zum Synchronisieren vorhanden');
       return;
     }
