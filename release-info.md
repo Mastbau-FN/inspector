@@ -9,12 +9,14 @@
 - Die Backup-Fortschrittsberechnung wurde angepasst, damit der letzte Prozentpunkt nicht mehr irreführend lange stehen bleibt.
 - Backups arbeiten ressourcenschonender, damit die App währenddessen benutzbar bleibt.
 - Nach einem Backup-vor-Sync startet der Sync robuster automatisch weiter.
-- Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; nach `Failed host lookup` werden Online-Versuche kurz pausiert.
+- Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; erneute Online-Versuche werden dabei nicht mehr für 30 Sekunden gesperrt.
 - Standort-Infos sind im Bearbeitungsmodus wieder wirklich editierbar.
 - Kategorien können wieder im Vollbild bearbeitet werden, inklusive Kategorienamen.
 - Lange Namen von Prüfkategorien und Prüfpunkten werden vollständig mehrzeilig angezeigt statt mit `…` gekürzt.
 - Bestätigungsbuttons bleiben beim Bearbeiten über der eingeblendeten Tastatur.
 - Inspektionen laden beim Downloadbutton jetzt alle Bestandteile inklusive Dokumenten direkt herunter und stellen sie offline bereit.
+- Der Inspektionsdownload lädt Kategorien, Prüfpunkte und Mängel phasenweise; Schritt 4 basiert von Beginn an auf allen Prüfpunkt-Abfragen und zeigt 100 % erst nach Abschluss.
+- Bilder direkt im Inspektionsordner werden beim Download erfasst und zusammen mit den Bildern der Unterebenen offline gespeichert.
 - Der Inspektionsdownload versucht Dokumente vollständig weiterzuladen, auch wenn einzelne Dateien/Assets fehlschlagen, und zeigt den grünen Haken stabil an.
 - DOCX- und XLSX-Dokumente öffnen jetzt über den Android-Auswahldialog statt direkt mit der Standard-App.
 - Serverseitig gelöschte Inspektionen werden beim Online-Refresh auch aus dem lokalen Root-Cache entfernt, damit sie offline nicht wieder erscheinen.

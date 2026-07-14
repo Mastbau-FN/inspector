@@ -615,16 +615,24 @@ const hashImagesAndCreateIds = async (tthis) => {
 
   for (var thingy of tthis) {
     if (thingy.Link || thingy.LinkOrdner) {
-      let { rootfolder, link, filename } = await getLink(thingy);
+      let rootfolder;
+      let link;
+      let filename;
+      if (thingy.LinkOrdner != null && thingy.LinkOrdner !== "") {
+        rootfolder = imgfiler.formatpath(thingy.LinkOrdner);
+        link = "";
+        filename = thingy.Link != null && thingy.Link !== ""
+          ? path.basename(imgfiler.formatpath(thingy.Link))
+          : options.no_image_placeholder_name;
+      } else {
+        ({ rootfolder, link, filename } = await getLink(thingy));
+      }
 
       // get all *other* image names
-      let imageNames = (
-        await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      ).filter((v) => v != filename);
+      const allImageNames = await imgfiler.getAllImagenamesFrom(rootfolder, link);
+      let imageNames = allImageNames.filter((v) => v != filename);
 
-      let maincheck = (
-        await imgfiler.getAllImagenamesFrom(rootfolder, link)
-      )
+      let maincheck = allImageNames;
 
       const baseFolder = thingy.LinkOrdner != null && thingy.LinkOrdner !== ""
         ? imgfiler.formatpath(thingy.LinkOrdner)

@@ -230,7 +230,7 @@ void main() {
     expect(state.stepIndex, InspectionDownloadSteps.photos);
     expect(state.totalTasks, 2);
     expect(state.doneTasks, 2);
-    expect(state.percent, 100);
+    expect(state.percent, 99);
   });
 
   test('reports document phase even when inspection has no documents',
@@ -273,7 +273,7 @@ void main() {
     expect(state.currentLabel, InspectionDownloadSteps.defectsLabel);
   });
 
-  test('download progress reaches 100 percent when step tasks are done', () {
+  test('download progress reaches 100 percent only when finished', () {
     final session = DownloadProgressSession(
       stepCount: InspectionDownloadSteps.count,
     );
@@ -297,7 +297,59 @@ void main() {
 
     expect(session.notifier.value.doneTasks, 99);
     expect(session.notifier.value.totalTasks, 99);
+    expect(session.notifier.value.percent, 99);
+
+    session.markFinished();
     expect(session.notifier.value.percent, 100);
+  });
+
+  test('reserved defect requests keep step four progress proportional', () {
+    final session = DownloadProgressSession(
+      stepCount: InspectionDownloadSteps.count,
+    );
+    addTearDown(session.dispose);
+    session.setStep(InspectionDownloadSteps.defects);
+
+    final requests = List.generate(
+      200,
+      (index) => inspectionDownloadRequestKey('/defect/get', {
+        'PjNr': 123,
+        'E1': index ~/ 10,
+        'E2': index,
+      }),
+    );
+    for (final request in requests) {
+      session.reserveTask(request, step: InspectionDownloadSteps.defects);
+    }
+    for (final request in requests.take(100)) {
+      final token = session.beginTask(
+        '',
+        key: request,
+        step: InspectionDownloadSteps.defects,
+      );
+      session.endTask(token, success: true);
+    }
+
+    expect(session.notifier.value.totalTasks, 200);
+    expect(session.notifier.value.doneTasks, 100);
+    expect(session.notifier.value.percent, 50);
+  });
+
+  test('download request keys distinguish individual checkpoints', () {
+    expect(
+      inspectionDownloadRequestKey('/defect/get', {
+        'PjNr': 123,
+        'E1': 4,
+        'E2': 8,
+      }),
+      isNot(
+        inspectionDownloadRequestKey('/defect/get', {
+          'PjNr': 123,
+          'E1': 4,
+          'E2': 9,
+        }),
+      ),
+    );
   });
 
   test('inspection download queue runs tasks one after another', () async {

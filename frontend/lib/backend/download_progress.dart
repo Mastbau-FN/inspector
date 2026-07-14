@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
@@ -19,7 +20,26 @@ class DownloadProgressState {
     required this.stepCount,
   });
 
-  int get percent => (fraction * 100).clamp(0, 100).round();
+  int get percent => math.min(100, (fraction * 100).floor());
+}
+
+String inspectionDownloadRequestKey(
+  String route,
+  Map<String, dynamic>? json,
+) {
+  if (route == '/image/get') {
+    return '$route|${json?['hash'] ?? ''}';
+  }
+  if (route == '/doc/get') {
+    return '$route|${json?['docPath'] ?? ''}';
+  }
+  return <Object?>[
+    route,
+    json?['PjNr'],
+    json?['E1'],
+    json?['E2'],
+    json?['E3'],
+  ].join('|');
 }
 
 class InspectionDownloadSteps {
@@ -171,7 +191,7 @@ class DownloadProgressSession {
         ? (isStepFinished ? 1.0 : 0.0)
         : (done / total).clamp(0.0, 1.0);
     if (total > 0 && done >= total && !isStepFinished) {
-      raw = done / (total + 1);
+      raw = 0.999;
     }
     notifier.value = DownloadProgressState(
       totalTasks: total,

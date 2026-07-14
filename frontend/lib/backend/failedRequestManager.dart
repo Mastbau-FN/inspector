@@ -1838,6 +1838,122 @@ class FailedRequestmanager {
   }
 
   /// Andere Methoden wie loadAndCacheAll, setOnlineAll etc. können hier bleiben ...
+  Future<bool> downloadInspectionForOffline(
+    InspectionLocation inspection, {
+    required String rootId,
+  }) async {
+    final progressSession = DownloadProgress.instance.active;
+    final collectedAssets = <Data>[inspection];
+
+    try {
+      await API().tryNetwork(requestType: Helper.SimulatedRequestType.GET);
+
+      progressSession?.setStep(
+        InspectionDownloadSteps.categories,
+        label: InspectionDownloadSteps.categoriesLabel,
+      );
+      progressSession?.reserveTask(
+        inspectionDownloadRequestKey('/category/get', inspection.toSmallJson()),
+        step: InspectionDownloadSteps.categories,
+      );
+      final categories = await API()
+          .getNextDatapoint<CheckCategory, InspectionLocation>(
+            inspection,
+            preloadFullImages: false,
+          )
+          .last;
+      collectedAssets.addAll(categories);
+
+      progressSession?.setStep(
+        InspectionDownloadSteps.checkpoints,
+        label: InspectionDownloadSteps.checkpointsLabel,
+      );
+      for (final category in categories) {
+        progressSession?.reserveTask(
+          inspectionDownloadRequestKey(
+            '/checkpoint/get',
+            category.toSmallJson(),
+          ),
+          step: InspectionDownloadSteps.checkpoints,
+        );
+      }
+
+      final categoryByCheckpoint = <CheckPoint, CheckCategory>{};
+      final checkpoints = <CheckPoint>[];
+      for (final category in categories) {
+        final children = await API()
+            .getNextDatapoint<CheckPoint, CheckCategory>(
+              category,
+              preloadFullImages: false,
+            )
+            .last;
+        for (final checkpoint in children) {
+          categoryByCheckpoint[checkpoint] = category;
+        }
+        checkpoints.addAll(children);
+        collectedAssets.addAll(children);
+      }
+
+      progressSession?.setStep(
+        InspectionDownloadSteps.defects,
+        label: InspectionDownloadSteps.defectsLabel,
+      );
+      for (final checkpoint in checkpoints) {
+        progressSession?.reserveTask(
+          inspectionDownloadRequestKey(
+            '/defect/get',
+            checkpoint.toSmallJson(),
+          ),
+          step: InspectionDownloadSteps.defects,
+        );
+      }
+
+      final defectsByCheckpoint = <CheckPoint, List<CheckPointDefect>>{};
+      for (final checkpoint in checkpoints) {
+        final defects = await API()
+            .getNextDatapoint<CheckPointDefect, CheckPoint>(
+              checkpoint,
+              preloadFullImages: false,
+            )
+            .last;
+        defectsByCheckpoint[checkpoint] = defects;
+        collectedAssets.addAll(defects);
+      }
+
+      final photosSucceeded = await cacheInspectionImagesForDownload(
+        collectedAssets,
+        progressSession: progressSession,
+      );
+      final documentsSucceeded = await cacheInspectionDocumentsForDownload(
+        inspection,
+        progressSession: progressSession,
+      );
+      final succeeded = photosSucceeded && documentsSucceeded;
+      if (!succeeded) return false;
+
+      for (final entry in defectsByCheckpoint.entries) {
+        for (final defect in entry.value) {
+          defect.forceOffline = true;
+          await API().local.storeData(defect, forId: entry.key.id);
+        }
+        entry.key.forceOffline = true;
+        final category = categoryByCheckpoint[entry.key];
+        if (category == null) return false;
+        await API().local.storeData(entry.key, forId: category.id);
+      }
+      for (final category in categories) {
+        category.forceOffline = true;
+        await API().local.storeData(category, forId: inspection.id);
+      }
+      inspection.forceOffline = true;
+      await API().local.storeData(inspection, forId: rootId);
+      return true;
+    } catch (error, stackTrace) {
+      debugPrint('Inspektionsdownload fehlgeschlagen: $error\n$stackTrace');
+      return false;
+    }
+  }
+
   Future<bool> loadAndCacheAll<
       ChildData extends WithLangText,
       ParentData extends WithOffline,

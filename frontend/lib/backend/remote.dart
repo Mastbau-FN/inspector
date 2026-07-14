@@ -156,8 +156,8 @@ class Remote {
 
   final _baseurl = Env.mbgUrl;
   // ignore: non_constant_identifier_names
-  final _api_key = Env.mbgKey;
-
+  final _api_key = Env.mbgKey;                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                                                                                                                                                                                                         
   bool _logReachabilityFailureOnce(Object error) {
     if (!BackendReachability.isBackendReachabilityFailure(error)) return false;
     if (!BackendReachability.instance.markFailure(error)) return true;

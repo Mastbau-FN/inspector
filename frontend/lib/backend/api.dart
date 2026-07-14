@@ -366,17 +366,10 @@ class API {
                   }
                 } catch (_) {}
                 try {
-                  if (rap.rd.route == '/image/get') {
-                    final hash = rap.rd.json?['hash']?.toString();
-                    if (hash != null && hash.isNotEmpty) {
-                      key = '${rap.rd.route}|$hash';
-                    }
-                  } else if (rap.rd.route == '/doc/get') {
-                    final docPath = rap.rd.json?['docPath']?.toString();
-                    if (docPath != null && docPath.isNotEmpty) {
-                      key = '${rap.rd.route}|$docPath';
-                    }
-                  }
+                  key = inspectionDownloadRequestKey(
+                    rap.rd.route,
+                    rap.rd.json,
+                  );
                 } catch (_) {}
 
                 if (stepLabel != null) {

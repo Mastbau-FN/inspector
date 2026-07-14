@@ -399,11 +399,9 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       );
       widget.caller.currentData = refreshed;
       final rootid = await API().rootID;
-      final succeeded = await manager.loadAndCacheAll(
-        widget.caller,
-        3,
-        name: widget.caller.title,
-        parentID: rootid,
+      final succeeded = await manager.downloadInspectionForOffline(
+        widget.caller.currentData,
+        rootId: rootid,
       );
 
       DownloadProgress.instance.finish(session);
