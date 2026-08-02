@@ -926,6 +926,19 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                       child: Image.file(
                         file,
                         fit: BoxFit.contain,
+                        cacheWidth: max(
+                          1,
+                          (displayWidth *
+                                  MediaQuery.devicePixelRatioOf(context))
+                              .round(),
+                        ),
+                        cacheHeight: max(
+                          1,
+                          (displayHeight *
+                                  MediaQuery.devicePixelRatioOf(context))
+                              .round(),
+                        ),
+                        filterQuality: FilterQuality.medium,
                       ),
                     ),
                   ),
@@ -961,17 +974,20 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
 
   // Hilfsfunktion zum Abrufen der Bildabmessungen
   Future<Size> _getImageDimensions(File imageFile) async {
-    final Completer<Size> completer = Completer();
-    final Image image = Image.file(imageFile);
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(ImageStreamListener((ImageInfo info, bool _) {
-      completer.complete(Size(
-        info.image.width.toDouble(),
-        info.image.height.toDouble(),
-      ));
-    }));
-    return completer.future;
+    final buffer = await ImmutableBuffer.fromFilePath(imageFile.path);
+    try {
+      final descriptor = await ImageDescriptor.encoded(buffer);
+      try {
+        return Size(
+          descriptor.width.toDouble(),
+          descriptor.height.toDouble(),
+        );
+      } finally {
+        descriptor.dispose();
+      }
+    } finally {
+      buffer.dispose();
+    }
   }
 
   // Anzeige der Bild-Warteschlange
@@ -1040,6 +1056,8 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                     child: Image.file(
                       File(file.path),
                       fit: BoxFit.cover,
+                      cacheWidth: 120,
+                      cacheHeight: 120,
                     ),
                   ),
                 ),

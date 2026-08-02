@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:MBG_Inspektionen/backend/photo_batch_save_queue.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
@@ -69,6 +71,35 @@ void main() {
 
     expect(queue.hasWork, isFalse);
     expect(attempts, 2);
+  });
+
+  test('finishes accepted background batches after the page is disposed',
+      () async {
+    final firstBatchStarted = Completer<void>();
+    final releaseFirstBatch = Completer<void>();
+    final savedSizes = <int>[];
+    final queue = PhotoBatchSaveQueue(
+      batchSize: 10,
+      saveBatch: (files) async {
+        savedSizes.add(files.length);
+        if (!firstBatchStarted.isCompleted) {
+          firstBatchStarted.complete();
+          await releaseFirstBatch.future;
+        }
+        return 'saved';
+      },
+    );
+
+    for (var i = 0; i < 20; i++) {
+      queue.add(_xFile(i));
+    }
+    await firstBatchStarted.future;
+    queue.dispose();
+    releaseFirstBatch.complete();
+    await queue.waitForBackgroundSaves();
+
+    expect(savedSizes, [10, 10]);
+    expect(queue.hasWork, isFalse);
   });
 
   test('chunks lists by the requested size', () {

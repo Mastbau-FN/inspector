@@ -16,7 +16,9 @@
 - Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; erneute Online-Versuche werden dabei nicht mehr für 30 Sekunden gesperrt.
 - Standort-Infos sind im Bearbeitungsmodus wieder wirklich editierbar.
 - Kategorien können wieder im Vollbild bearbeitet werden, inklusive Kategorienamen.
-- Lange Namen von Prüfkategorien und Prüfpunkten werden vollständig mehrzeilig angezeigt statt mit `…` gekürzt.
+- Lange Namen von Prüfkategorien und Prüfpunkten werden vollständig mehrzeilig angezeigt statt mit `…` gekürzt; weitere Aktionen wie Fotos, Kommentar, Bearbeiten und Löschen liegen platzsparend im Drei-Punkte-Menü.
+- Sonderzeichen wie `&` bleiben in neu angelegten Kategorien erhalten; ältere Varianten mit `&`, `und` oder ohne Verbinder laden weiterhin die richtigen vordefinierten Prüfpunkte.
+- Nach einer Offline-Synchronisierung werden lokale Kategorien und Prüfpunkte mit ihrer Serverkopie zusammengeführt, ohne doppelte Kategorie oder abgetrennte Mängelansicht.
 - Bestätigungsbuttons bleiben beim Bearbeiten über der eingeblendeten Tastatur.
 - Inspektionen laden beim Downloadbutton jetzt alle Bestandteile inklusive Dokumenten direkt herunter und stellen sie offline bereit.
 - Der Inspektionsdownload lädt Kategorien, Prüfpunkte und Mängel phasenweise; Schritt 4 basiert von Beginn an auf allen Prüfpunkt-Abfragen und zeigt 100 % erst nach Abschluss.
@@ -33,9 +35,9 @@
 - Neu angelegte oder gelöschte Prüfpunkte aktualisieren sofort die Gesamtzahl im Bearbeitungsstand der Prüfkategorie.
 - Nach einer erfolgreich abgeschlossenen oder bereits aktuellen Synchronisierung werden die Bearbeitungsstände aller Inspektionen vollständig zurückgesetzt; Kategorie- und Gesamtzahl-Caches werden anschließend sauber neu geladen.
 - Fertig bearbeitete Prüfpunkte werden vollständig grün dargestellt, während Kategorien weiterhin ihren anteiligen Fortschritt anzeigen.
-- Namen von Prüfkategorien und Prüfpunkten erhalten mehr Breite; Bearbeitungsstand sowie Bearbeiten-/Löschen-Aktionen stehen in einer separaten Zeile darunter.
+- Der Bearbeitungsstand bleibt nach einem App-Neustart oder Speicherabbruch erhalten.
 - Doppelte `ohne Mangel`-Einträge werden zusammengeführt; ein vorhandener Mängelfrei-Eintrag bleibt auch neben später angelegten Mängeln sichtbar.
 - Beim Löschen eines Mängelfrei-Eintrags werden dessen lokale und serverseitige Bilddaten entfernt, damit eine spätere Neuanlage keine Daten des alten Eintrags übernimmt.
 - Die Selfie-Kamera-Vorschau ist im Hochformat nicht mehr um 180 Grad gedreht.
 - Die Selfie-Kamera-Vorschau wird gespiegelt angezeigt, damit sie sich natürlicher bedienen lässt.
-- Bei vielen Fotos werden Aufnahmen alle 10 Bilder im Hintergrund gespeichert, damit die Kamera stabiler bleibt.
+- Bei vielen Fotos werden Aufnahmen alle 10 Bilder zuverlässig im Hintergrund gespeichert, auch beim Wechsel zum nächsten Prüfpunkt. Kameraauflösung, Vorschaudecodierung und Dateikopien sind speicherschonender, um Android-Speicherabbrüche zu vermeiden.

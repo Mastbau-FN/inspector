@@ -34,7 +34,10 @@ class CameraModel extends ChangeNotifier {
 
     return CameraController(
       camera,
-      ResolutionPreset.max,
+      // `max` can select 40-50 MP sensors on current Android devices. A 4K
+      // inspection photo retains detail while avoiding very large camera and
+      // preview buffers after many consecutive shots.
+      ResolutionPreset.ultraHigh,
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
