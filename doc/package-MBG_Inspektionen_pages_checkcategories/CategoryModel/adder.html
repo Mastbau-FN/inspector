@@ -99,6 +99,9 @@
         hint: S.current!.kurzTextHint,
         value: currentCategory?.kurzText,
         dropdown: predefinedCategories,
+        &#47;&#47; Category labels are database text, not file paths. Preserve
+        &#47;&#47; meaningful characters such as `&amp;` from predefined templates.
+        postProcess: InputData.noSpacesAtEnd,
       ),
       InputData(
         &quot;LangText&quot;,

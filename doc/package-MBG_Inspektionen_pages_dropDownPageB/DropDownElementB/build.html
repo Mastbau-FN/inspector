@@ -275,20 +275,53 @@ Widget build(BuildContext context) {
                                       top: 6,
                                       bottom: 6,
                                     ),
-                                    child: Hero(
-                                      key: Key(&#39;dropdown.title.${cd.id}&#39;),
-                                      tag:
-                                          &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
-                                      child:
-                                          dropdownItemTitleText(context, cd),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Hero(
+                                          key: Key(&#39;dropdown.title.${cd.id}&#39;),
+                                          tag:
+                                              &quot;dropdown.item.title.${cd.runtimeType}.${cd.id}&quot;,
+                                          child: dropdownItemTitleText(
+                                            context,
+                                            cd,
+                                          ),
+                                        ),
+                                        if (showCompletionLabel) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            key: Key(
+                                              &#39;dropdown.progress-label.${cd.id}&#39;,
+                                            ),
+                                            completionLabel!,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 10),
+                                  padding: const EdgeInsets.only(top: 2),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      _DropDownItemMenu&lt;ChildData&gt;(
+                                        key: Key(
+                                          &#39;dropdown.actions.${cd.id}&#39;,
+                                        ),
+                                        data: cd,
+                                        actions: actions,
+                                        onAction: onAction,
+                                        onDelete: onDelete,
+                                      ),
                                       Transform.translate(
                                         offset: const Offset(4, 0),
                                         child: Icon(
@@ -301,56 +334,6 @@ Widget build(BuildContext context) {
                                   ),
                                 ),
                               ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 50),
-                              child: Row(
-                                children: [
-                                  if (showCompletionLabel)
-                                    Expanded(
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(left: 4),
-                                        child: Text(
-                                          key: Key(
-                                            &#39;dropdown.progress-label.${cd.id}&#39;,
-                                          ),
-                                          completionLabel!,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    const Spacer(),
-                                  ...cd.extras(context: context),
-                                  FutureBuilder(
-                                    future: API().user,
-                                    builder: (
-                                      BuildContext context,
-                                      AsyncSnapshot&lt;DisplayUser?&gt; snapshot2,
-                                    ) {
-                                      try {
-                                        if (cd.runtimeType ==
-                                                CheckPointDefect ||
-                                            (snapshot2.hasData &amp;&amp;
-                                                cd.toJson()[&#39;Autor&#39;] ==
-                                                    snapshot2.data?.name)) {
-                                          return TrashButton(
-                                            delete: onDelete,
-                                            confirmName: cd.title,
-                                          );
-                                        }
-                                      } catch (_) {}
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
-                                ],
-                              ),
                             ),
                           ],
                         ),

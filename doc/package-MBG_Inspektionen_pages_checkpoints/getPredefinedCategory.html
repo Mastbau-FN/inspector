@@ -68,8 +68,17 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">List&lt;String&gt; getPredefinedCategory(String key) {
-  &#47;&#47; Return the list if the key exists, otherwise an empty list
-  return predefinedCategoryMap[key] ?? [];
+  final directMatch = predefinedCategoryMap[key];
+  if (directMatch != null) return directMatch;
+
+  final normalizedKey = normalizeInspectionLabel(key);
+  if (normalizedKey.isEmpty) return const [];
+  for (final entry in predefinedCategoryMap.entries) {
+    if (normalizeInspectionLabel(entry.key) == normalizedKey) {
+      return entry.value;
+    }
+  }
+  return const [];
 }</code></pre>
 </section>
 

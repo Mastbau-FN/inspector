@@ -98,6 +98,7 @@
         hint: S.current!.kurzTextHint,
         value: currentCheckpoint?.kurzText,
         dropdown: getPredefinedCategory(parent.kurzText!),
+        postProcess: InputData.noSpacesAtEnd,
       ),
       InputData(
         &quot;LangText&quot;,

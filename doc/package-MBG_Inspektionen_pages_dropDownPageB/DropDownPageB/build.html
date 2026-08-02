@@ -176,7 +176,17 @@ Widget build(BuildContext context) {
                                 tag:
                                     &quot;dropdown.header.image.${ddmodel.currentData.runtimeType}.$currentDataId&quot;,
                                 child: Image(
-                                  image: img,
+                                  image: ResizeImage.resizeIfNeeded(
+                                    (MediaQuery.sizeOf(context).width *
+                                            MediaQuery.devicePixelRatioOf(
+                                              context,
+                                            ))
+                                        .ceil()
+                                        .clamp(1, 4096)
+                                        .toInt(),
+                                    null,
+                                    img,
+                                  ),
                                   fit: BoxFit.cover,
                                 ),
                               ),

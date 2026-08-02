@@ -119,7 +119,14 @@ Widget build(BuildContext context) {
             var imagep = snapshot.data?.image.image;
             return (imagep != null
                     ? Image(
-                        image: imagep,
+                        image: ResizeImage.resizeIfNeeded(
+                          (50 * MediaQuery.devicePixelRatioOf(context))
+                              .ceil()
+                              .clamp(1, 512)
+                              .toInt(),
+                          null,
+                          imagep,
+                        ),
                         fit: BoxFit.fill,
                         errorBuilder: (context, error, stackTrace) =&gt; Icon(
                           fallbackIcon,

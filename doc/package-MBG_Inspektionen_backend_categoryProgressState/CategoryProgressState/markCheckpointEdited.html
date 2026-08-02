@@ -74,6 +74,7 @@
 }) {
   _editedCheckpointAtByKey[checkpointKey] = editedAt ?? DateTime.now();
   revision.value++;
+  _queuePersistence();
 }</code></pre>
 </section>
 

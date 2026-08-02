@@ -56,11 +56,12 @@
       
   <div>
     <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/widgets/visibleForTesting-constant.html">visibleForTesting</a></li>
+        <li>@<a href="https://pub.dev/documentation/meta/1.15.0/meta/visibleForTesting-constant.html">visibleForTesting</a></li>
     </ol>
   </div>
 <span class="returntype">void</span>
-<span class="name ">reset</span>(<wbr>)
+<span class="name ">reset</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="reset-param-clearPersisted"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">clearPersisted</span> = <span class="default-value">true</span>, </span></li>
+</ol>})
 
       
 
@@ -72,8 +73,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@visibleForTesting
-void reset() {
-  resetAllInspectionProgress();
+void reset({bool clearPersisted = true}) {
+  resetAllInspectionProgress(clearPersisted: clearPersisted);
 }</code></pre>
 </section>
 

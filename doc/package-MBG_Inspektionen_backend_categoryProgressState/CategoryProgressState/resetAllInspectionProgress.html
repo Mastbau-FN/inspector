@@ -55,7 +55,8 @@
     <section class="multi-line-signature">
       
 <span class="returntype">void</span>
-<span class="name ">resetAllInspectionProgress</span>(<wbr>)
+<span class="name ">resetAllInspectionProgress</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="resetAllInspectionProgress-param-clearPersisted"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">clearPersisted</span> = <span class="default-value">true</span>, </span></li>
+</ol>})
 
       
 
@@ -66,15 +67,10 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">void resetAllInspectionProgress() {
-  _entriesByCategoryId.clear();
-  _totalCheckpointsByCategoryId.clear();
-  _editedCheckpointAtByKey.clear();
-  _categoryIdByCoordinate.clear();
-  _categoryCoordinateById.clear();
-  _categoryCoordinateByCheckpointKey.clear();
-  _categoryIdByCheckpointKey.clear();
+  <pre class="language-dart"><code class="language-dart">void resetAllInspectionProgress({bool clearPersisted = true}) {
+  _clearMemory();
   revision.value++;
+  if (clearPersisted) _queuePersistence(clear: true);
 }</code></pre>
 </section>
 

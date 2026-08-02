@@ -82,12 +82,21 @@
   List&lt;String&gt; newLocalImageNames = [];
   final scope = _scopeForData(data, caller: caller);
   String _scoped(String base) =&gt; scope.isNotEmpty ? &#39;$scope&#47;$base&#39; : base;
-  await Future.wait(files.map((file) async {
-    final bytes = await file.readAsBytes();
+  &#47;&#47; Copy sequentially and at file-system level. Reading an entire batch of
+  &#47;&#47; full-resolution photos into Dart memory at once caused large transient
+  &#47;&#47; allocations and Android low-memory terminations.
+  for (final file in files) {
     final imageName = _scoped(canonicalTimestampFilenameForXFile(file));
-    await storeImage(bytes, imageName);
+    final target = await OP.localFile(imageName);
+    await target.parent.create(recursive: true);
+    final sourcePath = File(file.path).absolute.path;
+    final targetPath = target.absolute.path;
+    final targetIsValid = target.existsSync() &amp;&amp; target.lengthSync() &gt;= 5;
+    if (!targetIsValid &amp;&amp; sourcePath != targetPath) {
+      await file.saveTo(target.path);
+    }
     newLocalImageNames.add(imageName);
-  }));
+  }
   if (data.imagehashes == null) data.imagehashes = [];
   if (data.imagehashes!.isEmpty &amp;&amp; data.mainhash == null) {
     data.mainhash = newLocalImageNames.first;

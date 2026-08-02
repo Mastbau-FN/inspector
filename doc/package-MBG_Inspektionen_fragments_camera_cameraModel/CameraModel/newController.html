@@ -76,7 +76,10 @@
 
   return CameraController(
     camera,
-    ResolutionPreset.max,
+    &#47;&#47; `max` can select 40-50 MP sensors on current Android devices. A 4K
+    &#47;&#47; inspection photo retains detail while avoiding very large camera and
+    &#47;&#47; preview buffers after many consecutive shots.
+    ResolutionPreset.ultraHigh,
     enableAudio: false,
     imageFormatGroup: ImageFormatGroup.jpeg,
   );

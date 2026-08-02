@@ -70,27 +70,7 @@
   <pre class="language-dart"><code class="language-dart">Widget editButton({BuildContext? context}) =&gt; IconButton(
       &#47;&#47; padding: EdgeInsets.zero,
       icon: Icon(Icons.edit),
-      onPressed: () async {
-        if (context == null) {
-          debugPrint(&quot;no context from wich we could alert&quot;);
-          return;
-        }
-        final model = Provider.of&lt;CategoryModel&gt;(context, listen: false);
-        final parent = model.currentData;
-
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (routeContext) =&gt; CategoryModel.adder(
-              title: &#39;Kategorie bearbeiten&#39;,
-              parent: parent,
-              currentCategory: this,
-              onCancel: () =&gt; Navigator.of(routeContext).pop(),
-              onDone: (data) =&gt; model.update(data),
-            ),
-          ),
-        );
-      },
+      onPressed: context == null ? null : () =&gt; openEditor(context),
     );</code></pre>
 </section>
 

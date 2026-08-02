@@ -84,11 +84,20 @@ if no <code>ParentData</code> is given it defaults to root</p>
   Future&lt;List&lt;ChildData&gt;&gt; merge(
       List&lt;ChildData&gt; cached, List&lt;ChildData&gt; upstream) async {
     try {
-      cached.retainWhere((element) =&gt; (element as WithOffline).forceOffline);
-      var cachedIds = cached.map((element) =&gt; element.id).toList();
-      upstream.retainWhere((element) =&gt; !cachedIds.contains(element.id));
-      upstream.addAll(cached);
-      return upstream;
+      return API.mergeCachedAndUpstream&lt;ChildData&gt;(
+        cached: cached,
+        upstream: upstream,
+        onIdRemapped: (cachedItem, serverItem) async {
+          &#47;&#47; A successful offline sync assigns a server id. Move any cached
+          &#47;&#47; children to that id before hiding the obsolete local category
+          &#47;&#47; or checkpoint, so its points&#47;defects remain reachable.
+          await applyLocalIdMapping(
+            oldLocalId: cachedItem.id,
+            newLocalId: serverItem.id,
+            parentLocalId: data?.id,
+          );
+        },
+      );
     } catch (e) {
       debugPrint(&quot;error merging data: &quot; + e.toString());
       return cached;

@@ -70,6 +70,7 @@
   <pre class="language-dart"><code class="language-dart">void clear(String categoryId) {
   if (_entriesByCategoryId.remove(categoryId) != null) {
     revision.value++;
+    _queuePersistence();
   }
 }</code></pre>
 </section>
