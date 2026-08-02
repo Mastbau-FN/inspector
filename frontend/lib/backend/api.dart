@@ -9,6 +9,9 @@ import 'package:MBG_Inspektionen/backend/remote.dart';
 import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/backend/inspection_visibility.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart' show RequestData;
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
+import 'package:MBG_Inspektionen/helpers/inspection_text.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -241,6 +244,73 @@ class API {
     if (onlineSucceeded || offlineSucceeded) return false;
     if (prefersCache || forceOffline) return false;
     return true;
+  }
+
+  @visibleForTesting
+  static bool areLogicalSyncCopies(Data cached, Data upstream) {
+    if (cached.runtimeType != upstream.runtimeType) return false;
+
+    bool sameText(String? first, String? second) =>
+        normalizeInspectionLabel(first) == normalizeInspectionLabel(second);
+
+    bool sameAuthor(String? first, String? second) {
+      final a = (first ?? '').trim().toLowerCase();
+      final b = (second ?? '').trim().toLowerCase();
+      return a.isEmpty || b.isEmpty || a == b;
+    }
+
+    if (cached is CheckCategory && upstream is CheckCategory) {
+      final cachedName = normalizeInspectionLabel(cached.kurzText);
+      return cached.pjNr == upstream.pjNr &&
+          cachedName.isNotEmpty &&
+          cachedName == normalizeInspectionLabel(upstream.kurzText) &&
+          sameText(cached.langText, upstream.langText) &&
+          sameAuthor(cached.author, upstream.author);
+    }
+    if (cached is CheckPoint && upstream is CheckPoint) {
+      final cachedName = normalizeInspectionLabel(cached.kurzText);
+      return cached.pjNr == upstream.pjNr &&
+          cachedName.isNotEmpty &&
+          cachedName == normalizeInspectionLabel(upstream.kurzText) &&
+          sameText(cached.langText, upstream.langText) &&
+          sameAuthor(cached.author, upstream.author);
+    }
+    return false;
+  }
+
+  @visibleForTesting
+  static Future<List<DataT>> mergeCachedAndUpstream<DataT extends Data>({
+    required List<DataT> cached,
+    required List<DataT> upstream,
+    FutureOr<void> Function(DataT cached, DataT upstream)? onIdRemapped,
+  }) async {
+    final offlineCached = cached
+        .where(
+          (element) => element is WithOffline && element.forceOffline,
+        )
+        .toList(growable: false);
+    final merged = List<DataT>.from(upstream);
+
+    for (final cachedItem in offlineCached) {
+      final sameIdIndex = merged.indexWhere((item) => item.id == cachedItem.id);
+      if (sameIdIndex >= 0) {
+        // The local copy can contain changes that have not reached the backend
+        // yet, so it wins while both ids already agree.
+        merged[sameIdIndex] = cachedItem;
+        continue;
+      }
+
+      final logicalCopyIndex = merged.indexWhere(
+        (item) => API.areLogicalSyncCopies(cachedItem, item),
+      );
+      if (logicalCopyIndex >= 0) {
+        await onIdRemapped?.call(cachedItem, merged[logicalCopyIndex]);
+        continue;
+      }
+
+      merged.add(cachedItem);
+    }
+    return merged;
   }
 
   Future<void> _pruneStaleRootInspectionCache(
@@ -743,11 +813,20 @@ class API {
     Future<List<ChildData>> merge(
         List<ChildData> cached, List<ChildData> upstream) async {
       try {
-        cached.retainWhere((element) => (element as WithOffline).forceOffline);
-        var cachedIds = cached.map((element) => element.id).toList();
-        upstream.retainWhere((element) => !cachedIds.contains(element.id));
-        upstream.addAll(cached);
-        return upstream;
+        return API.mergeCachedAndUpstream<ChildData>(
+          cached: cached,
+          upstream: upstream,
+          onIdRemapped: (cachedItem, serverItem) async {
+            // A successful offline sync assigns a server id. Move any cached
+            // children to that id before hiding the obsolete local category
+            // or checkpoint, so its points/defects remain reachable.
+            await applyLocalIdMapping(
+              oldLocalId: cachedItem.id,
+              newLocalId: serverItem.id,
+              parentLocalId: data?.id,
+            );
+          },
+        );
       } catch (e) {
         debugPrint("error merging data: " + e.toString());
         return cached;

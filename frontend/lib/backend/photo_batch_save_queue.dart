@@ -83,7 +83,7 @@ class PhotoBatchSaveQueue {
   }
 
   void _ensureBackgroundDrain() {
-    if (_backgroundDrain != null || _disposed) return;
+    if (_backgroundDrain != null) return;
     final drain = _drainBackgroundBatches();
     _backgroundDrain = drain;
     unawaited(drain);
@@ -91,7 +91,9 @@ class PhotoBatchSaveQueue {
 
   Future<void> _drainBackgroundBatches() async {
     try {
-      while (_backgroundBatches.isNotEmpty && !_disposed) {
+      // Already accepted batches must finish even if their gallery page is
+      // disposed while the user moves to the next checkpoint.
+      while (_backgroundBatches.isNotEmpty) {
         final batch = _backgroundBatches.removeAt(0);
         _notifyChanged();
         try {
@@ -104,7 +106,7 @@ class PhotoBatchSaveQueue {
       }
     } finally {
       _backgroundDrain = null;
-      if (_backgroundBatches.isNotEmpty && !_disposed) {
+      if (_backgroundBatches.isNotEmpty) {
         _ensureBackgroundDrain();
       }
     }

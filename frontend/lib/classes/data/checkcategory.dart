@@ -65,28 +65,26 @@ class CheckCategory extends Data
   Widget editButton({BuildContext? context}) => IconButton(
         // padding: EdgeInsets.zero,
         icon: Icon(Icons.edit),
-        onPressed: () async {
-          if (context == null) {
-            debugPrint("no context from wich we could alert");
-            return;
-          }
-          final model = Provider.of<CategoryModel>(context, listen: false);
-          final parent = model.currentData;
-
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (routeContext) => CategoryModel.adder(
-                title: 'Kategorie bearbeiten',
-                parent: parent,
-                currentCategory: this,
-                onCancel: () => Navigator.of(routeContext).pop(),
-                onDone: (data) => model.update(data),
-              ),
-            ),
-          );
-        },
+        onPressed: context == null ? null : () => openEditor(context),
       );
+
+  Future<void> openEditor(BuildContext context) async {
+    final model = Provider.of<CategoryModel>(context, listen: false);
+    final parent = model.currentData;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (routeContext) => CategoryModel.adder(
+          title: 'Kategorie bearbeiten',
+          parent: parent,
+          currentCategory: this,
+          onCancel: () => Navigator.of(routeContext).pop(),
+          onDone: (data) => model.update(data),
+        ),
+      ),
+    );
+  }
 
   @override
   String get title => kurzText ?? langText ?? '$pjNr: Kategorie $index';

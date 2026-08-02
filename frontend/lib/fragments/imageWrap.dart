@@ -569,8 +569,20 @@ class FittedImageContainer extends StatelessWidget {
             if (img == null) {
               return LoadingView();
             }
+            final cacheWidth =
+                (approxWidth * MediaQuery.devicePixelRatioOf(context))
+                    .ceil()
+                    .clamp(1, 4096)
+                    .toInt();
             return Image(
-              image: img.image,
+              // The grid only needs a thumbnail. Decoding every inspection
+              // photo at full sensor resolution can exhaust Android's memory
+              // as soon as a checkpoint with many photos is reopened.
+              image: ResizeImage.resizeIfNeeded(
+                cacheWidth,
+                null,
+                img.image,
+              ),
               fit: fit,
               filterQuality: img.filterQuality,
               isAntiAlias: img.isAntiAlias,

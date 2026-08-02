@@ -19,7 +19,6 @@ import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/pages/checkpointdefects.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/widgets/error.dart';
-import 'package:MBG_Inspektionen/widgets/trashbutton.dart';
 import 'package:blur/blur.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -113,7 +112,17 @@ class DropDownPageB<
                                   tag:
                                       "dropdown.header.image.${ddmodel.currentData.runtimeType}.$currentDataId",
                                   child: Image(
-                                    image: img,
+                                    image: ResizeImage.resizeIfNeeded(
+                                      (MediaQuery.sizeOf(context).width *
+                                              MediaQuery.devicePixelRatioOf(
+                                                context,
+                                              ))
+                                          .ceil()
+                                          .clamp(1, 4096)
+                                          .toInt(),
+                                      null,
+                                      img,
+                                    ),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -618,20 +627,53 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                                         top: 6,
                                         bottom: 6,
                                       ),
-                                      child: Hero(
-                                        key: Key('dropdown.title.${cd.id}'),
-                                        tag:
-                                            "dropdown.item.title.${cd.runtimeType}.${cd.id}",
-                                        child:
-                                            dropdownItemTitleText(context, cd),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Hero(
+                                            key: Key('dropdown.title.${cd.id}'),
+                                            tag:
+                                                "dropdown.item.title.${cd.runtimeType}.${cd.id}",
+                                            child: dropdownItemTitleText(
+                                              context,
+                                              cd,
+                                            ),
+                                          ),
+                                          if (showCompletionLabel) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              key: Key(
+                                                'dropdown.progress-label.${cd.id}',
+                                              ),
+                                              completionLabel!,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 10),
+                                    padding: const EdgeInsets.only(top: 2),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        _DropDownItemMenu<ChildData>(
+                                          key: Key(
+                                            'dropdown.actions.${cd.id}',
+                                          ),
+                                          data: cd,
+                                          actions: actions,
+                                          onAction: onAction,
+                                          onDelete: onDelete,
+                                        ),
                                         Transform.translate(
                                           offset: const Offset(4, 0),
                                           child: Icon(
@@ -645,56 +687,6 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 50),
-                                child: Row(
-                                  children: [
-                                    if (showCompletionLabel)
-                                      Expanded(
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 4),
-                                          child: Text(
-                                            key: Key(
-                                              'dropdown.progress-label.${cd.id}',
-                                            ),
-                                            completionLabel!,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                        ),
-                                      )
-                                    else
-                                      const Spacer(),
-                                    ...cd.extras(context: context),
-                                    FutureBuilder(
-                                      future: API().user,
-                                      builder: (
-                                        BuildContext context,
-                                        AsyncSnapshot<DisplayUser?> snapshot2,
-                                      ) {
-                                        try {
-                                          if (cd.runtimeType ==
-                                                  CheckPointDefect ||
-                                              (snapshot2.hasData &&
-                                                  cd.toJson()['Autor'] ==
-                                                      snapshot2.data?.name)) {
-                                            return TrashButton(
-                                              delete: onDelete,
-                                              confirmName: cd.title,
-                                            );
-                                          }
-                                        } catch (_) {}
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -706,6 +698,122 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+enum _DropDownItemCommand { edit, delete }
+
+class _DropDownItemMenu<ChildData extends WithLangText>
+    extends StatelessWidget {
+  const _DropDownItemMenu({
+    super.key,
+    required this.data,
+    required this.actions,
+    required this.onAction,
+    required this.onDelete,
+  });
+
+  final ChildData data;
+  final List<MyListTileData> actions;
+  final Function(MyListTileData) onAction;
+  final Future Function() onDelete;
+
+  bool _isOwnedBy(DisplayUser? user) {
+    if (user == null || data is! WithAuthor) return false;
+    return (data as WithAuthor).author == user.name;
+  }
+
+  Future<void> _edit(BuildContext context) async {
+    if (data case CheckCategory category) {
+      await category.openEditor(context);
+    } else if (data case CheckPoint checkpoint) {
+      await checkpoint.openEditor(context);
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Eintrag löschen?'),
+            content: Text(
+              '„${data.title}“ wird dauerhaft aus dieser Inspektion gelöscht.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(S.of(context).cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Löschen'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (confirmed) await onDelete();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<DisplayUser?>(
+      future: API().user,
+      builder: (context, snapshot) {
+        final ownedByUser = _isOwnedBy(snapshot.data);
+        final canEdit =
+            ownedByUser && (data is CheckCategory || data is CheckPoint);
+        final canDelete = data is CheckPointDefect || ownedByUser;
+        final secondaryActions = actions.skip(1).toList(growable: false);
+
+        if (secondaryActions.isEmpty && !canEdit && !canDelete) {
+          return const SizedBox.shrink();
+        }
+
+        return PopupMenuButton<Object>(
+          tooltip: 'Weitere Aktionen',
+          icon: const Icon(Icons.more_vert),
+          onSelected: (selection) async {
+            if (selection is MyListTileData) {
+              onAction(selection);
+            } else if (selection == _DropDownItemCommand.edit) {
+              await _edit(context);
+            } else if (selection == _DropDownItemCommand.delete) {
+              await _confirmDelete(context);
+            }
+          },
+          itemBuilder: (context) => [
+            for (final action in secondaryActions)
+              PopupMenuItem<Object>(
+                value: action,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(action.icon),
+                  title: Text(action.title),
+                ),
+              ),
+            if (canEdit)
+              const PopupMenuItem<Object>(
+                value: _DropDownItemCommand.edit,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.edit),
+                  title: Text('Bearbeiten'),
+                ),
+              ),
+            if (canDelete)
+              const PopupMenuItem<Object>(
+                value: _DropDownItemCommand.delete,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.delete),
+                  title: Text('Löschen'),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -782,7 +890,14 @@ class PreviewImageCircle extends StatelessWidget {
               var imagep = snapshot.data?.image.image;
               return (imagep != null
                       ? Image(
-                          image: imagep,
+                          image: ResizeImage.resizeIfNeeded(
+                            (50 * MediaQuery.devicePixelRatioOf(context))
+                                .ceil()
+                                .clamp(1, 512)
+                                .toInt(),
+                            null,
+                            imagep,
+                          ),
                           fit: BoxFit.fill,
                           errorBuilder: (context, error, stackTrace) => Icon(
                             fallbackIcon,

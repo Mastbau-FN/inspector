@@ -11,9 +11,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   final progress = CategoryProgressState.instance;
 
-  setUp(() {
+  setUp(() async {
+    await progress.waitForPendingPersistence();
     SharedPreferences.setMockInitialValues({});
     progress.reset();
+    await progress.waitForPendingPersistence();
+  });
+
+  test('completed checkpoints survive an app restart', () async {
+    progress.registerCategory(
+      categoryId: 'category',
+      pjNr: 123,
+      categoryIndex: 4,
+      totalCheckpoints: 2,
+    );
+    progress.markCheckpointEditedByCoordinates(
+      pjNr: 123,
+      categoryIndex: 4,
+      checkpointIndex: 9,
+      categoryId: 'category',
+      checkpointId: 'checkpoint',
+    );
+    await progress.waitForPendingPersistence();
+
+    progress.reset(clearPersisted: false);
+    expect(progress.entryFor('category'), isNull);
+
+    await progress.restore();
+
+    expect(progress.entryFor('category')?.completedCheckpoints, 1);
+    expect(
+      progress.checkpointCompleted(
+        checkpointId: 'checkpoint',
+        pjNr: 123,
+        categoryIndex: 4,
+        checkpointIndex: 9,
+      ),
+      isTrue,
+    );
   });
 
   test('opening a category does not mark checkpoints as completed', () {
@@ -273,7 +308,10 @@ void main() {
             cd: category,
             completionPercent: 0.5,
             completionLabel: '5/10 bearbeitet',
-            actions: [MyListTileData(title: 'Prüfpunkte', icon: Icons.list)],
+            actions: [
+              MyListTileData(title: 'Prüfpunkte', icon: Icons.list),
+              MyListTileData(title: 'Fotos', icon: Icons.photo_library),
+            ],
             onAction: (_) {},
           ),
         ),
@@ -293,5 +331,11 @@ void main() {
     );
     expect(title.maxLines, isNull);
     expect(title.overflow, TextOverflow.visible);
+    expect(find.byKey(const Key('dropdown.actions.category')), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Fotos'), findsOneWidget);
   });
 }

@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
@@ -490,6 +490,8 @@ class _CameraForAdderState extends State<CameraForAdder>
                     child: Image.file(
                       File(file.path),
                       fit: BoxFit.cover,
+                      cacheWidth: 120,
+                      cacheHeight: 120,
                     ),
                   ),
                 ),
@@ -651,6 +653,19 @@ class _CameraForAdderState extends State<CameraForAdder>
                       child: Image.file(
                         file,
                         fit: BoxFit.contain,
+                        cacheWidth: max(
+                          1,
+                          (displayWidth *
+                                  MediaQuery.devicePixelRatioOf(context))
+                              .round(),
+                        ),
+                        cacheHeight: max(
+                          1,
+                          (displayHeight *
+                                  MediaQuery.devicePixelRatioOf(context))
+                              .round(),
+                        ),
+                        filterQuality: FilterQuality.medium,
                       ),
                     ),
                   ),
@@ -686,16 +701,19 @@ class _CameraForAdderState extends State<CameraForAdder>
 
   // Hilfsfunktion zum Abrufen der Bildabmessungen
   Future<Size> _getImageDimensions(File imageFile) async {
-    final Completer<Size> completer = Completer();
-    final Image image = Image.file(imageFile);
-    image.image
-        .resolve(const ImageConfiguration())
-        .addListener(ImageStreamListener((ImageInfo info, bool _) {
-      completer.complete(Size(
-        info.image.width.toDouble(),
-        info.image.height.toDouble(),
-      ));
-    }));
-    return completer.future;
+    final buffer = await ImmutableBuffer.fromFilePath(imageFile.path);
+    try {
+      final descriptor = await ImageDescriptor.encoded(buffer);
+      try {
+        return Size(
+          descriptor.width.toDouble(),
+          descriptor.height.toDouble(),
+        );
+      } finally {
+        descriptor.dispose();
+      }
+    } finally {
+      buffer.dispose();
+    }
   }
 }

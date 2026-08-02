@@ -130,6 +130,9 @@ class CategoryModel extends DropDownModel<CheckCategory, InspectionLocation>
           hint: S.current!.kurzTextHint,
           value: currentCategory?.kurzText,
           dropdown: predefinedCategories,
+          // Category labels are database text, not file paths. Preserve
+          // meaningful characters such as `&` from predefined templates.
+          postProcess: InputData.noSpacesAtEnd,
         ),
         InputData(
           "LangText",

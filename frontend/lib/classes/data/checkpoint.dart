@@ -76,33 +76,30 @@ class CheckPoint extends Data
   Widget editButton({BuildContext? context}) => IconButton(
         // padding: EdgeInsets.zero,
         icon: Icon(Icons.edit),
-        onPressed: () async {
-          if (context == null) {
-            debugPrint("no context from wich we could alert");
-            return;
-          }
-          return showDialog(
-            barrierColor: Colors.black54,
-            context: context,
-            // barrierDismissible: false, // user must tap button!
-            barrierDismissible: true,
-            builder: (BuildContext innerContext) {
-              return AlertDialog(
-                title: Text('Punkt bearbeiten'),
-                content: CheckPointsModel.adder(
-                    parent: Provider.of<CheckPointsModel>(context).currentData,
-                    currentCheckpoint: this,
-                    onCancel: () => Navigator.of(context).pop(),
-                    onDone: (data) {
-                      Provider.of<CheckPointsModel>(context, listen: false)
-                          .update(data);
-                      // Navigator.of(context).pop();
-                    }),
-              );
-            },
-          );
-        },
+        onPressed: context == null ? null : () => openEditor(context),
       );
+
+  Future<void> openEditor(BuildContext context) async {
+    await showDialog(
+      barrierColor: Colors.black54,
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext innerContext) {
+        return AlertDialog(
+          title: Text('Punkt bearbeiten'),
+          content: CheckPointsModel.adder(
+            parent: Provider.of<CheckPointsModel>(context).currentData,
+            currentCheckpoint: this,
+            onCancel: () => Navigator.of(innerContext).pop(),
+            onDone: (data) {
+              Provider.of<CheckPointsModel>(context, listen: false)
+                  .update(data);
+            },
+          ),
+        );
+      },
+    );
+  }
 
   static CheckPoint? fromJson(Map<String, dynamic> json) {
     try {

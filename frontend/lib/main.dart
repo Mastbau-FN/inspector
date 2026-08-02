@@ -1,4 +1,5 @@
 import 'package:MBG_Inspektionen/notifications/controller.dart';
+import 'package:MBG_Inspektionen/backend/categoryProgressState.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -20,6 +21,7 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Options().load();
+  await CategoryProgressState.instance.restore();
   // await NewImages.load();
 
   NotificationController.initialize();

@@ -2,6 +2,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/backend/categoryProgressState.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'package:MBG_Inspektionen/helpers/createEditor.dart';
+import 'package:MBG_Inspektionen/helpers/inspection_text.dart';
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:flutter/material.dart';
 import 'package:MBG_Inspektionen/backend/api.dart';
@@ -161,8 +162,17 @@ final Map<String, List<String>> predefinedCategoryMap = {
   "Standortschließung Tresor": predefinedCategories15,
 };
 List<String> getPredefinedCategory(String key) {
-  // Return the list if the key exists, otherwise an empty list
-  return predefinedCategoryMap[key] ?? [];
+  final directMatch = predefinedCategoryMap[key];
+  if (directMatch != null) return directMatch;
+
+  final normalizedKey = normalizeInspectionLabel(key);
+  if (normalizedKey.isEmpty) return const [];
+  for (final entry in predefinedCategoryMap.entries) {
+    if (normalizeInspectionLabel(entry.key) == normalizedKey) {
+      return entry.value;
+    }
+  }
+  return const [];
 }
 
 class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
@@ -266,6 +276,7 @@ class CheckPointsModel extends DropDownModel<CheckPoint, CheckCategory>
           hint: S.current!.kurzTextHint,
           value: currentCheckpoint?.kurzText,
           dropdown: getPredefinedCategory(parent.kurzText!),
+          postProcess: InputData.noSpacesAtEnd,
         ),
         InputData(
           "LangText",
