@@ -87,8 +87,15 @@ const getQueryString = async (name) => {
  * @returns a Promise resolving the data given by sql query name (uses {getQueryString}) with given parameters
  */
 const queryFileWithParams = async (file, params, addHashFunction = true, debug = false) => {
-  let query = await getQueryString(file);
-  let data = await pool.asyncQuery(query, params);
+  let data;
+  try {
+    const query = await getQueryString(file);
+    data = await pool.asyncQuery(query, params);
+  } catch (error) {
+    error.backendQueryFile = file;
+    error.backendParameterCount = Array.isArray(params) ? params.length : 0;
+    throw error;
+  }
 
   if (debug) console.log(data)
 

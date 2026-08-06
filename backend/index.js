@@ -53,16 +53,19 @@ app.use(
   cors({
     origin: [/localhost$/, /\.?mastbau-fn\.github\.io$/],
     credentials: true,
+    exposedHeaders: ["X-Request-ID"],
   })
 );
 
+// Assign the request id before parsing. This also makes malformed JSON and
+// multipart/parser failures traceable in the API error handler.
+app.use("/", logger.logreq);
 app.use(express.json());
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
-app.use("/", logger.logreq);
 
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -149,7 +152,10 @@ app.use(function (req, res, next) {
 // MARK : 500
 
 app.use("/api/", function (err, req, res, next) {
-  console.error({ err });
+  logger.logEvent("error", "backend", "unhandled-api-error", req, {
+    ...logger.errorContext(err),
+  });
+  if (res.headersSent) return next(err);
   res.status(500).send({ error: _hideProblems ? "Something broke!" : err});
 });
 

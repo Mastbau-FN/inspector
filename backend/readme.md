@@ -36,3 +36,17 @@ and store (in backend dir)
 ### run
 
 `docker-compose up -d`
+
+### logs
+
+API requests are logged as single-line JSON and can be correlated via
+`requestId`. The same id is returned to clients in the `X-Request-ID` header.
+Sync logs contain only record identifiers, not credentials or complete payloads.
+
+Requests running longer than 10 seconds and database queries running longer
+than 5 seconds emit warning logs. The thresholds can be changed in `.env`:
+
+```
+BACKEND_SLOW_REQUEST_MS=10000
+BACKEND_SLOW_QUERY_MS=5000
+```

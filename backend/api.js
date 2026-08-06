@@ -9,37 +9,37 @@ const options = require("./options");
 const fs = require("fs");
 const fsp = fs.promises;
 const identifiers = require("./misc/identifiers").identifiers;
-
-function _shortPayload(payload = {}) {
-  const out = [];
-  for (const [k, v] of Object.entries(payload)) {
-    if (v == null) continue;
-    if (typeof v === "object") continue;
-    out.push(`${k}=${v}`);
-  }
-  return out.join(" ");
-}
+const backendLogger = require("./misc/logger");
 
 function _logRequest(level, req, event, payload = {}) {
-  const logger = console[level] ?? console.log;
-  const details = _shortPayload(payload);
-  logger(
-    `[backend] ${event} ${req.method} ${req.originalUrl ?? req.url} req=${req.__request_id ?? "-"}${details ? ` ${details}` : ""}`
-  );
+  backendLogger.logEvent(level, "backend", event, req, payload);
 }
 
 function _uploadTrace(req, event, payload = {}) {
-  const details = _shortPayload(payload);
-  console.log(
-    `[upload] ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${details ? ` ${details}` : ""}`
-  );
+  backendLogger.logEvent("log", "upload", event, req, {
+    traceId: req.__upload_trace_id ?? "-",
+    ...payload,
+  });
 }
 
 function _uploadWarn(req, event, payload = {}) {
-  const details = _shortPayload(payload);
-  console.warn(
-    `[upload] WARN ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${details ? ` ${details}` : ""}`
-  );
+  backendLogger.logEvent("warn", "upload", event, req, {
+    traceId: req.__upload_trace_id ?? "-",
+    ...payload,
+  });
+}
+
+function _resultContext(result) {
+  const first = Array.isArray(result) ? result[0] : result;
+  return {
+    resultRows: Array.isArray(result) ? result.length : undefined,
+    resultPjNr: first?.PjNr,
+    resultE1: first?.E1,
+    resultE2: first?.E2,
+    resultE3: first?.E3,
+    resultLocalId: first?.local_id,
+    updated: first?.updated ?? result?.updated,
+  };
 }
 
 //errorhandling
@@ -51,14 +51,40 @@ function _uploadWarn(req, event, payload = {}) {
  * @param {*} next the express next middleware object (used for error-handling)
  * @returns 
  */
-const errsafejson = async (statement, jsonmaker, res, next) => {
+const errsafejson = async (
+  statement,
+  jsonmaker,
+  res,
+  next,
+  { operation, scope = "backend" } = {}
+) => {
+  const req = res?.req;
+  const startedAt = Date.now();
+  if (operation) {
+    backendLogger.logEvent("log", scope, `${operation}-started`, req);
+  }
+
   try {
     const val = await statement();
     const jsonderulo = await jsonmaker(val);
+    if (operation) {
+      backendLogger.logEvent("log", scope, `${operation}-succeeded`, req, {
+        durationMs: Date.now() - startedAt,
+        ..._resultContext(val),
+      });
+    }
     if (!res.headersSent) return res.status(200).json(jsonderulo);
   } catch (error) {
-    console.warn(`[backend] errsafejson-failed ${res?.req?.method ?? "-"} ${res?.req?.originalUrl ?? res?.req?.url ?? "-"} reason=${error?.message ?? String(error)}`);
-    return next({ error: { errsafejson_captured: error.toString() } });
+    backendLogger.logEvent("error", scope, `${operation ?? "handler"}-failed`, req, {
+      durationMs: Date.now() - startedAt,
+      ...backendLogger.errorContext(error),
+    });
+    const captured = { error: { errsafejson_captured: error.toString() } };
+    Object.defineProperty(captured, "originalError", {
+      value: error,
+      enumerable: false,
+    });
+    return next(captured);
   }
 };
 
@@ -182,7 +208,8 @@ const addNew = (req, res, next) =>
     async () => (await queries.addNew(req.body, req.user.KZL, req.user.Def_Login_ID))[0],
     (json) => { return { message: "added the entry", query_result: json } },
     res,
-    next
+    next,
+    { operation: "set", scope: "sync" }
   );
 
 /**
@@ -193,7 +220,8 @@ const update = (req, res, next) =>
     async () => (await queries.update(req.body, req.user.Def_Login_ID))[0],
     (json) => ({ message: "updated the entry", query_result: json }),
     res,
-    next
+    next,
+    { operation: "update", scope: "sync" }
   );
 
 /**
@@ -209,7 +237,8 @@ const touchPruefer = (req, res, next) =>
     },
     (json) => ({ message: "touched pruefer", ...json }),
     res,
-    next
+    next,
+    { operation: "touch-pruefer", scope: "sync" }
   );
 
 /**
@@ -220,7 +249,8 @@ const delete_ = (req, res, next) =>
     async () => (await queries.delete_(req.body, req.user.KZL)),
     (json) => ({ success: json.success, id: json.Index }),
     res,
-    next
+    next,
+    { operation: "delete", scope: "sync" }
   );
 
 const deleteImgByHash = (req, res, next) =>
@@ -248,7 +278,8 @@ const deleteImgByHash = (req, res, next) =>
     },
     (json) => { return { message: "deleted image", query_result: json } },
     res,
-    next
+    next,
+    { operation: "delete-image", scope: "sync" }
   );
 
 const setMainImgByHash = async (req, res, next) => {
@@ -410,7 +441,7 @@ const fileUpload = async (req, res) => {
     }
   } catch (e) {
     _uploadWarn(req, "main-image-update-failed", {
-      reason: e?.message ?? String(e)
+      ...backendLogger.errorContext(e),
     });
   }
 

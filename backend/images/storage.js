@@ -13,6 +13,7 @@ const {
 } = require("../options");
 
 const { decorateDataFromLocalId } = require("../misc/local_id");
+const logger = require("../misc/logger");
 
 const TIMESTAMP_JPG_PATTERN = /^\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.jpg$/i;
 
@@ -87,10 +88,39 @@ function _newUploadTraceId() {
 }
 
 function _uploadWarn(req, event, payload = {}) {
-  const reason = payload?.reason ? ` reason=${payload.reason}` : "";
-  console.warn(
-    `[upload] WARN ${event} req=${req.__request_id ?? "-"} trace=${req.__upload_trace_id ?? "-"}${reason}`
-  );
+  logger.logEvent("warn", "upload", event, req, {
+    traceId: req.__upload_trace_id ?? "-",
+    ...payload,
+  });
+}
+
+function _uploadTrace(req, event, payload = {}) {
+  logger.logEvent("log", "upload", event, req, {
+    traceId: req.__upload_trace_id ?? "-",
+    ...payload,
+  });
+}
+
+function _recordIdentity(data = {}) {
+  return {
+    originalPjNr: data.PjNr,
+    originalE1: data.E1,
+    originalE2: data.E2,
+    originalE3: data.E3,
+    originalLocalId: data.local_id,
+    originalParentLocalId: data.parent_local_id,
+  };
+}
+
+function _isUnresolvedLocalRecord(type, data = {}) {
+  const localId = String(data.local_id ?? "");
+  const hasLocalId = localId.startsWith("__loc");
+  if (!hasLocalId) return false;
+
+  if (type === "defect") return !(Number(data.E3) > 0);
+  if (type === "checkpoint") return !(Number(data.E2) > 0);
+  if (type === "category") return !(Number(data.E1) > 0);
+  return false;
 }
 
 function getStoredFilename(file) {
@@ -108,6 +138,7 @@ function getStoredFilename(file) {
 const mstorage = multer.diskStorage({
   //done?: we currently store everything in the root dir, but we want to add into specific subdir that needs to be extracted from req.body.thingy.E1 etc
   destination: (req, file, cb) => {
+    let phase = "initialize";
     if (!req.__upload_trace_id) {
       req.__upload_trace_id = _newUploadTraceId();
     }
@@ -118,6 +149,7 @@ const mstorage = multer.diskStorage({
 
     //shouldnt be neccessary, since upload route used fieldparser as middleware
     if (typeof req.body?.data === "string") {
+      phase = "parse-data";
       try {
         //might fail if the body was already parsed
         req.body.data = JSON.parse(req.body.data);
@@ -128,22 +160,60 @@ const mstorage = multer.diskStorage({
       }
     }
 
+    const originalIdentity = _recordIdentity(req.body?.data);
+    _uploadTrace(req, "file-received", {
+      ...originalIdentity,
+      field: file.fieldname,
+      clientFilename: frontendname,
+      storedFilename,
+      mimeType: file.mimetype,
+      encoding: file.encoding,
+    });
+
+    if (_isUnresolvedLocalRecord(req.body?.type, req.body?.data)) {
+      _uploadWarn(req, "unresolved-local-record", {
+        ...originalIdentity,
+        message: "upload references a locally created record without a positive server id",
+      });
+    }
+
+    phase = "decorate-local-id";
     try {
       req.body.data = decorateDataFromLocalId(req.body.data);
     } catch (e) {
       _uploadWarn(req, "decorate-local-id-failed", {
-        reason: e?.message ?? String(e),
+        ...logger.errorContext(e),
       });
     }
 
+    phase = "resolve-target";
+    _uploadTrace(req, "target-resolution-started", {
+      ...originalIdentity,
+      resolvedPjNr: req.body?.data?.PjNr,
+      resolvedE1: req.body?.data?.E1,
+      resolvedE2: req.body?.data?.E2,
+      resolvedE3: req.body?.data?.E3,
+    });
     return rootfolder(req.body.data).then((rf) => {
+        phase = "prepare-target-directory";
         const fsLink = _normalizeLinkForFilesystem(rf.rootfolder, rf.link);
         const targetPath = _resolveTargetDirectory(rf.rootfolder, fsLink);
         const targetFilePath = pathm.join(targetPath, file.originalname);
+
+        _uploadTrace(req, "target-resolved", {
+          rootfolder: rf.rootfolder,
+          rawLink: rf.link,
+          normalizedLink: fsLink,
+          previousFilename: rf.filename,
+          targetDirectory: targetPath,
+          targetFile: targetFilePath,
+        });
+
         fs.mkdirSync(targetPath, { recursive: true });
         let prev_filename = rf.filename;
 
         // compute the hash for the stored filename immediately
+        phase = "create-hash";
         const rfForHash = { ...rf, link: fsLink, filename: file.originalname };
         const hash = memorize_link(rfForHash);
         rf.filename = file.originalname;
@@ -175,11 +245,13 @@ const mstorage = multer.diskStorage({
           );
           req.__pending_set_main_hash = hash;
         }
+        phase = "multer-write";
         cb(null, targetPath);
     
     }).catch((error) => {
       _uploadWarn(req, "destination-error", {
-        reason: error?.message ?? String(error),
+        phase,
+        ...logger.errorContext(error),
       });
       cb(error);
     });

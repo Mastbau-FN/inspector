@@ -1,12 +1,14 @@
 require("dotenv").config();
 const db = require("../db/queries");
+const logger = require("../misc/logger");
 
 const api_wall = (req, res, next) => {
   if (!req.headers.authorization) {
+    logger.logEvent("warn", "auth", "api-key-missing", req);
     return res.status(401).json({ error: "No auth header given" });
   }
   if (!(req.headers.authorization == process.env.API_KEY)) {
-    console.log(`[auth] api-key rejected ${req.method} ${req.originalUrl ?? req.url} req=${req.__request_id ?? "-"}`);
+    logger.logEvent("warn", "auth", "api-key-rejected", req);
     return res.status(403).json({ error: "NOT AUTHORIZED" });
   }
   return next();
@@ -22,8 +24,9 @@ const login_wall = async (req, res, next) => {
     req.user = user;
     return next();
   } catch (e) {
-    const user = req.body?.user?.name ?? req.body?.user?.KZL ?? "-";
-    console.log(`[auth] login rejected user=${user} ${req.method} ${req.originalUrl ?? req.url} req=${req.__request_id ?? "-"}`);
+    logger.logEvent("warn", "auth", "login-rejected", req, {
+      ...logger.errorContext(e),
+    });
     return res.status(403).json({ error: "wrong credentials" });
   }
 };
