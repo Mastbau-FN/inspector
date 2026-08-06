@@ -41,3 +41,9 @@
 - Die Selfie-Kamera-Vorschau ist im Hochformat nicht mehr um 180 Grad gedreht.
 - Die Selfie-Kamera-Vorschau wird gespiegelt angezeigt, damit sie sich natürlicher bedienen lässt.
 - Bei vielen Fotos werden Aufnahmen alle 10 Bilder zuverlässig im Hintergrund gespeichert, auch beim Wechsel zum nächsten Prüfpunkt. Kameraauflösung, Vorschaudecodierung und Dateikopien sind speicherschonender, um Android-Speicherabbrüche zu vermeiden.
+- Ein einzelner fehlgeschlagener Bild-Upload blockiert nicht mehr die gesamte Synchronisierung; alle weiteren Requests und Inspektionen werden trotzdem verarbeitet.
+- Fehlende, leere oder nicht mehr lesbare lokale Bilddateien werden erkannt und aus der aktiven Sync-Warteschlange isoliert, statt bei jedem Versuch erneut zu scheitern. Die Abschlussmeldung weist auf übersprungene Bilder hin.
+- Bild-Uploads für offline neu angelegte Kategorien, Prüfpunkte und Mängel warten jetzt auf deren Server-ID. Abhängige Requests werden in der richtigen Reihenfolge synchronisiert, damit Bilder nicht dem falschen Eintrag zugeordnet werden.
+- Bei älteren wartenden Bild-Uploads sucht die App sowohl im ursprünglichen lokalen Ordner als auch im Elternordner nach der Bilddatei und kann dadurch abweichende lokale Pfade automatisch wiederherstellen.
+- Das Backend protokolliert den Ablauf von Bild-Uploads ausführlicher und lehnt Upload-Requests ohne Datei eindeutig ab.
+- Zugangsdaten werden nicht mehr in fehlgeschlagenen Requests gespeichert oder auf der Request-Diagnoseseite angezeigt; bereits gespeicherte Einträge werden beim Laden bereinigt.

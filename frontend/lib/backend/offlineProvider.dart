@@ -786,12 +786,22 @@ final failedReqLogCollection = (db).collection(FAILEDCOLLECTION);
 final skippedReqLogCollection = (db).collection(
     SKIPPEDCOLLECTION); //bei fragen zu logik hierzu hannes fragen, war sein commit
 
+Map<String, dynamic> _withoutStoredCredentials(Map<String, dynamic> data) {
+  final sanitized = Map<String, dynamic>.from(data);
+  final requestJson = sanitized['json'];
+  if (requestJson is Map) {
+    sanitized['json'] = Map<String, dynamic>.from(requestJson)..remove('user');
+  }
+  sanitized.remove('user');
+  return sanitized;
+}
+
 Future<String> logFailedReq(RequestData rd) async {
   final doc = failedReqLogCollection
       .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
   //TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
-  await doc.set(await rd.serialized);
+  await doc.set(_withoutStoredCredentials(await rd.serialized));
   return doc.id;
 }
 
@@ -805,7 +815,12 @@ Future<List<(String, RequestData?)>?> getAllFailedRequests() async {
       docs.map((key, value) => MapEntry(key.split('/').last, value));
   final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
     try {
-      final parsedReq = RequestData.deserialize(e.value);
+      final sanitized = _withoutStoredCredentials(e.value);
+      final requestJson = e.value['json'];
+      if (requestJson is Map && requestJson.containsKey('user')) {
+        await failedReqLogCollection.doc(e.key).set(sanitized);
+      }
+      final parsedReq = RequestData.deserialize(sanitized);
       return (e.key, parsedReq);
     } catch (err) {
       debugPrint('failed parse of request hm, $err');
@@ -818,21 +833,44 @@ Future<List<(String, RequestData?)>?> getAllFailedRequests() async {
   return reqs;
 }
 
-failedRequestWasSuccessful(String id, {bool wasntTho = false}) {
+Future<void> failedRequestWasSuccessful(String id,
+    {bool wasntTho = false}) async {
   if (wasntTho) {
-    //hannes
-    failedReqLogCollection.doc(id).get().then((data) {
-      if (data == null) {
-        debugPrint('request $id wasnt in the failed-Log');
-        return;
-      }
-      skippedReqLogCollection.doc(id).set(data);
-      debugPrint('request $id was skipped and moved to skipped-Log');
-    });
+    final data = await failedReqLogCollection.doc(id).get();
+    if (data == null) {
+      debugPrint('request $id wasnt in the failed-Log');
+      return;
+    }
+    await skippedReqLogCollection.doc(id).set(_withoutStoredCredentials(data));
+    debugPrint('request $id was skipped and moved to skipped-Log');
   }
-  failedReqLogCollection.doc(id).delete();
+  await failedReqLogCollection.doc(id).delete();
   debugPrint(
       'request $id was apperently successful, so we deleted it from the failed-Log');
+}
+
+/// Moves a request that can never succeed through retries out of the active
+/// queue while retaining enough metadata for diagnostics and manual recovery.
+Future<void> quarantineFailedRequest(
+  String id, {
+  required String reason,
+  Map<String, dynamic> details = const {},
+}) async {
+  final data = await failedReqLogCollection.doc(id).get();
+  if (data == null) {
+    debugPrint('request $id was already absent while quarantining');
+    return;
+  }
+
+  final quarantined = _withoutStoredCredentials(data)
+    ..['_quarantine'] = {
+      'reason': reason,
+      'timestamp': DateTime.now().toIso8601String(),
+      ...details,
+    };
+  await skippedReqLogCollection.doc(id).set(quarantined);
+  await failedReqLogCollection.doc(id).delete();
+  debugPrint('request $id was quarantined: $reason');
 }
 
 extension SerializableBaseRequest on http.BaseRequest {

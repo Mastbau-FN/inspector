@@ -32,6 +32,7 @@ import 'package:MBG_Inspektionen/classes/data/checkpointdefect.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
+import 'package:MBG_Inspektionen/classes/exceptions.dart';
 
 import 'package:MBG_Inspektionen/options.dart';
 import 'package:http/http.dart' as http;
@@ -438,6 +439,74 @@ String _pathDirname(String raw) {
   return normalized.substring(0, idx);
 }
 
+Map<String, dynamic>? _requestDataMap(RequestData request) {
+  final dataField = request.json?['data'];
+  if (dataField is String) {
+    try {
+      final decoded = json.decode(dataField);
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {}
+  } else if (dataField is Map) {
+    return Map<String, dynamic>.from(dataField);
+  }
+  return null;
+}
+
+String _numericScopeFromData(Map<String, dynamic>? data) {
+  if (data == null) return '';
+  final pjNr = data['PjNr']?.toString().trim() ?? '';
+  if (pjNr.isEmpty || pjNr == 'null' || pjNr == 'undefined') return '';
+
+  String segment(dynamic value) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty || text == 'undefined' ? 'null' : text;
+  }
+
+  return [
+    pjNr,
+    segment(data['E1']),
+    segment(data['E2']),
+    segment(data['E3']),
+  ].join('-');
+}
+
+/// All locations in which older app versions may have persisted a queued
+/// image. Both the unresolved child scope (E3=-1) and its parent scope are
+/// retained because either may contain the only recoverable copy.
+@visibleForTesting
+List<String> multipartFileCandidates(RequestData request, String raw) {
+  final cleaned = raw.trim().replaceAll('\\', '/');
+  final base = _pathBasename(cleaned);
+  final baseWithoutLocalPrefix = base.startsWith(_localImagePrefix)
+      ? base.substring(_localImagePrefix.length)
+      : base;
+  final data = _requestDataMap(request);
+  final directories = <String>{
+    if (_pathDirname(cleaned).isNotEmpty) _pathDirname(cleaned),
+    if (_numericScopeFromData(data).isNotEmpty) _numericScopeFromData(data),
+    if (_extractScopeFromRequest(request).isNotEmpty)
+      _extractScopeFromRequest(request),
+  };
+
+  final references = <dynamic>[data?['mainhash']];
+  final images = data?['images'];
+  if (images is List) references.addAll(images);
+  for (final reference in references) {
+    if (reference is! String) continue;
+    final directory = _pathDirname(reference);
+    if (directory.isNotEmpty) directories.add(directory);
+  }
+
+  final candidates = <String>{cleaned};
+  for (final directory in directories) {
+    candidates.add('$directory/$base');
+    candidates.add('$directory/$baseWithoutLocalPrefix');
+  }
+  candidates.add(base);
+  candidates.add(baseWithoutLocalPrefix);
+  return candidates.where((candidate) => candidate.trim().isNotEmpty).toList();
+}
+
 Future<void> _canonicalizeImageMultipartFilenames(RequestData req) async {
   if (req.route != '/image/set') return;
   final names = req.multipartFileNames;
@@ -447,36 +516,48 @@ Future<void> _canonicalizeImageMultipartFilenames(RequestData req) async {
   final updated = <String>[];
   final used = <String>{};
 
-  Future<String?> existingPath(String name) async {
-    final f = await OfflineProvider.localFile(name);
-    if (f.existsSync()) return name;
-    return null;
-  }
-
   for (final raw in names) {
     final cleaned = raw.trim();
     final base = _pathBasename(cleaned);
     final baseNoLocalPrefix = base.startsWith(_localImagePrefix)
         ? base.substring(_localImagePrefix.length)
         : base;
-    final dir = _pathDirname(cleaned);
-    final effectiveDir = dir.isNotEmpty ? dir : scope;
-
-    DateTime ts =
-        parseTimestampImageFilename(baseNoLocalPrefix) ?? DateTime.now();
-    if (!isTimestampImageFilename(baseNoLocalPrefix)) {
-      final altName = effectiveDir.isNotEmpty
-          ? '$effectiveDir/$baseNoLocalPrefix'
-          : baseNoLocalPrefix;
-      final src1 = await existingPath(cleaned);
-      final src2 = await existingPath(altName);
-      final srcName = src1 ?? src2;
-      if (srcName != null) {
-        try {
-          final f = await OfflineProvider.localFile(srcName);
-          ts = f.statSync().changed;
-        } catch (_) {}
+    final candidates = multipartFileCandidates(req, cleaned);
+    String? sourceName;
+    File? sourceFile;
+    String? lookupError;
+    for (final candidate in candidates) {
+      try {
+        final file = await OfflineProvider.localFile(candidate);
+        if (file.existsSync() && file.lengthSync() >= 5) {
+          sourceName = candidate;
+          sourceFile = file;
+          break;
+        }
+      } on FileSystemException catch (e) {
+        lookupError = e.message;
       }
+    }
+
+    if (sourceName == null || sourceFile == null) {
+      throw MultipartFileUnavailableException(
+        cleaned,
+        reason: lookupError ??
+            'queued upload file was not found in any known scope',
+        candidates: candidates,
+      );
+    }
+
+    DateTime ts;
+    try {
+      ts = parseTimestampImageFilename(baseNoLocalPrefix) ??
+          sourceFile.statSync().changed;
+    } on FileSystemException catch (e) {
+      throw MultipartFileUnavailableException(
+        sourceName,
+        reason: e.message,
+        candidates: candidates,
+      );
     }
 
     String canonicalBase = formatTimestampImageFilename(ts);
@@ -486,35 +567,115 @@ Future<void> _canonicalizeImageMultipartFilenames(RequestData req) async {
     }
     used.add(canonicalBase);
 
-    final canonicalName = effectiveDir.isNotEmpty
-        ? '$effectiveDir/$canonicalBase'
+    final sourceDirectory = _pathDirname(sourceName);
+    final targetDirectory =
+        sourceDirectory.isNotEmpty ? sourceDirectory : scope;
+    final canonicalName = targetDirectory.isNotEmpty
+        ? '$targetDirectory/$canonicalBase'
         : canonicalBase;
 
-    if (canonicalName != cleaned) {
-      final candidates = <String>[
-        cleaned,
-        if (effectiveDir.isNotEmpty) '$effectiveDir/$baseNoLocalPrefix',
-        baseNoLocalPrefix,
-      ];
+    if (canonicalName != sourceName) {
       try {
         final dst = await OfflineProvider.localFile(canonicalName);
-        if (!dst.existsSync()) {
-          for (final c in candidates) {
-            final src = await OfflineProvider.localFile(c);
-            if (src.existsSync()) {
-              await dst.parent.create(recursive: true);
-              await src.copy(dst.path);
-              break;
-            }
-          }
+        if (!dst.existsSync() || dst.lengthSync() < 5) {
+          await dst.parent.create(recursive: true);
+          await sourceFile.copy(dst.path);
         }
-      } catch (_) {}
+        if (!dst.existsSync() || dst.lengthSync() < 5) {
+          throw MultipartFileUnavailableException(
+            canonicalName,
+            reason: 'canonical upload copy is missing or truncated',
+            candidates: candidates,
+          );
+        }
+      } on MultipartFileUnavailableException {
+        rethrow;
+      } on FileSystemException catch (e) {
+        throw MultipartFileUnavailableException(
+          canonicalName,
+          reason: e.message,
+          candidates: candidates,
+        );
+      }
     }
 
     updated.add(canonicalName);
   }
 
   req.multipartFileNames = updated;
+}
+
+int _syncDependencyRank(RequestData? request) {
+  if (request == null) return 999;
+  final route = request.route;
+  if (route == '/set') {
+    switch (request.json?['type']?.toString()) {
+      case 'category':
+        return 10;
+      case 'checkpoint':
+        return 20;
+      case 'defect':
+        return 30;
+      default:
+        return 35;
+    }
+  }
+  if (route == '/pruefer/touch') return 5;
+  if (route == '/update') return 40;
+  if (route == '/image/set') return 50;
+  if (route == '/setMainImgH') return 60;
+  if (route == '/deleteImgH') return 70;
+  if (route == '/delete') return 80;
+  return 45;
+}
+
+/// Creation requests must establish server ids before dependent image uploads
+/// are patched and sent. The original chronological order is retained within
+/// each dependency level.
+@visibleForTesting
+List<(String, RequestData?)> sortSyncRequestsForDependencies(
+  List<(String, RequestData?)> requests,
+) {
+  final sorted = List<(String, RequestData?)>.from(requests);
+  sorted.sort((left, right) {
+    final rankComparison =
+        _syncDependencyRank(left.$2).compareTo(_syncDependencyRank(right.$2));
+    if (rankComparison != 0) return rankComparison;
+    try {
+      return int.parse(left.$1, radix: 36)
+          .compareTo(int.parse(right.$1, radix: 36));
+    } catch (_) {
+      return left.$1.compareTo(right.$1);
+    }
+  });
+  return sorted;
+}
+
+/// An image for a locally created record must wait until its `/set` request
+/// supplied the real server id. Sending it earlier would resolve the parent
+/// folder and attach the image to the wrong record.
+@visibleForTesting
+bool imageUploadNeedsServerId(RequestData request) {
+  if (request.route != '/image/set') return false;
+  final data = _requestDataMap(request);
+  final localId = data?['local_id']?.toString() ?? '';
+  if (!localId.startsWith('__loc')) return false;
+
+  bool hasPositiveId(dynamic value) {
+    final parsed = value is num ? value : num.tryParse(value?.toString() ?? '');
+    return parsed != null && parsed > 0;
+  }
+
+  switch (request.json?['type']?.toString()) {
+    case 'category':
+      return !hasPositiveId(data?['E1']);
+    case 'checkpoint':
+      return !hasPositiveId(data?['E2']);
+    case 'defect':
+      return !hasPositiveId(data?['E3']);
+    default:
+      return true;
+  }
 }
 
 /// Gruppiert die Requests nach extrahierter Inspection-ID, anschließend sortiert.
@@ -534,7 +695,7 @@ Map<String, List<(String docID, RequestData?)>> _groupRequestsByInspection(
   final sortedKeys = grouped.keys.toList()..sort();
   final sortedMap = <String, List<(String, RequestData?)>>{};
   for (final k in sortedKeys) {
-    sortedMap[k] = grouped[k]!;
+    sortedMap[k] = sortSyncRequestsForDependencies(grouped[k]!);
   }
   return sortedMap;
 }
@@ -675,6 +836,9 @@ Future<T> _retryWithBackoff<T>({
   while (true) {
     try {
       return await operation();
+    } on MultipartFileUnavailableException {
+      // No amount of backoff can restore a file that is no longer on disk.
+      rethrow;
     } catch (e) {
       retryCount++;
       if (retryCount >= maxRetries) {
@@ -926,6 +1090,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
     }
 
     bool success = true;
+    int quarantinedRequests = 0;
     final grouped = _groupRequestsByInspection(failedReqs);
     final totalRequests =
         grouped.values.fold<int>(0, (acc, list) => acc + list.length);
@@ -1203,6 +1368,13 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
               await _canonicalizeImageMultipartFilenames(rd);
               await ensureParentLocalIdIfMissing(rd);
               patchRequestInPlace(rd);
+              if (imageUploadNeedsServerId(rd)) {
+                debugPrint(
+                  'Bild-Upload $docID wartet auf die Server-ID seines '
+                  'lokalen Datensatzes.',
+                );
+                return false;
+              }
               final baseRes = await API().remote.postJSONWithSocketRetry(
                     rd,
                     maxRetries: 3,
@@ -1342,7 +1514,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                   }
                 } catch (_) {}
 
-                API().local.failedRequestWasSuccessful(docID);
+                await API().local.failedRequestWasSuccessful(docID);
                 requestSuccess = true;
                 return true;
               } else {
@@ -1362,12 +1534,26 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           if (!requestSuccess) {
             debugPrint('Request war nach mehreren Versuchen nicht erfolgreich');
             success = false;
-            break;
           }
+        } on MultipartFileUnavailableException catch (e) {
+          await OfflineProvider.quarantineFailedRequest(
+            docID,
+            reason: 'local multipart file unavailable',
+            details: {
+              'path': e.path,
+              'error': e.reason,
+              'candidates': e.candidates,
+              'route': rd.route,
+            },
+          );
+          quarantinedRequests++;
+          debugPrint(
+            'Nicht wiederherstellbarer Upload $docID wurde isoliert; '
+            'Synchronisierung wird fortgesetzt: $e',
+          );
         } catch (e) {
           debugPrint('Kritischer Fehler bei der Verarbeitung: $e');
           success = false;
-          break;
         }
 
         final dur = DateTime.now().difference(start);
@@ -1388,10 +1574,7 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
           successSoFar: success,
           pjNr: pjNr,
         );
-
-        if (!success) break;
       }
-      if (!success) break;
     }
 
     // Beende den Keepalive-Timer
@@ -1428,8 +1611,14 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
                 id: 999, // Eindeutige ID für die Erfolgsbenachrichtigung
                 channelKey:
                     'mbg_all_notifications', // GEÄNDERT: Neuer gemeinsamer Kanal
-                title: '✅ Upload Sync Done',
-                body: 'Offline Änderungen wurden erfolgreich synchronisiert.',
+                title: quarantinedRequests > 0
+                    ? '⚠️ Upload Sync mit Hinweisen'
+                    : '✅ Upload Sync Done',
+                body: quarantinedRequests > 0
+                    ? '$quarantinedRequests Bild-Upload(s) wurden übersprungen, '
+                        'weil die lokale Datei fehlte. Alle übrigen Änderungen '
+                        'wurden synchronisiert.'
+                    : 'Offline Änderungen wurden erfolgreich synchronisiert.',
                 category: NotificationCategory.Progress,
                 notificationLayout: NotificationLayout.Default,
                 progress: 100,

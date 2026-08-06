@@ -220,7 +220,7 @@ class InspectionVisibility {
     for (final (id, requestData) in requests) {
       final reqPjNr = extractPjNrFromRequest(requestData);
       if (reqPjNr == normalized) {
-        API().local.failedRequestWasSuccessful(id, wasntTho: true);
+        await API().local.failedRequestWasSuccessful(id, wasntTho: true);
       }
     }
   }
@@ -233,7 +233,7 @@ class InspectionVisibility {
     for (final (id, requestData) in requests) {
       final reqPjNr = extractPjNrFromRequest(requestData);
       if (reqPjNr != null && hidden.contains(reqPjNr)) {
-        API().local.failedRequestWasSuccessful(id, wasntTho: true);
+        await API().local.failedRequestWasSuccessful(id, wasntTho: true);
       }
     }
   }

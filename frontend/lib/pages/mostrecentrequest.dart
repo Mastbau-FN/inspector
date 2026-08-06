@@ -3,6 +3,12 @@ import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:flutter/material.dart';
 
+Map<String, dynamic>? _safeRequestJson(RequestData? request) {
+  final json = request?.json;
+  if (json == null) return null;
+  return Map<String, dynamic>.from(json)..remove('user');
+}
+
 class MostRecentRequestPage extends StatelessWidget {
   const MostRecentRequestPage({super.key, required this.request});
 
@@ -33,7 +39,7 @@ class MostRecentRequestPage extends StatelessWidget {
           else ...[
             Text('Route: \n${data.route}'),
             Divider(),
-            Text('Data: \n${data.json}'),
+            Text('Data: \n${_safeRequestJson(data)}'),
             Divider(),
             if (data.multipartFiles.isNotEmpty)
               SingleChildScrollView(
@@ -44,6 +50,13 @@ class MostRecentRequestPage extends StatelessWidget {
                       FutureBuilder(
                           future: ffile,
                           builder: (context, snap) {
+                            if (snap.hasError) {
+                              return Text(
+                                'Upload-Datei konnte nicht aufgelöst werden: '
+                                '${snap.error}',
+                                style: TextStyle(color: Colors.red),
+                              );
+                            }
                             if (!snap.hasData)
                               return CircularProgressIndicator();
                             final file = snap.data!;
@@ -53,6 +66,13 @@ class MostRecentRequestPage extends StatelessWidget {
                                 FutureBuilder(
                                   future: file.readAsBytes(),
                                   builder: (context, snapshot) {
+                                    if (snapshot.hasError) {
+                                      return Text(
+                                        'Lokale Upload-Datei fehlt oder ist '
+                                        'nicht lesbar: ${file.path}',
+                                        style: TextStyle(color: Colors.red),
+                                      );
+                                    }
                                     if (snapshot.hasData) {
                                       return Image.memory(snapshot.data!);
                                     } else {

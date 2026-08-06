@@ -57,6 +57,28 @@ class _AsyncSemaphore {
   }
 }
 
+/// Validates a queued upload before the HTTP request is opened. This keeps a
+/// stale file reference distinguishable from transient network failures.
+@visibleForTesting
+FileStat validateMultipartFileForUpload(String path) {
+  try {
+    final stat = File(path).statSync();
+    if (stat.type != FileSystemEntityType.file || stat.size < 5) {
+      throw MultipartFileUnavailableException(
+        path,
+        reason: stat.type != FileSystemEntityType.file
+            ? 'local upload file does not exist'
+            : 'local upload file is empty or truncated',
+      );
+    }
+    return stat;
+  } on MultipartFileUnavailableException {
+    rethrow;
+  } on FileSystemException catch (e) {
+    throw MultipartFileUnavailableException(path, reason: e.message);
+  }
+}
+
 String routesFromData<DataT extends Data>(DataT? data) =>
     '/${Helper.getIdentifierFromData(data)}/get';
 
@@ -156,8 +178,8 @@ class Remote {
 
   final _baseurl = Env.mbgUrl;
   // ignore: non_constant_identifier_names
-  final _api_key = Env.mbgKey;                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                                                                                                                                                                                         
+  final _api_key = Env.mbgKey;
+
   bool _logReachabilityFailureOnce(Object error) {
     if (!BackendReachability.isBackendReachabilityFailure(error)) return false;
     if (!BackendReachability.instance.markFailure(error)) return true;
@@ -328,16 +350,28 @@ class Remote {
   Future<http.BaseResponse?> postJSON(RequestData rd) async {
     var headers = {HttpHeaders.contentTypeHeader: 'application/json'};
     rd.json ??= {};
-    rd.json!['user'] = _user?.toJson();
+    // Never mutate the persisted queue object with credentials. Authentication
+    // is added only to the outbound copy and will be injected again on retry.
+    final requestJson = <String, dynamic>{
+      ...rd.json!,
+      'user': _user?.toJson(),
+    };
+    final multipartFiles = rd.multipartFiles;
+    if (rd.route == _uploadImage_r && multipartFiles.isEmpty) {
+      throw const MultipartFileUnavailableException(
+        '<missing multipart file>',
+        reason: 'image upload request contains no local files',
+      );
+    }
     try {
-      if (rd.multipartFiles.isNotEmpty) {
+      if (multipartFiles.isNotEmpty) {
         http.MultipartRequest? mreq;
         try {
           var fullURL = Uri.parse(_baseurl + rd.route);
           mreq = http.MultipartRequest('POST', fullURL)
             ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
             ..fields.addAll(
-              /*flatten()*/ rd.json!.map<String, String>((key, value) {
+              /*flatten()*/ requestJson.map<String, String>((key, value) {
                 if (value is Map || value is List) {
                   return MapEntry(key, jsonEncode(value));
                 }
@@ -347,7 +381,7 @@ class Remote {
 
           // Build multipart files sequentially to keep peak memory lower.
           final usedUploadImageNames = <String>{};
-          for (final fxfile in rd.multipartFiles) {
+          for (final fxfile in multipartFiles) {
             final xfile = await fxfile;
             String name = xfile.name;
             if (rd.route == _uploadImage_r) {
@@ -362,16 +396,22 @@ class Remote {
               }
               usedUploadImageNames.add(name);
             }
-            final creation = FileStat.statSync(xfile.path)
-                .changed
-                .toUtc()
-                .millisecondsSinceEpoch;
             final path = xfile.path;
-            mreq.files.add(await http.MultipartFile.fromPath(
-              creation.toString(),
-              path,
-              filename: name,
-            ));
+            final stat = validateMultipartFileForUpload(path);
+            try {
+              mreq.files.add(await http.MultipartFile.fromPath(
+                stat.changed.toUtc().millisecondsSinceEpoch.toString(),
+                path,
+                filename: name,
+              ));
+            } on MultipartFileUnavailableException {
+              rethrow;
+            } on FileSystemException catch (e) {
+              throw MultipartFileUnavailableException(
+                path,
+                reason: e.message,
+              );
+            }
           }
           // Avoid logging full fields (can be huge and contains credentials) and reduces memory churn.
           debugPrint(
@@ -399,7 +439,7 @@ class Remote {
         }
       } else {
         final req =
-            makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
+            makepost(rd.route, headers: headers, body: jsonEncode(requestJson));
         try {
           // Erhöhe die Robustheit des Requests speziell für Hintergrundausführung
           final response = await send(
@@ -429,6 +469,10 @@ class Remote {
           rethrow;
         }
       }
+    } on MultipartFileUnavailableException {
+      // This is a permanent local-state problem. Let the sync manager
+      // quarantine the request instead of retrying it forever.
+      rethrow;
     } catch (e) {
       // Don't swallow OOM: returning null will trigger retries and worsen memory pressure.
       if (e is OutOfMemoryError) rethrow;
@@ -475,6 +519,8 @@ class Remote {
           attempts++;
           debugPrint('Null-Antwort bei Versuch $attempts/$maxRetries');
         }
+      } on MultipartFileUnavailableException {
+        rethrow;
       } on OutOfMemoryError {
         // Retrying will almost certainly fail again; surface the error.
         rethrow;

@@ -390,7 +390,7 @@ const fileUpload = async (req, res) => {
     e3: req?.body?.data?.E3,
   });
 
-  if (!(req.files || req.file)) {
+  if (filesCount === 0) {
     res.status(400).json({ success: false, reason: "no file uploaded" });
     _uploadWarn(req, "no-files", {});
     return;

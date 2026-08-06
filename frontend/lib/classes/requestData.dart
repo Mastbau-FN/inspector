@@ -5,6 +5,7 @@ import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart' as OP;
+import 'package:flutter/foundation.dart';
 
 part 'requestData.g.dart';
 
@@ -66,7 +67,7 @@ class RequestData {
   /// only gets called when the request failed and has to be tried again later
   Future<Map<String, dynamic>> get serialized async {
     //when storing files we have to make sure they are permanently stored, not only in cache
-    final scope = _deriveScopeFromJson(json);
+    final scope = deriveRequestStorageScope(json);
     String scoped(String base) =>
         scope != null && scope.isNotEmpty ? '$scope/$base' : base;
 
@@ -94,7 +95,8 @@ class RequestData {
   }
 }
 
-String? _deriveScopeFromJson(Map<String, dynamic>? json) {
+@visibleForTesting
+String? deriveRequestStorageScope(Map<String, dynamic>? json) {
   if (json == null) return null;
   dynamic dataField = json['data'];
   Map<String, dynamic>? data;
@@ -107,8 +109,26 @@ String? _deriveScopeFromJson(Map<String, dynamic>? json) {
   }
   if (data == null) return null;
 
-  final parentId = data['parent_local_id']?.toString();
-  if (parentId != null && parentId.isNotEmpty) return parentId;
+  String? scopeFromReference(dynamic value) {
+    if (value is! String) return null;
+    final normalized = value.trim().replaceAll('\\', '/');
+    final separator = normalized.lastIndexOf('/');
+    if (separator <= 0) return null;
+    return normalized.substring(0, separator);
+  }
+
+  // Images are initially stored in the data object's own numeric scope. Keep
+  // that exact directory when serializing a failed request, especially while
+  // a newly created child still has E3=-1.
+  final mainScope = scopeFromReference(data['mainhash']);
+  if (mainScope != null) return mainScope;
+  final images = data['images'];
+  if (images is List) {
+    for (final image in images) {
+      final imageScope = scopeFromReference(image);
+      if (imageScope != null) return imageScope;
+    }
+  }
 
   final type = json['type']?.toString();
   final pj = data['PjNr']?.toString();
@@ -118,7 +138,13 @@ String? _deriveScopeFromJson(Map<String, dynamic>? json) {
   String seg3 = 'null';
   String seg4 = 'null';
 
+  var hasTypedScope = true;
   switch (type) {
+    case 'category':
+      seg2 = data['E1']?.toString() ?? seg2;
+      seg3 = data['E2']?.toString() ?? seg3;
+      seg4 = data['E3']?.toString() ?? seg4;
+      break;
     case 'defect':
       seg2 = data['E1']?.toString() ?? seg2;
       seg3 = data['E2']?.toString() ?? seg3;
@@ -133,9 +159,13 @@ String? _deriveScopeFromJson(Map<String, dynamic>? json) {
       // only pjNr needed
       break;
     default:
-      break;
+      hasTypedScope = false;
   }
 
+  if (hasTypedScope) return [pj, seg2, seg3, seg4].join('-');
+
+  final parentId = data['parent_local_id']?.toString();
+  if (parentId != null && parentId.isNotEmpty) return parentId;
   return [pj, seg2, seg3, seg4].join('-');
 }
 

@@ -34,6 +34,24 @@ class ResponseException implements Exception {
 
 class LoginException implements Exception {}
 
+/// A queued multipart upload cannot be reconstructed because its local file
+/// is missing, empty or unreadable. Retrying cannot repair this condition.
+class MultipartFileUnavailableException implements Exception {
+  final String path;
+  final String reason;
+  final List<String> candidates;
+
+  const MultipartFileUnavailableException(
+    this.path, {
+    required this.reason,
+    this.candidates = const [],
+  });
+
+  @override
+  String toString() =>
+      'MultipartFileUnavailableException(path: $path, reason: $reason)';
+}
+
 class BackendCommunicationException implements Exception {
   String? cause;
   @override
