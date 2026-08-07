@@ -78,7 +78,12 @@
       docs.map((key, value) =&gt; MapEntry(key.split(&#39;&#47;&#39;).last, value));
   final docsWithTimeAsFutureTuples = docsWithTimeStr.entries.map((e) async {
     try {
-      final parsedReq = RequestData.deserialize(e.value);
+      final sanitized = _withoutStoredCredentials(e.value);
+      final requestJson = e.value[&#39;json&#39;];
+      if (requestJson is Map &amp;&amp; requestJson.containsKey(&#39;user&#39;)) {
+        await failedReqLogCollection.doc(e.key).set(sanitized);
+      }
+      final parsedReq = RequestData.deserialize(sanitized);
       return (e.key, parsedReq);
     } catch (err) {
       debugPrint(&#39;failed parse of request hm, $err&#39;);

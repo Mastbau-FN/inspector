@@ -95,6 +95,8 @@ Besonders wichtig für Hintergrundprozesse, bei denen die App in den Hintergrund
         attempts++;
         debugPrint(&#39;Null-Antwort bei Versuch $attempts&#47;$maxRetries&#39;);
       }
+    } on MultipartFileUnavailableException {
+      rethrow;
     } on OutOfMemoryError {
       &#47;&#47; Retrying will almost certainly fail again; surface the error.
       rethrow;

@@ -74,7 +74,7 @@
   for (final (id, requestData) in requests) {
     final reqPjNr = extractPjNrFromRequest(requestData);
     if (reqPjNr != null &amp;&amp; hidden.contains(reqPjNr)) {
-      API().local.failedRequestWasSuccessful(id, wasntTho: true);
+      await API().local.failedRequestWasSuccessful(id, wasntTho: true);
     }
   }
 }</code></pre>

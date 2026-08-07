@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the deleteScopedImageFilesAt function from the offlineProvider library, for the Dart programming language.">
-  <title>deleteScopedImageFilesAt function - offlineProvider library - Dart API</title>
+  <meta name="description" content="API docs for the quarantineFailedRequest function from the offlineProvider library, for the Dart programming language.">
+  <title>quarantineFailedRequest function - offlineProvider library - Dart API</title>
 
 
   
@@ -26,9 +26,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../package-MBG_Inspektionen_backend_offlineProvider/">backend&#47;offlineProvider.dart</a></li>
-    <li class="self-crumb">deleteScopedImageFilesAt function</li>
+    <li class="self-crumb">quarantineFailedRequest function</li>
   </ol>
-  <div class="self-name">deleteScopedImageFilesAt</div>
+  <div class="self-name">quarantineFailedRequest</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -48,55 +48,51 @@
       data-above-sidebar="package-MBG_Inspektionen_backend_offlineProvider&#47;package-MBG_Inspektionen_backend_offlineProvider-library-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-function">deleteScopedImageFilesAt</span> function 
+<h1><span class="kind-function">quarantineFailedRequest</span> function 
  
 </h1></div>
 
     <section class="multi-line-signature">
         
-  <div>
-    <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/material/visibleForTesting-constant.html">visibleForTesting</a></li>
-    </ol>
-  </div>
 <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">deleteScopedImageFilesAt</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="deleteScopedImageFilesAt-param-scope"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">scope</span>, </span></li>
-<li><span class="parameter" id="deleteScopedImageFilesAt-param-basePath"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">basePath</span></span></li>
-</ol>)
+<span class="name ">quarantineFailedRequest</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="quarantineFailedRequest-param-id"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">id</span>, {</span></li>
+<li><span class="parameter" id="quarantineFailedRequest-param-reason"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">reason</span>, </span></li>
+<li><span class="parameter" id="quarantineFailedRequest-param-details"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span> <span class="parameter-name">details</span> = <span class="default-value">const {}</span>, </span></li>
+</ol>})
 
         
 
     </section>
     
+<section class="desc markdown">
+  <p>Moves a request that can never succeed through retries out of the active
+queue while retaining enough metadata for diagnostics and manual recovery.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@visibleForTesting
-Future&lt;void&gt; deleteScopedImageFilesAt(String scope, String basePath) async {
-  final canonicalScope = _canonicalizeScope(scope.trim());
-  if (canonicalScope.isEmpty) return;
-  final scopes = &lt;String&gt;{
-    canonicalScope,
-    _legacyScopeForCanonical(canonicalScope),
-  };
-  for (final scopeName in scopes) {
-    final directory = Directory(&#39;$basePath&#47;$scopeName&#39;);
-    if (!directory.existsSync()) continue;
-    for (final entity in directory.listSync(followLinks: false)) {
-      if (entity is File &amp;&amp; _looksLikeImageFilename(entity.path)) {
-        try {
-          await entity.delete();
-        } catch (_) {}
-      }
-    }
-    try {
-      if (directory.existsSync() &amp;&amp; directory.listSync().isEmpty) {
-        await directory.delete();
-      }
-    } catch (_) {}
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; quarantineFailedRequest(
+  String id, {
+  required String reason,
+  Map&lt;String, dynamic&gt; details = const {},
+}) async {
+  final data = await failedReqLogCollection.doc(id).get();
+  if (data == null) {
+    debugPrint(&#39;request $id was already absent while quarantining&#39;);
+    return;
   }
+
+  final quarantined = _withoutStoredCredentials(data)
+    ..[&#39;_quarantine&#39;] = {
+      &#39;reason&#39;: reason,
+      &#39;timestamp&#39;: DateTime.now().toIso8601String(),
+      ...details,
+    };
+  await skippedReqLogCollection.doc(id).set(quarantined);
+  await failedReqLogCollection.doc(id).delete();
+  debugPrint(&#39;request $id was quarantined: $reason&#39;);
 }</code></pre>
 </section>
 
@@ -112,7 +108,7 @@ Future&lt;void&gt; deleteScopedImageFilesAt(String scope, String basePath) async
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../package-MBG_Inspektionen_backend_offlineProvider/">offlineProvider</a></li>
-    <li class="self-crumb">deleteScopedImageFilesAt function</li>
+    <li class="self-crumb">quarantineFailedRequest function</li>
 </ol>
 
     <h5>offlineProvider library</h5>

@@ -73,16 +73,28 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;http.BaseResponse?&gt; postJSON(RequestData rd) async {
   var headers = {HttpHeaders.contentTypeHeader: &#39;application&#47;json&#39;};
   rd.json ??= {};
-  rd.json![&#39;user&#39;] = _user?.toJson();
+  &#47;&#47; Never mutate the persisted queue object with credentials. Authentication
+  &#47;&#47; is added only to the outbound copy and will be injected again on retry.
+  final requestJson = &lt;String, dynamic&gt;{
+    ...rd.json!,
+    &#39;user&#39;: _user?.toJson(),
+  };
+  final multipartFiles = rd.multipartFiles;
+  if (rd.route == _uploadImage_r &amp;&amp; multipartFiles.isEmpty) {
+    throw const MultipartFileUnavailableException(
+      &#39;&lt;missing multipart file&gt;&#39;,
+      reason: &#39;image upload request contains no local files&#39;,
+    );
+  }
   try {
-    if (rd.multipartFiles.isNotEmpty) {
+    if (multipartFiles.isNotEmpty) {
       http.MultipartRequest? mreq;
       try {
         var fullURL = Uri.parse(_baseurl + rd.route);
         mreq = http.MultipartRequest(&#39;POST&#39;, fullURL)
           ..headers.addAll({HttpHeaders.authorizationHeader: _api_key})
           ..fields.addAll(
-            &#47;*flatten()*&#47; rd.json!.map&lt;String, String&gt;((key, value) {
+            &#47;*flatten()*&#47; requestJson.map&lt;String, String&gt;((key, value) {
               if (value is Map || value is List) {
                 return MapEntry(key, jsonEncode(value));
               }
@@ -92,7 +104,7 @@
 
         &#47;&#47; Build multipart files sequentially to keep peak memory lower.
         final usedUploadImageNames = &lt;String&gt;{};
-        for (final fxfile in rd.multipartFiles) {
+        for (final fxfile in multipartFiles) {
           final xfile = await fxfile;
           String name = xfile.name;
           if (rd.route == _uploadImage_r) {
@@ -107,16 +119,22 @@
             }
             usedUploadImageNames.add(name);
           }
-          final creation = FileStat.statSync(xfile.path)
-              .changed
-              .toUtc()
-              .millisecondsSinceEpoch;
           final path = xfile.path;
-          mreq.files.add(await http.MultipartFile.fromPath(
-            creation.toString(),
-            path,
-            filename: name,
-          ));
+          final stat = validateMultipartFileForUpload(path);
+          try {
+            mreq.files.add(await http.MultipartFile.fromPath(
+              stat.changed.toUtc().millisecondsSinceEpoch.toString(),
+              path,
+              filename: name,
+            ));
+          } on MultipartFileUnavailableException {
+            rethrow;
+          } on FileSystemException catch (e) {
+            throw MultipartFileUnavailableException(
+              path,
+              reason: e.message,
+            );
+          }
         }
         &#47;&#47; Avoid logging full fields (can be huge and contains credentials) and reduces memory churn.
         debugPrint(
@@ -144,7 +162,7 @@
       }
     } else {
       final req =
-          makepost(rd.route, headers: headers, body: jsonEncode(rd.json));
+          makepost(rd.route, headers: headers, body: jsonEncode(requestJson));
       try {
         &#47;&#47; Erhöhe die Robustheit des Requests speziell für Hintergrundausführung
         final response = await send(
@@ -174,6 +192,10 @@
         rethrow;
       }
     }
+  } on MultipartFileUnavailableException {
+    &#47;&#47; This is a permanent local-state problem. Let the sync manager
+    &#47;&#47; quarantine the request instead of retrying it forever.
+    rethrow;
   } catch (e) {
     &#47;&#47; Don&#39;t swallow OOM: returning null will trigger retries and worsen memory pressure.
     if (e is OutOfMemoryError) rethrow;

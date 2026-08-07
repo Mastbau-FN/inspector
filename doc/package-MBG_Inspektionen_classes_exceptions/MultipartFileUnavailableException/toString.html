@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the reset method from the BackupSyncWorkflowGuard class, for the Dart programming language.">
-  <title>reset method - BackupSyncWorkflowGuard class - backup_sync_workflow library - Dart API</title>
+  <meta name="description" content="API docs for the toString method from the MultipartFileUnavailableException class, for the Dart programming language.">
+  <title>toString method - MultipartFileUnavailableException class - exceptions library - Dart API</title>
 
 
   
@@ -25,11 +25,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backup_sync_workflow/">backend&#47;backup_sync_workflow.dart</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backup_sync_workflow/BackupSyncWorkflowGuard-class.html">BackupSyncWorkflowGuard</a></li>
-    <li class="self-crumb">reset method</li>
+    <li><a href="../../package-MBG_Inspektionen_classes_exceptions/">classes&#47;exceptions.dart</a></li>
+    <li><a href="../../package-MBG_Inspektionen_classes_exceptions/MultipartFileUnavailableException-class.html">MultipartFileUnavailableException</a></li>
+    <li class="self-crumb">toString method</li>
   </ol>
-  <div class="self-name">reset</div>
+  <div class="self-name">toString</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -46,36 +46,46 @@
 <div
     id="dartdoc-main-content"
     class="main-content"
-    data-above-sidebar="package-MBG_Inspektionen_backend_backup_sync_workflow&#47;BackupSyncWorkflowGuard-class-sidebar.html"
+    data-above-sidebar="package-MBG_Inspektionen_classes_exceptions&#47;MultipartFileUnavailableException-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-method">reset</span> method 
+<h1><span class="kind-method">toString</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
       
   <div>
     <ol class="annotation-list">
-        <li>@<a href="https://api.flutter.dev/flutter/material/visibleForTesting-constant.html">visibleForTesting</a></li>
+        <li>@<a href="https://api.flutter.dev/flutter/dart-core/override-constant.html">override</a></li>
     </ol>
   </div>
-<span class="returntype">void</span>
-<span class="name ">reset</span>(<wbr>)
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>
+<span class="name ">toString</span>(<wbr>)
 
-      
+      <div class="features"><span class="feature">override</span></div>
 
     </section>
     
+<section class="desc markdown">
+  <p>A string representation of this object.</p>
+<p>Some classes have a default textual representation,
+often paired with a static <code>parse</code> function (like <a href="https://api.flutter.dev/flutter/dart-core/int/parse.html">int.parse</a>).
+These classes will provide the textual representation as
+their string representation.</p>
+<p>Other classes have no meaningful textual representation
+that a program will care about.
+Such classes will typically override <code>toString</code> to provide
+useful information when inspecting the object,
+mainly for debugging or logging.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">@visibleForTesting
-void reset() {
-  _activeToken = null;
-  _startedAt = null;
-}</code></pre>
+  <pre class="language-dart"><code class="language-dart">@override
+String toString() =&gt;
+    &#39;MultipartFileUnavailableException(path: $path, reason: $reason)&#39;;</code></pre>
 </section>
 
 
@@ -89,12 +99,12 @@ void reset() {
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backup_sync_workflow/">backup_sync_workflow</a></li>
-    <li><a href="../../package-MBG_Inspektionen_backend_backup_sync_workflow/BackupSyncWorkflowGuard-class.html">BackupSyncWorkflowGuard</a></li>
-    <li class="self-crumb">reset method</li>
+    <li><a href="../../package-MBG_Inspektionen_classes_exceptions/">exceptions</a></li>
+    <li><a href="../../package-MBG_Inspektionen_classes_exceptions/MultipartFileUnavailableException-class.html">MultipartFileUnavailableException</a></li>
+    <li class="self-crumb">toString method</li>
 </ol>
 
-    <h5>BackupSyncWorkflowGuard class</h5>
+    <h5>MultipartFileUnavailableException class</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

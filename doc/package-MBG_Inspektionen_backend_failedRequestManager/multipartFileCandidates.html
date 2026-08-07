@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the preserveExistingDocumentsForDownload function from the failedRequestManager library, for the Dart programming language.">
-  <title>preserveExistingDocumentsForDownload function - failedRequestManager library - Dart API</title>
+  <meta name="description" content="API docs for the multipartFileCandidates function from the failedRequestManager library, for the Dart programming language.">
+  <title>multipartFileCandidates function - failedRequestManager library - Dart API</title>
 
 
   
@@ -26,9 +26,9 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../package-MBG_Inspektionen_backend_failedRequestManager/">backend&#47;failedRequestManager.dart</a></li>
-    <li class="self-crumb">preserveExistingDocumentsForDownload function</li>
+    <li class="self-crumb">multipartFileCandidates function</li>
   </ol>
-  <div class="self-name">preserveExistingDocumentsForDownload</div>
+  <div class="self-name">multipartFileCandidates</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -48,7 +48,7 @@
       data-above-sidebar="package-MBG_Inspektionen_backend_failedRequestManager&#47;package-MBG_Inspektionen_backend_failedRequestManager-library-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-function">preserveExistingDocumentsForDownload</span> function 
+<h1><span class="kind-function">multipartFileCandidates</span> function 
  
 </h1></div>
 
@@ -59,30 +59,57 @@
         <li>@<a href="https://api.flutter.dev/flutter/material/visibleForTesting-constant.html">visibleForTesting</a></li>
     </ol>
   </div>
-<span class="returntype">void</span>
-<span class="name ">preserveExistingDocumentsForDownload</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="preserveExistingDocumentsForDownload-param-current"><span class="type-annotation"><a href="../package-MBG_Inspektionen_classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">current</span>, </span></li>
-<li><span class="parameter" id="preserveExistingDocumentsForDownload-param-refreshed"><span class="type-annotation"><a href="../package-MBG_Inspektionen_classes_data_inspection_location/InspectionLocation-class.html">InspectionLocation</a></span> <span class="parameter-name">refreshed</span></span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span></span>
+<span class="name ">multipartFileCandidates</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="multipartFileCandidates-param-request"><span class="type-annotation"><a href="../package-MBG_Inspektionen_classes_requestData/RequestData-class.html">RequestData</a></span> <span class="parameter-name">request</span>, </span></li>
+<li><span class="parameter" id="multipartFileCandidates-param-raw"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">raw</span></span></li>
 </ol>)
 
         
 
     </section>
     
+<section class="desc markdown">
+  <p>All locations in which older app versions may have persisted a queued
+image. Both the unresolved child scope (E3=-1) and its parent scope are
+retained because either may contain the only recoverable copy.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@visibleForTesting
-void preserveExistingDocumentsForDownload(
-  InspectionLocation current,
-  InspectionLocation refreshed,
-) {
-  if ((refreshed.dokuspaths == null || refreshed.dokuspaths!.isEmpty) &amp;&amp;
-      current.dokuspaths != null &amp;&amp;
-      current.dokuspaths!.isNotEmpty) {
-    refreshed.dokuspaths = current.dokuspaths;
+List&lt;String&gt; multipartFileCandidates(RequestData request, String raw) {
+  final cleaned = raw.trim().replaceAll(&#39;\\&#39;, &#39;&#47;&#39;);
+  final base = _pathBasename(cleaned);
+  final baseWithoutLocalPrefix = base.startsWith(_localImagePrefix)
+      ? base.substring(_localImagePrefix.length)
+      : base;
+  final data = _requestDataMap(request);
+  final directories = &lt;String&gt;{
+    if (_pathDirname(cleaned).isNotEmpty) _pathDirname(cleaned),
+    if (_numericScopeFromData(data).isNotEmpty) _numericScopeFromData(data),
+    if (_extractScopeFromRequest(request).isNotEmpty)
+      _extractScopeFromRequest(request),
+  };
+
+  final references = &lt;dynamic&gt;[data?[&#39;mainhash&#39;]];
+  final images = data?[&#39;images&#39;];
+  if (images is List) references.addAll(images);
+  for (final reference in references) {
+    if (reference is! String) continue;
+    final directory = _pathDirname(reference);
+    if (directory.isNotEmpty) directories.add(directory);
   }
+
+  final candidates = &lt;String&gt;{cleaned};
+  for (final directory in directories) {
+    candidates.add(&#39;$directory&#47;$base&#39;);
+    candidates.add(&#39;$directory&#47;$baseWithoutLocalPrefix&#39;);
+  }
+  candidates.add(base);
+  candidates.add(baseWithoutLocalPrefix);
+  return candidates.where((candidate) =&gt; candidate.trim().isNotEmpty).toList();
 }</code></pre>
 </section>
 
@@ -98,7 +125,7 @@ void preserveExistingDocumentsForDownload(
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
     <li><a href="../package-MBG_Inspektionen_backend_failedRequestManager/">failedRequestManager</a></li>
-    <li class="self-crumb">preserveExistingDocumentsForDownload function</li>
+    <li class="self-crumb">multipartFileCandidates function</li>
 </ol>
 
     <h5>failedRequestManager library</h5>

@@ -75,7 +75,7 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;Map&lt;String, dynamic&gt;&gt; get serialized async {
   &#47;&#47;when storing files we have to make sure they are permanently stored, not only in cache
-  final scope = _deriveScopeFromJson(json);
+  final scope = deriveRequestStorageScope(json);
   String scoped(String base) =&gt;
       scope != null &amp;&amp; scope.isNotEmpty ? &#39;$scope&#47;$base&#39; : base;
 

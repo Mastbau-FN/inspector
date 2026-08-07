@@ -72,7 +72,7 @@
       .doc(DateTime.now().millisecondsSinceEpoch.toRadixString(36));
 
   &#47;&#47;TO-DO: idk if this uses the baserquest to json, which it shouldnt.. yes, it did
-  await doc.set(await rd.serialized);
+  await doc.set(_withoutStoredCredentials(await rd.serialized));
   return doc.id;
 }</code></pre>
 </section>
