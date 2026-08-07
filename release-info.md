@@ -1,4 +1,4 @@
-# Änderungen
+# Änderung
 
 - Flutter-SDK aktualisiert.
 - Backups laufen jetzt inkrementell: neue Backup-Dateien enthalten nur neue, geänderte oder gelöschte Daten seit dem letzten Backup.
