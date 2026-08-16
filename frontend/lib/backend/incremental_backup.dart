@@ -323,6 +323,24 @@ Future<List<File>> listManagedLocalBackups(Directory backupDirectory) async {
   return backups;
 }
 
+/// Removes archives left behind when Android stopped the app during ZIP
+/// creation. Only files created by this backup implementation are touched.
+Future<int> cleanupIncompleteLocalBackups(Directory backupDirectory) async {
+  if (!await backupDirectory.exists()) return 0;
+  final incompleteName = RegExp(r'^backup-\d+\.zip\.partial$');
+  var deleted = 0;
+  await for (final entity in backupDirectory.list(followLinks: false)) {
+    if (entity is! File || !incompleteName.hasMatch(_basename(entity.path))) {
+      continue;
+    }
+    try {
+      await entity.delete();
+      deleted++;
+    } catch (_) {}
+  }
+  return deleted;
+}
+
 Future<void> invalidateIncrementalBackupState(
   Directory backupDirectory,
 ) async {
@@ -342,6 +360,7 @@ Future<IncrementalBackupResult> createIncrementalBackup({
   Future<void> Function(BackupProgress progress)? onProgress,
 }) async {
   await backupDirectory.create(recursive: true);
+  await cleanupIncompleteLocalBackups(backupDirectory);
   final existingBackups = await listManagedLocalBackups(backupDirectory);
   final stateFile =
       File('${backupDirectory.path}/$_incrementalBackupStateName');
@@ -795,9 +814,11 @@ bool _isBackupSourcePath(String relativePath) {
     'failed-requests',
     'skipped-requests',
     'image-index',
+    'other',
+    'flutter_assets',
   };
   if (operationalCollections.contains(parts.first)) return false;
-  return !(parts.first == 'other' && parts.last.startsWith('__sync_maps__'));
+  return true;
 }
 
 _BackupState _withoutOperationalBackupFiles(_BackupState state) => _BackupState(

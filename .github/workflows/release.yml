@@ -27,7 +27,7 @@ jobs:
       API_URL: https://inspection.mbg-solutions.com/api/secure #edit this if necessary
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
       - name: Build Documentation
         run: |
@@ -47,18 +47,31 @@ jobs:
         platform: [apkd, apkr]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
         with:
           version: v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || ' ' }} ${GITHUB_SHA::8}-${{ matrix.platform }}
 
-      - name: create key.properties for signing
+      - name: Configure Android signing
+        env:
+          ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}
         run: |
-          cd android
-          touch key.properties
-          printf "${{ secrets.KEY_PROPERTIES }}" >> key.properties
-          ls
-          pwd
+          if [ -z "$ANDROID_SIGNING_KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_SIGNING_KEYSTORE_BASE64 is not configured"
+            exit 1
+          fi
+          printf '%s' "$ANDROID_SIGNING_KEYSTORE_BASE64" | base64 --decode > android/inspector-signing.keystore
+          printf '%s\n' \
+            'storePassword=android' \
+            'keyPassword=android' \
+            'keyAlias=androiddebugkey' \
+            'storeFile=../inspector-signing.keystore' \
+            > android/key.properties
+          keytool -list -v \
+            -keystore android/inspector-signing.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            | grep -q '67:88:0A:19:CD:81:FC:0B:52:F6:28:B2:7B:9F:75:7D:C2:1A:3D:87:86:10:96:96:A8:AF:E3:73:2B:D6:15:3F'
 
       - name: map build-type platform to path
         uses: kanga333/variable-mapper@v0.3.0
@@ -94,7 +107,7 @@ jobs:
     name: Deploy Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: download doc artifact
         uses: actions/download-artifact@v4
@@ -122,7 +135,7 @@ jobs:
     name: Release to GH
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: Read release notes
         id: release-info
@@ -178,7 +191,7 @@ jobs:
     name: Release to the Google Play Store
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
 
       - name: download aab
         uses: actions/download-artifact@v4

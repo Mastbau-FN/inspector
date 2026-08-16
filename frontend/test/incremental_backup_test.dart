@@ -125,6 +125,81 @@ void main() {
     expect(await listManagedLocalBackups(backupDirectory), hasLength(4));
   });
 
+  test('ignores runtime and operational files when they change', () async {
+    final inspection = await File('${sourceDirectory.path}/inspection.data')
+        .writeAsString('inspection-v1');
+    final failedRequest = await File(
+      '${sourceDirectory.path}/failed-requests/request-1',
+    ).create(recursive: true);
+    final skippedRequest = await File(
+      '${sourceDirectory.path}/skipped-requests/request-1',
+    ).create(recursive: true);
+    final imageIndex = await File(
+      '${sourceDirectory.path}/image-index/hash-1',
+    ).create(recursive: true);
+    final option = await File(
+      '${sourceDirectory.path}/other/options',
+    ).create(recursive: true);
+    final syncMap = await File(
+      '${sourceDirectory.path}/other/__sync_maps__6000001',
+    ).create(recursive: true);
+    final runtimeAsset = await File(
+      '${sourceDirectory.path}/flutter_assets/AssetManifest.bin',
+    ).create(recursive: true);
+    await failedRequest.writeAsString('failed-v1');
+    await skippedRequest.writeAsString('skipped-v1');
+    await imageIndex.writeAsString('index-v1');
+    await option.writeAsString('option-v1');
+    await syncMap.writeAsString('map-v1');
+    await runtimeAsset.writeAsString('asset-v1');
+
+    final initial = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+
+    expect(_archiveNames(initial.backupFile!), {
+      'inspection.data',
+      incrementalBackupManifestName,
+    });
+
+    await failedRequest.writeAsString('failed-v2');
+    await skippedRequest.writeAsString('skipped-v2');
+    await imageIndex.writeAsString('index-v2');
+    await option.writeAsString('option-v2');
+    await syncMap.writeAsString('map-v2');
+    await runtimeAsset.writeAsString('asset-v2');
+
+    final unchanged = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+
+    expect(unchanged.created, isFalse);
+    expect(await listManagedLocalBackups(backupDirectory), hasLength(1));
+    expect(await inspection.exists(), isTrue);
+  });
+
+  test('cleans up abandoned managed partial archives', () async {
+    final abandoned = await File(
+      '${backupDirectory.path}/backup-123.zip.partial',
+    ).writeAsString('incomplete');
+    final unrelated = await File(
+      '${backupDirectory.path}/manual-export.zip.partial',
+    ).writeAsString('keep me');
+    await File('${sourceDirectory.path}/inspection.data')
+        .writeAsString('inspection');
+
+    final result = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+
+    expect(result.created, isTrue);
+    expect(await abandoned.exists(), isFalse);
+    expect(await unrelated.exists(), isTrue);
+  });
+
   test('does not back up records again after sync assigns E numbers', () async {
     const inspectionId = '6006395-undefined-undefined-undefined';
     const localCategoryId = '__local_category';

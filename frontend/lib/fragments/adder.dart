@@ -265,111 +265,11 @@ class _Input extends StatefulWidget {
 }
 
 class _InputState extends State<_Input> {
-  final LayerLink _layerLink = LayerLink();
-  OverlayEntry? _overlayEntry;
   bool _isOpen = false;
 
-  void _toggleDropdown() {
-    if (_isOpen) {
-      _closeDropdown();
-    } else {
-      _openDropdown();
-    }
-  }
-
-  void _openDropdown() {
-    if (!mounted || _overlayEntry != null) return;
-
-    _overlayEntry = _buildOverlayEntry();
-    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
-    setState(() {
-      _isOpen = true;
-    });
-  }
-
-  void _closeDropdown() {
-    if (!_isOpen && _overlayEntry == null) return;
-
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-
-    if (mounted) {
-      setState(() {
-        _isOpen = false;
-      });
-    } else {
-      // falls z.B. von dispose() aus aufgerufen wird
-      _isOpen = false;
-    }
-  }
-
-  @override
-  void dispose() {
-    // wichtig: hier KEIN setState mehr
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-    super.dispose();
-  }
-
-  // ... build + _buildOverlayEntry bleiben wie gehabt ...
-
-  OverlayEntry _buildOverlayEntry() {
-    return OverlayEntry(
-      builder: (overlayContext) {
-        return Stack(
-          children: [
-            // Tap außerhalb schließt das Dropdown
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _closeDropdown,
-              ),
-            ),
-            // Das eigentliche Dropdown-Menü
-            Positioned(
-              child: CompositedTransformFollower(
-                link: _layerLink,
-                showWhenUnlinked: false,
-                // Offset relativ zum Icon:
-                // x: etwas nach links (damit es über Input ragt)
-                // y: negativ = über dem Icon
-                offset: const Offset(-160, -250), // feintunen nach Bedarf
-                child: Material(
-                  elevation: 4,
-                  borderRadius: BorderRadius.circular(8),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: 200,
-                      maxWidth: 200,
-                      maxHeight: 250,
-                    ),
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      children: widget.dropdown
-                          .map(
-                            (value) => ListTile(
-                              dense: true,
-                              title: Text(
-                                value,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              onTap: () {
-                                widget.c.text = value;
-                                _closeDropdown();
-                              },
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void _setDropdownOpen(bool isOpen) {
+    if (!mounted || _isOpen == isOpen) return;
+    setState(() => _isOpen = isOpen);
   }
 
   @override
@@ -404,13 +304,38 @@ class _InputState extends State<_Input> {
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: CompositedTransformTarget(
-                  link: _layerLink,
-                  child: IconButton(
-                    icon: Icon(
-                      _isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                    ),
-                    onPressed: _toggleDropdown,
+                child: PopupMenuButton<String>(
+                  key: ValueKey('adder.dropdown.button.${widget.hint}'),
+                  tooltip: widget.hint,
+                  padding: EdgeInsets.zero,
+                  position: PopupMenuPosition.over,
+                  offset: const Offset(-160, -250),
+                  requestFocus: false,
+                  constraints: const BoxConstraints(
+                    minWidth: 200,
+                    maxWidth: 240,
+                    maxHeight: 250,
+                  ),
+                  onOpened: () => _setDropdownOpen(true),
+                  onCanceled: () => _setDropdownOpen(false),
+                  onSelected: (value) {
+                    widget.c.text = value;
+                    _setDropdownOpen(false);
+                  },
+                  itemBuilder: (context) => widget.dropdown
+                      .map(
+                        (value) => PopupMenuItem<String>(
+                          key: ValueKey('adder.dropdown.option.$value'),
+                          value: value,
+                          child: Text(
+                            value,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  icon: Icon(
+                    _isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                   ),
                 ),
               ),

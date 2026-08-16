@@ -319,18 +319,21 @@ class API {
     try {
       final localInspections =
           await local.getNextDatapoint<InspectionLocation, WithOffline?>(null);
+      final retainedPjNrs = <String>{
+        ...remoteInspections.map((inspection) => inspection.pjNr.toString()),
+        ...localInspections
+            .where((inspection) => inspection.forceOffline)
+            .map((inspection) => inspection.pjNr.toString()),
+      };
       final stale = API.staleLocalRootInspections(
         local: localInspections,
         remote: remoteInspections,
       );
-      if (stale.isEmpty) return;
 
       final rootId = await rootID;
       for (final inspection in stale) {
         try {
           await deleteData<InspectionLocation>(inspection.id, parentId: rootId);
-          await InspectionVisibility()
-              .removeFailedRequestsForInspection(inspection.pjNr.toString());
           debugPrint(
             'Pruned stale local inspection ${inspection.id} (${inspection.pjNr})',
           );
@@ -339,6 +342,28 @@ class API {
             'Failed pruning stale local inspection ${inspection.id}: $e',
           );
         }
+      }
+
+      // A root document may already have disappeared while its categories,
+      // checkpoints, defects, images and sync metadata still remain on disk.
+      // Scan the complete app data directory so those orphans are removed too.
+      final removedPjNrs = await pruneInactiveInspectionStorage(retainedPjNrs);
+      final hiddenPjNrs = await InspectionVisibility().getHiddenPjNrs();
+      final inactivePjNrs = <String>{
+        ...removedPjNrs,
+        ...stale
+            .map((inspection) => inspection.pjNr.toString())
+            .where((pjNr) => !retainedPjNrs.contains(pjNr)),
+        ...hiddenPjNrs.where((pjNr) => !retainedPjNrs.contains(pjNr)),
+      };
+      for (final pjNr in inactivePjNrs) {
+        await InspectionVisibility().restoreInspection(pjNr);
+      }
+      if (inactivePjNrs.isNotEmpty) {
+        debugPrint(
+          'Pruned inactive inspection storage: '
+          '${inactivePjNrs.toList()..sort()}',
+        );
       }
     } catch (e) {
       debugPrint('Failed pruning stale root inspection cache: $e');
@@ -848,6 +873,8 @@ class API {
       }).toList();
     }
 
+    List<InspectionLocation>? authoritativeRemoteRootInspections;
+
     yield* _run(
       itPrefersCache: _dataPrefersCache(data, type: requestType),
       offline: () async => filterHiddenIfRootInspections(
@@ -859,8 +886,18 @@ class API {
         );
         return RequestAndParser<http.Response, List<ChildData>>(
           rd: rap.rd,
-          parser: (response) async =>
-              filterHiddenIfRootInspections(await rap.parser(response)),
+          parser: (response) async {
+            final parsed = await rap.parser(response);
+            if (typeOf<ChildData>() == typeOf<InspectionLocation>() &&
+                data == null) {
+              // Keep the unfiltered server snapshot for pruning. A locally
+              // hidden inspection still exists on the server and must never
+              // be mistaken for a deleted one.
+              authoritativeRemoteRootInspections =
+                  parsed.whereType<InspectionLocation>().toList();
+            }
+            return filterHiddenIfRootInspections(parsed);
+          },
         );
       },
       onlineSuccessCB: (childDatas) async {
@@ -868,7 +905,8 @@ class API {
         if (typeOf<ChildData>() == typeOf<InspectionLocation>() &&
             data == null) {
           await _pruneStaleRootInspectionCache(
-            childDatas.whereType<InspectionLocation>().toList(),
+            authoritativeRemoteRootInspections ??
+                childDatas.whereType<InspectionLocation>().toList(),
           );
         }
         for (final childData in childDatas) {

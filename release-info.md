@@ -1,49 +1,10 @@
-# Änderung
+# Änderungen
 
-- Flutter-SDK aktualisiert.
-- Backups laufen jetzt inkrementell: neue Backup-Dateien enthalten nur neue, geänderte oder gelöschte Daten seit dem letzten Backup.
-- Unveränderte Daten werden nicht mehr erneut in jedes Backup geschrieben, wodurch Backups deutlich kleiner bleiben.
-- Alte vollständige Backups werden als Basis übernommen; bei unvollständigen Backup-Ketten wird automatisch wieder eine saubere Basis erstellt.
-- Backup-Fortschritt, Prozent und ETA werden dauerhaft in der Backup-Kachel angezeigt, auch nach Navigation innerhalb der App.
-- Es kann nur noch ein Backup gleichzeitig laufen.
-- Die Backup-Fortschrittsberechnung wurde angepasst, damit der letzte Prozentpunkt nicht mehr irreführend lange stehen bleibt.
-- Backups arbeiten ressourcenschonender, damit die App währenddessen benutzbar bleibt.
-- Offline angelegte Prüfkategorien und Prüfpunkte werden nach der Vergabe ihrer DB-E-Nummern nicht erneut als Duplikate gesichert; Backups enthalten zusätzlich eine lesbare Namensstruktur mit separater E-Nummern-Übersicht.
-- Ein Sync, der ausschließlich lokale IDs und E-Nummern in Serverwerte umwandelt, erzeugt kein weiteres Backup; reine Sync-Verwaltungsdateien zählen nicht als neue oder geänderte Inspektionsdaten.
-- Identische temporäre Foto-Kopien, die nur für den Upload erzeugt und danach entfernt werden, lösen ebenfalls kein zusätzliches Backup aus.
-- Nach einem Backup-vor-Sync startet der Sync robuster automatisch weiter.
-- Der Sync-Button erkennt veraltete Laufstatus und meldet nicht mehr fälschlich, dass Backup und Synchronisierung bereits laufen.
-- Offline-/Backend-DNS-Fehler werden nicht mehr dauerhaft gespammt; erneute Online-Versuche werden dabei nicht mehr für 30 Sekunden gesperrt.
-- Standort-Infos sind im Bearbeitungsmodus wieder wirklich editierbar.
-- Kategorien können wieder im Vollbild bearbeitet werden, inklusive Kategorienamen.
-- Lange Namen von Prüfkategorien und Prüfpunkten werden vollständig mehrzeilig angezeigt statt mit `…` gekürzt; weitere Aktionen wie Fotos, Kommentar, Bearbeiten und Löschen liegen platzsparend im Drei-Punkte-Menü.
-- Sonderzeichen wie `&` bleiben in neu angelegten Kategorien erhalten; ältere Varianten mit `&`, `und` oder ohne Verbinder laden weiterhin die richtigen vordefinierten Prüfpunkte.
-- Nach einer Offline-Synchronisierung werden lokale Kategorien und Prüfpunkte mit ihrer Serverkopie zusammengeführt, ohne doppelte Kategorie oder abgetrennte Mängelansicht.
-- Bestätigungsbuttons bleiben beim Bearbeiten über der eingeblendeten Tastatur.
-- Inspektionen laden beim Downloadbutton jetzt alle Bestandteile inklusive Dokumenten direkt herunter und stellen sie offline bereit.
-- Der Inspektionsdownload lädt Kategorien, Prüfpunkte und Mängel phasenweise; Schritt 4 basiert von Beginn an auf allen Prüfpunkt-Abfragen und zeigt 100 % erst nach Abschluss.
-- Bilder direkt im Inspektionsordner werden beim Download erfasst und zusammen mit den Bildern der Unterebenen offline gespeichert.
-- Der Inspektionsdownload versucht Dokumente vollständig weiterzuladen, auch wenn einzelne Dateien/Assets fehlschlagen, und zeigt den grünen Haken stabil an.
-- DOCX- und XLSX-Dokumente öffnen jetzt über den Android-Auswahldialog statt direkt mit der Standard-App.
-- Serverseitig gelöschte Inspektionen werden beim Online-Refresh auch aus dem lokalen Root-Cache entfernt, damit sie offline nicht wieder erscheinen.
-- Inspektionen zeigen den Sperr-/Mängel-Hinweis nur noch, wenn in genau dieser Inspektion Einträge vorhanden sind.
-- `Mängelfrei` zählt weiterhin als vorhandener Eintrag und wird nicht ausgeschlossen.
-- Während der Mängelprüfung beim Sperren einer Inspektion wird ein kurzer Prüf-Dialog angezeigt.
-- Der Fortschritt in Prüfkategorien zählt jetzt auch `Mängelfrei`-Einträge mit.
-- Der Bearbeitungsfortschritt steigt nur noch nach dem tatsächlichen Anlegen eines Mangels oder Mängelfrei-Eintrags; bloßes Öffnen von Prüfpunkten verändert ihn nicht mehr.
-- Der Kategorienfortschritt wird nach einem neuen Mangel oder Mängelfrei-Eintrag auch bei wechselnden lokalen IDs zuverlässig aktualisiert.
-- Neu angelegte oder gelöschte Prüfpunkte aktualisieren sofort die Gesamtzahl im Bearbeitungsstand der Prüfkategorie.
-- Nach einer erfolgreich abgeschlossenen oder bereits aktuellen Synchronisierung werden die Bearbeitungsstände aller Inspektionen vollständig zurückgesetzt; Kategorie- und Gesamtzahl-Caches werden anschließend sauber neu geladen.
-- Fertig bearbeitete Prüfpunkte werden vollständig grün dargestellt, während Kategorien weiterhin ihren anteiligen Fortschritt anzeigen.
-- Der Bearbeitungsstand bleibt nach einem App-Neustart oder Speicherabbruch erhalten.
-- Doppelte `ohne Mangel`-Einträge werden zusammengeführt; ein vorhandener Mängelfrei-Eintrag bleibt auch neben später angelegten Mängeln sichtbar.
-- Beim Löschen eines Mängelfrei-Eintrags werden dessen lokale und serverseitige Bilddaten entfernt, damit eine spätere Neuanlage keine Daten des alten Eintrags übernimmt.
-- Die Selfie-Kamera-Vorschau ist im Hochformat nicht mehr um 180 Grad gedreht.
-- Die Selfie-Kamera-Vorschau wird gespiegelt angezeigt, damit sie sich natürlicher bedienen lässt.
-- Bei vielen Fotos werden Aufnahmen alle 10 Bilder zuverlässig im Hintergrund gespeichert, auch beim Wechsel zum nächsten Prüfpunkt. Kameraauflösung, Vorschaudecodierung und Dateikopien sind speicherschonender, um Android-Speicherabbrüche zu vermeiden.
-- Ein einzelner fehlgeschlagener Bild-Upload blockiert nicht mehr die gesamte Synchronisierung; alle weiteren Requests und Inspektionen werden trotzdem verarbeitet.
-- Fehlende, leere oder nicht mehr lesbare lokale Bilddateien werden erkannt und aus der aktiven Sync-Warteschlange isoliert, statt bei jedem Versuch erneut zu scheitern. Die Abschlussmeldung weist auf übersprungene Bilder hin.
-- Bild-Uploads für offline neu angelegte Kategorien, Prüfpunkte und Mängel warten jetzt auf deren Server-ID. Abhängige Requests werden in der richtigen Reihenfolge synchronisiert, damit Bilder nicht dem falschen Eintrag zugeordnet werden.
-- Bei älteren wartenden Bild-Uploads sucht die App sowohl im ursprünglichen lokalen Ordner als auch im Elternordner nach der Bilddatei und kann dadurch abweichende lokale Pfade automatisch wiederherstellen.
-- Das Backend protokolliert den Ablauf von Bild-Uploads ausführlicher und lehnt Upload-Requests ohne Datei eindeutig ab.
-- Zugangsdaten werden nicht mehr in fehlgeschlagenen Requests gespeichert oder auf der Request-Diagnoseseite angezeigt; bereits gespeicherte Einträge werden beim Laden bereinigt.
+- Android-Updates können wieder direkt über die bereits installierte Version 270 installiert werden. Lokale Builds und GitHub-Releases verwenden dafür denselben geprüften Signierschlüssel.
+- In den Auswahllisten zum Anlegen neuer Einträge ist jetzt auch der oberste Punkt zuverlässig anklickbar, selbst wenn die Liste bis an die Statusleiste reicht.
+- Inspektionen, die nach der Verarbeitung nicht mehr auf dem Server vorhanden sind, werden bei der nächsten erfolgreichen Serverprüfung vollständig aus der App entfernt. Dazu gehören auch Kategorien, Prüfpunkte, Mängel, Fotos, Dokumente, Sync-Daten und alte Warteschlangeneinträge.
+- Noch nicht synchronisierte lokale Offline-Inspektionen bleiben von dieser automatischen Bereinigung geschützt.
+- Bereits übertragene und serverseitig entfernte Inspektionen werden nicht mehr aus verbliebenen App-Zwischendaten erneut in neue Backups aufgenommen.
+- Inkrementelle Backups berücksichtigen nur noch tatsächliche Änderungen an Inspektionsdaten. Änderungen an Laufzeitdateien, internen Warteschlangen, Bildindizes und App-Assets erzeugen kein unnötiges Backup mehr.
+- Wenn es seit dem letzten Backup keine fachlichen Änderungen gab, wird keine neue Backup-Datei erstellt.
+- Abgebrochene `backup-*.zip.partial`-Dateien werden beim nächsten Backup automatisch bereinigt. Bereits vorhandene vollständige Backups bleiben erhalten.

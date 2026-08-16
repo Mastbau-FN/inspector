@@ -25,15 +25,6 @@ samples, guidance on mobile development, and a full API reference.
 
 create a .env file in the frontend dir containing a field `API_KEY=xxx`
 
-and for signing a key.properties file in the android dir containing
-
-```properties
-storePassword=TODO
-keyPassword=TODO
-keyAlias=key0
-storeFile=../keystore-mbg.jks
-```
-
 ### Build
 
 - `flutter pub run build_runner build --delete-conflicting-outputs` to run code gen (probably optional)
@@ -41,11 +32,21 @@ storeFile=../keystore-mbg.jks
 
 ### Sign
 
-to build a signed release a key.properties file must be added in the frontend/android directory that consists of
+All distributed Android builds must use the shared Inspector signing key. Do
+not fall back to a generated debug keystore, because Android will reject later
+updates signed by a different key.
+
+For local builds, add a git-ignored `key.properties` file in the
+`frontend/android` directory that points to a securely obtained copy of the
+shared keystore:
 
 ```properties
-storePassword=TODO(if the keystore wasnt changed these are the same passwords as used for the vm admin)
+storePassword=TODO
 keyPassword=TODO
-keyAlias=key0
-storeFile=../keystore-mbg.jks
+keyAlias=TODO
+storeFile=/secure/path/to/inspector-signing.keystore
 ```
+
+GitHub Actions receives the same keystore from the encrypted repository secret
+`ANDROID_SIGNING_KEYSTORE_BASE64` and verifies its certificate fingerprint
+before building.

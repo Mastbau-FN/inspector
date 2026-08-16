@@ -376,6 +376,210 @@ Future<void> deleteAll({
   }
 }
 
+String? _projectNumberFromScopedValue(Object? value) {
+  final raw = value?.toString().trim().replaceAll('\\', '/');
+  if (raw == null || raw.isEmpty) return null;
+  final firstPathPart = raw.split('/').first;
+  final match = RegExp(r'^(\d+)(?:-|$)').firstMatch(firstPathPart);
+  if (match == null) return null;
+  final projectNumber = int.tryParse(match.group(1)!);
+  if (projectNumber == null || projectNumber <= 0) return null;
+  return projectNumber.toString();
+}
+
+Set<String> _projectNumbersInJson(Object? value, [int depth = 0]) {
+  if (value == null || depth > 12) return <String>{};
+  final projectNumbers = <String>{};
+
+  if (value is Map) {
+    for (final entry in value.entries) {
+      final key = entry.key.toString().toLowerCase();
+      if (const {
+        'pjnr',
+        'local_id',
+        'parent_local_id',
+        'scope',
+        'storedname',
+      }.contains(key)) {
+        final projectNumber = _projectNumberFromScopedValue(entry.value);
+        if (projectNumber != null) projectNumbers.add(projectNumber);
+      }
+      projectNumbers.addAll(_projectNumbersInJson(entry.value, depth + 1));
+    }
+    return projectNumbers;
+  }
+
+  if (value is Iterable) {
+    for (final child in value) {
+      projectNumbers.addAll(_projectNumbersInJson(child, depth + 1));
+    }
+    return projectNumbers;
+  }
+
+  if (value is String) {
+    final trimmed = value.trimLeft();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        projectNumbers.addAll(
+          _projectNumbersInJson(jsonDecode(value), depth + 1),
+        );
+      } catch (_) {}
+    }
+  }
+  return projectNumbers;
+}
+
+Future<Set<String>> _projectNumbersInRecord(File file) async {
+  final fromName = _projectNumberFromScopedValue(
+    file.uri.pathSegments.isEmpty ? null : file.uri.pathSegments.last,
+  );
+  final projectNumbers = <String>{
+    if (fromName != null) fromName,
+  };
+  try {
+    final stat = await file.stat();
+    if (stat.size <= 2 * 1024 * 1024) {
+      projectNumbers.addAll(
+        _projectNumbersInJson(jsonDecode(await file.readAsString())),
+      );
+    }
+  } catch (_) {}
+  return projectNumbers;
+}
+
+Future<void> _deleteInactiveRecords(
+  Directory directory,
+  Set<String> retainedPjNrs,
+  Set<String> removedPjNrs,
+) async {
+  List<FileSystemEntity> entities;
+  try {
+    entities = await directory.list(followLinks: false).toList();
+  } catch (_) {
+    return;
+  }
+
+  for (final entity in entities) {
+    if (entity is Directory) {
+      await _deleteInactiveRecords(
+        entity,
+        retainedPjNrs,
+        removedPjNrs,
+      );
+      try {
+        if (await entity.exists() &&
+            !await entity.list(followLinks: false).isEmpty) {
+          continue;
+        }
+        await entity.delete();
+      } catch (_) {}
+      continue;
+    }
+    if (entity is! File) continue;
+
+    final projectNumbers = await _projectNumbersInRecord(entity);
+    if (projectNumbers.isEmpty || projectNumbers.any(retainedPjNrs.contains)) {
+      continue;
+    }
+    try {
+      await entity.delete();
+      removedPjNrs.addAll(projectNumbers);
+    } catch (_) {}
+  }
+}
+
+/// Removes all cached records and files that can be assigned to a project
+/// which is absent from the latest authoritative server response.
+///
+/// Callers must include locally created/edited offline inspections in
+/// [retainedPjNrs]. Unknown files are deliberately preserved.
+Future<Set<String>> pruneInactiveInspectionStorage(
+  Set<String> retainedPjNrs,
+) async {
+  if (kIsWeb) return <String>{};
+  return pruneInactiveInspectionStorageAt(
+    applicationDocumentsDirectory: Directory(await localPath),
+    retainedPjNrs: retainedPjNrs,
+  );
+}
+
+@visibleForTesting
+Future<Set<String>> pruneInactiveInspectionStorageAt({
+  required Directory applicationDocumentsDirectory,
+  required Set<String> retainedPjNrs,
+}) async {
+  final retained = retainedPjNrs
+      .map(_projectNumberFromScopedValue)
+      .whereType<String>()
+      .toSet();
+  final removed = <String>{};
+  if (!await applicationDocumentsDirectory.exists()) return removed;
+
+  List<FileSystemEntity> topLevelEntities;
+  try {
+    topLevelEntities =
+        await applicationDocumentsDirectory.list(followLinks: false).toList();
+  } catch (_) {
+    return removed;
+  }
+
+  for (final entity in topLevelEntities) {
+    if (entity is! Directory) continue;
+    final segments =
+        entity.uri.pathSegments.where((segment) => segment.isNotEmpty).toList();
+    if (segments.isEmpty) continue;
+    final name = segments.last;
+
+    // Runtime assets are owned by the installed app, not by inspections.
+    if (name == 'flutter_assets') continue;
+
+    if (name == OTHERCOLLECTION) {
+      List<FileSystemEntity> files;
+      try {
+        files = await entity.list(followLinks: false).toList();
+      } catch (_) {
+        continue;
+      }
+      for (final file in files.whereType<File>()) {
+        final fileName = file.uri.pathSegments.last;
+        final match = RegExp(r'^__sync_maps__(\d+)$').firstMatch(fileName);
+        final projectNumber = match?.group(1);
+        if (projectNumber == null || retained.contains(projectNumber)) {
+          continue;
+        }
+        try {
+          await file.delete();
+          removed.add(projectNumber);
+        } catch (_) {}
+      }
+      continue;
+    }
+
+    final scopedProjectNumber = _projectNumberFromScopedValue(name);
+    if (scopedProjectNumber != null) {
+      if (!retained.contains(scopedProjectNumber)) {
+        try {
+          await entity.delete(recursive: true);
+          removed.add(scopedProjectNumber);
+        } catch (_) {}
+      }
+      // A numeric scope belongs to exactly one project. If that project is
+      // retained, avoid opening and JSON-decoding every cached photo.
+      continue;
+    }
+
+    await _deleteInactiveRecords(entity, retained, removed);
+    try {
+      if (name.startsWith('__loc__') &&
+          await entity.exists() &&
+          await entity.list(followLinks: false).isEmpty) {
+        await entity.delete();
+      }
+    } catch (_) {}
+  }
+  return removed;
+}
+
 //MARK: data-stuff
 
 final db = Localstore.instance;
