@@ -60,24 +60,26 @@
 samples, guidance on mobile development, and a full API reference.</p>
 <h3 id="environment">Environment</h3>
 <p>create a .env file in the frontend dir containing a field <code>API_KEY=xxx</code></p>
-<p>and for signing a key.properties file in the android dir containing</p>
-<pre class="language-properties"><code class="language-properties">storePassword=TODO
-keyPassword=TODO
-keyAlias=key0
-storeFile=../keystore-mbg.jks
-</code></pre>
 <h3 id="build">Build</h3>
 <ul>
 <li><code>flutter pub run build_runner build --delete-conflicting-outputs</code> to run code gen (probably optional)</li>
 <li><code>flutter build</code> {apk, web, ..}</li>
 </ul>
 <h3 id="sign">Sign</h3>
-<p>to build a signed release a key.properties file must be added in the frontend/android directory that consists of</p>
-<pre class="language-properties"><code class="language-properties">storePassword=TODO(if the keystore wasnt changed these are the same passwords as used for the vm admin)
+<p>All distributed Android builds must use the shared Inspector signing key. Do
+not fall back to a generated debug keystore, because Android will reject later
+updates signed by a different key.</p>
+<p>For local builds, add a git-ignored <code>key.properties</code> file in the
+<code>frontend/android</code> directory that points to a securely obtained copy of the
+shared keystore:</p>
+<pre class="language-properties"><code class="language-properties">storePassword=TODO
 keyPassword=TODO
-keyAlias=key0
-storeFile=../keystore-mbg.jks
+keyAlias=TODO
+storeFile=/secure/path/to/inspector-signing.keystore
 </code></pre>
+<p>GitHub Actions receives the same keystore from the encrypted repository secret
+<code>ANDROID_SIGNING_KEYSTORE_BASE64</code> and verifies its certificate fingerprint
+before building.</p>
 </section>
 
 

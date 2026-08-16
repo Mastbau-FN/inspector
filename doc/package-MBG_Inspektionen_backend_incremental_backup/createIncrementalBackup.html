@@ -76,6 +76,7 @@
   Future&lt;void&gt; Function(BackupProgress progress)? onProgress,
 }) async {
   await backupDirectory.create(recursive: true);
+  await cleanupIncompleteLocalBackups(backupDirectory);
   final existingBackups = await listManagedLocalBackups(backupDirectory);
   final stateFile =
       File(&#39;${backupDirectory.path}&#47;$_incrementalBackupStateName&#39;);

@@ -119,6 +119,8 @@ if no <code>ParentData</code> is given it defaults to root</p>
     }).toList();
   }
 
+  List&lt;InspectionLocation&gt;? authoritativeRemoteRootInspections;
+
   yield* _run(
     itPrefersCache: _dataPrefersCache(data, type: requestType),
     offline: () async =&gt; filterHiddenIfRootInspections(
@@ -130,8 +132,18 @@ if no <code>ParentData</code> is given it defaults to root</p>
       );
       return RequestAndParser&lt;http.Response, List&lt;ChildData&gt;&gt;(
         rd: rap.rd,
-        parser: (response) async =&gt;
-            filterHiddenIfRootInspections(await rap.parser(response)),
+        parser: (response) async {
+          final parsed = await rap.parser(response);
+          if (typeOf&lt;ChildData&gt;() == typeOf&lt;InspectionLocation&gt;() &amp;&amp;
+              data == null) {
+            &#47;&#47; Keep the unfiltered server snapshot for pruning. A locally
+            &#47;&#47; hidden inspection still exists on the server and must never
+            &#47;&#47; be mistaken for a deleted one.
+            authoritativeRemoteRootInspections =
+                parsed.whereType&lt;InspectionLocation&gt;().toList();
+          }
+          return filterHiddenIfRootInspections(parsed);
+        },
       );
     },
     onlineSuccessCB: (childDatas) async {
@@ -139,7 +151,8 @@ if no <code>ParentData</code> is given it defaults to root</p>
       if (typeOf&lt;ChildData&gt;() == typeOf&lt;InspectionLocation&gt;() &amp;&amp;
           data == null) {
         await _pruneStaleRootInspectionCache(
-          childDatas.whereType&lt;InspectionLocation&gt;().toList(),
+          authoritativeRemoteRootInspections ??
+              childDatas.whereType&lt;InspectionLocation&gt;().toList(),
         );
       }
       for (final childData in childDatas) {
