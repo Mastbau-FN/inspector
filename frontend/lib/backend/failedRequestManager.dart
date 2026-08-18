@@ -1074,7 +1074,10 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
 
   // Setze verbesserte HTTP-Einstellungen
   HttpOverrides.global = _ExtendedTimeoutHttpOverrides();
-  HttpClient.enableTimelineLogging = kDebugMode;
+  // Timeline logging retains metadata for every transferred network chunk. A
+  // rescue sync can upload hundreds of large photos in one isolate, so keeping
+  // it enabled in debug builds lets memory grow until Android kills the app.
+  HttpClient.enableTimelineLogging = false;
 
   // debugPrint('HTTP-Verbindungseinstellungen optimiert für Hintergrundausführung');
 

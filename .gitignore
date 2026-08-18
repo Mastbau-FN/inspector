@@ -11,3 +11,11 @@ misc/failed-request-incident-02.zip
 result
 
 .env
+
+# Local device recovery and generated backup artifacts
+device-recovery/
+**/MBGBackups/
+**/backup-[0-9]*.zip
+**/.mbg-backup-state-*.json
+**/.mbg-force-full-backup
+**/*.zip.partial

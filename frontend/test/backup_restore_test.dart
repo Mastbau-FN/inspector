@@ -600,6 +600,114 @@ void main() {
     expect(await current.readAsString(), 'untouched');
   });
 
+  test('accepts v270 runtime docs and stale moves without losing records',
+      () async {
+    final rootBytes = utf8.encode(jsonEncode({
+      'PjNr': 900,
+      'StONr': 9,
+      'PjName': 'Legacy project',
+      'local_id': 'inspection-900',
+      'offline': true,
+    }));
+    final sourceBytes = utf8.encode(jsonEncode({
+      'PjNr': 900,
+      'E1': -1,
+      'KurzText': 'Separate local record',
+      'local_id': '__loc__source',
+      'parent_local_id': 'inspection-900',
+      'offline': true,
+    }));
+    final archivedTargetBytes = utf8.encode(jsonEncode({
+      'PjNr': 900,
+      'E1': 2,
+      'KurzText': 'Server record',
+      'local_id': '900-2-undefined-undefined',
+      'parent_local_id': 'inspection-900',
+      'offline': true,
+    }));
+    final latestTargetBytes = utf8.encode(jsonEncode({
+      'PjNr': 900,
+      'E1': 2,
+      'KurzText': 'Server record',
+      'local_id': '900-2-undefined-undefined',
+      'parent_local_id': 'inspection-900',
+      'offline': false,
+    }));
+    final optionsBytes = utf8.encode(jsonEncode({'forceOffline': true}));
+    final hiddenBytes = utf8.encode(jsonEncode({'hidden': <String>[]}));
+    const rootPath = 'legacy-root/inspection-900';
+    const sourcePath = 'inspection-900/__loc__source';
+    const targetPath = 'inspection-900/900-2-undefined-undefined';
+    const optionsPath = 'other/__options__';
+    const hiddenPath = 'other/__hidden_inspections_v1__';
+
+    final baseSnapshot = {
+      rootPath: _legacySignature(rootBytes),
+      sourcePath: _legacySignature(sourceBytes),
+      targetPath: _legacySignature(archivedTargetBytes),
+      optionsPath: _legacySignature(optionsBytes),
+      hiddenPath: _legacySignature(hiddenBytes),
+    };
+    final latestSnapshot = Map<String, dynamic>.from(baseSnapshot)
+      ..[targetPath] = _legacySignature(latestTargetBytes);
+    const baseName = 'backup-1000.zip';
+    const deltaName = 'backup-2000.zip';
+    final baseBackup = File('${testDirectory.path}/$baseName');
+    final deltaBackup = File('${testDirectory.path}/$deltaName');
+    _writeArchive(baseBackup, {
+      rootPath: rootBytes,
+      sourcePath: sourceBytes,
+      targetPath: archivedTargetBytes,
+      optionsPath: optionsBytes,
+      hiddenPath: hiddenBytes,
+      incrementalBackupManifestName: utf8.encode(jsonEncode({
+        'version': 1,
+        'createdAt': DateTime.utc(2026, 7, 1).toIso8601String(),
+        'baseBackup': null,
+        'changedFiles': baseSnapshot.keys.toList(),
+        'deletedFiles': <String>[],
+        'movedFiles': <String, String>{},
+        'snapshot': baseSnapshot,
+        'backupChain': [baseName],
+      })),
+    });
+    _writeArchive(deltaBackup, {
+      incrementalBackupManifestName: utf8.encode(jsonEncode({
+        'version': 1,
+        'createdAt': DateTime.utc(2026, 7, 2).toIso8601String(),
+        'baseBackup': baseName,
+        'changedFiles': <String>[],
+        'deletedFiles': <String>[],
+        // v270 could retain this stale move even though both source and target
+        // still belonged to the final snapshot.
+        'movedFiles': {sourcePath: targetPath},
+        'snapshot': latestSnapshot,
+        'backupChain': [baseName, deltaName],
+      })),
+    });
+
+    final result = await restoreIncrementalBackupChain(
+      backupFiles: [deltaBackup, baseBackup],
+      targetDirectory: targetDirectory,
+      workingDirectory: workingDirectory,
+    );
+
+    expect(result.appliedBackupCount, 2);
+    expect(
+      jsonDecode(
+        await File('${targetDirectory.path}/$sourcePath').readAsString(),
+      )['KurzText'],
+      'Separate local record',
+    );
+    final restoredTarget = jsonDecode(
+      await File('${targetDirectory.path}/$targetPath').readAsString(),
+    ) as Map;
+    expect(restoredTarget['KurzText'], 'Server record');
+    expect(restoredTarget['offline'], true);
+    expect(await File('${targetDirectory.path}/$optionsPath').exists(), isTrue);
+    expect(await File('${targetDirectory.path}/$hiddenPath').exists(), isTrue);
+  });
+
   test('rejects path traversal before writing any restored file', () async {
     final malicious = File('${testDirectory.path}/malicious.zip');
     final content = utf8.encode('outside');
@@ -686,6 +794,42 @@ void main() {
       'same-data',
     );
   });
+}
+
+Map<String, dynamic> _legacySignature(List<int> bytes) {
+  dynamic normalize(Object? value) {
+    const ignored = {
+      'local_id',
+      'parent_local_id',
+      'offline',
+      'E1',
+      'E2',
+      'E3',
+    };
+    if (value is Map) {
+      final keys = value.keys.map((key) => key.toString()).toList()..sort();
+      return {
+        for (final key in keys)
+          if (!ignored.contains(key)) key: normalize(value[key]),
+      };
+    }
+    if (value is List) return value.map(normalize).toList();
+    return value;
+  }
+
+  String? comparisonHash;
+  try {
+    comparisonHash = sha256
+        .convert(
+            utf8.encode(jsonEncode(normalize(jsonDecode(utf8.decode(bytes))))))
+        .toString();
+  } catch (_) {}
+  return {
+    'size': bytes.length,
+    'modifiedAtMs': 1,
+    'contentHash': sha256.convert(bytes).toString(),
+    if (comparisonHash != null) 'comparisonHash': comparisonHash,
+  };
 }
 
 String _failedRequest(int projectNumber) => jsonEncode({

@@ -92,6 +92,10 @@ class _BackupManagementViewState extends State<BackupManagementView> {
     }
 
     try {
+      // Android's document picker copies every selected file into the app
+      // cache, even when withData is false. Remove copies left by an aborted
+      // multi-gigabyte import before creating another one.
+      await _clearTemporaryImportFiles();
       final selection = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: const ['zip'],
@@ -211,12 +215,23 @@ class _BackupManagementViewState extends State<BackupManagementView> {
         );
       }
     } finally {
+      await _clearTemporaryImportFiles();
       if (mounted) {
         setState(() {
           isRestoring = false;
           restoreStatus = null;
         });
       }
+    }
+  }
+
+  Future<void> _clearTemporaryImportFiles() async {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      await FilePicker.clearTemporaryFiles();
+    } catch (_) {
+      // Cache cleanup must not hide the actual import result. Mobile systems
+      // may also remove these temporary files independently.
     }
   }
 

@@ -285,12 +285,14 @@ class _RestoreSignature {
   final int size;
   final int modifiedAtMs;
   final String contentHash;
+  final String? comparisonHash;
   final Map<String, dynamic>? metadata;
 
   const _RestoreSignature({
     required this.size,
     required this.modifiedAtMs,
     required this.contentHash,
+    this.comparisonHash,
     this.metadata,
   });
 }
@@ -724,12 +726,16 @@ _RestoreManifest _parseRestoreManifest(
     final size = (signature['size'] as num?)?.toInt();
     final modifiedAtMs = (signature['modifiedAtMs'] as num?)?.toInt();
     final contentHash = signature['contentHash']?.toString().toLowerCase();
+    final comparisonHash =
+        signature['comparisonHash']?.toString().toLowerCase();
     if (size == null ||
         size < 0 ||
         modifiedAtMs == null ||
         modifiedAtMs < 0 ||
         contentHash == null ||
-        !RegExp(r'^[0-9a-f]{64}$').hasMatch(contentHash)) {
+        !RegExp(r'^[0-9a-f]{64}$').hasMatch(contentHash) ||
+        (comparisonHash != null &&
+            !RegExp(r'^[0-9a-f]{64}$').hasMatch(comparisonHash))) {
       throw BackupRestoreException(
         '$archiveName kann $path nicht zuverlässig verifizieren.',
       );
@@ -741,6 +747,7 @@ _RestoreManifest _parseRestoreManifest(
       size: size,
       modifiedAtMs: modifiedAtMs,
       contentHash: contentHash,
+      comparisonHash: comparisonHash,
       metadata: signature['metadata'] is Map
           ? Map<String, dynamic>.from(signature['metadata'] as Map)
           : null,
@@ -827,7 +834,13 @@ bool _isRestorableDataPath(String relativePath) {
   final parts = relativePath.split('/');
   final first = parts.first;
   if (first == 'other') {
-    return parts.length == 2 && parts.last.startsWith('__sync_maps__');
+    // v270 still included these two harmless app-state documents. They must
+    // be accepted so an old chain can be verified, even though the selective
+    // inspection import does not copy them into the new installation.
+    return parts.length == 2 &&
+        (parts.last.startsWith('__sync_maps__') ||
+            parts.last == '__options__' ||
+            parts.last == '__hidden_inspections_v1__');
   }
   const excludedTopLevelPaths = {
     'skipped-requests',
@@ -2105,6 +2118,11 @@ Future<void> _applyManifest(
   Directory stageDirectory,
 ) async {
   for (final move in manifest.movedFiles.entries) {
+    // Some v270 manifests kept the source in their final snapshot while also
+    // emitting a stale move to a server id (occasionally several sources to
+    // the same target). The source must then remain a separate record; moving
+    // it would overwrite the valid target and contradict the snapshot.
+    if (manifest.snapshot.containsKey(move.key)) continue;
     final source = File(_pathIn(stageDirectory, move.key));
     final target = File(_pathIn(stageDirectory, move.value));
     if (await source.exists()) {
@@ -2178,9 +2196,14 @@ Future<void> _applyManifest(
       await destination.parent.create(recursive: true);
       final output = OutputFileStream(destination.path);
       try {
-        entry.writeContent(output);
+        _writeArchiveEntryStreaming(entry, output, manifest.archiveName);
       } finally {
         await output.close();
+        // archive 3.x otherwise retains the decompressed contents of every
+        // entry until the complete Archive is collected. A multi-gigabyte
+        // photo backup can consequently exhaust the Dart heap even though the
+        // destination itself is written to disk.
+        entry.clear();
       }
       final actualHash = await _sha256File(destination);
       if (await destination.length() != signature.size ||
@@ -2205,6 +2228,36 @@ Future<void> _applyManifest(
   }
 }
 
+void _writeArchiveEntryStreaming(
+  ArchiveFile entry,
+  OutputFileStream output,
+  String archiveName,
+) {
+  final rawContent = entry.rawContent;
+  if (rawContent == null) {
+    throw BackupRestoreException(
+      '$archiveName: ${entry.name} enthält keine lesbaren Dateidaten.',
+    );
+  }
+
+  switch (entry.compressionType) {
+    case ArchiveFile.STORE:
+      output.writeInputStream(rawContent);
+      return;
+    case ArchiveFile.DEFLATE:
+      // Inflate writes directly into OutputFileStream. In contrast to
+      // ArchiveFile.writeContent this never materializes the whole entry as a
+      // List<int> and therefore keeps memory bounded by the stream buffers.
+      Inflate.stream(rawContent, output);
+      return;
+    default:
+      throw BackupRestoreException(
+        '$archiveName verwendet für ${entry.name} eine nicht unterstützte '
+        'ZIP-Komprimierung (${entry.compressionType}).',
+      );
+  }
+}
+
 Future<void> _verifySnapshot(
   Directory stageDirectory,
   Map<String, _RestoreSignature> snapshot,
@@ -2217,8 +2270,7 @@ Future<void> _verifySnapshot(
     foundPaths.add(path);
     final signature = snapshot[path];
     if (signature == null ||
-        await entity.length() != signature.size ||
-        await _sha256File(entity) != signature.contentHash) {
+        !await _matchesFinalSnapshotSignature(entity, signature)) {
       throw BackupRestoreException(
         'Der rekonstruierte Datenstand ist bei $path nicht vollständig.',
       );
@@ -2232,6 +2284,58 @@ Future<void> _verifySnapshot(
       'Fehlend: ${missing.length}, unerwartet: ${unexpected.length}.',
     );
   }
+}
+
+Future<bool> _matchesFinalSnapshotSignature(
+  File file,
+  _RestoreSignature signature,
+) async {
+  if (await file.length() == signature.size &&
+      await _sha256File(file) == signature.contentHash) {
+    return true;
+  }
+
+  // In v270, local-only ID/offline changes intentionally did not create a
+  // delta. Later manifests nevertheless recorded the newest byte hash. The
+  // chain therefore contains an older byte representation with the same
+  // comparisonHash. Accept exactly that documented semantic equivalence.
+  final expectedComparisonHash = signature.comparisonHash;
+  if (expectedComparisonHash == null || await file.length() > 4 * 1024 * 1024) {
+    return false;
+  }
+  try {
+    final decoded = jsonDecode(await file.readAsString());
+    if (decoded is! Map) return false;
+    final normalized = _normalizedIncrementalBackupJson(decoded);
+    final actualComparisonHash =
+        sha256.convert(utf8.encode(jsonEncode(normalized))).toString();
+    return actualComparisonHash == expectedComparisonHash;
+  } catch (_) {
+    return false;
+  }
+}
+
+dynamic _normalizedIncrementalBackupJson(Object? value) {
+  const ignoredKeys = {
+    'local_id',
+    'parent_local_id',
+    'offline',
+    'E1',
+    'E2',
+    'E3',
+  };
+  if (value is Map) {
+    final keys = value.keys.map((key) => key.toString()).toList()..sort();
+    return {
+      for (final key in keys)
+        if (!ignoredKeys.contains(key))
+          key: _normalizedIncrementalBackupJson(value[key]),
+    };
+  }
+  if (value is List) {
+    return value.map(_normalizedIncrementalBackupJson).toList();
+  }
+  return value;
 }
 
 Future<void> _copyPreservedRuntimeFiles(
