@@ -149,9 +149,12 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     }
   }
 
-  Widget ohneMaengelButton(BuildContext context) {
+  Widget ohneMaengelButton(
+    BuildContext context, {
+    Future<List<CheckPointDefect>>? defectsFuture,
+  }) {
     return FutureBuilder(
-        future: all().last,
+        future: defectsFuture ?? all().last,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return Container();

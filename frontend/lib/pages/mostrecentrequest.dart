@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/classes/requestData.dart';
 import 'package:MBG_Inspektionen/helpers/toast.dart';
@@ -63,22 +65,19 @@ class MostRecentRequestPage extends StatelessWidget {
                             return Column(
                               children: [
                                 Text('File: ${file.name}'),
-                                FutureBuilder(
-                                  future: file.readAsBytes(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasError) {
-                                      return Text(
-                                        'Lokale Upload-Datei fehlt oder ist '
-                                        'nicht lesbar: ${file.path}',
-                                        style: TextStyle(color: Colors.red),
-                                      );
-                                    }
-                                    if (snapshot.hasData) {
-                                      return Image.memory(snapshot.data!);
-                                    } else {
-                                      return CircularProgressIndicator();
-                                    }
-                                  },
+                                SizedBox(
+                                  width: 256,
+                                  height: 256,
+                                  child: Image.file(
+                                    File(file.path),
+                                    fit: BoxFit.contain,
+                                    cacheWidth: 1024,
+                                    cacheHeight: 1024,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.insert_drive_file,
+                                      size: 64,
+                                    ),
+                                  ),
                                 )
                               ],
                             );

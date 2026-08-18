@@ -20,6 +20,13 @@ Future main() async {
   // can be called before `runApp()`
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inspection photos are plentiful and often very large. Keep the decoded
+  // image cache bounded so normal navigation cannot retain another 100+ MB of
+  // bitmaps on top of the camera and Flutter rendering buffers.
+  final imageCache = PaintingBinding.instance.imageCache;
+  imageCache.maximumSize = 100;
+  imageCache.maximumSizeBytes = 32 * 1024 * 1024;
+
   await Options().load();
   await CategoryProgressState.instance.restore();
   // await NewImages.load();
@@ -62,8 +69,8 @@ class _MyAppState extends State<MyApp> {
                 backgroundColor: Colors.white,
               ),
           switchTheme: SwitchThemeData(
-            thumbColor:
-                WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+            thumbColor: WidgetStateProperty.resolveWith<Color>(
+                (Set<WidgetState> states) {
               if (states.contains(WidgetState.disabled)) {
                 return Colors.orange.withValues(alpha: 0.48);
               }
@@ -72,8 +79,8 @@ class _MyAppState extends State<MyApp> {
               }
               return mbgpalette0;
             }),
-            trackColor:
-                WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+            trackColor: WidgetStateProperty.resolveWith<Color>(
+                (Set<WidgetState> states) {
               if (states.contains(WidgetState.disabled)) {
                 return Colors.orange.withValues(alpha: 0.48);
               }
@@ -93,7 +100,7 @@ class _MyAppState extends State<MyApp> {
                 brightness: Brightness.dark,
                 backgroundColor: Colors.black,
                 cardColor: Colors.grey[900],
-          ),
+              ),
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.black,
           ),

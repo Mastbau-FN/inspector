@@ -13,7 +13,6 @@ import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/listTileData.dart';
 import 'package:MBG_Inspektionen/pages/dropdownPage.dart';
 import 'package:MBG_Inspektionen/pages/location.dart';
-import 'package:image/image.dart' as imglib;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -101,6 +100,9 @@ mixin WithOffline on Data {
 class DropDownModel<ChildData extends WithLangText,
         ParentData extends WithOffline?> extends ChangeNotifier
     implements KnowsNext<ChildData> {
+  Future<List<ChildData>>? _cachedChildren;
+  Object? _cachedChildrenKey;
+
   /// could be used for the scaffold appbar title
   String get title => currentData?.title ?? "root";
 
@@ -194,6 +196,23 @@ class DropDownModel<ChildData extends WithLangText,
         currentData,
         preloadFullImages: preloadFullImages,
       );
+
+  /// Shares one child load between the list, header actions and rebuilds. Full
+  /// inspections otherwise started the same disk/network traversal multiple
+  /// times in parallel.
+  Future<List<ChildData>> allCached(Object cacheKey) {
+    if (_cachedChildren == null || _cachedChildrenKey != cacheKey) {
+      _cachedChildrenKey = cacheKey;
+      _cachedChildren = all().last;
+    }
+    return _cachedChildren!;
+  }
+
+  @override
+  void notifyListeners() {
+    _cachedChildren = null;
+    super.notifyListeners();
+  }
 
   /// a [List] which all the actions that could be made for a specific DropDown
   /// IMPORTANT: the first element marks the main/default action
@@ -290,14 +309,22 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
                     );
 
                     if (file == null) return null;
-                    final decoded =
-                        imglib.decodeImage(await file.readAsBytes());
-                    if (decoded == null) return null;
+                    final lower = file.path.toLowerCase();
+                    final mimeType = lower.endsWith('.png')
+                        ? 'image/png'
+                        : lower.endsWith('.webp')
+                            ? 'image/webp'
+                            : lower.endsWith('.heic') || lower.endsWith('.heif')
+                                ? 'image/heic'
+                                : 'image/jpeg';
 
-                    return XFile.fromData(
-                      Uint8List.fromList(imglib.encodePng(decoded)),
-                      name: 'mbg_${hash.hashCode.toRadixString(36)}.png',
-                      mimeType: 'image/png',
+                    // Share the existing file directly. Decoding every source
+                    // image and keeping a second PNG copy in memory made
+                    // multi-image sharing one of the largest OOM sources.
+                    return XFile(
+                      file.path,
+                      name: file.uri.pathSegments.last,
+                      mimeType: mimeType,
                     );
                   }
 

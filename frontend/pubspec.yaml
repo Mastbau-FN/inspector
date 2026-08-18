@@ -78,7 +78,9 @@ dependencies:
   share_plus: ^10.1.4
   # select one or more incremental backup ZIPs for restore
   file_picker: ^11.0.3
-  image: ^4.0.17
+  # Rotate/downscale photos in native code without copying full-resolution
+  # bitmaps through the Dart heap.
+  flutter_image_compress: ^2.5.1
 
   # storing sensitive data like username and password
   flutter_secure_storage: ^10.0.0-beta.4

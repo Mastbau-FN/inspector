@@ -1012,7 +1012,8 @@ Future<void> _resetForceOfflineFlagsForAllLocalInspections() async {
     String _docIdFromKey(String key) => key.split('/').last;
 
     Future<List<String>> _resetCollection(String collectionName) async {
-      final raw = await OfflineProvider.db.collection(collectionName).get();
+      final raw =
+          await OfflineProvider.readLocalstoreCollection(collectionName);
       if (raw == null) return const [];
       final docIds = <String>[];
       for (final entry in raw.entries) {
@@ -1258,7 +1259,8 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
               inferred = inspId;
             } else if (type == 'checkpoint') {
               try {
-                final cats = await OfflineProvider.db.collection(inspId).get();
+                final cats =
+                    await OfflineProvider.readLocalstoreCollection(inspId);
                 if (cats != null) {
                   for (final key in cats.keys) {
                     final catId = key.split('/').last;
@@ -1275,12 +1277,13 @@ _retryFailedRequestsIsolate(_RetryFailedRequestsIsolateInput input) async {
               } catch (_) {}
             } else if (type == 'defect') {
               try {
-                final cats = await OfflineProvider.db.collection(inspId).get();
+                final cats =
+                    await OfflineProvider.readLocalstoreCollection(inspId);
                 if (cats != null) {
                   for (final catKey in cats.keys) {
                     final catId = catKey.split('/').last;
                     final cps =
-                        await OfflineProvider.db.collection(catId).get();
+                        await OfflineProvider.readLocalstoreCollection(catId);
                     if (cps == null) continue;
                     for (final cpKey in cps.keys) {
                       final cpId = cpKey.split('/').last;

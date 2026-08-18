@@ -155,6 +155,11 @@ class LocalMirror {
         [];
   }
 
+  /// Counts locally stored child records without constructing the records or
+  /// touching photos in the shared collection directory.
+  Future<int> countNextDatapoints(Data parent) =>
+      OP.countLocalstoreCollection(parent.id);
+
   /// sets a new [DataT]
   Future<DataT?> setNew<DataT extends Data>(
     DataT? data, {

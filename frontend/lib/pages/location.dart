@@ -360,8 +360,20 @@ class LocationDetailPage extends StatelessWidget {
             width: 100,
             child: FutureBuilder<ImageData?>(
                 future: locationdata.mainImage,
-                builder: (context, snapshot) =>
-                    snapshot.data?.image ?? Icon(Icons.construction)),
+                builder: (context, snapshot) {
+                  final provider = snapshot.data?.image.image;
+                  if (provider == null) return Icon(Icons.construction);
+                  return Image(
+                    image: ResizeImage.resizeIfNeeded(
+                      (100 * MediaQuery.devicePixelRatioOf(context))
+                          .round()
+                          .clamp(100, 512),
+                      null,
+                      provider,
+                    ),
+                    fit: BoxFit.cover,
+                  );
+                }),
           ),
         ),
       );

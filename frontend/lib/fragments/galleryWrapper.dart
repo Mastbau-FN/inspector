@@ -7,6 +7,19 @@ import 'package:flutter/scheduler.dart';
 
 import 'loadingscreen/loadingView.dart';
 
+/// Drops decoded inspection photos after an image-heavy route has left the
+/// screen. Navigator keeps previous routes mounted, so relying only on the
+/// global LRU cache otherwise retains gallery bitmaps throughout a field day.
+void releaseInspectionImageCacheAfterFrame() {
+  final imageCache = PaintingBinding.instance.imageCache;
+  imageCache.clear();
+  imageCache.clearLiveImages();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    imageCache.clear();
+    imageCache.clearLiveImages();
+  });
+}
+
 class GalleryPhotoViewWrapper extends StatefulWidget {
   GalleryPhotoViewWrapper({
     this.loadingBuilder,
@@ -43,6 +56,13 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
     setState(() {
       currentIndex = index;
     });
+  }
+
+  @override
+  void dispose() {
+    widget.pageController.dispose();
+    releaseInspectionImageCacheAfterFrame();
+    super.dispose();
   }
 
   Future<void> _rotateCurrent(int deltaQuarterTurns) async {
@@ -167,9 +187,22 @@ class FullImg extends StatelessWidget {
     this.quarterTurns = 0,
   });
 
-  Widget _safe(Image img) {
+  Widget _safe(BuildContext context, Image img) {
+    final mediaQuery = MediaQuery.of(context);
+    final decodeExtent =
+        (mediaQuery.size.longestSide * mediaQuery.devicePixelRatio * 1.5)
+            .ceil()
+            .clamp(1024, 2560)
+            .toInt();
     final image = Image(
-      image: img.image,
+      // A 40-50 MP photo needs roughly 160-200 MB once decoded. PhotoView may
+      // retain the current and adjacent pages, so always decode gallery images
+      // close to the physical display size instead of sensor resolution.
+      image: ResizeImage.resizeIfNeeded(
+        decodeExtent,
+        decodeExtent,
+        img.image,
+      ),
       fit: BoxFit.contain,
       filterQuality: img.filterQuality,
       isAntiAlias: img.isAntiAlias,
@@ -199,13 +232,14 @@ class FullImg extends StatelessWidget {
             return item.fallBackWidget;
           }
           return (snapshot.data != null)
-              ? _safe(snapshot.data!)
+              ? _safe(context, snapshot.data!)
               : (item.image?.image != null)
-                  ? _safe(item.image!.image)
+                  ? _safe(context, item.image!.image)
                   : Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (item.image != null) _safe(item.image!.image),
+                        if (item.image != null)
+                          _safe(context, item.image!.image),
                         const LoadingView(),
                       ],
                     );

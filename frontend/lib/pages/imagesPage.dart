@@ -459,6 +459,9 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
   }
 
   void closeCam() {
+    unawaited(
+      Provider.of<CameraModel>(context, listen: false).disposeCamera(),
+    );
     setState(() {
       withCamera = false;
     });
@@ -484,7 +487,7 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
 
     if (pic != null) {
       _photoQueue.add(pic);
-      model.discardPic();
+      model.discardPic(deleteTemporaryFile: false);
     }
   }
 
@@ -923,21 +926,22 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
                     angle: rotationAngle,
                     child: AspectRatio(
                       aspectRatio: shouldRotate ? 1 / imageRatio : imageRatio,
-                      child: Image.file(
-                        file,
+                      child: Image(
+                        image: model.latestPicturePreviewProvider(
+                          cacheWidth: max(
+                            1,
+                            (displayWidth *
+                                    MediaQuery.devicePixelRatioOf(context))
+                                .round(),
+                          ),
+                          cacheHeight: max(
+                            1,
+                            (displayHeight *
+                                    MediaQuery.devicePixelRatioOf(context))
+                                .round(),
+                          ),
+                        ),
                         fit: BoxFit.contain,
-                        cacheWidth: max(
-                          1,
-                          (displayWidth *
-                                  MediaQuery.devicePixelRatioOf(context))
-                              .round(),
-                        ),
-                        cacheHeight: max(
-                          1,
-                          (displayHeight *
-                                  MediaQuery.devicePixelRatioOf(context))
-                              .round(),
-                        ),
                         filterQuality: FilterQuality.medium,
                       ),
                     ),

@@ -108,7 +108,14 @@ class ExpandableCard2 extends ExpandablesRadio {
                   builder: (context, snapshot) {
                     var imagep = snapshot.data?.image.image;
                     return (imagep != null
-                            ? Image(image: imagep, fit: BoxFit.fill)
+                            ? Image(
+                                image: ResizeImage.resizeIfNeeded(
+                                  256,
+                                  256,
+                                  imagep,
+                                ),
+                                fit: BoxFit.fill,
+                              )
                             : null) ??
                         Icon(
                           Icons.construction,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
+import 'dart:async';
 import '../../../widgets/error.dart';
 
 double cameraPreviewRotationAngle({
@@ -22,11 +23,43 @@ double cameraPreviewScaleX(CameraDescription camera) {
 }
 
 /// Hauptkomponente für die Kameravorschau mit optionalen Steuerelementen
-class CameraPreviewOnly extends StatelessWidget {
+class CameraPreviewOnly extends StatefulWidget {
   final List<Widget> children;
 
   const CameraPreviewOnly({this.children = const [], Key? key})
       : super(key: key);
+
+  @override
+  State<CameraPreviewOnly> createState() => _CameraPreviewOnlyState();
+}
+
+class _CameraPreviewOnlyState extends State<CameraPreviewOnly>
+    with WidgetsBindingObserver {
+  CameraModel? _model;
+  AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _lifecycleState = state;
+    if (state == AppLifecycleState.resumed) {
+      if (mounted) setState(() {});
+    } else {
+      final model = _model;
+      if (model != null) unawaited(model.disposeCamera());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +68,10 @@ class CameraPreviewOnly extends StatelessWidget {
       child: SafeArea(
         child: Consumer<CameraModel>(
           builder: (context, model, _) {
+            _model = model;
+            if (_lifecycleState != AppLifecycleState.resumed) {
+              return const Center(child: LoadingView());
+            }
             return FutureBuilder(
               future: model.start(),
               builder: (context, AsyncSnapshot<CameraController> snapshot) {
@@ -80,14 +117,14 @@ class CameraPreviewOnly extends StatelessWidget {
           ),
 
           // Zusätzliche Steuerelemente (falls vorhanden)
-          if (children.isNotEmpty)
+          if (widget.children.isNotEmpty)
             Positioned(
               top: 16,
               right: 16,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: children,
+                children: widget.children,
               ),
             ),
 
@@ -157,6 +194,7 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
   double _startZoom = 1.0;
   Offset? _focusPoint;
   late AnimationController _focusAnimationController;
+  StreamSubscription<dynamic>? _volumeButtonSubscription;
   static const EventChannel _volumeButtonChannel =
       EventChannel('volume_button_events');
 
@@ -174,13 +212,15 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
 
   @override
   void dispose() {
+    _volumeButtonSubscription?.cancel();
     _focusAnimationController.dispose();
     super.dispose();
   }
 
   /// Initialisiert den Event-Listener für die Lautstärketasten
   void _initVolumeButtonHandler() {
-    _volumeButtonChannel.receiveBroadcastStream().listen((event) {
+    _volumeButtonSubscription =
+        _volumeButtonChannel.receiveBroadcastStream().listen((event) {
       if (event == "volume_up") {
         _adjustZoom(0.1); // Zoom erhöhen
       } else if (event == "volume_down") {

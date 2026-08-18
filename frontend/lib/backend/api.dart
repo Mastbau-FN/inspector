@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart';
@@ -14,9 +13,10 @@ import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/helpers/inspection_text.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart'
+    show CompressFormat, FlutterImageCompress;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:image/image.dart' as imglib;
 import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -625,6 +625,11 @@ class API {
       prepared.add(await retrieveStoredXFile(storedName));
     }
 
+    // Only remove camera/image-picker cache sources after every file in the
+    // batch has a durable copy. If preparation fails halfway, the caller can
+    // still retry the complete original batch.
+    await Future.wait(files.map(deleteCachedSource));
+
     return prepared;
   }
 
@@ -657,15 +662,56 @@ class API {
     return refs;
   }
 
-  Uint8List _encodeRotatedImageBytes(imglib.Image image, String nameHint) {
-    final lower = nameHint.toLowerCase();
-    if (lower.endsWith('.png')) {
-      return Uint8List.fromList(imglib.encodePng(image));
+  Future<File?> _rotateImageToTemporaryFile(
+    File sourceFile, {
+    required int degrees,
+    required bool preservePng,
+  }) async {
+    final format = preservePng ? CompressFormat.png : CompressFormat.jpeg;
+    final extension = preservePng ? '.png' : '.jpg';
+    final targetPath = '${sourceFile.path}.mbg-rotate-'
+        '${DateTime.now().microsecondsSinceEpoch}$extension';
+    try {
+      final result = await FlutterImageCompress.compressAndGetFile(
+        sourceFile.path,
+        targetPath,
+        // 4096 px still preserves more detail than the display can show while
+        // preventing 40-50 MP bitmaps from exhausting native memory.
+        minWidth: 4096,
+        minHeight: 4096,
+        quality: 92,
+        rotate: degrees,
+        autoCorrectionAngle: false,
+        format: format,
+        keepExif: true,
+      );
+      if (result != null) return File(result.path);
+      final partial = File(targetPath);
+      if (await partial.exists()) await partial.delete();
+      return null;
+    } catch (_) {
+      final partial = File(targetPath);
+      if (await partial.exists()) await partial.delete();
+      rethrow;
     }
-    if (lower.endsWith('.webp')) {
-      return Uint8List.fromList(imglib.encodeJpg(image, quality: 92));
+  }
+
+  Future<void> _replaceFileAtomically(
+    File destination,
+    File replacement,
+  ) async {
+    final backup = File('${destination.path}.mbg-rotate-backup');
+    if (await backup.exists()) await backup.delete();
+    await destination.rename(backup.path);
+    try {
+      await replacement.rename(destination.path);
+      await backup.delete();
+    } catch (_) {
+      if (!await destination.exists() && await backup.exists()) {
+        await backup.rename(destination.path);
+      }
+      rethrow;
     }
-    return Uint8List.fromList(imglib.encodeJpg(image, quality: 92));
   }
 
   Future<String> _nextScopedImageName(String scope) async {
@@ -1242,18 +1288,22 @@ class API {
         return 'image not found locally';
       }
 
-      final originalBytes = await sourceFile.readAsBytes();
-      final decoded = imglib.decodeImage(originalBytes);
-      if (decoded == null) return 'could not decode image';
-      final rotated = imglib.copyRotate(decoded, angle: 90 * turns);
-      final rotatedBytes =
-          _encodeRotatedImageBytes(rotated, sourceFile.path.toLowerCase());
+      final isLocalReference = _isLocalImageReference(requested);
+      final preservePng =
+          isLocalReference && sourceFile.path.toLowerCase().endsWith('.png');
+      final rotatedTemp = await _rotateImageToTemporaryFile(
+        sourceFile,
+        degrees: 90 * turns,
+        preservePng: preservePng,
+      );
+      if (rotatedTemp == null) return 'could not decode image';
 
       // Local-only image refs (timestamp/scoped/local prefixes) are uploaded by
       // pending multipart requests. Overwrite the file in place so sync uploads
       // the rotated bytes.
-      if (_isLocalImageReference(requested)) {
-        await sourceFile.writeAsBytes(rotatedBytes, flush: true);
+      if (isLocalReference) {
+        await FileImage(sourceFile).evict();
+        await _replaceFileAtomically(sourceFile, rotatedTemp);
         await FileImage(sourceFile).evict();
         return 'image rotated locally';
       }
@@ -1263,8 +1313,14 @@ class API {
       final oldRefs = _collectImageRefs(data);
       final wasMainImage = data.mainhash == requested;
       final newScopedName = await _nextScopedImageName(scope);
-      final rotatedFile = await storeImage(rotatedBytes, newScopedName);
-      if (rotatedFile == null) return 'could not persist rotated image';
+      final rotatedFile = await localFile(newScopedName);
+      await rotatedFile.parent.create(recursive: true);
+      try {
+        await rotatedTemp.rename(rotatedFile.path);
+      } on FileSystemException {
+        await rotatedTemp.copy(rotatedFile.path);
+        await rotatedTemp.delete();
+      }
       await FileImage(rotatedFile).evict();
 
       final uploadResult = await uploadNewImagesOrFiles<DataT>(

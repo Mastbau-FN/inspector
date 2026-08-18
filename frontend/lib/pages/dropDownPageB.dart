@@ -37,6 +37,7 @@ class DropDownPageB<
   const DropDownPageB({Key? key}) : super(key: key);
 
   static final Set<String> _primingCategoryIds = <String>{};
+  static Future<void> _categoryPrimingTail = Future<void>.value();
 
   static const _appbarHeightSmall = 70.0;
   static const _appbarBarHeight = 70.0;
@@ -47,157 +48,171 @@ class DropDownPageB<
   Widget build(BuildContext context) {
     return Consumer<DDModel>(
       builder: (context, ddmodel, child) {
-        final maengelDoneButton = ddmodel.runtimeType == CheckPointDefectsModel
-            ? Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                child: (ddmodel as CheckPointDefectsModel)
-                    .ohneMaengelButton(context),
-              )
-            : Container();
-
-        final sliverAppBar = SliverAppBarBuilder(
-          barHeight:
-              // Theme.of(context).appBarTheme.toolbarHeight ??
-              _appbarBarHeight,
-          initialBarHeight: _appbarBarHeight,
-          initialContentHeight: _appbarHeightBig,
-          backgroundColorAll: Theme.of(context).colorScheme.surface,
-          contentBelowBar: false,
-          // forceMaterialTransparency: true,
-          // primary: true,
-          leadingActions: [backButtonW],
-          trailingActions: [drawerButtonW],
-          // // floating: true,
-          // centerTitle: true,
-          pinned: true,
-          // snap: true,
-          // expandedHeight: _appbarHeightBig,
-          contentBuilder:
-              (context, expandRatio, contentHeight, overlapsContent, isPinned) {
-            return FutureBuilder<ImageData?>(
-              future: ddmodel.currentData?.previewImage,
-              builder: (context, snapshot) {
-                final img = snapshot.data?.image.image;
-                final currentData = ddmodel.currentData;
-                final currentDataId =
-                    currentData == null ? "root" : (currentData as Data).id;
-                return Container(
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      if (img != null)
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                          offset: Offset(0, 5),
-                        ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(25 * expandRatio),
-                      bottomRight: Radius.circular(25 * expandRatio),
+        return ValueListenableBuilder<int>(
+          valueListenable: SyncEvents.instance.revision,
+          builder: (context, syncRevision, _) {
+            final childrenFuture = ddmodel.allCached(syncRevision);
+            final maengelDoneButton = ddmodel.runtimeType ==
+                    CheckPointDefectsModel
+                ? Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    child:
+                        (ddmodel as CheckPointDefectsModel).ohneMaengelButton(
+                      context,
+                      defectsFuture: childrenFuture.then(
+                        (children) =>
+                            children.whereType<CheckPointDefect>().toList(),
+                      ),
                     ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // background image
-                        if (img != null)
-                          Positioned.fill(
-                            child: Blur(
-                              blurColor: Colors.transparent,
-                              child: Positioned.fill(
-                                child: Hero(
-                                  tag:
-                                      "dropdown.header.image.${ddmodel.currentData.runtimeType}.$currentDataId",
-                                  child: Image(
-                                    image: ResizeImage.resizeIfNeeded(
-                                      (MediaQuery.sizeOf(context).width *
-                                              MediaQuery.devicePixelRatioOf(
-                                                context,
-                                              ))
-                                          .ceil()
-                                          .clamp(1, 4096)
-                                          .toInt(),
-                                      null,
-                                      img,
+                  )
+                : Container();
+
+            final sliverAppBar = SliverAppBarBuilder(
+              barHeight:
+                  // Theme.of(context).appBarTheme.toolbarHeight ??
+                  _appbarBarHeight,
+              initialBarHeight: _appbarBarHeight,
+              initialContentHeight: _appbarHeightBig,
+              backgroundColorAll: Theme.of(context).colorScheme.surface,
+              contentBelowBar: false,
+              // forceMaterialTransparency: true,
+              // primary: true,
+              leadingActions: [backButtonW],
+              trailingActions: [drawerButtonW],
+              // // floating: true,
+              // centerTitle: true,
+              pinned: true,
+              // snap: true,
+              // expandedHeight: _appbarHeightBig,
+              contentBuilder: (context, expandRatio, contentHeight,
+                  overlapsContent, isPinned) {
+                return FutureBuilder<ImageData?>(
+                  future: ddmodel.currentData?.previewImage,
+                  builder: (context, snapshot) {
+                    final img = snapshot.data?.image.image;
+                    final currentData = ddmodel.currentData;
+                    final currentDataId =
+                        currentData == null ? "root" : (currentData as Data).id;
+                    return Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          if (img != null)
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                              offset: Offset(0, 5),
+                            ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(25 * expandRatio),
+                          bottomRight: Radius.circular(25 * expandRatio),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // background image
+                            if (img != null)
+                              Positioned.fill(
+                                child: Blur(
+                                  blurColor: Colors.transparent,
+                                  child: Positioned.fill(
+                                    child: Hero(
+                                      tag:
+                                          "dropdown.header.image.${ddmodel.currentData.runtimeType}.$currentDataId",
+                                      child: Image(
+                                        image: ResizeImage.resizeIfNeeded(
+                                          (MediaQuery.sizeOf(context).width *
+                                                  MediaQuery.devicePixelRatioOf(
+                                                    context,
+                                                  ))
+                                              .ceil()
+                                              .clamp(1, 4096)
+                                              .toInt(),
+                                          null,
+                                          img,
+                                        ),
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        // title
-                        Container(
-                          alignment: Alignment.center,
-                          height: contentHeight,
-                          padding: EdgeInsets.only(
-                            left: 10 + (1 - expandRatio) * 40,
-                            right: 10 + (1 - expandRatio) * 40,
-                            bottom: 10,
-                            top: 10 + (expandRatio) * _appbarBarHeight,
-                          ),
-                          child: SafeArea(
-                            child: AnimatedContainer(
-                              height: expandRatio > _appbarExpansionSwitchValue
-                                  ? _appbarHeightBig
-                                  : _appbarHeightSmall,
+                            // title
+                            Container(
                               alignment: Alignment.center,
-                              curve: Curves.fastOutSlowIn,
-                              duration: const Duration(milliseconds: 200),
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: Container(
-                                  decoration: img == null
-                                      ? null
-                                      : BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(27),
-                                          border: Border.all(
-                                            color: Colors.white,
-                                            width: 2,
-                                          ),
-                                        ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(25),
+                              height: contentHeight,
+                              padding: EdgeInsets.only(
+                                left: 10 + (1 - expandRatio) * 40,
+                                right: 10 + (1 - expandRatio) * 40,
+                                bottom: 10,
+                                top: 10 + (expandRatio) * _appbarBarHeight,
+                              ),
+                              child: SafeArea(
+                                child: AnimatedContainer(
+                                  height:
+                                      expandRatio > _appbarExpansionSwitchValue
+                                          ? _appbarHeightBig
+                                          : _appbarHeightSmall,
+                                  alignment: Alignment.center,
+                                  curve: Curves.fastOutSlowIn,
+                                  duration: const Duration(milliseconds: 200),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
                                     child: Container(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .surface
-                                          .withValues(alpha: 0.5),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 25,
-                                        vertical: 10 * expandRatio,
-                                      ),
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                          sigmaX: 5,
-                                          sigmaY: 5,
-                                        ),
-                                        child: Hero(
-                                          tag:
-                                              "dropdown.header.title.${ddmodel.currentData.runtimeType}.$currentDataId.disabled",
-                                          child: Text(
-                                            ddmodel.title,
-                                            overflow: expandRatio >
-                                                    _appbarExpansionSwitchValue
-                                                ? null
-                                                : TextOverflow.ellipsis,
-                                            softWrap: true,
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: Theme.of(context)
-                                                      .textTheme
-                                                      .headlineMedium
-                                                      ?.fontSize +
-                                                  expandRatio * 5,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface,
-                                              fontWeight: FontWeight.bold,
+                                      decoration: img == null
+                                          ? null
+                                          : BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(27),
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 2,
+                                              ),
+                                            ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(25),
+                                        child: Container(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                              .withValues(alpha: 0.5),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 25,
+                                            vertical: 10 * expandRatio,
+                                          ),
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(
+                                              sigmaX: 5,
+                                              sigmaY: 5,
+                                            ),
+                                            child: Hero(
+                                              tag:
+                                                  "dropdown.header.title.${ddmodel.currentData.runtimeType}.$currentDataId.disabled",
+                                              child: Text(
+                                                ddmodel.title,
+                                                overflow: expandRatio >
+                                                        _appbarExpansionSwitchValue
+                                                    ? null
+                                                    : TextOverflow.ellipsis,
+                                                softWrap: true,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: Theme.of(context)
+                                                          .textTheme
+                                                          .headlineMedium
+                                                          ?.fontSize +
+                                                      expandRatio * 5,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -207,151 +222,151 @@ class DropDownPageB<
                                 ),
                               ),
                             ),
-                          ),
+                            // maengel button
+                            Positioned(
+                              top: MediaQuery.of(context).padding.top *
+                                  (4 * expandRatio - 3),
+                              height: _appbarBarHeight,
+                              child: Opacity(
+                                opacity: max(expandRatio * 2 - 1, 0),
+                                child: Align(child: maengelDoneButton),
+                              ),
+                            ),
+                          ],
                         ),
-                        // maengel button
-                        Positioned(
-                          top: MediaQuery.of(context).padding.top *
-                              (4 * expandRatio - 3),
-                          height: _appbarBarHeight,
-                          child: Opacity(
-                            opacity: max(expandRatio * 2 - 1, 0),
-                            child: Align(child: maengelDoneButton),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             );
-          },
-        );
-        return Scaffold(
-          body: RefreshIndicator(
-            onRefresh: () async {
-              ddmodel.refresh();
-            },
-            child: CustomScrollView(
-              // physics: BouncingScrollPhysics(),
-              slivers: <Widget>[
-                sliverAppBar,
-                ValueListenableBuilder<int>(
-                  valueListenable: SyncEvents.instance.revision,
-                  builder: (context, _, __) => FutureBuilder(
-                    future: ddmodel.all().last,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return SliverFillRemaining(
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-                      if (snapshot.hasError) {
-                        return SliverFillRemaining(
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ErrorText(S
-                                      .of(context)
-                                      .somethingWentWrong +
-                                  ':\n${snapshot.error ?? ''} \n\n' +
-                                  S.of(context).pleaseDragDownToReloadThisPage),
+            return Scaffold(
+              body: RefreshIndicator(
+                onRefresh: () async {
+                  ddmodel.refresh();
+                },
+                child: CustomScrollView(
+                  // physics: BouncingScrollPhysics(),
+                  slivers: <Widget>[
+                    sliverAppBar,
+                    FutureBuilder(
+                      future: childrenFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return SliverFillRemaining(
+                            child: Center(
+                              child: CircularProgressIndicator(),
                             ),
-                          ),
-                        );
-                      }
-                      final childrenData = snapshot.data as List<ChildData>;
-                      _primeCategoryTotals(childrenData);
-                      if (ddmodel.runtimeType == CheckPointDefectsModel) {
-                        return generateCheckPointDefectsSliverList(
-                            context, childrenData as List<CheckPointDefect>);
-                      }
-                      return ValueListenableBuilder<int>(
-                        valueListenable:
-                            CategoryProgressState.instance.revision,
-                        builder: (context, _, __) {
-                          return SliverList.list(
-                            children: childrenData.map((cd) {
-                              final progressEntry = cd is CheckCategory
-                                  ? CategoryProgressState.instance
-                                      .entryFor(cd.id)
-                                  : null;
-                              final checkpointCompleted = cd is CheckPoint &&
-                                  CategoryProgressState.instance
-                                      .checkpointCompleted(
-                                    checkpointId: cd.id,
-                                    pjNr: cd.pjNr,
-                                    categoryIndex: cd.category_index,
-                                    checkpointIndex: cd.index,
-                                  );
-                              final totalCheckpoints = cd is CheckCategory
-                                  ? (progressEntry?.totalCheckpoints ??
-                                      CategoryProgressState.instance
-                                          .totalFor(cd.id))
-                                  : null;
-                              final completionPercent = checkpointCompleted
-                                  ? 1.0
-                                  : progressEntry?.progress ?? 0.0;
-                              final completionLabel = totalCheckpoints == null
-                                  ? null
-                                  : '${progressEntry?.completedCheckpoints ?? 0}/$totalCheckpoints bearbeitet';
-
-                              return DropDownElementB(
-                                cd: cd,
-                                completionPercent: completionPercent,
-                                completionLabel: completionLabel,
-                                actions: ddmodel.actions,
-                                onAction: (actionTileData) {
-                                  ddmodel.open(context, cd, actionTileData);
-                                },
-                                onDelete: () async {
-                                  final value = await API().delete<ChildData>(
-                                    cd,
-                                    caller: ddmodel.currentData,
-                                  );
-                                  if (value == null) {
-                                    showToast(
-                                      S.of(context).deleteUnseccessful,
-                                    );
-                                    return;
-                                  }
-                                  if (kDebugMode) showToast(value);
-                                  final parent = ddmodel.currentData;
-                                  if (cd is CheckPoint &&
-                                      parent is CheckCategory) {
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return SliverFillRemaining(
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ErrorText(
+                                    S.of(context).somethingWentWrong +
+                                        ':\n${snapshot.error ?? ''} \n\n' +
+                                        S
+                                            .of(context)
+                                            .pleaseDragDownToReloadThisPage),
+                              ),
+                            ),
+                          );
+                        }
+                        final childrenData = snapshot.data as List<ChildData>;
+                        _updateCurrentCategoryTotal(ddmodel, childrenData);
+                        _primeCategoryTotals(childrenData);
+                        if (ddmodel.runtimeType == CheckPointDefectsModel) {
+                          return generateCheckPointDefectsSliverList(
+                              context, childrenData as List<CheckPointDefect>);
+                        }
+                        return ValueListenableBuilder<int>(
+                          valueListenable:
+                              CategoryProgressState.instance.revision,
+                          builder: (context, _, __) {
+                            return SliverList.list(
+                              children: childrenData.map((cd) {
+                                final progressEntry = cd is CheckCategory
+                                    ? CategoryProgressState.instance
+                                        .entryFor(cd.id)
+                                    : null;
+                                final checkpointCompleted = cd is CheckPoint &&
                                     CategoryProgressState.instance
-                                        .checkpointRemoved(
-                                      categoryId: parent.id,
+                                        .checkpointCompleted(
                                       checkpointId: cd.id,
                                       pjNr: cd.pjNr,
                                       categoryIndex: cd.category_index,
                                       checkpointIndex: cd.index,
                                     );
-                                  }
-                                  ddmodel.refresh(); //quickfix for #336
-                                },
-                              );
-                            }).toList(),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                                final totalCheckpoints = cd is CheckCategory
+                                    ? (progressEntry?.totalCheckpoints ??
+                                        CategoryProgressState.instance
+                                            .totalFor(cd.id))
+                                    : null;
+                                final completionPercent = checkpointCompleted
+                                    ? 1.0
+                                    : progressEntry?.progress ?? 0.0;
+                                final completionLabel = totalCheckpoints == null
+                                    ? null
+                                    : '${progressEntry?.completedCheckpoints ?? 0}/$totalCheckpoints bearbeitet';
+
+                                return DropDownElementB(
+                                  cd: cd,
+                                  completionPercent: completionPercent,
+                                  completionLabel: completionLabel,
+                                  actions: ddmodel.actions,
+                                  onAction: (actionTileData) {
+                                    ddmodel.open(context, cd, actionTileData);
+                                  },
+                                  onDelete: () async {
+                                    final value = await API().delete<ChildData>(
+                                      cd,
+                                      caller: ddmodel.currentData,
+                                    );
+                                    if (value == null) {
+                                      showToast(
+                                        S.of(context).deleteUnseccessful,
+                                      );
+                                      return;
+                                    }
+                                    if (kDebugMode) showToast(value);
+                                    final parent = ddmodel.currentData;
+                                    if (cd is CheckPoint &&
+                                        parent is CheckCategory) {
+                                      CategoryProgressState.instance
+                                          .checkpointRemoved(
+                                        categoryId: parent.id,
+                                        checkpointId: cd.id,
+                                        pjNr: cd.pjNr,
+                                        categoryIndex: cd.category_index,
+                                        checkpointIndex: cd.index,
+                                      );
+                                    }
+                                    ddmodel.refresh(); //quickfix for #336
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: 30),
+                    )
+                  ],
                 ),
-                SliverToBoxAdapter(
-                  child: SizedBox(height: 30),
-                )
-              ],
-            ),
-          ),
-          endDrawer: MainDrawer(
-            showUpload: typeOf<ChildData>() ==
-                typeOf<InspectionLocation>(), //we are in the top level
-            // children: ddmodel.drawerchildren,
-          ),
-          floatingActionButton: ddmodel.floatingActionButton(context),
+              ),
+              endDrawer: MainDrawer(
+                showUpload: typeOf<ChildData>() ==
+                    typeOf<InspectionLocation>(), //we are in the top level
+                // children: ddmodel.drawerchildren,
+              ),
+              floatingActionButton: ddmodel.floatingActionButton(context),
+            );
+          },
         );
       },
     );
@@ -420,22 +435,53 @@ class DropDownPageB<
       if (!_primingCategoryIds.add(category.id)) {
         continue;
       }
-      unawaited(() async {
-        try {
-          final checkpoints = await API()
-              .getNextDatapoint<CheckPoint, CheckCategory>(category)
-              .last;
-          CategoryProgressState.instance.registerCategory(
-            categoryId: category.id,
-            pjNr: category.pjNr,
-            categoryIndex: category.index,
-            totalCheckpoints: checkpoints.length,
-          );
-        } finally {
-          _primingCategoryIds.remove(category.id);
+      final work = _categoryPrimingTail.then<void>((_) async {
+        if (CategoryProgressState.instance.totalFor(category.id) != null) {
+          return;
         }
-      }());
+        final checkpointCount = await API().local.countNextDatapoints(category);
+        CategoryProgressState.instance.registerCategory(
+          categoryId: category.id,
+          pjNr: category.pjNr,
+          categoryIndex: category.index,
+          totalCheckpoints: checkpointCount,
+        );
+      });
+      final guarded = work.catchError((Object error, StackTrace stackTrace) {
+        debugPrint(
+          'Prüfpunktanzahl für ${category.id} konnte nicht gelesen werden: '
+          '$error',
+        );
+      });
+      _categoryPrimingTail = guarded;
+      unawaited(guarded.whenComplete(() {
+        _primingCategoryIds.remove(category.id);
+      }));
     }
+  }
+
+  void _updateCurrentCategoryTotal(
+    DDModel model,
+    List<ChildData> childrenData,
+  ) {
+    final category = model.currentData;
+    if (category is! CheckCategory ||
+        childrenData.any((child) => child is! CheckPoint)) {
+      return;
+    }
+    final total = childrenData.length;
+    if (CategoryProgressState.instance.totalFor(category.id) == total) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (CategoryProgressState.instance.totalFor(category.id) == total) {
+        return;
+      }
+      CategoryProgressState.instance.registerCategory(
+        categoryId: category.id,
+        pjNr: category.pjNr,
+        categoryIndex: category.index,
+        totalCheckpoints: total,
+      );
+    });
   }
 }
 
@@ -880,6 +926,10 @@ class PreviewImageCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!TickerMode.of(context)) {
+      return Icon(fallbackIcon);
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(15),
       child: AspectRatio(

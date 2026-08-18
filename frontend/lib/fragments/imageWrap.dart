@@ -118,6 +118,7 @@ class _ImageWrapState<T extends Object> extends State<ImageWrap<T>> {
   void dispose() {
     _disposeItems(_allImages);
     _scrollController.dispose();
+    releaseInspectionImageCacheAfterFrame();
     super.dispose();
   }
 
@@ -556,6 +557,11 @@ class FittedImageContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Routes below a gallery/details page stay mounted in Navigator. Removing
+    // their Image widgets while offstage detaches ImageStream listeners so the
+    // decoded thumbnails can actually be reclaimed.
+    if (!TickerMode.of(context)) return item.fallBackWidget;
+
     return AnimatedBuilder(
       builder: (context, child) => FutureBuilder<Image?>(
           future: item.image?.fullImage(),

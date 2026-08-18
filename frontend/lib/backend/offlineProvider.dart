@@ -142,9 +142,12 @@ Future<File?> storeImage(Uint8List imgBytes, String name) async {
     await file.parent.create(recursive: true);
     // Avoid rewriting already valid cached files (prevents duplicate "Stored image at ..."
     // logs and reduces UI-triggered redundant writes).
-    if (file.existsSync()) {
+    if (await file.exists()) {
       try {
-        if (file.lengthSync() >= 5) return file;
+        if (await file.length() >= 5 &&
+            await _hasSupportedImageSignature(file)) {
+          return file;
+        }
       } catch (_) {}
     }
     file = await file.writeAsBytes(imgBytes); //u good?
@@ -181,23 +184,77 @@ class NoImagePlaceholderException implements Exception {
       'tried to read the placeholder image, which of course is not there';
 }
 
+@visibleForTesting
+bool hasSupportedImageSignature(List<int> bytes) {
+  bool startsWith(List<int> signature, [int offset = 0]) {
+    if (bytes.length < offset + signature.length) return false;
+    for (var i = 0; i < signature.length; i++) {
+      if (bytes[offset + i] != signature[i]) return false;
+    }
+    return true;
+  }
+
+  if (startsWith(const [0xff, 0xd8, 0xff])) return true; // JPEG
+  if (startsWith(const [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
+    return true; // PNG
+  }
+  if (startsWith('GIF87a'.codeUnits) || startsWith('GIF89a'.codeUnits)) {
+    return true;
+  }
+  if (startsWith('RIFF'.codeUnits) && startsWith('WEBP'.codeUnits, 8)) {
+    return true;
+  }
+  if (startsWith('BM'.codeUnits)) return true; // BMP
+  if (startsWith(const [0x49, 0x49, 0x2a, 0x00]) ||
+      startsWith(const [0x4d, 0x4d, 0x00, 0x2a])) {
+    return true; // TIFF
+  }
+
+  // HEIF/HEIC/AVIF are ISO base-media containers with an `ftyp` box.
+  if (startsWith('ftyp'.codeUnits, 4)) {
+    const brands = <String>{
+      'heic',
+      'heix',
+      'hevc',
+      'hevx',
+      'mif1',
+      'msf1',
+      'avif',
+      'avis',
+    };
+    for (var offset = 8; offset + 4 <= bytes.length; offset += 4) {
+      if (brands
+          .contains(String.fromCharCodes(bytes.sublist(offset, offset + 4)))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+Future<bool> _hasSupportedImageSignature(File file) async {
+  RandomAccessFile? handle;
+  try {
+    handle = await file.open();
+    return hasSupportedImageSignature(await handle.read(32));
+  } catch (_) {
+    return false;
+  } finally {
+    await handle?.close();
+  }
+}
+
 ///tries to open an [Image] given by its [name] and returns it if successful
 Future<Image?> readImage(String name, {int? cacheSize}) async {
   final file = (await localFile(
     name,
   ));
-  // ignore: unused_local_variable
-  final err = (name == Options().no_image_placeholder_name)
-      ? NoImagePlaceholderException()
-      : Exception("file $file doesnt exist");
-  if (!file.existsSync())
-    // throw err;
-    return null;
-  if (file.lengthSync() < 5) throw Exception("file $file definitely to small");
+  if (!await file.exists()) return null;
+  if (await file.length() < 5) return null;
+  if (!await _hasSupportedImageSignature(file)) return null;
   //TO-DO: was wenn keine datei da lesbar ist? -> return null
   // das ist wichtig damit der placeholder statt einem "image corrupt" dargestellt wird
-  return Image.file(await localFile(name),
-      cacheHeight: cacheSize, cacheWidth: cacheSize);
+  return Image.file(file, cacheHeight: cacheSize, cacheWidth: cacheSize);
 }
 
 /// Tries to resolve an existing on-disk image file for a given hash/name.
@@ -797,10 +854,11 @@ Future<String> storeData<DataT extends Data>(
   var json = data.toJson();
   String? oldId = data.id;
 
-  final isExistent = ((await db.collection(collectionName).get())
-          ?.keys
-          .contains('/$collectionName/$oldId')) ??
-      false;
+  // A localstore collection directory can also contain inspection photos.
+  // Loading the complete collection here used to read/decode every photo just
+  // to check whether one JSON document exists.
+  final basePath = await localPath;
+  final isExistent = File('$basePath/$collectionName/$oldId').existsSync();
   if (overrideMode == OverrideMode.abortIfExistent && isExistent) {
     debugPrint('wont override $oldId');
     return '';
@@ -838,11 +896,98 @@ Future deleteData<DataT extends Data>(String id,
 Future<List<ChildData?>?> getAllChildrenFrom<ChildData extends Data>(
     String id) async {
   final collectionName = _getCollectionNameForData<ChildData>(id);
-  final items = await db.collection(collectionName).get();
+  final items = await readLocalstoreCollection(collectionName);
   return items?.values
           .map((data) => Data.fromJson<ChildData>(data ?? {}))
           .toList() ??
       [];
+}
+
+const int _maxLocalstoreDocumentBytes = 4 * 1024 * 1024;
+
+Future<Map<String, dynamic>?> _readLocalstoreDocument(File file) async {
+  RandomAccessFile? handle;
+  try {
+    final stat = await file.stat();
+    if (stat.type != FileSystemEntityType.file ||
+        stat.size <= 1 ||
+        stat.size > _maxLocalstoreDocumentBytes) {
+      return null;
+    }
+
+    // Photos share the same directories as localstore JSON documents. Check a
+    // tiny prefix before reading the complete file so JPEG/PDF payloads never
+    // become large temporary Uint8Lists during normal navigation or sync.
+    handle = await file.open();
+    final prefix = await handle.read(stat.size.clamp(1, 64));
+    final firstContentByte = prefix.cast<int?>().firstWhere(
+          (byte) =>
+              byte != 0x20 && byte != 0x09 && byte != 0x0a && byte != 0x0d,
+          orElse: () => null,
+        );
+    await handle.close();
+    handle = null;
+    if (firstContentByte != 0x7b) return null; // JSON object starts with `{`.
+
+    final decoded = jsonDecode(await file.readAsString());
+    if (decoded is Map<String, dynamic>) return decoded;
+    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+  } catch (_) {
+    return null;
+  } finally {
+    await handle?.close();
+  }
+  return null;
+}
+
+@visibleForTesting
+Future<Map<String, Map<String, dynamic>>> readLocalstoreDocumentDirectory(
+  Directory directory,
+) async {
+  final documents = <String, Map<String, dynamic>>{};
+  if (!await directory.exists()) return documents;
+  await for (final entity in directory.list(followLinks: false)) {
+    if (entity is! File) continue;
+    final data = await _readLocalstoreDocument(entity);
+    if (data != null) {
+      documents[entity.path.split(Platform.pathSeparator).last] = data;
+    }
+  }
+  return documents;
+}
+
+/// Reads only localstore JSON documents and skips photos/PDFs that happen to
+/// live in the same collection directory.
+Future<Map<String, dynamic>?> readLocalstoreCollection(
+  String collectionName,
+) async {
+  final basePath = await localPath;
+  final documents = await readLocalstoreDocumentDirectory(
+    Directory('$basePath/$collectionName'),
+  );
+  if (documents.isEmpty) return null;
+  return documents.map(
+    (name, data) => MapEntry('/$collectionName/$name', data),
+  );
+}
+
+@visibleForTesting
+Future<int> countLocalstoreDocumentDirectory(Directory directory) async {
+  if (!await directory.exists()) return 0;
+  var count = 0;
+  await for (final entity in directory.list(followLinks: false)) {
+    if (entity is File && await _readLocalstoreDocument(entity) != null) {
+      count++;
+    }
+  }
+  return count;
+}
+
+Future<int> countLocalstoreCollection(String collectionName) async {
+  final basePath = await localPath;
+  return countLocalstoreDocumentDirectory(
+    Directory('$basePath/$collectionName'),
+  );
 }
 
 const OTHERCOLLECTION = 'other';
@@ -961,7 +1106,7 @@ Future<void> applyLocalIdMapping({
 
   try {
     // 2) Move the children collection (collection name == parent local_id).
-    final children = await db.collection(oldLocalId).get();
+    final children = await readLocalstoreCollection(oldLocalId);
     if (children != null) {
       final parsedParent = _parseNumericLocalId(newLocalId);
       for (final entry in children.entries) {
@@ -1134,6 +1279,19 @@ Future<String> permaStoreCachedXFile(XFile file, [String? _name]) async {
   await file.saveTo(target.path);
   debugPrint('Persisted cached file to ${target.path}');
   return name;
+}
+
+/// Deletes an image-picker/camera source after its permanent copy is known to
+/// exist. Files outside the app cache are intentionally never touched.
+Future<void> deleteCachedSource(XFile file) async {
+  try {
+    final cachePath = (await getTemporaryDirectory()).absolute.path;
+    final source = File(file.path).absolute;
+    if (source.path.startsWith('$cachePath${Platform.pathSeparator}') &&
+        await source.exists()) {
+      await source.delete();
+    }
+  } catch (_) {}
 }
 
 Future<XFile> retrieveStoredXFile(String name) async {
