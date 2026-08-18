@@ -76,6 +76,8 @@ dependencies:
 
   # for sharing files via native dialogs
   share_plus: ^10.1.4
+  # select one or more incremental backup ZIPs for restore
+  file_picker: ^11.0.3
   image: ^4.0.17
 
   # storing sensitive data like username and password

@@ -125,7 +125,7 @@ void main() {
     expect(await listManagedLocalBackups(backupDirectory), hasLength(4));
   });
 
-  test('ignores runtime and operational files when they change', () async {
+  test('backs up failed requests but ignores other runtime files', () async {
     final inspection = await File('${sourceDirectory.path}/inspection.data')
         .writeAsString('inspection-v1');
     final failedRequest = await File(
@@ -160,6 +160,8 @@ void main() {
 
     expect(_archiveNames(initial.backupFile!), {
       'inspection.data',
+      'failed-requests/request-1',
+      'other/__sync_maps__6000001',
       incrementalBackupManifestName,
     });
 
@@ -170,13 +172,18 @@ void main() {
     await syncMap.writeAsString('map-v2');
     await runtimeAsset.writeAsString('asset-v2');
 
-    final unchanged = await createIncrementalBackup(
+    final requestDelta = await createIncrementalBackup(
       sourceDirectory: sourceDirectory,
       backupDirectory: backupDirectory,
     );
 
-    expect(unchanged.created, isFalse);
-    expect(await listManagedLocalBackups(backupDirectory), hasLength(1));
+    expect(requestDelta.created, isTrue);
+    expect(_archiveNames(requestDelta.backupFile!), {
+      'failed-requests/request-1',
+      'other/__sync_maps__6000001',
+      incrementalBackupManifestName,
+    });
+    expect(await listManagedLocalBackups(backupDirectory), hasLength(2));
     expect(await inspection.exists(), isTrue);
   });
 
@@ -262,7 +269,7 @@ void main() {
     );
     expect(
       _archiveNames(initialBackup.backupFile!),
-      isNot(contains('failed-requests/request-1')),
+      contains('failed-requests/request-1'),
     );
     expect(
       _archiveNames(initialBackup.backupFile!),
@@ -329,16 +336,18 @@ void main() {
       sourceDirectory: sourceDirectory,
       backupDirectory: backupDirectory,
     );
-    expect(afterSync.backupFile, isNull);
-    expect(afterSync.changedFileCount, 0);
-    expect(afterSync.deletedFileCount, 0);
-    expect(await listManagedLocalBackups(backupDirectory), hasLength(1));
-
-    final state = Map<String, dynamic>.from(jsonDecode(
-      await File('${backupDirectory.path}/.mbg-backup-state-v1.json')
-          .readAsString(),
-    ) as Map);
-    expect(state['pendingMovedFiles'], {
+    expect(afterSync.backupFile, isNotNull);
+    expect(afterSync.changedFileCount, 1);
+    expect(afterSync.deletedFileCount, 1);
+    expect(await listManagedLocalBackups(backupDirectory), hasLength(2));
+    final afterSyncManifest = _readManifest(afterSync.backupFile!);
+    expect(afterSyncManifest['deletedFiles'], [
+      'failed-requests/request-1',
+    ]);
+    expect(afterSyncManifest['changedFiles'], [
+      'other/__sync_maps__6006395',
+    ]);
+    expect(afterSyncManifest['movedFiles'], {
       '$inspectionId/$localCategoryId': '$inspectionId/$serverCategoryId',
       '$localCategoryId/$localCheckpointId':
           '$serverCategoryId/$serverCheckpointId',
@@ -365,12 +374,7 @@ void main() {
     expect(manifest['changedFiles'], [
       '$serverCategoryId/$serverCheckpointId',
     ]);
-    expect(manifest['movedFiles'], {
-      '$inspectionId/$localCategoryId': '$inspectionId/$serverCategoryId',
-      '$localCategoryId/$localCheckpointId':
-          '$serverCategoryId/$serverCheckpointId',
-      temporaryUploadPath: originalImagePath,
-    });
+    expect(manifest['movedFiles'], isEmpty);
   });
 
   test('adds readable named folders and keeps E numbers in the index',

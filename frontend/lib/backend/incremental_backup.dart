@@ -361,6 +361,7 @@ Future<IncrementalBackupResult> createIncrementalBackup({
 }) async {
   await backupDirectory.create(recursive: true);
   await cleanupIncompleteLocalBackups(backupDirectory);
+  await _sanitizeFailedRequestsForBackup(sourceDirectory);
   final existingBackups = await listManagedLocalBackups(backupDirectory);
   final stateFile =
       File('${backupDirectory.path}/$_incrementalBackupStateName');
@@ -527,6 +528,32 @@ Future<IncrementalBackupResult> createIncrementalBackup({
       await completedBackup.delete();
     }
     rethrow;
+  }
+}
+
+Future<void> _sanitizeFailedRequestsForBackup(Directory sourceDirectory) async {
+  final failedDirectory = Directory('${sourceDirectory.path}/failed-requests');
+  if (!await failedDirectory.exists()) return;
+  await for (final entity in failedDirectory.list(followLinks: false)) {
+    if (entity is! File) continue;
+    try {
+      final decoded = jsonDecode(await entity.readAsString());
+      if (decoded is! Map) continue;
+      final sanitized = Map<String, dynamic>.from(decoded);
+      var changed = sanitized.remove('user') != null;
+      final requestJson = sanitized['json'];
+      if (requestJson is Map) {
+        final sanitizedRequest = Map<String, dynamic>.from(requestJson);
+        changed = sanitizedRequest.remove('user') != null || changed;
+        sanitized['json'] = sanitizedRequest;
+      }
+      if (changed) {
+        await entity.writeAsString(jsonEncode(sanitized), flush: true);
+      }
+    } catch (_) {
+      // A malformed queued request remains untouched so the sync recovery can
+      // quarantine it later instead of silently deleting user data.
+    }
   }
 }
 
@@ -810,11 +837,12 @@ bool _isBackupSourcePath(String relativePath) {
   final normalized = relativePath.replaceAll('\\', '/');
   final parts = normalized.split('/').where((part) => part.isNotEmpty).toList();
   if (parts.isEmpty) return false;
+  if (parts.first == 'other') {
+    return parts.length == 2 && parts.last.startsWith('__sync_maps__');
+  }
   const operationalCollections = {
-    'failed-requests',
     'skipped-requests',
     'image-index',
-    'other',
     'flutter_assets',
   };
   if (operationalCollections.contains(parts.first)) return false;
