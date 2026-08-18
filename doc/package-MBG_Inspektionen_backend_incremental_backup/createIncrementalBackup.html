@@ -77,6 +77,7 @@
 }) async {
   await backupDirectory.create(recursive: true);
   await cleanupIncompleteLocalBackups(backupDirectory);
+  await _sanitizeFailedRequestsForBackup(sourceDirectory);
   final existingBackups = await listManagedLocalBackups(backupDirectory);
   final stateFile =
       File(&#39;${backupDirectory.path}&#47;$_incrementalBackupStateName&#39;);
