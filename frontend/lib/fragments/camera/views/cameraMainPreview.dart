@@ -236,6 +236,7 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
     double newZoom = (widget.model.zoom + zoomStep).clamp(
         widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
     await widget.model.setZoom(newZoom);
+    await widget.model.refocusAfterZoom();
   }
 
   /// Zeigt kurz den Fokuspunkt an und blendet ihn dann aus
@@ -266,8 +267,9 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
       onScaleUpdate: (details) {
         double newZoom = (_startZoom * details.scale).clamp(
             widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
-        widget.model.setZoom(newZoom);
+        unawaited(widget.model.setZoom(newZoom));
       },
+      onScaleEnd: (_) => unawaited(widget.model.refocusAfterZoom()),
 
       // Fokus-Gesten
       onTapDown: (details) {
@@ -280,7 +282,7 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
           details.localPosition.dx / box.size.width,
           details.localPosition.dy / box.size.height,
         );
-        widget.model.focus(normalizedFocusPoint);
+        unawaited(widget.model.focus(normalizedFocusPoint));
       },
 
       // Kamerawechsel per Doppeltipp

@@ -1,4 +1,4 @@
-# Änderungen in Version 275
+# Änderungen in Version 277
 
 Version 275 erweitert die Datensicherung um eine vollständige Wiederherstellung und ermöglicht die Fortsetzung fehlgeschlagener Synchronisierungen nach einem Versionswechsel oder einer Neuinstallation.
 
@@ -27,16 +27,3 @@ Version 270 hat die ursprünglichen offenen Upload-Aufträge noch nicht in das B
 - Temporäre Dateien der Android-Dateiauswahl werden nach dem Import entfernt, sodass importierte ZIPs nicht mehrfach Speicherplatz belegen.
 - Das HTTP-Timeline-Logging wurde für lange Upload-Läufe deaktiviert. Dadurch bleibt der Speicherverbrauch auch beim Synchronisieren vieler großer Foto-Batches stabil.
 - Erfolgreich übertragene Upload-Aufträge werden weiterhin sofort aus der lokalen Warteschlange entfernt. Ein späterer Abbruch setzt deshalb nur die noch offenen Aufträge fort.
-
-## Wechsel von Version 270 auf Version 275
-
-Die über GitHub installierte Version 270 kann wegen eines abweichenden Android-Signierschlüssels möglicherweise nicht direkt aktualisiert werden. In diesem Fall:
-
-1. In Version 270 ein neues vollständiges Backup erstellen.
-2. Alle ZIP-Dateien der Backup-Kette außerhalb der App sichern.
-3. Version 270 deinstallieren und Version 275 installieren.
-4. In Version 275 unter **„Backups verwalten“** alle ZIP-Dateien der Kette auswählen.
-5. **„v270-Rettung mit Serverabgleich“** wählen und die benötigten Inspektionen markieren.
-6. Nach dem erfolgreichen Import die normale Synchronisierung starten.
-
-Für den Server- und Fotoabgleich ist eine stabile Internetverbindung erforderlich. Die Backup-ZIPs sollten bis zum vollständig abgeschlossenen Sync auf einem zweiten Gerät oder Computer aufbewahrt werden.

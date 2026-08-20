@@ -7,6 +7,21 @@ import 'package:flutter/scheduler.dart';
 
 import 'loadingscreen/loadingView.dart';
 
+@visibleForTesting
+int galleryDecodeExtent(
+  MediaQueryData mediaQuery, {
+  required bool isCurrent,
+}) {
+  final physicalLongestSide =
+      mediaQuery.size.longestSide * mediaQuery.devicePixelRatio;
+  if (isCurrent) {
+    // The active page must retain enough detail for PhotoView zoom. Only this
+    // page may use a 4K decode; adjacent pages remain lightweight below.
+    return (physicalLongestSide * 1.5).ceil().clamp(2048, 4096).toInt();
+  }
+  return (physicalLongestSide * 0.6).ceil().clamp(768, 1920).toInt();
+}
+
 /// Drops decoded inspection photos after an image-heavy route has left the
 /// screen. Navigator keeps previous routes mounted, so relying only on the
 /// global LRU cache otherwise retains gallery bitmaps throughout a field day.
@@ -166,6 +181,7 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
     return PhotoViewGalleryPageOptions.customChild(
       child: FullImg(
         item: item,
+        isCurrent: index == currentIndex,
         quarterTurns: _quarterTurnsByTag[item.tag] ?? 0,
       ),
       initialScale: PhotoViewComputedScale.contained,
@@ -180,24 +196,24 @@ class _GalleryPhotoViewWrapperState extends State<GalleryPhotoViewWrapper> {
 
 class FullImg extends StatelessWidget {
   final ImageItem item;
+  final bool isCurrent;
   final int quarterTurns;
   const FullImg({
     super.key,
     required this.item,
+    this.isCurrent = true,
     this.quarterTurns = 0,
   });
 
   Widget _safe(BuildContext context, Image img) {
     final mediaQuery = MediaQuery.of(context);
-    final decodeExtent =
-        (mediaQuery.size.longestSide * mediaQuery.devicePixelRatio * 1.5)
-            .ceil()
-            .clamp(1024, 2560)
-            .toInt();
+    final decodeExtent = galleryDecodeExtent(
+      mediaQuery,
+      isCurrent: isCurrent,
+    );
     final image = Image(
-      // A 40-50 MP photo needs roughly 160-200 MB once decoded. PhotoView may
-      // retain the current and adjacent pages, so always decode gallery images
-      // close to the physical display size instead of sensor resolution.
+      // A 40-50 MP photo needs roughly 160-200 MB once decoded. Decode only the
+      // current page at zoom quality and keep PhotoView's adjacent pages small.
       image: ResizeImage.resizeIfNeeded(
         decodeExtent,
         decodeExtent,

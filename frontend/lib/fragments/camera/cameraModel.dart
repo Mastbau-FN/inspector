@@ -7,11 +7,70 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// Serialisiert schnell aufeinanderfolgende Plattformaufrufe und verwirft
+/// dabei Zwischenwerte. Das ist insbesondere fuer Pinch-/Slider-Gesten
+/// wichtig, die mehrere Werte pro Frame liefern koennen.
+@visibleForTesting
+class LatestAsyncValueQueue<T> {
+  LatestAsyncValueQueue(this._apply);
+
+  final Future<void> Function(T value) _apply;
+  T? _pendingValue;
+  bool _hasPendingValue = false;
+  bool _closed = false;
+  Future<void>? _running;
+
+  Future<void> add(T value) {
+    if (_closed) return Future<void>.value();
+    _pendingValue = value;
+    _hasPendingValue = true;
+    return _running ??= _drain();
+  }
+
+  Future<void> waitForIdle() async {
+    while (true) {
+      final running = _running;
+      if (running == null) return;
+      await running;
+    }
+  }
+
+  void clearPending() {
+    _pendingValue = null;
+    _hasPendingValue = false;
+  }
+
+  void close() {
+    _closed = true;
+    clearPending();
+  }
+
+  Future<void> _drain() async {
+    try {
+      while (!_closed && _hasPendingValue) {
+        final value = _pendingValue as T;
+        _pendingValue = null;
+        _hasPendingValue = false;
+        await _apply(value);
+      }
+    } finally {
+      _running = null;
+      // Ein Wert kann genau zwischen der letzten Schleifenpruefung und dem
+      // Abschluss des Futures eingetroffen sein.
+      if (!_closed && _hasPendingValue) {
+        await add(_pendingValue as T);
+      }
+    }
+  }
+}
+
 /// Hauptklasse zur Verwaltung der Kamerafunktionen
 class CameraModel extends ChangeNotifier {
   static bool _staleCaptureCleanupStarted = false;
 
   CameraModel() {
+    _zoomQueue = LatestAsyncValueQueue<double>(_applyZoomLevel);
+    _focusQueue = LatestAsyncValueQueue<Offset>(_applyFocusPoint);
     if (!_staleCaptureCleanupStarted) {
       _staleCaptureCleanupStarted = true;
       unawaited(_cleanupStaleCameraCaptures());
@@ -30,6 +89,9 @@ class CameraModel extends ChangeNotifier {
   final ZoomModel _zoomModel = ZoomModel();
   ZoomModel get zoomM => _zoomModel;
   double get zoom => _zoomModel.zoom;
+  late final LatestAsyncValueQueue<double> _zoomQueue;
+  late final LatestAsyncValueQueue<Offset> _focusQueue;
+  Offset _lastFocusPoint = const Offset(0.5, 0.5);
 
   // Kamera-Index und Status
   int _currentCameraIndex = 0;
@@ -141,6 +203,11 @@ class CameraModel extends ChangeNotifier {
       throw StateError('CameraModel wurde während des Starts geschlossen');
     }
     _zoomModel.zoomRange = (minZoom, maxZoom);
+    final restoredZoom = _zoomModel.zoom.clamp(minZoom, maxZoom).toDouble();
+    _zoomModel.zoom = restoredZoom;
+    if (restoredZoom != minZoom) {
+      await controller.setZoomLevel(restoredZoom);
+    }
     return (minZoom, maxZoom);
   }
 
@@ -159,10 +226,17 @@ class CameraModel extends ChangeNotifier {
       _isProcessing = true;
       notifyListeners();
 
-      // Haptisches Feedback bei Aufnahme
-      HapticFeedback.mediumImpact();
+      // Pinch und Slider liefern sehr viele Werte. Vor dem Ausloesen muss der
+      // letzte native Zoomwert gesetzt sein. Anschliessend fokussieren und
+      // belichten wir erneut, weil ein Zoom (insbesondere ein Objektivwechsel
+      // durch CameraX) den zuvor bestimmten Fokus ungueltig machen kann.
+      await _zoomQueue.waitForIdle();
+      await refocusAfterZoom();
 
       final activeController = _controller!;
+
+      // Haptisches Feedback erst unmittelbar zur tatsaechlichen Aufnahme.
+      HapticFeedback.mediumImpact();
       _latestPic = await activeController.takePicture();
 
       // The capture preview replaces the live preview. Release camera buffers
@@ -414,44 +488,78 @@ class CameraModel extends ChangeNotifier {
 
   // Internen Zoom-Bereich abrufen
   Future<(double, double)> _getZoomRange() async {
-    final controller = await start();
-    return _updateZoomRange(controller);
+    await start();
+    return _zoomModel.zoomRange;
   }
 
   // Zoom setzen
-  Future<void> setZoom(double newVal) async {
-    _zoomModel.zoom = newVal;
-    _controller ??= await start();
-    await _controller!.setZoomLevel(newVal);
+  Future<void> setZoom(double newVal) {
+    if (_disposed) return Future<void>.value();
+    final range = _zoomModel.zoomRange;
+    final clampedZoom = newVal.clamp(range.$1, range.$2).toDouble();
+    _zoomModel.zoom = clampedZoom;
+    return _zoomQueue.add(clampedZoom);
+  }
+
+  Future<void> _applyZoomLevel(double zoom) async {
+    if (_disposed) return;
+    try {
+      final controller = await start();
+      if (_disposed || !identical(controller, _controller)) return;
+      await controller.setZoomLevel(zoom);
+    } catch (e) {
+      if (!_disposed) debugPrint('Fehler beim Setzen des Zooms: $e');
+    }
   }
 
   // Fokuspunkt setzen
-  Future<void> focus(Offset focusPoint) async {
-    _controller ??= await start();
+  Future<void> focus(Offset focusPoint) {
+    if (_disposed) return Future<void>.value();
+    _lastFocusPoint = Offset(
+      focusPoint.dx.clamp(0.0, 1.0).toDouble(),
+      focusPoint.dy.clamp(0.0, 1.0).toDouble(),
+    );
+    return _focusQueue.add(_lastFocusPoint);
+  }
+
+  Future<void> _applyFocusPoint(Offset focusPoint) async {
+    if (_disposed) return;
     try {
-      await _controller!.setFocusPoint(focusPoint);
-      await _controller!.setExposurePoint(focusPoint);
+      // Ein noch laufender Zoom darf den gerade gesetzten Fokus nicht sofort
+      // wieder entwerten.
+      await _zoomQueue.waitForIdle();
+      final controller = await start();
+      if (_disposed || !identical(controller, _controller)) return;
+      try {
+        await controller.setFocusMode(FocusMode.auto);
+      } catch (e) {
+        debugPrint('Automatischer Fokusmodus wird nicht unterstuetzt: $e');
+      }
+      await controller.setFocusPoint(focusPoint);
+      await controller.setExposurePoint(focusPoint);
     } catch (e) {
-      debugPrint("Fehler beim Fokussieren: $e");
+      if (!_disposed) debugPrint('Fehler beim Fokussieren: $e');
     }
   }
 
-  // Automatisch fokussieren
-  Future<void> autoFocus() async {
-    _controller ??= await start();
-    try {
-      // In der Mitte fokussieren
-      await _controller!.setFocusPoint(const Offset(0.5, 0.5));
-      await _controller!.setExposurePoint(const Offset(0.5, 0.5));
-    } catch (e) {
-      debugPrint("Fehler beim automatischen Fokussieren: $e");
-    }
+  /// Wartet auf den letzten Zoomwert und fokussiert danach erneut. Wird am
+  /// Ende einer Zoomgeste und unmittelbar vor jeder Aufnahme verwendet.
+  Future<void> refocusAfterZoom() async {
+    if (_disposed) return;
+    await _zoomQueue.waitForIdle();
+    if (_disposed) return;
+    await _focusQueue.add(_lastFocusPoint);
   }
+
+  // Automatisch fokussieren
+  Future<void> autoFocus() => focus(const Offset(0.5, 0.5));
 
   // Ressourcen freigeben
   @override
   void dispose() {
     _disposed = true;
+    _zoomQueue.close();
+    _focusQueue.close();
     final discarded = _latestPic;
     _evictLatestPicturePreview();
     if (discarded != null) unawaited(_deleteTemporaryCapture(discarded));
@@ -467,6 +575,8 @@ class CameraModel extends ChangeNotifier {
   Future<void> disposeCamera() async {
     _controllerGeneration++;
     _controllerFuture = null;
+    _zoomQueue.clearPending();
+    _focusQueue.clearPending();
     final controller = _controller;
     _controller = null;
     if (controller != null) {
@@ -491,12 +601,14 @@ class ZoomModel extends ChangeNotifier {
   (double, double) get zoomRange => _zoomRange;
 
   set zoom(double newVal) {
+    if (_zoom == newVal) return;
     _zoom = newVal;
     debugPrint("Zoom: $newVal");
     notifyListeners();
   }
 
   set zoomRange((double, double) range) {
+    if (_zoomRange == range) return;
     _zoomRange = range;
     notifyListeners();
   }
