@@ -156,22 +156,19 @@ Widget build(BuildContext context) {
                           return Column(
                             children: [
                               Text(&#39;File: ${file.name}&#39;),
-                              FutureBuilder(
-                                future: file.readAsBytes(),
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasError) {
-                                    return Text(
-                                      &#39;Lokale Upload-Datei fehlt oder ist &#39;
-                                      &#39;nicht lesbar: ${file.path}&#39;,
-                                      style: TextStyle(color: Colors.red),
-                                    );
-                                  }
-                                  if (snapshot.hasData) {
-                                    return Image.memory(snapshot.data!);
-                                  } else {
-                                    return CircularProgressIndicator();
-                                  }
-                                },
+                              SizedBox(
+                                width: 256,
+                                height: 256,
+                                child: Image.file(
+                                  File(file.path),
+                                  fit: BoxFit.contain,
+                                  cacheWidth: 1024,
+                                  cacheHeight: 1024,
+                                  errorBuilder: (_, __, ___) =&gt; const Icon(
+                                    Icons.insert_drive_file,
+                                    size: 64,
+                                  ),
+                                ),
                               )
                             ],
                           );

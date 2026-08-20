@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the newController property from the CameraModel class, for the Dart programming language.">
-  <title>newController property - CameraModel class - cameraModel library - Dart API</title>
+  <meta name="description" content="API docs for the clearPending method from the LatestAsyncValueQueue class, for the Dart programming language.">
+  <title>clearPending method - LatestAsyncValueQueue class - cameraModel library - Dart API</title>
 
 
   
@@ -26,10 +26,10 @@
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/">fragments&#47;camera&#47;cameraModel.dart</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-    <li class="self-crumb">newController property</li>
+    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/LatestAsyncValueQueue-class.html">LatestAsyncValueQueue<span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></a></li>
+    <li class="self-crumb">clearPending method</li>
   </ol>
-  <div class="self-name">newController</div>
+  <div class="self-name">clearPending</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -46,52 +46,36 @@
 <div
     id="dartdoc-main-content"
     class="main-content"
-    data-above-sidebar="package-MBG_Inspektionen_fragments_camera_cameraModel&#47;CameraModel-class-sidebar.html"
+    data-above-sidebar="package-MBG_Inspektionen_fragments_camera_cameraModel&#47;LatestAsyncValueQueue-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-property">newController</span> property 
+<h1><span class="kind-method">clearPending</span> method 
 </h1></div>
 
-    
-
-    
-        
-  <section id="getter">
     <section class="multi-line-signature">
       
-      <span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/camera/0.11.0+2/camera/CameraController-class.html">CameraController</a>?</span>&gt;</span></span>
-      get
-      <span class="name ">newController</span>
+<span class="returntype">void</span>
+<span class="name ">clearPending</span>(<wbr>)
+
       
 
     </section>
     
 
+
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;CameraController?&gt; get newController async {
-  final camera = await currentCamera;
-  if (camera == null) return null;
-
-  return CameraController(
-    camera,
-    &#47;&#47; `max` can select 40-50 MP sensors on current Android devices. A 4K
-    &#47;&#47; inspection photo retains detail while avoiding very large camera and
-    &#47;&#47; preview buffers after many consecutive shots.
-    ResolutionPreset.ultraHigh,
-    enableAudio: false,
-    imageFormatGroup: ImageFormatGroup.jpeg,
-  );
+  <pre class="language-dart"><code class="language-dart">void clearPending() {
+  _pendingValue = null;
+  _hasPendingValue = false;
 }</code></pre>
 </section>
 
-  </section>
 
-
-</div> <!-- /.main-content -->
-<div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
-  <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
 <header id="header-search-sidebar" class="hidden-l">
   <form class="search-sidebar" role="search">
     <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
@@ -100,14 +84,14 @@
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
     <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/">cameraModel</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-    <li class="self-crumb">newController property</li>
+    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/LatestAsyncValueQueue-class.html">LatestAsyncValueQueue<span class="signature">&lt;<wbr><span class="type-parameter">T</span>&gt;</span></a></li>
+    <li class="self-crumb">clearPending method</li>
 </ol>
 
-  <h5>CameraModel class</h5>
-  <div id="dartdoc-sidebar-left-content"></div>
-</div><!--/.sidebar-offcanvas-->
-<div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+    <h5>LatestAsyncValueQueue class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
 </div><!--/.sidebar-offcanvas-->
 </main>
 <footer>

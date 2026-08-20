@@ -109,6 +109,11 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
+  &#47;&#47; Routes below a gallery&#47;details page stay mounted in Navigator. Removing
+  &#47;&#47; their Image widgets while offstage detaches ImageStream listeners so the
+  &#47;&#47; decoded thumbnails can actually be reclaimed.
+  if (!TickerMode.of(context)) return item.fallBackWidget;
+
   return AnimatedBuilder(
     builder: (context, child) =&gt; FutureBuilder&lt;Image?&gt;(
         future: item.image?.fullImage(),

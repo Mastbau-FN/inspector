@@ -67,10 +67,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setZoom(double newVal) async {
-  _zoomModel.zoom = newVal;
-  _controller ??= await start();
-  await _controller!.setZoomLevel(newVal);
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setZoom(double newVal) {
+  if (_disposed) return Future&lt;void&gt;.value();
+  final range = _zoomModel.zoomRange;
+  final clampedZoom = newVal.clamp(range.$1, range.$2).toDouble();
+  _zoomModel.zoom = clampedZoom;
+  return _zoomQueue.add(clampedZoom);
 }</code></pre>
 </section>
 

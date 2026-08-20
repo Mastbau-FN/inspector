@@ -67,20 +67,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; nextCamera() async {
-  final cameras = await allCameras;
-  if (cameras.isEmpty) {
-    showToast(&quot;Keine Kameras verfügbar&quot;);
-    return;
-  }
-
-  _isProcessing = true;
-  notifyListeners();
-
-  _currentCameraIndex = (_currentCameraIndex + 1) % cameras.length;
-  _controller = await newController;
-
-  _isProcessing = false;
-  notifyListeners();
+  await _switchCamera(1);
 }</code></pre>
 </section>
 

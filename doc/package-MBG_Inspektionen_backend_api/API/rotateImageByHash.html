@@ -101,18 +101,22 @@
       return &#39;image not found locally&#39;;
     }
 
-    final originalBytes = await sourceFile.readAsBytes();
-    final decoded = imglib.decodeImage(originalBytes);
-    if (decoded == null) return &#39;could not decode image&#39;;
-    final rotated = imglib.copyRotate(decoded, angle: 90 * turns);
-    final rotatedBytes =
-        _encodeRotatedImageBytes(rotated, sourceFile.path.toLowerCase());
+    final isLocalReference = _isLocalImageReference(requested);
+    final preservePng =
+        isLocalReference &amp;&amp; sourceFile.path.toLowerCase().endsWith(&#39;.png&#39;);
+    final rotatedTemp = await _rotateImageToTemporaryFile(
+      sourceFile,
+      degrees: 90 * turns,
+      preservePng: preservePng,
+    );
+    if (rotatedTemp == null) return &#39;could not decode image&#39;;
 
     &#47;&#47; Local-only image refs (timestamp&#47;scoped&#47;local prefixes) are uploaded by
     &#47;&#47; pending multipart requests. Overwrite the file in place so sync uploads
     &#47;&#47; the rotated bytes.
-    if (_isLocalImageReference(requested)) {
-      await sourceFile.writeAsBytes(rotatedBytes, flush: true);
+    if (isLocalReference) {
+      await FileImage(sourceFile).evict();
+      await _replaceFileAtomically(sourceFile, rotatedTemp);
       await FileImage(sourceFile).evict();
       return &#39;image rotated locally&#39;;
     }
@@ -122,8 +126,14 @@
     final oldRefs = _collectImageRefs(data);
     final wasMainImage = data.mainhash == requested;
     final newScopedName = await _nextScopedImageName(scope);
-    final rotatedFile = await storeImage(rotatedBytes, newScopedName);
-    if (rotatedFile == null) return &#39;could not persist rotated image&#39;;
+    final rotatedFile = await localFile(newScopedName);
+    await rotatedFile.parent.create(recursive: true);
+    try {
+      await rotatedTemp.rename(rotatedFile.path);
+    } on FileSystemException {
+      await rotatedTemp.copy(rotatedFile.path);
+      await rotatedTemp.delete();
+    }
     await FileImage(rotatedFile).evict();
 
     final uploadResult = await uploadNewImagesOrFiles&lt;DataT&gt;(

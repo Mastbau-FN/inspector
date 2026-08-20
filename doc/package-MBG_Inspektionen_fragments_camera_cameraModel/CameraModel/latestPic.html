@@ -92,7 +92,13 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">set latestPic(XFile? value) {
+  if (_latestPic?.path != value?.path) _evictLatestPicturePreview();
   _latestPic = value;
+  if (value != null) {
+    &#47;&#47; Queue review also replaces the live preview. Avoid retaining camera
+    &#47;&#47; buffers behind a previously captured image.
+    unawaited(disposeCamera());
+  }
   notifyListeners();
 }</code></pre>
 </section>

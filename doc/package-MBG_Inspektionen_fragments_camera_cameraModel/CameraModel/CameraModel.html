@@ -60,6 +60,17 @@
 
 
     
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">CameraModel() {
+  _zoomQueue = LatestAsyncValueQueue&lt;double&gt;(_applyZoomLevel);
+  _focusQueue = LatestAsyncValueQueue&lt;Offset&gt;(_applyFocusPoint);
+  if (!_staleCaptureCleanupStarted) {
+    _staleCaptureCleanupStarted = true;
+    unawaited(_cleanupStaleCameraCaptures());
+  }
+}</code></pre>
+</section>
 
 
   </div> <!-- /.main-content -->

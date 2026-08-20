@@ -71,6 +71,13 @@
   &#47;&#47; can be called before `runApp()`
   WidgetsFlutterBinding.ensureInitialized();
 
+  &#47;&#47; Inspection photos are plentiful and often very large. Keep the decoded
+  &#47;&#47; image cache bounded so normal navigation cannot retain another 100+ MB of
+  &#47;&#47; bitmaps on top of the camera and Flutter rendering buffers.
+  final imageCache = PaintingBinding.instance.imageCache;
+  imageCache.maximumSize = 100;
+  imageCache.maximumSizeBytes = 32 * 1024 * 1024;
+
   await Options().load();
   await CategoryProgressState.instance.restore();
   &#47;&#47; await NewImages.load();

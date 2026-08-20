@@ -84,10 +84,11 @@
   var json = data.toJson();
   String? oldId = data.id;
 
-  final isExistent = ((await db.collection(collectionName).get())
-          ?.keys
-          .contains(&#39;&#47;$collectionName&#47;$oldId&#39;)) ??
-      false;
+  &#47;&#47; A localstore collection directory can also contain inspection photos.
+  &#47;&#47; Loading the complete collection here used to read&#47;decode every photo just
+  &#47;&#47; to check whether one JSON document exists.
+  final basePath = await localPath;
+  final isExistent = File(&#39;$basePath&#47;$collectionName&#47;$oldId&#39;).existsSync();
   if (overrideMode == OverrideMode.abortIfExistent &amp;&amp; isExistent) {
     debugPrint(&#39;wont override $oldId&#39;);
     return &#39;&#39;;

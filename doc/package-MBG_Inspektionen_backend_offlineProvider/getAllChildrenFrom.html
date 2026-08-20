@@ -74,7 +74,7 @@ it returns all <a href="../package-MBG_Inspektionen_classes_dropdownClasses/Data
   <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;ChildData?&gt;?&gt; getAllChildrenFrom&lt;ChildData extends Data&gt;(
     String id) async {
   final collectionName = _getCollectionNameForData&lt;ChildData&gt;(id);
-  final items = await db.collection(collectionName).get();
+  final items = await readLocalstoreCollection(collectionName);
   return items?.values
           .map((data) =&gt; Data.fromJson&lt;ChildData&gt;(data ?? {}))
           .toList() ??

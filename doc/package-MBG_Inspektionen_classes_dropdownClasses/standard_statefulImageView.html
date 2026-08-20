@@ -99,14 +99,22 @@
                     );
 
                     if (file == null) return null;
-                    final decoded =
-                        imglib.decodeImage(await file.readAsBytes());
-                    if (decoded == null) return null;
+                    final lower = file.path.toLowerCase();
+                    final mimeType = lower.endsWith(&#39;.png&#39;)
+                        ? &#39;image&#47;png&#39;
+                        : lower.endsWith(&#39;.webp&#39;)
+                            ? &#39;image&#47;webp&#39;
+                            : lower.endsWith(&#39;.heic&#39;) || lower.endsWith(&#39;.heif&#39;)
+                                ? &#39;image&#47;heic&#39;
+                                : &#39;image&#47;jpeg&#39;;
 
-                    return XFile.fromData(
-                      Uint8List.fromList(imglib.encodePng(decoded)),
-                      name: &#39;mbg_${hash.hashCode.toRadixString(36)}.png&#39;,
-                      mimeType: &#39;image&#47;png&#39;,
+                    &#47;&#47; Share the existing file directly. Decoding every source
+                    &#47;&#47; image and keeping a second PNG copy in memory made
+                    &#47;&#47; multi-image sharing one of the largest OOM sources.
+                    return XFile(
+                      file.path,
+                      name: file.uri.pathSegments.last,
+                      mimeType: mimeType,
                     );
                   }
 

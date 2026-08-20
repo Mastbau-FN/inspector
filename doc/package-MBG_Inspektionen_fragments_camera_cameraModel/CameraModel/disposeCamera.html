@@ -54,7 +54,7 @@
 
     <section class="multi-line-signature">
       
-<span class="returntype">void</span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
 <span class="name ">disposeCamera</span>(<wbr>)
 
       
@@ -66,13 +66,18 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">void disposeCamera() {
-  if (_controller != null) {
-    _controller!.setFlashMode(FlashMode.off).catchError((e) {
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; disposeCamera() async {
+  _controllerGeneration++;
+  _controllerFuture = null;
+  _zoomQueue.clearPending();
+  _focusQueue.clearPending();
+  final controller = _controller;
+  _controller = null;
+  if (controller != null) {
+    await controller.setFlashMode(FlashMode.off).catchError((e) {
       debugPrint(&quot;Fehler beim Ausschalten des Blitzes: $e&quot;);
     });
-    _controller!.dispose();
-    _controller = null;
+    await controller.dispose();
   }
 }</code></pre>
 </section>

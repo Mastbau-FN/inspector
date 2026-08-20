@@ -120,13 +120,14 @@ Widget build(BuildContext context) {
           return item.fallBackWidget;
         }
         return (snapshot.data != null)
-            ? _safe(snapshot.data!)
+            ? _safe(context, snapshot.data!)
             : (item.image?.image != null)
-                ? _safe(item.image!.image)
+                ? _safe(context, item.image!.image)
                 : Stack(
                     alignment: Alignment.center,
                     children: [
-                      if (item.image != null) _safe(item.image!.image),
+                      if (item.image != null)
+                        _safe(context, item.image!.image),
                       const LoadingView(),
                     ],
                   );

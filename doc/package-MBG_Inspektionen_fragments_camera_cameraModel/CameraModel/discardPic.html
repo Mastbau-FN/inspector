@@ -55,7 +55,8 @@
     <section class="multi-line-signature">
       
 <span class="returntype">void</span>
-<span class="name ">discardPic</span>(<wbr>)
+<span class="name ">discardPic</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="discardPic-param-deleteTemporaryFile"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">deleteTemporaryFile</span> = <span class="default-value">true</span>, </span></li>
+</ol>})
 
       
 
@@ -66,9 +67,14 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">void discardPic() {
+  <pre class="language-dart"><code class="language-dart">void discardPic({bool deleteTemporaryFile = true}) {
   debugPrint(&quot;Bild verworfen&quot;);
+  final discarded = _latestPic;
+  _evictLatestPicturePreview();
   _latestPic = null;
+  if (deleteTemporaryFile &amp;&amp; discarded != null) {
+    unawaited(_deleteTemporaryCapture(discarded));
+  }
   notifyListeners();
 }</code></pre>
 </section>

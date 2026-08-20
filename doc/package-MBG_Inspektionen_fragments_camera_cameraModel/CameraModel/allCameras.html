@@ -70,18 +70,8 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CameraDescription&gt;&gt; get allCameras async {
-  try {
-    final cams = await availableCameras();
-    if (cams.isEmpty) {
-      throw Exception(&quot;Keine Kameras verfügbar&quot;);
-    }
-    return cams;
-  } catch (e) {
-    showToast(&quot;Keine Kamera verfügbar&quot;);
-    debugPrint(e.toString());
-  }
-  return [];
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;CameraDescription&gt;&gt; get allCameras {
+  return _availableCamerasFuture ??= _loadCameras();
 }</code></pre>
 </section>
 

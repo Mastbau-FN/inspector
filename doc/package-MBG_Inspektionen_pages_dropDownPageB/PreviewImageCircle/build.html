@@ -109,6 +109,10 @@ and</li>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 Widget build(BuildContext context) {
+  if (!TickerMode.of(context)) {
+    return Icon(fallbackIcon);
+  }
+
   return ClipRRect(
     borderRadius: BorderRadius.circular(15),
     child: AspectRatio(

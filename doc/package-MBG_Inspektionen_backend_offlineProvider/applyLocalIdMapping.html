@@ -97,7 +97,7 @@
 
   try {
     &#47;&#47; 2) Move the children collection (collection name == parent local_id).
-    final children = await db.collection(oldLocalId).get();
+    final children = await readLocalstoreCollection(oldLocalId);
     if (children != null) {
       final parsedParent = _parseNumericLocalId(newLocalId);
       for (final entry in children.entries) {

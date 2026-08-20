@@ -79,13 +79,19 @@
   String scoped(String base) =&gt;
       scope != null &amp;&amp; scope.isNotEmpty ? &#39;$scope&#47;$base&#39; : base;
 
-  this.multipartFileNames ??= await Future.wait(
-      _multipartFiles! &#47;&#47;either names or files are set
-          .map((file) async =&gt; await OP.permaStoreCachedXFile(
-              file,
-              scoped(route == &#39;&#47;image&#47;set&#39;
-                  ? canonicalTimestampFilenameForXFile(file)
-                  : file.name))));
+  if (this.multipartFileNames == null) {
+    final sourceFiles = _multipartFiles!; &#47;&#47; either names or files are set
+    final storedNames = await Future.wait(sourceFiles.map((file) async =&gt;
+        await OP.permaStoreCachedXFile(
+            file,
+            scoped(route == &#39;&#47;image&#47;set&#39;
+                ? canonicalTimestampFilenameForXFile(file)
+                : file.name))));
+    this.multipartFileNames = storedNames;
+    &#47;&#47; All request files now have durable copies referenced by the serialized
+    &#47;&#47; request, so transient picker&#47;camera files are no longer needed.
+    await Future.wait(sourceFiles.map(OP.deleteCachedSource));
+  }
   return _$RequestDataToJson(this);
 }</code></pre>
 </section>

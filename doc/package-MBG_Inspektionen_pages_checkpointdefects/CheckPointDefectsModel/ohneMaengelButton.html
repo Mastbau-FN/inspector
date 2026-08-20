@@ -55,8 +55,9 @@
     <section class="multi-line-signature">
       
 <span class="returntype"><a href="https://api.flutter.dev/flutter/widgets/Widget-class.html">Widget</a></span>
-<span class="name ">ohneMaengelButton</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="ohneMaengelButton-param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span></span></li>
-</ol>)
+<span class="name ">ohneMaengelButton</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="ohneMaengelButton-param-context"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/BuildContext-class.html">BuildContext</a></span> <span class="parameter-name">context</span>, {</span></li>
+<li><span class="parameter" id="ohneMaengelButton-param-defectsFuture"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span>&gt;</span></span>&gt;</span>?</span> <span class="parameter-name">defectsFuture</span>, </span></li>
+</ol>})
 
       
 
@@ -67,9 +68,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Widget ohneMaengelButton(BuildContext context) {
+  <pre class="language-dart"><code class="language-dart">Widget ohneMaengelButton(
+  BuildContext context, {
+  Future&lt;List&lt;CheckPointDefect&gt;&gt;? defectsFuture,
+}) {
   return FutureBuilder(
-      future: all().last,
+      future: defectsFuture ?? all().last,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Container();

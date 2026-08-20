@@ -78,9 +78,12 @@
     await file.parent.create(recursive: true);
     &#47;&#47; Avoid rewriting already valid cached files (prevents duplicate &quot;Stored image at ...&quot;
     &#47;&#47; logs and reduces UI-triggered redundant writes).
-    if (file.existsSync()) {
+    if (await file.exists()) {
       try {
-        if (file.lengthSync() &gt;= 5) return file;
+        if (await file.length() &gt;= 5 &amp;&amp;
+            await _hasSupportedImageSignature(file)) {
+          return file;
+        }
       } catch (_) {}
     }
     file = await file.writeAsBytes(imgBytes); &#47;&#47;u good?

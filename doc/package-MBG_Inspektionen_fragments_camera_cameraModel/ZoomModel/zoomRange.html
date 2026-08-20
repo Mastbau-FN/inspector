@@ -92,6 +92,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">set zoomRange((double, double) range) {
+  if (_zoomRange == range) return;
   _zoomRange = range;
   notifyListeners();
 }</code></pre>

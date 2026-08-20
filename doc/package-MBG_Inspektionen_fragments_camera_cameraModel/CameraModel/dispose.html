@@ -82,7 +82,14 @@ listeners or not immediately before disposal.</p>
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">@override
 void dispose() {
-  disposeCamera();
+  _disposed = true;
+  _zoomQueue.close();
+  _focusQueue.close();
+  final discarded = _latestPic;
+  _evictLatestPicturePreview();
+  if (discarded != null) unawaited(_deleteTemporaryCapture(discarded));
+  unawaited(disposeCamera());
+  _zoomModel.dispose();
   &#47;&#47; Bildschirmeinstellungen wiederherstellen
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
       overlays: SystemUiOverlay.values);

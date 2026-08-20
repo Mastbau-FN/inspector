@@ -80,10 +80,27 @@
     _isProcessing = true;
     notifyListeners();
 
-    &#47;&#47; Haptisches Feedback bei Aufnahme
-    HapticFeedback.mediumImpact();
+    &#47;&#47; Pinch und Slider liefern sehr viele Werte. Vor dem Ausloesen muss der
+    &#47;&#47; letzte native Zoomwert gesetzt sein. Anschliessend fokussieren und
+    &#47;&#47; belichten wir erneut, weil ein Zoom (insbesondere ein Objektivwechsel
+    &#47;&#47; durch CameraX) den zuvor bestimmten Fokus ungueltig machen kann.
+    await _zoomQueue.waitForIdle();
+    await refocusAfterZoom();
 
-    _latestPic = await _controller!.takePicture();
+    final activeController = _controller!;
+
+    &#47;&#47; Haptisches Feedback erst unmittelbar zur tatsaechlichen Aufnahme.
+    HapticFeedback.mediumImpact();
+    _latestPic = await activeController.takePicture();
+
+    &#47;&#47; The capture preview replaces the live preview. Release camera buffers
+    &#47;&#47; before decoding the captured photo; retaining both at once caused a
+    &#47;&#47; reproducible ~100 MB RSS spike on the test device.
+    try {
+      await disposeCamera();
+    } catch (e) {
+      debugPrint(&#39;Fehler beim Freigeben der Kamera nach Aufnahme: $e&#39;);
+    }
 
     _isProcessing = false;
     notifyListeners();
