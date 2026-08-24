@@ -71,6 +71,9 @@
   if (_disposed) return Future&lt;void&gt;.value();
   final range = _zoomModel.zoomRange;
   final clampedZoom = newVal.clamp(range.$1, range.$2).toDouble();
+  if (clampedZoom != _zoomModel.zoom) {
+    _zoomRevision++;
+  }
   _zoomModel.zoom = clampedZoom;
   return _zoomQueue.add(clampedZoom);
 }</code></pre>
@@ -101,7 +104,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.8+58
+      1.2.9+59
   </span>
   
 </footer>

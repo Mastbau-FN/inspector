@@ -57,6 +57,7 @@
       <span class="name ">InspectionDefectChecker</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="-param-loadCategories"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_pages_inspection_defect_checker/InspectionCategoryLoader.html">InspectionCategoryLoader</a>?</span> <span class="parameter-name">loadCategories</span>, </span></li>
 <li><span class="parameter" id="-param-loadCheckpoints"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_pages_inspection_defect_checker/CategoryCheckpointLoader.html">CategoryCheckpointLoader</a>?</span> <span class="parameter-name">loadCheckpoints</span>, </span></li>
 <li><span class="parameter" id="-param-loadDefects"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_pages_inspection_defect_checker/CheckpointDefectLoader.html">CheckpointDefectLoader</a>?</span> <span class="parameter-name">loadDefects</span>, </span></li>
+<li><span class="parameter" id="-param-maxConcurrentLoads"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span> <span class="parameter-name">maxConcurrentLoads</span> = <span class="default-value">8</span>, </span></li>
 </ol>})
     </section>
     
@@ -69,9 +70,12 @@
   InspectionCategoryLoader? loadCategories,
   CategoryCheckpointLoader? loadCheckpoints,
   CheckpointDefectLoader? loadDefects,
+  int maxConcurrentLoads = 8,
 })  : _loadCategories = loadCategories ?? _defaultLoadCategories,
       _loadCheckpoints = loadCheckpoints ?? _defaultLoadCheckpoints,
-      _loadDefects = loadDefects ?? _defaultLoadDefects;</code></pre>
+      _loadDefects = loadDefects ?? _defaultLoadDefects,
+      _maxConcurrentLoads = maxConcurrentLoads,
+      assert(maxConcurrentLoads &gt; 0);</code></pre>
 </section>
 
 
@@ -99,7 +103,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.8+58
+      1.2.9+59
   </span>
   
 </footer>

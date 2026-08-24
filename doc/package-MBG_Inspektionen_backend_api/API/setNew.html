@@ -85,6 +85,7 @@
     (data as WithOffline).parentId = caller?.id ?? await rootID;
   } catch (e) {}
   if (data == null) return null;
+  assignAuthorForNewData(data, await user);
   &#47;&#47; data.id = null;
   return _run(
     itPrefersCache: (caller as WithOffline?)
@@ -133,7 +134,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.8+58
+      1.2.9+59
   </span>
   
 </footer>

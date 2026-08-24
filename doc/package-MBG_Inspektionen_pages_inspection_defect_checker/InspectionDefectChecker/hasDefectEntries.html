@@ -69,15 +69,35 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;bool&gt; hasDefectEntries(InspectionLocation inspection) async {
   final categories = (await _loadCategories(inspection))
-      .where((category) =&gt; _belongsToParent(category, inspection.id));
-  for (final category in categories) {
-    final checkpoints = (await _loadCheckpoints(category))
-        .where((checkpoint) =&gt; _belongsToParent(checkpoint, category.id));
-    for (final checkpoint in checkpoints) {
-      final defects = (await _loadDefects(checkpoint))
-          .where((defect) =&gt; _belongsToParent(defect, checkpoint.id));
-      if (defects.isNotEmpty) return true;
+      .where((category) =&gt; _belongsToParent(category, inspection.id))
+      .toList(growable: false);
+
+  final checkpoints = &lt;CheckPoint&gt;[];
+  for (final batch in _batches(categories)) {
+    final loaded = await Future.wait(
+      batch.map((category) async {
+        return (await _loadCheckpoints(category))
+            .where((checkpoint) =&gt; _belongsToParent(checkpoint, category.id))
+            .toList(growable: false);
+      }),
+    );
+    for (final categoryCheckpoints in loaded) {
+      checkpoints.addAll(categoryCheckpoints);
     }
+  }
+
+  &#47;&#47; Each loader can include a backend round-trip. Running all checkpoints
+  &#47;&#47; one after another made an otherwise local-looking navigation take
+  &#47;&#47; 20-35 seconds. A small bounded batch keeps pressure off the backend but
+  &#47;&#47; removes the serial network latency.
+  for (final batch in _batches(checkpoints)) {
+    final containsDefect = await Future.wait(
+      batch.map((checkpoint) async {
+        return (await _loadDefects(checkpoint))
+            .any((defect) =&gt; _belongsToParent(defect, checkpoint.id));
+      }),
+    );
+    if (containsDefect.any((value) =&gt; value)) return true;
   }
   return false;
 }</code></pre>
@@ -108,7 +128,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.8+58
+      1.2.9+59
   </span>
   
 </footer>

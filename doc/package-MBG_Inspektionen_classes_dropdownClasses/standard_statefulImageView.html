@@ -93,8 +93,8 @@
 
                     final scope =
                         API().local.scopeFor(owner, caller: model.currentData);
-                    final file = await resolveImageFileByHash(
-                      hash.toString(),
+                    final file = await resolveShareImageFile(
+                      hash,
                       scope: scope,
                     );
 
@@ -277,7 +277,7 @@
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.8+58
+      1.2.9+59
   </span>
   
 </footer>

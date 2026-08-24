@@ -74,6 +74,11 @@ Ende einer Zoomgeste und unmittelbar vor jeder Aufnahme verwendet.</p>
   if (_disposed) return;
   await _zoomQueue.waitForIdle();
   if (_disposed) return;
+  &#47;&#47; onChangeEnd already refocuses after a slider&#47;pinch gesture. The capture
+  &#47;&#47; path used to repeat all three CameraX focus calls unconditionally,
+  &#47;&#47; adding several seconds on the Motorola test device.
+  await _focusQueue.waitForIdle();
+  if (_disposed || _focusedZoomRevision == _zoomRevision) return;
   await _focusQueue.add(_lastFocusPoint);
 }</code></pre>
 </section>
@@ -103,7 +108,7 @@ Ende einer Zoomgeste und unmittelbar vor jeder Aufnahme verwendet.</p>
 <footer>
   <span class="no-break">
     MBG_Inspektionen
-      1.2.8+58
+      1.2.9+59
   </span>
   
 </footer>
