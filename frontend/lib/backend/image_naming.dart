@@ -5,6 +5,14 @@ import 'package:image_picker/image_picker.dart';
 final RegExp _timestampImageNamePattern =
     RegExp(r'^\d{2}_\d{2}_\d{4}_\d{2}_\d{2}_\d{2}\.jpg$', caseSensitive: false);
 
+const _knownServerImageArtifacts = <String>{
+  'thumbs.db',
+  'ehthumbs.db',
+  'ehthumbs_vista.db',
+  'desktop.ini',
+  '.ds_store',
+};
+
 String _pad2(int v) => v.toString().padLeft(2, '0');
 
 String formatTimestampImageFilename(DateTime timestamp) {
@@ -16,6 +24,15 @@ String _basename(String raw) {
   final normalized = raw.replaceAll('\\', '/');
   final parts = normalized.split('/');
   return parts.isEmpty ? raw : parts.last;
+}
+
+/// Operating-system metadata that was accidentally indexed as an image by
+/// older server data. These files are not user photos and must not make an
+/// otherwise complete offline inspection fail.
+bool isKnownServerImageArtifactFilename(String? filename) {
+  if (filename == null) return false;
+  final base = _basename(filename).trim().toLowerCase();
+  return _knownServerImageArtifacts.contains(base);
 }
 
 bool isTimestampImageFilename(String filename) {

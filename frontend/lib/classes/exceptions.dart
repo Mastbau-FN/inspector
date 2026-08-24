@@ -52,6 +52,23 @@ class MultipartFileUnavailableException implements Exception {
       'MultipartFileUnavailableException(path: $path, reason: $reason)';
 }
 
+/// A backend image hash resolves to operating-system metadata instead of a
+/// user image. This is a permanent server-data artifact, not a retryable
+/// download failure.
+class InvalidServerImageArtifactException implements Exception {
+  final String hash;
+  final String filename;
+
+  const InvalidServerImageArtifactException({
+    required this.hash,
+    required this.filename,
+  });
+
+  @override
+  String toString() =>
+      'InvalidServerImageArtifactException(hash: $hash, filename: $filename)';
+}
+
 class BackendCommunicationException implements Exception {
   String? cause;
   @override

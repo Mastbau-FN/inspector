@@ -4,11 +4,14 @@ import 'dart:typed_data';
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
+import 'package:MBG_Inspektionen/classes/exceptions.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -94,6 +97,35 @@ void main() {
     expect(
       API().local.scopeFor(inspection),
       '123-undefined-undefined-undefined',
+    );
+  });
+
+  test('recognizes known operating-system metadata as server image artifacts',
+      () {
+    expect(isKnownServerImageArtifactFilename('Thumbs.db'), isTrue);
+    expect(isKnownServerImageArtifactFilename(r'legacy\Desktop.ini'), isTrue);
+    expect(isKnownServerImageArtifactFilename('/legacy/.DS_Store'), isTrue);
+    expect(isKnownServerImageArtifactFilename('inspection-photo.jpg'), isFalse);
+  });
+
+  test('remote image parser reports Thumbs.db as a server artifact', () async {
+    final request = API().remote.getImageByHash(
+          'artifact-hash',
+          owner: _inspection(id: 'inspection'),
+        );
+    final response = http.Response.bytes(
+      [1, 2, 3, 4],
+      200,
+      headers: {'x-image-filename': 'Thumbs.db'},
+    );
+
+    await expectLater(
+      request.parser(response),
+      throwsA(
+        isA<InvalidServerImageArtifactException>()
+            .having((error) => error.hash, 'hash', 'artifact-hash')
+            .having((error) => error.filename, 'filename', 'Thumbs.db'),
+      ),
     );
   });
 
@@ -231,6 +263,46 @@ void main() {
     expect(state.totalTasks, 2);
     expect(state.doneTasks, 2);
     expect(state.percent, 99);
+  });
+
+  test('skips server image artifacts and removes their image references',
+      () async {
+    final inspection = _inspection(id: 'inspection');
+    inspection.mainhash = 'valid-photo';
+    inspection.imagehashes = ['artifact-hash'];
+    final image = ImageData(
+      Image.memory(Uint8List.fromList([0])),
+      id: 'valid-photo',
+    );
+
+    final succeeded = await cacheInspectionImagesForDownload(
+      [inspection],
+      readCachedImage: (hash, _) async => hash == 'valid-photo' ? image : null,
+      downloadImage: (hash, _) async {
+        throw const InvalidServerImageArtifactException(
+          hash: 'artifact-hash',
+          filename: 'Thumbs.db',
+        );
+      },
+    );
+
+    expect(succeeded, isTrue);
+    expect(inspection.mainhash, 'valid-photo');
+    expect(inspection.imagehashes, isEmpty);
+  });
+
+  test('keeps real missing images as download failures', () async {
+    final inspection = _inspection(id: 'inspection');
+    inspection.imagehashes = ['missing-photo'];
+
+    final succeeded = await cacheInspectionImagesForDownload(
+      [inspection],
+      readCachedImage: (_, __) async => null,
+      downloadImage: (_, __) async => null,
+    );
+
+    expect(succeeded, isFalse);
+    expect(inspection.imagehashes, ['missing-photo']);
   });
 
   test('reports document phase even when inspection has no documents',

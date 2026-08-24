@@ -602,10 +602,15 @@ class Remote {
       if (res == null || res.statusCode ~/ 100 != 2)
         return null;
       else {
+        final scope = owner != null ? API().local.scopeFor(owner) : '';
+        final filename = _extractBackendFilename(res.headers);
+        if (isKnownServerImageArtifactFilename(filename)) {
+          throw InvalidServerImageArtifactException(
+            hash: hash,
+            filename: filename!,
+          );
+        }
         try {
-          final scope = owner != null ? API().local.scopeFor(owner) : '';
-          final filename = _extractBackendFilename(res.headers);
-
           String storedName;
           String? displayName;
           if (!isPathHash && filename != null && filename.isNotEmpty) {

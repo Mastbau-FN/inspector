@@ -113,6 +113,57 @@ List<String> _imageHashesForData(Data data) {
 }
 
 @visibleForTesting
+void removeInvalidServerImageReference(Data data, String hash) {
+  final remaining = <String>[
+    ...?data.imagehashes,
+  ]..removeWhere((candidate) => candidate == hash);
+
+  if (data.mainhash == hash) {
+    data.mainhash = remaining.isEmpty ? null : remaining.removeAt(0);
+  }
+  data.imagehashes = remaining;
+}
+
+Future<void> _discardInvalidServerImageArtifact(
+  Data data,
+  InvalidServerImageArtifactException artifact,
+) async {
+  removeInvalidServerImageReference(data, artifact.hash);
+
+  final scope = API().local.scopeFor(data);
+  final artifactBase = artifact.filename
+      .replaceAll('\\', '/')
+      .split('/')
+      .where((part) => part.isNotEmpty)
+      .last;
+  final storedNames = <String>{artifactBase, artifact.hash};
+  if (scope.isNotEmpty) {
+    storedNames.add('$scope/$artifactBase');
+    storedNames.add('$scope/${artifact.hash}');
+  }
+  try {
+    final indexed = await OfflineProvider.lookupImageNameForHash(
+      artifact.hash,
+      scope: scope,
+    );
+    if (indexed != null && indexed.isNotEmpty) storedNames.add(indexed);
+  } catch (_) {}
+
+  for (final storedName in storedNames) {
+    try {
+      final file = await OfflineProvider.localFile(storedName);
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
+  }
+  try {
+    await OfflineProvider.unindexImageHash(
+      hash: artifact.hash,
+      scope: scope,
+    );
+  } catch (_) {}
+}
+
+@visibleForTesting
 Future<bool> cacheInspectionImagesForDownload(
   List<Data> assets, {
   DownloadProgressSession? progressSession,
@@ -192,6 +243,13 @@ Future<bool> cacheInspectionImagesForDownload(
         );
       }
       if (token != null) progressSession?.endTask(token, success: succeeded);
+    } on InvalidServerImageArtifactException catch (artifact) {
+      await _discardInvalidServerImageArtifact(job.data, artifact);
+      if (token != null) progressSession?.endTask(token, success: true);
+      debugPrint(
+        'Ungültige Server-Bildaltlast "${artifact.filename}" '
+        '(${artifact.hash}) wurde übersprungen',
+      );
     } catch (_) {
       allSucceeded = false;
       if (token != null) progressSession?.endTask(token, success: false);

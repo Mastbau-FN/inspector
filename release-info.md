@@ -36,3 +36,4 @@ Version 270 hat die ursprünglichen offenen Upload-Aufträge noch nicht in das B
 - Frisch aufgenommene und bereits hochgeladene Bilder lassen sich direkt aus der Galerie teilen.
 - Die Standortkarte lädt OpenStreetMap-Kacheln wieder zuverlässig mit korrekter App-Kennung.
 - Online angelegte Prüfkategorien und Prüfpunkte speichern den Ersteller, sodass ihre Bearbeiten- und Löschen-Aktionen auch nach einem Neustart erhalten bleiben.
+- Offline-Downloads überspringen versehentlich als Bilder referenzierte Server-Altlasten wie `Thumbs.db`, ohne eine ansonsten vollständig geladene Inspektion fälschlich als fehlgeschlagen zu markieren.
