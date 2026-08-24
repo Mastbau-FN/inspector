@@ -320,6 +320,24 @@ class API {
     return merged;
   }
 
+  @visibleForTesting
+  static void preserveOfflineSelectionsFromCache<DataT extends Data>({
+    required List<DataT> cached,
+    required List<DataT> upstream,
+  }) {
+    final offlineIds = cached
+        .where((item) => item is WithOffline && item.forceOffline)
+        .map((item) => item.id)
+        .toSet();
+    if (offlineIds.isEmpty) return;
+
+    for (final item in upstream) {
+      if (item is WithOffline && offlineIds.contains(item.id)) {
+        item.forceOffline = true;
+      }
+    }
+  }
+
   Future<void> _pruneStaleRootInspectionCache(
     List<InspectionLocation> remoteInspections,
   ) async {
@@ -954,6 +972,17 @@ class API {
         );
       },
       onlineSuccessCB: (childDatas) async {
+        // `offline` is an explicit local selection. A refreshed server copy
+        // must not clear it, otherwise a completed download loses its green
+        // status and cache preference on the next root refresh.
+        try {
+          final cachedChildren =
+              await local.getNextDatapoint<ChildData, ParentData>(data);
+          API.preserveOfflineSelectionsFromCache(
+            cached: cachedChildren,
+            upstream: childDatas,
+          );
+        } catch (_) {}
         _cachePrueferIdsFromLocations(childDatas);
         if (typeOf<ChildData>() == typeOf<InspectionLocation>() &&
             data == null) {
@@ -963,10 +992,6 @@ class API {
           );
         }
         for (final childData in childDatas) {
-          // "offline" is a local-only flag; online data should clear it to avoid stale UI indicators.
-          try {
-            (childData as WithOffline).forceOffline = false;
-          } catch (_) {}
           await local.storeData(
             childData,
             forId: data?.id ?? await API().rootID,

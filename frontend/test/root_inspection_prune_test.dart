@@ -38,6 +38,22 @@ void main() {
 
     expect(stale, [oldLocal]);
   });
+
+  test('keeps an explicit offline selection on refreshed server data', () {
+    final cachedOffline = _inspection(id: 'same-id', pjNr: 5)
+      ..forceOffline = true;
+    final cachedOnline = _inspection(id: 'online-id', pjNr: 6);
+    final refreshedOffline = _inspection(id: 'same-id', pjNr: 5);
+    final refreshedOnline = _inspection(id: 'online-id', pjNr: 6);
+
+    API.preserveOfflineSelectionsFromCache(
+      cached: [cachedOffline, cachedOnline],
+      upstream: [refreshedOffline, refreshedOnline],
+    );
+
+    expect(refreshedOffline.forceOffline, isTrue);
+    expect(refreshedOnline.forceOffline, isFalse);
+  });
 }
 
 InspectionLocation _inspection({
