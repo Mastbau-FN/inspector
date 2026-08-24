@@ -147,6 +147,17 @@ if no <code>ParentData</code> is given it defaults to root</p>
       );
     },
     onlineSuccessCB: (childDatas) async {
+      &#47;&#47; `offline` is an explicit local selection. A refreshed server copy
+      &#47;&#47; must not clear it, otherwise a completed download loses its green
+      &#47;&#47; status and cache preference on the next root refresh.
+      try {
+        final cachedChildren =
+            await local.getNextDatapoint&lt;ChildData, ParentData&gt;(data);
+        API.preserveOfflineSelectionsFromCache(
+          cached: cachedChildren,
+          upstream: childDatas,
+        );
+      } catch (_) {}
       _cachePrueferIdsFromLocations(childDatas);
       if (typeOf&lt;ChildData&gt;() == typeOf&lt;InspectionLocation&gt;() &amp;&amp;
           data == null) {
@@ -156,10 +167,6 @@ if no <code>ParentData</code> is given it defaults to root</p>
         );
       }
       for (final childData in childDatas) {
-        &#47;&#47; &quot;offline&quot; is a local-only flag; online data should clear it to avoid stale UI indicators.
-        try {
-          (childData as WithOffline).forceOffline = false;
-        } catch (_) {}
         await local.storeData(
           childData,
           forId: data?.id ?? await API().rootID,
