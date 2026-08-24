@@ -27,3 +27,12 @@ Version 270 hat die ursprünglichen offenen Upload-Aufträge noch nicht in das B
 - Temporäre Dateien der Android-Dateiauswahl werden nach dem Import entfernt, sodass importierte ZIPs nicht mehrfach Speicherplatz belegen.
 - Das HTTP-Timeline-Logging wurde für lange Upload-Läufe deaktiviert. Dadurch bleibt der Speicherverbrauch auch beim Synchronisieren vieler großer Foto-Batches stabil.
 - Erfolgreich übertragene Upload-Aufträge werden weiterhin sofort aus der lokalen Warteschlange entfernt. Ein späterer Abbruch setzt deshalb nur die noch offenen Aufträge fort.
+
+## Performance und Fotoanzeige
+
+- Die Mängelprüfung vor dem Öffnen einer Inspektion verarbeitet ihre Backend-Abfragen begrenzt parallel und blockiert die Navigation dadurch deutlich kürzer.
+- Nach einem bereits abgeschlossenen Zoom-Fokus wiederholt die Kamera die Fokus- und Belichtungsaufrufe beim Auslösen nicht unnötig.
+- Während eines Foto-Uploads zeigt die Galerie lokale und bereits zugeordnete Server-Referenzen desselben Bildes nicht mehr vorübergehend doppelt an.
+- Frisch aufgenommene und bereits hochgeladene Bilder lassen sich direkt aus der Galerie teilen.
+- Die Standortkarte lädt OpenStreetMap-Kacheln wieder zuverlässig mit korrekter App-Kennung.
+- Online angelegte Prüfkategorien und Prüfpunkte speichern den Ersteller, sodass ihre Bearbeiten- und Löschen-Aktionen auch nach einem Neustart erhalten bleiben.

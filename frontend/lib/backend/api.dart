@@ -29,6 +29,13 @@ import 'package:MBG_Inspektionen/options.dart';
 import './helpers.dart' as Helper;
 import 'download_progress.dart';
 
+@visibleForTesting
+void assignAuthorForNewData(Data data, DisplayUser? user) {
+  if (data is! WithAuthor || user == null) return;
+  if (data.author?.trim().isNotEmpty ?? false) return;
+  data.author = user.name.trim();
+}
+
 /// backend Singleton to provide all functionality related to the backend
 class API {
   static const String _loginUsersStoreKey = 'login_users_cache_v1';
@@ -986,6 +993,7 @@ class API {
       (data as WithOffline).parentId = caller?.id ?? await rootID;
     } catch (e) {}
     if (data == null) return null;
+    assignAuthorForNewData(data, await user);
     // data.id = null;
     return _run(
       itPrefersCache: (caller as WithOffline?)

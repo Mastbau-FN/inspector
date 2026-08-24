@@ -92,6 +92,8 @@ class CameraModel extends ChangeNotifier {
   late final LatestAsyncValueQueue<double> _zoomQueue;
   late final LatestAsyncValueQueue<Offset> _focusQueue;
   Offset _lastFocusPoint = const Offset(0.5, 0.5);
+  int _zoomRevision = 0;
+  int _focusedZoomRevision = 0;
 
   // Kamera-Index und Status
   int _currentCameraIndex = 0;
@@ -176,6 +178,9 @@ class CameraModel extends ChangeNotifier {
         debugPrint('Fehler beim Setzen des Blitzmodus: $e');
       });
       await _updateZoomRange(next, generation: generation);
+      // CameraX initializes a fresh controller with a valid autofocus state.
+      // Only a later user zoom needs an additional focus/exposure cycle.
+      _focusedZoomRevision = _zoomRevision;
 
       // Bildschirm hell halten während die Kamera aktiv ist
       await SystemChrome.setEnabledSystemUIMode(
@@ -497,6 +502,9 @@ class CameraModel extends ChangeNotifier {
     if (_disposed) return Future<void>.value();
     final range = _zoomModel.zoomRange;
     final clampedZoom = newVal.clamp(range.$1, range.$2).toDouble();
+    if (clampedZoom != _zoomModel.zoom) {
+      _zoomRevision++;
+    }
     _zoomModel.zoom = clampedZoom;
     return _zoomQueue.add(clampedZoom);
   }
@@ -528,6 +536,7 @@ class CameraModel extends ChangeNotifier {
       // Ein noch laufender Zoom darf den gerade gesetzten Fokus nicht sofort
       // wieder entwerten.
       await _zoomQueue.waitForIdle();
+      final zoomRevision = _zoomRevision;
       final controller = await start();
       if (_disposed || !identical(controller, _controller)) return;
       try {
@@ -537,6 +546,9 @@ class CameraModel extends ChangeNotifier {
       }
       await controller.setFocusPoint(focusPoint);
       await controller.setExposurePoint(focusPoint);
+      if (_zoomRevision == zoomRevision) {
+        _focusedZoomRevision = zoomRevision;
+      }
     } catch (e) {
       if (!_disposed) debugPrint('Fehler beim Fokussieren: $e');
     }
@@ -548,6 +560,11 @@ class CameraModel extends ChangeNotifier {
     if (_disposed) return;
     await _zoomQueue.waitForIdle();
     if (_disposed) return;
+    // onChangeEnd already refocuses after a slider/pinch gesture. The capture
+    // path used to repeat all three CameraX focus calls unconditionally,
+    // adding several seconds on the Motorola test device.
+    await _focusQueue.waitForIdle();
+    if (_disposed || _focusedZoomRevision == _zoomRevision) return;
     await _focusQueue.add(_lastFocusPoint);
   }
 

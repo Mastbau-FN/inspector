@@ -23,6 +23,9 @@ import 'package:MBG_Inspektionen/classes/dropdownClasses.dart';
 
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 
+const osmTileUrlTemplate = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const osmUserAgentPackageName = 'com.mbgsolutions.inspector';
+
 class LocationModel extends DropDownModel<InspectionLocation, Null> {
   final DisplayUser? user;
   final InspectionDefectChecker _defectChecker;
@@ -454,9 +457,9 @@ class _MapState extends State<_Map> {
                               ),
                               children: [
                                 FM.TileLayer(
-                                    urlTemplate:
-                                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                    subdomains: ['a', 'b', 'c']),
+                                  urlTemplate: osmTileUrlTemplate,
+                                  userAgentPackageName: osmUserAgentPackageName,
+                                ),
                                 FM.MarkerLayer(
                                   markers: [
                                     FM.Marker(

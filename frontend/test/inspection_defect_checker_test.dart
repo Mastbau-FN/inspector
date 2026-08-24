@@ -93,6 +93,34 @@ void main() {
       'local_id': 'inspection-id',
     });
   });
+
+  test('bounds concurrent defect lookups while avoiding serial latency',
+      () async {
+    final inspection = _inspection('inspection');
+    final category = _category('category')..parentId = inspection.id;
+    final checkpoints = List.generate(
+      9,
+      (index) => _checkpoint('checkpoint-$index')..parentId = category.id,
+    );
+    var activeLoads = 0;
+    var peakLoads = 0;
+
+    final checker = InspectionDefectChecker(
+      maxConcurrentLoads: 3,
+      loadCategories: (_) async => [category],
+      loadCheckpoints: (_) async => checkpoints,
+      loadDefects: (_) async {
+        activeLoads++;
+        if (activeLoads > peakLoads) peakLoads = activeLoads;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        activeLoads--;
+        return [];
+      },
+    );
+
+    expect(await checker.hasDefectEntries(inspection), isFalse);
+    expect(peakLoads, 3);
+  });
 }
 
 InspectionLocation _inspection(

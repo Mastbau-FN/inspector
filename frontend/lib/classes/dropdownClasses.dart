@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/local.dart';
 import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
@@ -77,6 +79,43 @@ mixin WithLangText on Data {
 
 mixin WithAuthor on Data {
   String? get author;
+  set author(String? value);
+}
+
+typedef ShareImageFileResolver = Future<File?> Function(
+  String hash, {
+  String? scope,
+});
+typedef ShareImageNameLookup = Future<String?> Function(
+  String hash, {
+  String? scope,
+});
+
+@visibleForTesting
+Future<File?> resolveShareImageFile(
+  Object hash, {
+  required String scope,
+  ShareImageFileResolver? fileResolver,
+  ShareImageNameLookup? nameLookup,
+}) async {
+  final requested = hash.toString().trim();
+  if (requested.isEmpty) return null;
+
+  final resolve = fileResolver ?? resolveImageFileByHash;
+  final lookup = nameLookup ?? lookupImageNameForHash;
+  var file = await resolve(requested, scope: scope);
+
+  // Directly uploaded images are displayed with their remote hash, while the
+  // local file still has its capture-time name. The image index connects both
+  // names and is also used by image rotation.
+  if (file == null && !requested.contains('/')) {
+    final mappedName = await lookup(requested, scope: scope);
+    if (mappedName != null && mappedName.trim().isNotEmpty) {
+      file = await resolve(mappedName.trim(), scope: scope);
+    }
+  }
+
+  return file;
 }
 
 mixin WithOffline on Data {
@@ -303,8 +342,8 @@ Widget standard_statefulImageView<ChildData extends WithLangText,
 
                     final scope =
                         API().local.scopeFor(owner, caller: model.currentData);
-                    final file = await resolveImageFileByHash(
-                      hash.toString(),
+                    final file = await resolveShareImageFile(
+                      hash,
                       scope: scope,
                     );
 

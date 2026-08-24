@@ -50,7 +50,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: Mastbau-FN/inspector/.github/actions/setup@staging
         with:
-          version: v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || ' ' }} ${GITHUB_SHA::8}-${{ matrix.platform }}
+          version: v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || '' }} ${GITHUB_SHA::8}-${{ matrix.platform }}
 
       - name: Configure Android signing
         env:
@@ -94,7 +94,9 @@ jobs:
             }
 
       - name: Build ${{ matrix.platform }}
-        run: ${{ env.buildcmd }}
+        # Every workflow release gets a monotonically increasing Android
+        # versionCode. Re-running the same workflow keeps the same code.
+        run: ${{ env.buildcmd }} --build-number=${{ github.run_number }}
 
       - name: upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
@@ -149,7 +151,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: release_v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || ' ' }}
+          tag_name: release_v_${{ github.run_number }}${{ github.ref_name != 'release' && '-dev' || '' }}
           release_name: AutoRelease (v${{ github.run_number }})
           body: ${{ steps.release-info.outputs.content }}
           draft: false

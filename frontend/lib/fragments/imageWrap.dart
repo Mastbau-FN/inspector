@@ -10,6 +10,31 @@ import 'package:provider/provider.dart';
 import 'package:MBG_Inspektionen/l10n/locales.dart';
 import 'galleryWrapper.dart';
 
+@visibleForTesting
+List<ImageItem<T>> uniqueVisibleImageItems<T extends Object>(
+  Iterable<ImageItem<T>> items,
+) {
+  final seenIds = <Object>{};
+  final seenNames = <String>{};
+  final visible = <ImageItem<T>>[];
+
+  for (final item in items) {
+    if (item.hidden) continue;
+    final image = item.image;
+    if (image != null) {
+      if (!seenIds.add(image.id)) continue;
+      final normalizedName = image.name?.trim().toLowerCase();
+      if (normalizedName != null &&
+          normalizedName.isNotEmpty &&
+          !seenNames.add(normalizedName)) {
+        continue;
+      }
+    }
+    visible.add(item);
+  }
+  return visible;
+}
+
 class ImageWrap<T extends Object> extends StatefulWidget {
   static FutureOr<void> _default(Object _) {
     showToast(S.current!.notAvailable);
@@ -206,7 +231,11 @@ class _ImageWrapState<T extends Object> extends State<ImageWrap<T>> {
           return AnimatedBuilder(
             animation: Listenable.merge(_allImages),
             builder: (context, _) {
-              final visibleImages = _allImages.where((e) => !e.hidden).toList();
+              // During an online upload the same stored photo can briefly be
+              // represented by its local scoped name and its new backend
+              // hash. Both resolve to the same canonical display name. Keep
+              // only one tile while the parent model reconciles those refs.
+              final visibleImages = uniqueVisibleImageItems(_allImages);
               _currentVisibleImages = visibleImages;
               final visibleIds =
                   visibleImages.map((e) => e.image?.id).whereType<T>().toSet();

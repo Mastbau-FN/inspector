@@ -750,6 +750,14 @@ class DropDownElementB<ChildData extends WithLangText> extends StatelessWidget {
 
 enum _DropDownItemCommand { edit, delete }
 
+@visibleForTesting
+bool isOwnedByUser(Data data, DisplayUser? user) {
+  if (user == null || data is! WithAuthor) return false;
+  final author = data.author?.trim().toLowerCase();
+  final userName = user.name.trim().toLowerCase();
+  return author != null && author.isNotEmpty && author == userName;
+}
+
 class _DropDownItemMenu<ChildData extends WithLangText>
     extends StatelessWidget {
   const _DropDownItemMenu({
@@ -766,8 +774,7 @@ class _DropDownItemMenu<ChildData extends WithLangText>
   final Future Function() onDelete;
 
   bool _isOwnedBy(DisplayUser? user) {
-    if (user == null || data is! WithAuthor) return false;
-    return (data as WithAuthor).author == user.name;
+    return isOwnedByUser(data, user);
   }
 
   Future<void> _edit(BuildContext context) async {
