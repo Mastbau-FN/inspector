@@ -155,6 +155,13 @@ Future&lt;bool&gt; cacheInspectionImagesForDownload(
         );
       }
       if (token != null) progressSession?.endTask(token, success: succeeded);
+    } on InvalidServerImageArtifactException catch (artifact) {
+      await _discardInvalidServerImageArtifact(job.data, artifact);
+      if (token != null) progressSession?.endTask(token, success: true);
+      debugPrint(
+        &#39;Ungültige Server-Bildaltlast &quot;${artifact.filename}&quot; &#39;
+        &#39;(${artifact.hash}) wurde übersprungen&#39;,
+      );
     } catch (_) {
       allSucceeded = false;
       if (token != null) progressSession?.endTask(token, success: false);

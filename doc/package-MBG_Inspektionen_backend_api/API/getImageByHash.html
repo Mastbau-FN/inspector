@@ -125,6 +125,12 @@
       final parsed = await rap.parser(res);
       completeProgress(parsed != null);
       if (parsed != null) return parsed;
+    } on InvalidServerImageArtifactException {
+      &#47;&#47; Offline inspection downloads classify this permanent server-data
+      &#47;&#47; artifact separately from real image&#47;network failures.
+      completeProgress(true);
+      if (progressSession != null) rethrow;
+      return null;
     } catch (_) {}
     &#47;&#47; last-chance local read (in case another concurrent fetch stored it)
     try {
