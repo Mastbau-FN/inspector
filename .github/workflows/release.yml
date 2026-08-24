@@ -19,7 +19,22 @@ defaults:
     working-directory: ./frontend #make sure it == ${{ env.working-directory }}
 
 jobs:
+  app-quality:
+    name: Analyze and test Flutter app
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Mastbau-FN/inspector/.github/actions/setup@staging
+
+      - name: Analyze Flutter app
+        run: flutter analyze
+
+      - name: Run all Flutter tests
+        run: flutter test
+
   build-doc:
+    needs: [app-quality]
     name: Build Docs
     runs-on: ubuntu-latest
     env:
@@ -40,6 +55,7 @@ jobs:
           path: ${{ env.working-directory }}/doc/api
 
   build-app:
+    needs: [app-quality]
     name: Build Android apk
     runs-on: ubuntu-latest
     strategy:
