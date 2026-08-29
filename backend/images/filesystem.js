@@ -16,6 +16,26 @@ const systemMetadataFilenames = new Set([
 const isSystemMetadataFilename = (filename) =>
   systemMetadataFilenames.has(pathm.basename(String(filename ?? "")).trim().toLowerCase());
 
+const removeSystemMetadataFilesFromDirectory = async (directoryPath) => {
+  const formattedPath = formatpath(directoryPath);
+  const dirents = await fsp.readdir(formattedPath, { withFileTypes: true });
+  const removedFiles = [];
+
+  for (const dirent of dirents) {
+    if (!dirent.isFile() || !isSystemMetadataFilename(dirent.name)) continue;
+
+    const filePath = pathm.join(formattedPath, dirent.name);
+    try {
+      await fsp.unlink(filePath);
+      removedFiles.push(filePath);
+    } catch (error) {
+      console.warn(`Systemdatei konnte nicht gelöscht werden: ${filePath}`, error);
+    }
+  }
+
+  return removedFiles;
+};
+
 ///removes the drive and replaces it with our given root path
 const formatpath = (path) => {
   const raw = String(path ?? "").replace(/\\/g, "/").trim();
@@ -80,4 +100,5 @@ module.exports = {
   getImageFrom,
   formatpath,
   isSystemMetadataFilename,
+  removeSystemMetadataFilesFromDirectory,
 };

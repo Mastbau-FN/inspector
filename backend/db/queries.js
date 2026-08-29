@@ -651,8 +651,14 @@ const hashImagesAndCreateIds = async (tthis) => {
       const dokusPath = path.join(baseFolder, 'Dokus');
       if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
         thingy.DokusPath = dokusPath;
+
+        // Windows and macOS metadata does not belong to the document archive.
+        // Remove existing artifacts from the server directory itself before
+        // returning the remaining documents to the app.
+        await imgfiler.removeSystemMetadataFilesFromDirectory(dokusPath);
         
-        // Never expose operating-system metadata as user documents.
+        // Keep filtering as a fallback if a file is recreated or could not be
+        // removed because the mounted directory is temporarily read-only.
         const fileNames = fs.readdirSync(dokusPath, { withFileTypes: true })
           .filter((entry) => entry.isFile() && !imgfiler.isSystemMetadataFilename(entry.name))
           .map((entry) => entry.name);
