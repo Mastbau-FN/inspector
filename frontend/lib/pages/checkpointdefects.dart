@@ -87,6 +87,37 @@ class CheckPointDefectsModel extends DropDownModel<CheckPointDefect, CheckPoint>
     );
   }
 
+  Future<String?> deleteDefect(CheckPointDefect defect) async {
+    final value = await API().delete<CheckPointDefect>(
+      defect,
+      caller: currentData,
+    );
+    if (value == null) return null;
+
+    try {
+      final remainingDefects = (await all().last)
+          .where((candidate) => candidate.id != defect.id)
+          .toList();
+      reconcileCompletionAfterDefectDeletion(remainingDefects);
+    } finally {
+      refresh();
+    }
+    return value;
+  }
+
+  void reconcileCompletionAfterDefectDeletion(
+    Iterable<CheckPointDefect> remainingDefects,
+  ) {
+    if (remainingDefects.isNotEmpty) return;
+    CategoryProgressState.instance.markCheckpointPendingByCoordinates(
+      pjNr: currentData.pjNr,
+      categoryIndex: currentData.category_index,
+      checkpointIndex: currentData.index,
+      categoryId: currentData.parentId,
+      checkpointId: currentData.id,
+    );
+  }
+
   ohneMaengelAction(context) async {
     if ((await all().last).isEmpty) {
       // final x = currentData;
@@ -608,10 +639,7 @@ class DefectWidget extends StatelessWidget {
                           final model = Provider.of<CheckPointDefectsModel>(
                               context,
                               listen: false);
-
-                          await API().delete<CheckPointDefect>(data,
-                              caller: model.currentData);
-                          model.refresh();
+                          await model.deleteDefect(data);
                         }),
                       ],
                     ),

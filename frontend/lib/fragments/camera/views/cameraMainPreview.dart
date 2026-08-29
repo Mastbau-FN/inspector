@@ -13,9 +13,12 @@ double cameraPreviewRotationAngle({
   required Orientation orientation,
 }) {
   if (orientation == Orientation.portrait && camera.sensorOrientation == 270) {
-    return -pi / 2;
+    // Relative to CameraPreview's standard orientation, 270-degree selfie
+    // sensors need a half turn. Rotating every preview by 90 degrees forced
+    // the live image through a cropped intermediate layout.
+    return pi;
   }
-  return pi / 2;
+  return 0;
 }
 
 double cameraPreviewScaleX(CameraDescription camera) {
@@ -236,7 +239,6 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
     double newZoom = (widget.model.zoom + zoomStep).clamp(
         widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
     await widget.model.setZoom(newZoom);
-    await widget.model.refocusAfterZoom();
   }
 
   /// Zeigt kurz den Fokuspunkt an und blendet ihn dann aus
@@ -269,7 +271,6 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
             widget.model.zoomM.zoomRange.$1, widget.model.zoomM.zoomRange.$2);
         unawaited(widget.model.setZoom(newZoom));
       },
-      onScaleEnd: (_) => unawaited(widget.model.refocusAfterZoom()),
 
       // Fokus-Gesten
       onTapDown: (details) {
@@ -308,65 +309,23 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
   /// Baut die Kameravorschau mit korrekter Ausrichtung
   Widget _buildCameraPreview() {
     final orientation = MediaQuery.of(context).orientation;
-    final isLandscape = orientation == Orientation.landscape;
-
-    final shouldRotate = !isLandscape;
     final rotationAngle = cameraPreviewRotationAngle(
       camera: widget.controller.description,
       orientation: orientation,
     );
     final scaleX = cameraPreviewScaleX(widget.controller.description);
 
-    // Bildschirmgröße ermitteln
-    final screenSize = MediaQuery.of(context).size;
-
-    // So wird das Seitenverhältnis GARANTIERT 3:4 im Hochformat
-    double width, height;
-    if (isLandscape) {
-      // Im Querformat: 4:3
-      height = screenSize.height * 0.9;
-      width = height * 4 / 3;
-    } else {
-      // Im Hochformat: 3:4
-      width = screenSize.width * 0.9;
-      height = width * 4 / 3;
-    }
-
     return Container(
       color: Colors.black,
       child: Center(
-        child: Container(
-          // FESTE Größe für die Vorschau, damit das Verhältnis GARANTIERT stimmt
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: Colors.black,
-          ),
-          child: ClipRect(
-            child: Transform.scale(
-              scaleX: scaleX,
+        child: ClipRect(
+          child: Transform.scale(
+            scaleX: scaleX,
+            alignment: Alignment.center,
+            child: Transform.rotate(
+              angle: rotationAngle,
               alignment: Alignment.center,
-              child: Transform.rotate(
-                angle: rotationAngle,
-                alignment: Alignment.center,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: shouldRotate ? 3 / 4 : 4 / 3,
-                    child: SizedBox.expand(
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        child: SizedBox(
-                          width: widget.controller.value.previewSize?.width ??
-                              1920,
-                          height: widget.controller.value.previewSize?.height ??
-                              1080,
-                          child: CameraPreview(widget.controller),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              child: CameraPreview(widget.controller),
             ),
           ),
         ),

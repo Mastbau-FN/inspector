@@ -104,6 +104,41 @@ void main() {
     expect(progress.entryFor('category'), isNull);
   });
 
+  test('deleting the last defect marks its checkpoint as pending again', () {
+    progress.registerCategory(
+      categoryId: 'category',
+      pjNr: 123,
+      categoryIndex: 4,
+      totalCheckpoints: 2,
+    );
+    progress.markCheckpointEditedByCoordinates(
+      pjNr: 123,
+      categoryIndex: 4,
+      checkpointIndex: 9,
+      categoryId: 'category',
+      checkpointId: 'checkpoint',
+    );
+
+    progress.markCheckpointPendingByCoordinates(
+      pjNr: 123,
+      categoryIndex: 4,
+      checkpointIndex: 9,
+      categoryId: 'category',
+      checkpointId: 'checkpoint',
+    );
+
+    expect(progress.entryFor('category'), isNull);
+    expect(
+      progress.checkpointCompleted(
+        checkpointId: 'checkpoint',
+        pjNr: 123,
+        categoryIndex: 4,
+        checkpointIndex: 9,
+      ),
+      isFalse,
+    );
+  });
+
   test('successful sync resets and reloads progress for all inspections', () {
     progress.registerCategory(
       categoryId: 'first-category',

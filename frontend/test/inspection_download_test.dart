@@ -108,6 +108,36 @@ void main() {
     expect(isKnownServerImageArtifactFilename('inspection-photo.jpg'), isFalse);
   });
 
+  test('skips operating-system metadata in document downloads', () async {
+    final inspection = _inspection(
+      id: 'inspection',
+      documents: [
+        DocumentData(filename: 'Thumbs.db', docupath: '/docs/Thumbs.db'),
+        DocumentData(filename: 'Plan.pdf', docupath: '/docs/Plan.pdf'),
+      ],
+    );
+    final requested = <String>[];
+    final tempDir = await Directory.systemTemp.createTemp('inspection_docs_');
+    addTearDown(() async {
+      if (await tempDir.exists()) await tempDir.delete(recursive: true);
+    });
+    final cachedFile = File('${tempDir.path}/Plan.pdf')
+      ..writeAsBytesSync([1, 2, 3]);
+
+    final succeeded = await cacheInspectionDocumentsForDownload(
+      inspection,
+      scope: 'scope',
+      readCachedDocument: (_, __) async => null,
+      downloadDocument: (path, _, __) async {
+        requested.add(path);
+        return cachedFile;
+      },
+    );
+
+    expect(succeeded, isTrue);
+    expect(requested, ['/docs/Plan.pdf']);
+  });
+
   test('remote image parser reports Thumbs.db as a server artifact', () async {
     final request = API().remote.getImageByHash(
           'artifact-hash',

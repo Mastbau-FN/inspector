@@ -19,7 +19,7 @@ void main() {
         camera: frontCamera,
         orientation: Orientation.portrait,
       ),
-      closeTo(-pi / 2, 0.0001),
+      closeTo(pi, 0.0001),
     );
   });
 
@@ -35,7 +35,7 @@ void main() {
         camera: backCamera,
         orientation: Orientation.portrait,
       ),
-      closeTo(pi / 2, 0.0001),
+      closeTo(0, 0.0001),
     );
   });
 
@@ -51,7 +51,7 @@ void main() {
         camera: frontCamera,
         orientation: Orientation.landscape,
       ),
-      closeTo(pi / 2, 0.0001),
+      closeTo(0, 0.0001),
     );
   });
 

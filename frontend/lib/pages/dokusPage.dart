@@ -1,3 +1,4 @@
+import 'package:MBG_Inspektionen/backend/image_naming.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:flutter/material.dart';
 import 'DocumentViewerPage.dart';
@@ -9,7 +10,11 @@ class DokusList extends StatelessWidget {
   const DokusList({Key? key, this.dokus, this.scope}) : super(key: key);
 
   Widget build(BuildContext context) {
-    final docs = dokus ?? const [];
+    final docs = (dokus ?? const <DocumentData>[])
+        .where((document) =>
+            !isKnownServerArtifactFilename(document.filename) &&
+            !isKnownServerArtifactFilename(document.docupath))
+        .toList();
     return Scaffold(
       appBar: AppBar(
         title: Text('Dokus'),

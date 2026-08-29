@@ -266,7 +266,6 @@ class _CameraForAdderState extends State<CameraForAdder>
                     min: snapshot.data!.$1,
                     max: snapshot.data!.$2,
                     onChanged: (newZoom) => unawaited(model.setZoom(newZoom)),
-                    onChangeEnd: (_) => unawaited(model.refocusAfterZoom()),
                     activeColor: Colors.white,
                     inactiveColor: Colors.white.withValues(alpha: 0.5),
                   );

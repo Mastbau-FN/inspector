@@ -652,8 +652,10 @@ const hashImagesAndCreateIds = async (tthis) => {
       if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
         thingy.DokusPath = dokusPath;
         
-        // Get the filenames in the directory (synchronous)
-        const fileNames = fs.readdirSync(dokusPath);
+        // Never expose operating-system metadata as user documents.
+        const fileNames = fs.readdirSync(dokusPath, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && !imgfiler.isSystemMetadataFilename(entry.name))
+          .map((entry) => entry.name);
         
         // Asynchronously read contents of each file
         thingy.DokusPaths = 

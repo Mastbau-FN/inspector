@@ -5,6 +5,17 @@ const pathm = require("path");
 
 const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally, dont forget to also mount the correct drives in docker-compose
 
+const systemMetadataFilenames = new Set([
+  "thumbs.db",
+  "ehthumbs.db",
+  "ehthumbs_vista.db",
+  "desktop.ini",
+  ".ds_store",
+]);
+
+const isSystemMetadataFilename = (filename) =>
+  systemMetadataFilenames.has(pathm.basename(String(filename ?? "")).trim().toLowerCase());
+
 ///removes the drive and replaces it with our given root path
 const formatpath = (path) => {
   const raw = String(path ?? "").replace(/\\/g, "/").trim();
@@ -49,7 +60,7 @@ const _getAllImagenamesFromPath = async (path) => {
 
   const dirents = await fsp.readdir(path, { withFileTypes: true });
   return dirents
-    .filter((dirent) => dirent.isFile())
+    .filter((dirent) => dirent.isFile() && !isSystemMetadataFilename(dirent.name))
     .map((dirent) => dirent.name);
 };
 
@@ -68,4 +79,5 @@ module.exports = {
   getAllImagenamesFrom,
   getImageFrom,
   formatpath,
+  isSystemMetadataFilename,
 };

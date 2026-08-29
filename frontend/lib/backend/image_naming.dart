@@ -29,11 +29,14 @@ String _basename(String raw) {
 /// Operating-system metadata that was accidentally indexed as an image by
 /// older server data. These files are not user photos and must not make an
 /// otherwise complete offline inspection fail.
-bool isKnownServerImageArtifactFilename(String? filename) {
+bool isKnownServerArtifactFilename(String? filename) {
   if (filename == null) return false;
   final base = _basename(filename).trim().toLowerCase();
   return _knownServerImageArtifacts.contains(base);
 }
+
+bool isKnownServerImageArtifactFilename(String? filename) =>
+    isKnownServerArtifactFilename(filename);
 
 bool isTimestampImageFilename(String filename) {
   final base = _basename(filename).trim();

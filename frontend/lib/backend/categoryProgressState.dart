@@ -226,6 +226,54 @@ class CategoryProgressState {
     _queuePersistence();
   }
 
+  void markCheckpointPendingByCoordinates({
+    required int pjNr,
+    required int categoryIndex,
+    required int checkpointIndex,
+    String? categoryId,
+    String? checkpointId,
+  }) {
+    final coordinateKey = checkpointKey(
+      pjNr: pjNr,
+      categoryIndex: categoryIndex,
+      checkpointIndex: checkpointIndex,
+    );
+    final keys = <String>{coordinateKey};
+    final normalizedCheckpointId = checkpointId?.trim();
+    if (normalizedCheckpointId != null && normalizedCheckpointId.isNotEmpty) {
+      keys.add(normalizedCheckpointId);
+    }
+
+    final affectedCategoryIds = <String>{};
+    for (final key in keys) {
+      final storedCategoryId = _categoryIdByCheckpointKey.remove(key);
+      if (storedCategoryId != null) affectedCategoryIds.add(storedCategoryId);
+      _editedCheckpointAtByKey.remove(key);
+      _categoryCoordinateByCheckpointKey.remove(key);
+    }
+
+    final categoryCoordinate = categoryCoordinateKey(
+      pjNr: pjNr,
+      categoryIndex: categoryIndex,
+    );
+    final normalizedCategoryId = categoryId?.trim();
+    if (normalizedCategoryId != null && normalizedCategoryId.isNotEmpty) {
+      affectedCategoryIds.add(normalizedCategoryId);
+    }
+    final registeredCategoryId = _categoryIdByCoordinate[categoryCoordinate];
+    if (registeredCategoryId != null) {
+      affectedCategoryIds.add(registeredCategoryId);
+    }
+    for (final affectedCategoryId in affectedCategoryIds) {
+      final coordinate =
+          _categoryCoordinateById[affectedCategoryId] ?? categoryCoordinate;
+      _refreshCategoryEntry(affectedCategoryId, coordinate);
+    }
+
+    revision.value++;
+    _queuePersistence();
+  }
+
   bool checkpointEditedRecently(String checkpointKey, {DateTime? now}) {
     final editedAt = _editedCheckpointAtByKey[checkpointKey];
     if (editedAt == null) return false;
