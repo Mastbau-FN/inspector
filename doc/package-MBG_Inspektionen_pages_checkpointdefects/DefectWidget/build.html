@@ -278,10 +278,7 @@ Widget build(BuildContext context) {
                         final model = Provider.of&lt;CheckPointDefectsModel&gt;(
                             context,
                             listen: false);
-
-                        await API().delete&lt;CheckPointDefect&gt;(data,
-                            caller: model.currentData);
-                        model.refresh();
+                        await model.deleteDefect(data);
                       }),
                     ],
                   ),

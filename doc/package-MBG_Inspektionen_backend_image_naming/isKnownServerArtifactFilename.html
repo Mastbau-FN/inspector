@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the cameraPreviewRotationAngle function from the cameraMainPreview library, for the Dart programming language.">
-  <title>cameraPreviewRotationAngle function - cameraMainPreview library - Dart API</title>
+  <meta name="description" content="API docs for the isKnownServerArtifactFilename function from the image_naming library, for the Dart programming language.">
+  <title>isKnownServerArtifactFilename function - image_naming library - Dart API</title>
 
 
   
@@ -25,10 +25,10 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../package-MBG_Inspektionen_fragments_camera_views_cameraMainPreview/">fragments&#47;camera&#47;views&#47;cameraMainPreview.dart</a></li>
-    <li class="self-crumb">cameraPreviewRotationAngle function</li>
+    <li><a href="../package-MBG_Inspektionen_backend_image_naming/">backend&#47;image_naming.dart</a></li>
+    <li class="self-crumb">isKnownServerArtifactFilename function</li>
   </ol>
-  <div class="self-name">cameraPreviewRotationAngle</div>
+  <div class="self-name">isKnownServerArtifactFilename</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -45,40 +45,37 @@
   <div
       id="dartdoc-main-content"
       class="main-content"
-      data-above-sidebar="package-MBG_Inspektionen_fragments_camera_views_cameraMainPreview&#47;package-MBG_Inspektionen_fragments_camera_views_cameraMainPreview-library-sidebar.html"
+      data-above-sidebar="package-MBG_Inspektionen_backend_image_naming&#47;package-MBG_Inspektionen_backend_image_naming-library-sidebar.html"
       data-below-sidebar="">
       <div>
-<h1><span class="kind-function">cameraPreviewRotationAngle</span> function 
+<h1><span class="kind-function">isKnownServerArtifactFilename</span> function 
  
 </h1></div>
 
     <section class="multi-line-signature">
         
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>
-<span class="name ">cameraPreviewRotationAngle</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="cameraPreviewRotationAngle-param-camera"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/CameraDescription-class.html">CameraDescription</a></span> <span class="parameter-name">camera</span>, </span></li>
-<li><span class="parameter" id="cameraPreviewRotationAngle-param-orientation"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Orientation.html">Orientation</a></span> <span class="parameter-name">orientation</span>, </span></li>
-</ol>})
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span>
+<span class="name ">isKnownServerArtifactFilename</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="isKnownServerArtifactFilename-param-filename"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">filename</span></span></li>
+</ol>)
 
         
 
     </section>
     
+<section class="desc markdown">
+  <p>Operating-system metadata that was accidentally indexed as an image by
+older server data. These files are not user photos and must not make an
+otherwise complete offline inspection fail.</p>
+</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">double cameraPreviewRotationAngle({
-  required CameraDescription camera,
-  required Orientation orientation,
-}) {
-  if (orientation == Orientation.portrait &amp;&amp; camera.sensorOrientation == 270) {
-    &#47;&#47; Relative to CameraPreview&#39;s standard orientation, 270-degree selfie
-    &#47;&#47; sensors need a half turn. Rotating every preview by 90 degrees forced
-    &#47;&#47; the live image through a cropped intermediate layout.
-    return pi;
-  }
-  return 0;
+  <pre class="language-dart"><code class="language-dart">bool isKnownServerArtifactFilename(String? filename) {
+  if (filename == null) return false;
+  final base = _basename(filename).trim().toLowerCase();
+  return _knownServerImageArtifacts.contains(base);
 }</code></pre>
 </section>
 
@@ -93,11 +90,11 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../package-MBG_Inspektionen_fragments_camera_views_cameraMainPreview/">cameraMainPreview</a></li>
-    <li class="self-crumb">cameraPreviewRotationAngle function</li>
+    <li><a href="../package-MBG_Inspektionen_backend_image_naming/">image_naming</a></li>
+    <li class="self-crumb">isKnownServerArtifactFilename function</li>
 </ol>
 
-    <h5>cameraMainPreview library</h5>
+    <h5>image_naming library</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-left-->
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

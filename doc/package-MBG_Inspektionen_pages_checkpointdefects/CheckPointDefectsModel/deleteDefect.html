@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the shoot method from the CameraModel class, for the Dart programming language.">
-  <title>shoot method - CameraModel class - cameraModel library - Dart API</title>
+  <meta name="description" content="API docs for the deleteDefect method from the CheckPointDefectsModel class, for the Dart programming language.">
+  <title>deleteDefect method - CheckPointDefectsModel class - checkpointdefects library - Dart API</title>
 
 
   
@@ -25,11 +25,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/">fragments&#47;camera&#47;cameraModel.dart</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-    <li class="self-crumb">shoot method</li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/">pages&#47;checkpointdefects.dart</a></li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
+    <li class="self-crumb">deleteDefect method</li>
   </ol>
-  <div class="self-name">shoot</div>
+  <div class="self-name">deleteDefect</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -46,16 +46,17 @@
 <div
     id="dartdoc-main-content"
     class="main-content"
-    data-above-sidebar="package-MBG_Inspektionen_fragments_camera_cameraModel&#47;CameraModel-class-sidebar.html"
+    data-above-sidebar="package-MBG_Inspektionen_pages_checkpointdefects&#47;CheckPointDefectsModel-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-method">shoot</span> method 
+<h1><span class="kind-method">deleteDefect</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.4+2/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span>
-<span class="name ">shoot</span>(<wbr>)
+<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span>&gt;</span></span>
+<span class="name ">deleteDefect</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="deleteDefect-param-defect"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span> <span class="parameter-name">defect</span></span></li>
+</ol>)
 
       
 
@@ -66,50 +67,22 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;XFile&gt; shoot() async {
-  if (_isProcessing) {
-    throw Exception(&quot;Kamera arbeitet noch&quot;);
-  }
-
-  if (_controller == null || !_controller!.value.isInitialized) {
-    debugPrint(&quot;Controller nicht initialisiert, starte Kamera...&quot;);
-    await start();
-  }
+  <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; deleteDefect(CheckPointDefect defect) async {
+  final value = await API().delete&lt;CheckPointDefect&gt;(
+    defect,
+    caller: currentData,
+  );
+  if (value == null) return null;
 
   try {
-    _isProcessing = true;
-    notifyListeners();
-
-    &#47;&#47; Pinch und Slider liefern sehr viele Werte. Vor dem Ausloesen muss nur
-    &#47;&#47; der letzte native Zoomwert gesetzt sein. CameraX fokussiert dabei
-    &#47;&#47; kontinuierlich; ein zusaetzlicher Fokus-&#47;Belichtungszyklus blockierte
-    &#47;&#47; die Aufnahme auf realen Geraeten merklich.
-    await _zoomQueue.waitForIdle();
-
-    final activeController = _controller!;
-
-    &#47;&#47; Haptisches Feedback erst unmittelbar zur tatsaechlichen Aufnahme.
-    HapticFeedback.mediumImpact();
-    _latestPic = await activeController.takePicture();
-
-    &#47;&#47; The capture preview replaces the live preview. Release camera buffers
-    &#47;&#47; before decoding the captured photo; retaining both at once caused a
-    &#47;&#47; reproducible ~100 MB RSS spike on the test device.
-    try {
-      await disposeCamera();
-    } catch (e) {
-      debugPrint(&#39;Fehler beim Freigeben der Kamera nach Aufnahme: $e&#39;);
-    }
-
-    _isProcessing = false;
-    notifyListeners();
-    return _latestPic!;
-  } catch (e) {
-    _isProcessing = false;
-    notifyListeners();
-    debugPrint(&quot;Fehler beim Aufnehmen des Bildes: $e&quot;);
-    throw Exception(&quot;Fehler beim Aufnehmen des Bildes&quot;);
+    final remainingDefects = (await all().last)
+        .where((candidate) =&gt; candidate.id != defect.id)
+        .toList();
+    reconcileCompletionAfterDefectDeletion(remainingDefects);
+  } finally {
+    refresh();
   }
+  return value;
 }</code></pre>
 </section>
 
@@ -124,12 +97,12 @@
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/">cameraModel</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-    <li class="self-crumb">shoot method</li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/">checkpointdefects</a></li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
+    <li class="self-crumb">deleteDefect method</li>
 </ol>
 
-    <h5>CameraModel class</h5>
+    <h5>CheckPointDefectsModel class</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

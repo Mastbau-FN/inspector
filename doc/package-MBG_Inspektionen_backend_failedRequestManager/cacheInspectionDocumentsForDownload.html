@@ -84,7 +84,11 @@ Future&lt;bool&gt; cacheInspectionDocumentsForDownload(
   DocumentCacheLookup? readCachedDocument,
   DocumentDownloadLookup? downloadDocument,
 }) async {
-  final documents = location.dokuspaths ?? const [];
+  final documents = (location.dokuspaths ?? const &lt;DocumentData&gt;[])
+      .where((document) =&gt;
+          !isKnownServerArtifactFilename(document.filename) &amp;&amp;
+          !isKnownServerArtifactFilename(document.docupath))
+      .toList();
 
   final effectiveScope = scope ?? API().local.scopeFor(location);
   final readCached = readCachedDocument ??

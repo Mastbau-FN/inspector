@@ -103,7 +103,11 @@ and</li>
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Widget build(BuildContext context) {
-  final docs = dokus ?? const [];
+  final docs = (dokus ?? const &lt;DocumentData&gt;[])
+      .where((document) =&gt;
+          !isKnownServerArtifactFilename(document.filename) &amp;&amp;
+          !isKnownServerArtifactFilename(document.docupath))
+      .toList();
   return Scaffold(
     appBar: AppBar(
       title: Text(&#39;Dokus&#39;),

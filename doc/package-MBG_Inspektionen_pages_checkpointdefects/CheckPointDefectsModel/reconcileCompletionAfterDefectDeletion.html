@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
-  <meta name="description" content="API docs for the refocusAfterZoom method from the CameraModel class, for the Dart programming language.">
-  <title>refocusAfterZoom method - CameraModel class - cameraModel library - Dart API</title>
+  <meta name="description" content="API docs for the reconcileCompletionAfterDefectDeletion method from the CheckPointDefectsModel class, for the Dart programming language.">
+  <title>reconcileCompletionAfterDefectDeletion method - CheckPointDefectsModel class - checkpointdefects library - Dart API</title>
 
 
   
@@ -25,11 +25,11 @@
   <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
   <ol class="breadcrumbs gt-separated dark hidden-xs">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/">fragments&#47;camera&#47;cameraModel.dart</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-    <li class="self-crumb">refocusAfterZoom method</li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/">pages&#47;checkpointdefects.dart</a></li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
+    <li class="self-crumb">reconcileCompletionAfterDefectDeletion method</li>
   </ol>
-  <div class="self-name">refocusAfterZoom</div>
+  <div class="self-name">reconcileCompletionAfterDefectDeletion</div>
   <form class="search navbar-right" role="search">
     <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
   </form>
@@ -46,40 +46,38 @@
 <div
     id="dartdoc-main-content"
     class="main-content"
-    data-above-sidebar="package-MBG_Inspektionen_fragments_camera_cameraModel&#47;CameraModel-class-sidebar.html"
+    data-above-sidebar="package-MBG_Inspektionen_pages_checkpointdefects&#47;CheckPointDefectsModel-class-sidebar.html"
     data-below-sidebar="">
     <div>
-<h1><span class="kind-method">refocusAfterZoom</span> method 
+<h1><span class="kind-method">reconcileCompletionAfterDefectDeletion</span> method 
 </h1></div>
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
-<span class="name ">refocusAfterZoom</span>(<wbr>)
+<span class="returntype">void</span>
+<span class="name ">reconcileCompletionAfterDefectDeletion</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="reconcileCompletionAfterDefectDeletion-param-remainingDefects"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Iterable-class.html">Iterable</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../../package-MBG_Inspektionen_classes_data_checkpointdefect/CheckPointDefect-class.html">CheckPointDefect</a></span>&gt;</span></span> <span class="parameter-name">remainingDefects</span></span></li>
+</ol>)
 
       
 
     </section>
     
-<section class="desc markdown">
-  <p>Wartet auf den letzten Zoomwert und fokussiert danach erneut. Wird am
-Ende einer Zoomgeste und unmittelbar vor jeder Aufnahme verwendet.</p>
-</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; refocusAfterZoom() async {
-  if (_disposed) return;
-  await _zoomQueue.waitForIdle();
-  if (_disposed) return;
-  &#47;&#47; onChangeEnd already refocuses after a slider&#47;pinch gesture. The capture
-  &#47;&#47; path used to repeat all three CameraX focus calls unconditionally,
-  &#47;&#47; adding several seconds on the Motorola test device.
-  await _focusQueue.waitForIdle();
-  if (_disposed || _focusedZoomRevision == _zoomRevision) return;
-  await _focusQueue.add(_lastFocusPoint);
+  <pre class="language-dart"><code class="language-dart">void reconcileCompletionAfterDefectDeletion(
+  Iterable&lt;CheckPointDefect&gt; remainingDefects,
+) {
+  if (remainingDefects.isNotEmpty) return;
+  CategoryProgressState.instance.markCheckpointPendingByCoordinates(
+    pjNr: currentData.pjNr,
+    categoryIndex: currentData.category_index,
+    checkpointIndex: currentData.index,
+    categoryId: currentData.parentId,
+    checkpointId: currentData.id,
+  );
 }</code></pre>
 </section>
 
@@ -94,12 +92,12 @@ Ende einer Zoomgeste und unmittelbar vor jeder Aufnahme verwendet.</p>
 </header>
 <ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
     <li><a href="../../index.html">MBG_Inspektionen</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/">cameraModel</a></li>
-    <li><a href="../../package-MBG_Inspektionen_fragments_camera_cameraModel/CameraModel-class.html">CameraModel</a></li>
-    <li class="self-crumb">refocusAfterZoom method</li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/">checkpointdefects</a></li>
+    <li><a href="../../package-MBG_Inspektionen_pages_checkpointdefects/CheckPointDefectsModel-class.html">CheckPointDefectsModel</a></li>
+    <li class="self-crumb">reconcileCompletionAfterDefectDeletion method</li>
 </ol>
 
-    <h5>CameraModel class</h5>
+    <h5>CheckPointDefectsModel class</h5>
     <div id="dartdoc-sidebar-left-content"></div>
   </div><!--/.sidebar-offcanvas-->
   <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">

@@ -62,21 +62,13 @@
 
     </section>
     
-<section class="desc markdown">
-  <p>Operating-system metadata that was accidentally indexed as an image by
-older server data. These files are not user photos and must not make an
-otherwise complete offline inspection fail.</p>
-</section>
 
 
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">bool isKnownServerImageArtifactFilename(String? filename) {
-  if (filename == null) return false;
-  final base = _basename(filename).trim().toLowerCase();
-  return _knownServerImageArtifacts.contains(base);
-}</code></pre>
+  <pre class="language-dart"><code class="language-dart">bool isKnownServerImageArtifactFilename(String? filename) =&gt;
+    isKnownServerArtifactFilename(filename);</code></pre>
 </section>
 
 
