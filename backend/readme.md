@@ -54,7 +54,8 @@ BACKEND_SLOW_QUERY_MS=5000
 ### File access and downloads
 
 Document downloads are restricted to the `Dokus` directories of inspections
-assigned to the authenticated user's `KZL`. The backend obtains these directories
+assigned to the authenticated user's `KZL`, including their categories,
+checkpoints and defects. The backend obtains these directories
 from the database, not from the request. Existing full document paths and
 directory-plus-filename requests remain supported. Traversal with `..`, paths
 outside the allowed directories, and symbolic links escaping those directories
@@ -115,4 +116,4 @@ Tests use Node's built-in test runner, temporary local directories and mocked
 database calls. They require no production credentials, database or mounted
 network drive. Coverage includes path mapping, document authorization, symlink
 escapes, storage failures, read-only listing, streamed HTTP downloads, disconnects
-and metadata cleanup. The backend GitHub Actions workflow runs them on Node 22.
+and metadata cleanup. The backend GitHub Actions workflow runs them on Node 24.

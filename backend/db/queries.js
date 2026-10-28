@@ -203,12 +203,15 @@ const getInspectionsForUser = (user) =>
 const getDocumentDirectoriesForUser = async (user) => {
   if (!user?.KZL) return [];
   const inspections = await getInspectionsForUser(user);
+  if (inspections.length === 0) return [];
+  const projectNumbers = [...new Set(inspections.map((inspection) => inspection.PjNr))];
+  const childRecords = await queryFileWithParams("get/document_directories", [projectNumbers], false);
   const directories = [];
-  for (const inspection of inspections) {
-    if (!inspection.LinkOrdner && !inspection.Link) continue;
-    let baseDirectory = inspection.LinkOrdner;
+  for (const record of [...inspections, ...childRecords]) {
+    if (!record.LinkOrdner && !record.Link) continue;
+    let baseDirectory = record.LinkOrdner;
     if (!baseDirectory) {
-      const { rootfolder, link } = await getLink(inspection, false);
+      const { rootfolder, link } = await getLink(record, false);
       baseDirectory = path.join(rootfolder, link);
     }
     directories.push(path.join(imgfiler.formatpath(baseDirectory), "Dokus"));
