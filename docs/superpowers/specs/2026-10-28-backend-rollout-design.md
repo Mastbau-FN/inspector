@@ -1,0 +1,7 @@
+# Inspector backend rollout
+
+The user approved the five follow-up steps in the chat on 2026-10-28: harden restart.sh, verify real storage paths, deploy the existing five backend improvements, verify backup/restore/sync, and reconcile old tickets. Preserve Node 24.22.1 and keep application changes limited to the already prepared backend package and necessary fixes. Version-2 categories and a new backup service are outside scope.
+
+Use the existing Express/PostgreSQL/filesystem architecture. Document downloads remain restricted to assigned inspections. Storage failures must not appear as successful empty results. Backup and recovery continue to use existing endpoints. Do not fabricate missing inspection directories or remove database records to make checks pass. Production writes for tests are limited to isolated temporary fixtures; actual inspection data is read only. Hardware tests require a connected test device.
+
+Approach: preserve the dirty checkout in an isolated worktree; test the existing package; fix restart failure handling with executable tests; audit production storage and resolve a demonstrated mapping/configuration error if one exists; stage and review before rollout. If the audit reveals missing business data, retain the working production service and report the specific dependency instead of deploying a known regression. Backup and rollback must precede application replacement.

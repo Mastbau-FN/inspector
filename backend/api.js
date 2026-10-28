@@ -7,7 +7,7 @@ const path = require("path");
 const options = require("./options");
 
 const fs = require("fs");
-const fsp = fs.promises;
+const { pipeline } = require("stream/promises");
 const identifiers = require("./misc/identifiers").identifiers;
 const backendLogger = require("./misc/logger");
 
@@ -79,6 +79,11 @@ const errsafejson = async (
       durationMs: Date.now() - startedAt,
       ...backendLogger.errorContext(error),
     });
+    if (error.code === "STORAGE_UNAVAILABLE" && !res.headersSent) {
+      return res.status(503).json({
+        error: { code: error.code, message: "File storage is unavailable. Please try again later." },
+      });
+    }
     const captured = { error: { errsafejson_captured: error.toString() } };
     Object.defineProperty(captured, "originalError", {
       value: error,
@@ -314,66 +319,70 @@ function guessImageContentType(filename) {
 /**
  * retrieves the file given by a hash and returns it to the client
  */
-const getFileFromHash = async (req, res) => {
+const sendFileDownload = async (req, res, openFile, contentType, headers, notFoundReason) => {
+  let download;
   try {
-    const hash = req.body.hash;
-    const pathparts = imghasher.getPathFromHash(hash) ?? {};
-    const filename = pathparts.filename;
-
-    let img = await imghasher.getFileFromHash(hash);
-    res.writeHead(200, {
-      "Content-type": guessImageContentType(filename),
-      ...(filename ? { "x-image-filename": filename } : {}),
-    });
-    res.end(img);
-  } catch (e) {
-    res.status(404).json({ reason: "image no longer available" });
-  }
-};
-
-const getDocFromPath = async (req, res) => {
-  try {
-    let docPath = imgfiler.formatpath(req.body.docPath);
-    const filename = req.body?.filename;
-    const stat = await fsp.stat(docPath);
-    if (stat.isDirectory()) {
-      if (filename == null || String(filename).trim().length === 0) {
-        throw new Error("docPath points to directory without filename");
-      }
-      docPath = path.join(docPath, path.basename(String(filename)));
+    download = await openFile();
+    if (res.destroyed) return;
+    res.status(200);
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Length", download.size);
+    for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
+    await pipeline(download.stream, res);
+  } catch (error) {
+    _logRequest("warn", req, "file-download-failed", backendLogger.errorContext(error));
+    if (res.headersSent || res.destroyed) {
+      if (!res.destroyed) res.destroy();
+      return;
     }
-    let img = await fsp.readFile(docPath);
-
-    res.writeHead(200, { "Content-type": "application/octet-stream" });
-    res.end(img);
-  } catch (e) {
-    _logRequest("warn", req, "doc-read-failed", {
-      docPath: req.body?.docPath ?? null,
-      reason: e?.message ?? String(e),
-    });
-    res.status(404).json({ reason: "doc no longer available" });
+    res.removeHeader("Content-Length");
+    res.removeHeader("Content-Type");
+    for (const name of Object.keys(headers)) res.removeHeader(name);
+    if (error.code === "INVALID_PATH" || error.code === "INVALID_HASH") {
+      return res.status(400).json({ code: error.code, reason: error.message });
+    }
+    if (error.code === "FORBIDDEN_PATH" || error.code === "ELOOP") {
+      return res.status(403).json({ code: "FORBIDDEN_PATH", reason: "File path is not allowed" });
+    }
+    if (["ENOENT", "ENOTDIR", "NOT_A_FILE"].includes(error.code)) {
+      return res.status(404).json({ code: "FILE_NOT_FOUND", reason: notFoundReason });
+    }
+    if (error.syscall || error.code === "STORAGE_UNAVAILABLE") {
+      return res.status(503).json({ code: "STORAGE_UNAVAILABLE", reason: "File storage is unavailable" });
+    }
+    return res.status(500).json({ code: "DOWNLOAD_FAILED", reason: "File download failed" });
+  } finally {
+    download?.stream.destroy();
   }
 };
+
+const sendImageDownload = (req, res, hash) => {
+  const { filename } = imghasher.getPathFromHash(hash);
+  return sendFileDownload(
+    req, res, () => imghasher.getFileFromHash(hash), guessImageContentType(filename),
+    filename ? { "x-image-filename": filename } : {}, "image no longer available",
+  );
+};
+
+const getFileFromHash = (req, res) => sendImageDownload(req, res, req.body?.hash);
+
+const getDocFromPath = (req, res) => sendFileDownload(
+  req,
+  res,
+  async () => imgfiler.getDocumentFrom(
+    req.body?.docPath,
+    req.body?.filename,
+    await queries.getDocumentDirectoriesForUser(req.user),
+  ),
+  "application/octet-stream",
+  {},
+  "doc no longer available",
+);
 
 /**
  * retrieves the file given by a hash and returns it to the client
  */
-const getFileFromHash_get = async (req, res) => {
-  try {
-    const hash = req.params.hash;
-    const pathparts = imghasher.getPathFromHash(hash) ?? {};
-    const filename = pathparts.filename;
-    let img = await imghasher.getFileFromHash(hash);
-    res.writeHead(200, {
-      "Content-type": guessImageContentType(filename),
-      ...(filename ? { "x-image-filename": filename } : {}),
-    });
-    res.end(img);
-  } catch (e) {
-    console.warn('failed to get image:',  e);
-    res.status(404).json({ reason: "image no longer available" });
-  }
-};
+const getFileFromHash_get = (req, res) => sendImageDownload(req, res, req.params.hash);
 
 
 const fileUpload = async (req, res) => {

@@ -17,13 +17,14 @@ var cache = new NanoCache({
 // cache = {get:(e)=>__hash_cache.getItem(e), set:(e, b)=> __hash_cache.setItem(e,b)};
 
 const getFileFromHash = async (hash) => {
-  //console.log("gettin file from ", await getPathFromHash(hash))
-  let img = await imgfiler.getImageFrom(
-    cache.get(hash + "r"),
-    cache.get(hash + "l"),
-    cache.get(hash + "f")
-  );
-  return img
+  if (typeof hash !== "string" || !hash.trim()) {
+    throw Object.assign(new Error("An image hash is required"), { code: "INVALID_HASH" });
+  }
+  const { rootpath, link, filename } = getPathFromHash(hash);
+  if (rootpath == null || link == null || filename == null) {
+    throw Object.assign(new Error("Image hash is no longer available"), { code: "ENOENT" });
+  }
+  return imgfiler.getImageFrom(rootpath, link, filename);
 };
 
 function throwExpression(errorMessage) {
@@ -31,17 +32,12 @@ function throwExpression(errorMessage) {
 }
 
 const getPathFromHash = (hash) => {
-  // console.log(hash);
-  // console.log(cache.stats());
-  try{
-    return {
-      rootpath: cache.get(hash + "r") ,
-      link: cache.get(hash + "l") ,
-      filename: cache.get(hash + "f") 
-    }
-  }catch(err) {
-      print("Cache Miss!" + err)
-  }
+  if (typeof hash !== "string" || !hash.trim()) return {};
+  return {
+    rootpath: cache.get(hash + "r"),
+    link: cache.get(hash + "l"),
+    filename: cache.get(hash + "f"),
+  };
 };
 
 const memorize = (rootpath, link, filename) => {

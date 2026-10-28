@@ -16,7 +16,8 @@
     "pg": "^8.7.3"
   },
   "scripts": {
-    "test": "test",
+    "test": "node --test",
+    "cleanup:metadata": "node scripts/cleanup-metadata.js",
     "serve": "node index.js > ../../log && disown",
     "tmpserve": "node index.js"
   },

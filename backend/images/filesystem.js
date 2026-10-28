@@ -5,6 +5,15 @@ const pathm = require("path");
 
 const root_path = process.env.IMG_ROOT_PATH; //might be needed when mounting network drives locally, dont forget to also mount the correct drives in docker-compose
 
+class StorageUnavailableError extends Error {
+  constructor(cause) {
+    super("File storage is unavailable", { cause });
+    this.code = "STORAGE_UNAVAILABLE";
+  }
+}
+
+const fileError = (code, message) => Object.assign(new Error(message), { code });
+
 const systemMetadataFilenames = new Set([
   "thumbs.db",
   "ehthumbs.db",
@@ -20,6 +29,7 @@ const removeSystemMetadataFilesFromDirectory = async (directoryPath) => {
   const formattedPath = formatpath(directoryPath);
   const dirents = await fsp.readdir(formattedPath, { withFileTypes: true });
   const removedFiles = [];
+  const failures = [];
 
   for (const dirent of dirents) {
     if (!dirent.isFile() || !isSystemMetadataFilename(dirent.name)) continue;
@@ -29,10 +39,13 @@ const removeSystemMetadataFilesFromDirectory = async (directoryPath) => {
       await fsp.unlink(filePath);
       removedFiles.push(filePath);
     } catch (error) {
-      console.warn(`Systemdatei konnte nicht gelöscht werden: ${filePath}`, error);
+      if (error.code !== "ENOENT") failures.push(error);
     }
   }
 
+  if (failures.length > 0) {
+    throw new AggregateError(failures, "Some system metadata files could not be deleted");
+  }
   return removedFiles;
 };
 
@@ -69,11 +82,36 @@ const formatpath = (path) => {
   return pathm.normalize(raw);
 };
 
-const getImageFrom = (rootpath, link, filename) => {
-  let pathname = formatpath(pathm.join(rootpath, link, filename));
-  //console.log("serving: "+pathname);
+const openFileStream = async (filePath) => {
+  const handle = await fsp.open(
+    filePath,
+    fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK,
+  );
+  try {
+    const stat = await handle.stat();
+    if (!stat.isFile()) throw fileError("NOT_A_FILE", "Expected a regular file");
+    return { stream: handle.createReadStream(), size: stat.size };
+  } catch (error) {
+    await handle.close();
+    throw error;
+  }
+};
 
-  return fsp.readFile(pathname);}
+const getImageFrom = async (rootpath, link, filename) => {
+  const directory = formatpath(pathm.join(rootpath, link));
+  try {
+    return await openFileStream(pathm.join(directory, filename));
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      try {
+        await fsp.stat(directory);
+      } catch (directoryError) {
+        throw new StorageUnavailableError(directoryError);
+      }
+    }
+    throw error;
+  }
+};
 
 const _getAllImagenamesFromPath = async (path) => {
   path = formatpath(path);
@@ -88,15 +126,91 @@ const _getAllImagenamesFromPath = async (path) => {
 const getAllImagenamesFrom = async (rootpath, link) => {
   try {
     return await _getAllImagenamesFromPath(pathm.join(rootpath, link));
-  } catch (e) {
-    // console.warn("failed to get image names: ", e);
-    return [];
+  } catch (error) {
+    throw new StorageUnavailableError(error);
   }
 };
 
+const getDocumentsFrom = async (baseDirectory) => {
+  const basePath = formatpath(baseDirectory);
+  const documentPath = pathm.join(basePath, "Dokus");
+  try {
+    if ((await fsp.lstat(documentPath)).isSymbolicLink()) {
+      throw fileError("FORBIDDEN_PATH", "Document directory must not be a symbolic link");
+    }
+    const filenames = await _getAllImagenamesFromPath(documentPath);
+    return {
+      DokusPath: documentPath,
+      DokusPaths: filenames.map((filename) => ({
+        filename,
+        docupath: pathm.join(documentPath, filename),
+      })),
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      try {
+        const baseStat = await fsp.stat(basePath);
+        if (!baseStat.isDirectory()) throw error;
+        return { DokusPath: null, DokusPaths: [] };
+      } catch (baseError) {
+        throw new StorageUnavailableError(baseError);
+      }
+    }
+    throw new StorageUnavailableError(error);
+  }
+};
+
+const isWithinDirectory = (directory, candidate) => {
+  const relative = pathm.relative(directory, candidate);
+  return relative !== ".." && !relative.startsWith(`..${pathm.sep}`) && !pathm.isAbsolute(relative);
+};
+
+const getDocumentFrom = async (docPath, filename, allowedDirectories) => {
+  if (typeof docPath !== "string" || !docPath.trim() || docPath.includes("\0")) {
+    throw fileError("INVALID_PATH", "A document path is required");
+  }
+  if (docPath.replace(/\\/g, "/").split("/").includes("..")) {
+    throw fileError("FORBIDDEN_PATH", "Document path is not allowed");
+  }
+  if (filename != null && (
+    typeof filename !== "string" || !filename.trim() ||
+    filename === "." || filename === ".." || /[\\/\0]/.test(filename)
+  )) {
+    throw fileError("INVALID_PATH", "Expected a filename without a directory");
+  }
+
+  let candidate = pathm.resolve(formatpath(docPath));
+  const directory = allowedDirectories
+    .map((allowed) => pathm.resolve(formatpath(allowed)))
+    .find((allowed) => isWithinDirectory(allowed, candidate));
+  if (!directory) throw fileError("FORBIDDEN_PATH", "Document path is not allowed");
+
+  let realDirectory;
+  try {
+    if ((await fsp.lstat(directory)).isSymbolicLink()) {
+      throw fileError("FORBIDDEN_PATH", "Document directory must not be a symbolic link");
+    }
+    realDirectory = await fsp.realpath(directory);
+  } catch (error) {
+    if (error.code === "FORBIDDEN_PATH") throw error;
+    throw new StorageUnavailableError(error);
+  }
+  if ((await fsp.stat(candidate)).isDirectory()) {
+    if (filename == null) throw fileError("INVALID_PATH", "A filename is required for a directory");
+    candidate = pathm.join(candidate, filename);
+  }
+  const realFile = await fsp.realpath(candidate);
+  if (!isWithinDirectory(realDirectory, realFile) || isSystemMetadataFilename(realFile)) {
+    throw fileError("FORBIDDEN_PATH", "Document path is not allowed");
+  }
+  return openFileStream(realFile);
+};
 
 module.exports = {
+  StorageUnavailableError,
   getAllImagenamesFrom,
+  getDocumentsFrom,
+  getDocumentFrom,
   getImageFrom,
   formatpath,
   isSystemMetadataFilename,

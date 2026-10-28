@@ -6,7 +6,7 @@ services:
       - .env.prod
     user: "${UID}:${GID}"
     restart: always
-    image: node:19-buster
+    image: node:24-bookworm
     logging:
       driver: "json-file"
       options:
@@ -32,7 +32,7 @@ services:
       - .env.dev
     user: "${UID}:${GID}"
     restart: always
-    image: node:19-buster
+    image: node:24-bookworm
     logging:
       driver: "json-file"
       options:

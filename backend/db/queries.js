@@ -200,6 +200,22 @@ const getLoginUsers = async () =>
 const getInspectionsForUser = (user) =>
   queryFileWithParams("get/inspection_locations", [user.KZL, 2000, _ID_]);
 
+const getDocumentDirectoriesForUser = async (user) => {
+  if (!user?.KZL) return [];
+  const inspections = await getInspectionsForUser(user);
+  const directories = [];
+  for (const inspection of inspections) {
+    if (!inspection.LinkOrdner && !inspection.Link) continue;
+    let baseDirectory = inspection.LinkOrdner;
+    if (!baseDirectory) {
+      const { rootfolder, link } = await getLink(inspection, false);
+      baseDirectory = path.join(rootfolder, link);
+    }
+    directories.push(path.join(imgfiler.formatpath(baseDirectory), "Dokus"));
+  }
+  return [...new Set(directories)];
+};
+
 /**
  *
  * @param {Number} pjNr
@@ -550,7 +566,9 @@ const _pathFromHashInContext = async (hash, dataContext) => {
         return { rootpath, link, filename: name };
       }
     }
-  } catch (_) {}
+  } catch (error) {
+    if (error.code === "STORAGE_UNAVAILABLE") throw error;
+  }
   return null;
 };
 
@@ -610,6 +628,7 @@ module.exports = {
   getValidUser,
   getLoginUsers,
   getInspectionsForUser,
+  getDocumentDirectoriesForUser,
   getCheckCategoriesForPjNR,
   getCheckPoints,
   getCheckPointDefects,
@@ -648,35 +667,7 @@ const hashImagesAndCreateIds = async (tthis) => {
       const baseFolder = thingy.LinkOrdner != null && thingy.LinkOrdner !== ""
         ? imgfiler.formatpath(thingy.LinkOrdner)
         : imgfiler.formatpath(path.join(rootfolder, link));
-      const dokusPath = path.join(baseFolder, 'Dokus');
-      if (fs.existsSync(dokusPath) && fs.lstatSync(dokusPath).isDirectory()) {
-        thingy.DokusPath = dokusPath;
-
-        // Windows and macOS metadata does not belong to the document archive.
-        // Remove existing artifacts from the server directory itself before
-        // returning the remaining documents to the app.
-        await imgfiler.removeSystemMetadataFilesFromDirectory(dokusPath);
-        
-        // Keep filtering as a fallback if a file is recreated or could not be
-        // removed because the mounted directory is temporarily read-only.
-        const fileNames = fs.readdirSync(dokusPath, { withFileTypes: true })
-          .filter((entry) => entry.isFile() && !imgfiler.isSystemMetadataFilename(entry.name))
-          .map((entry) => entry.name);
-        
-        // Asynchronously read contents of each file
-        thingy.DokusPaths = 
-
-          fileNames.map((file) => {
-            const filePath = path.join(dokusPath, file);
-            return {
-              filename: file,
-              docupath: filePath,
-            };
-          })
-        
-      } else {
-        thingy.DokusPath = null;
-        thingy.DokusPaths = [];}
+      Object.assign(thingy, await imgfiler.getDocumentsFrom(baseFolder));
       
       // append their hashes to the returned object  
       const images =
