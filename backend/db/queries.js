@@ -645,6 +645,7 @@ module.exports = {
 };
 
 const hashImagesAndCreateIds = async (tthis) => {
+  const inspectionDirectories = new Map();
 
   for (var thingy of tthis) {
     if (thingy.Link || thingy.LinkOrdner) {
@@ -661,16 +662,37 @@ const hashImagesAndCreateIds = async (tthis) => {
         ({ rootfolder, link, filename } = await getLink(thingy));
       }
 
-      // get all *other* image names
-      const allImageNames = await imgfiler.getAllImagenamesFrom(rootfolder, link);
+      const baseFolder = thingy.LinkOrdner != null && thingy.LinkOrdner !== ""
+        ? imgfiler.formatpath(thingy.LinkOrdner)
+        : imgfiler.formatpath(path.join(rootfolder, link));
+      let allImageNames;
+      let documents;
+      try {
+        allImageNames = await imgfiler.getAllImagenamesFrom(rootfolder, link);
+      } catch (error) {
+        // Child folders are created on the first photo upload. A placeholder
+        // alone does not mean the folder, or any image in it, exists yet.
+        if (error.code !== "STORAGE_UNAVAILABLE" || error.cause?.code !== "ENOENT" ||
+            !(thingy.E1 > 0) || filename !== options.no_image_placeholder_name) throw error;
+        if (!inspectionDirectories.has(thingy.PjNr)) {
+          const [inspection] = await queryFileWithParams("get/root_folder", [thingy.PjNr, _ID_], false);
+          const directory = inspection?.LinkOrdner ||
+            (inspection?.Link ? path.dirname(imgfiler.formatpath(inspection.Link)) : null);
+          inspectionDirectories.set(thingy.PjNr, directory ? path.resolve(imgfiler.formatpath(directory)) : null);
+        }
+        const directory = inspectionDirectories.get(thingy.PjNr);
+        if (!directory) throw error;
+        const relative = path.relative(directory, path.resolve(baseFolder));
+        if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw error;
+        await imgfiler.getAllImagenamesFrom(directory, "");
+        allImageNames = [];
+        documents = { DokusPath: null, DokusPaths: [] };
+      }
       let imageNames = allImageNames.filter((v) => v != filename);
 
       let maincheck = allImageNames;
 
-      const baseFolder = thingy.LinkOrdner != null && thingy.LinkOrdner !== ""
-        ? imgfiler.formatpath(thingy.LinkOrdner)
-        : imgfiler.formatpath(path.join(rootfolder, link));
-      Object.assign(thingy, await imgfiler.getDocumentsFrom(baseFolder));
+      Object.assign(thingy, documents ?? await imgfiler.getDocumentsFrom(baseFolder));
       
       // append their hashes to the returned object  
       const images =

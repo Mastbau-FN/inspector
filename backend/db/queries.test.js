@@ -121,3 +121,59 @@ test("inspection hydration propagates missing storage instead of publishing empt
   const rows = await queries.getInspectionsForUser({ KZL: "TEST" });
   await assert.rejects(rows.hashImagesAndCreateIds(), { code: "STORAGE_UNAVAILABLE" });
 });
+
+test("photo-free child records need no directory when their inspection storage is accessible", async (context) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "inspector-empty-child-"));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  context.mock.method(pool, "asyncQuery", async (sql, parameters) => {
+    if (parameters.length === 2) {
+      assert.deepEqual(parameters, [123, 1910]);
+      return { rows: [{ LinkOrdner: directory }] };
+    }
+    return { rows: [
+      { PjNr: 123, E1: 1, LinkOrdner: path.join(directory, "category"), Link: path.join(directory, "category", "no_default_picture_yet") },
+      { PjNr: 123, E1: 1, E2: 2, LinkOrdner: path.join(directory, "category", "checkpoint") },
+      { PjNr: 123, E1: 1, E2: 2, E3: 3, LinkOrdner: path.join(directory, "category", "checkpoint", "defect") },
+    ] };
+  });
+  const rows = await queries.getCheckCategoriesForPjNR(123);
+  const hydrated = await rows.hashImagesAndCreateIds();
+  assert.equal(hydrated.length, 3);
+  for (const row of hydrated) {
+    assert.deepEqual(row.images, []);
+    assert.deepEqual(row.DokusPaths, []);
+    assert.equal(row.DokusPath, null);
+  }
+  assert.deepEqual(await fs.readdir(directory), []);
+});
+
+test("a photo-free child still reports unavailable inspection storage", async (context) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "inspector-missing-root-"));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const root = path.join(directory, "missing-inspection");
+  context.mock.method(pool, "asyncQuery", async (sql, parameters) => ({ rows: parameters.length === 2
+    ? [{ LinkOrdner: root }]
+    : [{ PjNr: 123, E1: 1, LinkOrdner: path.join(root, "category") }] }));
+  const rows = await queries.getCheckCategoriesForPjNR(123);
+  await assert.rejects(rows.hashImagesAndCreateIds(), { code: "STORAGE_UNAVAILABLE" });
+});
+
+test("a missing child directory with a real image reference remains a storage error", async (context) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "inspector-missing-photo-"));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  context.mock.method(pool, "asyncQuery", async () => ({ rows: [{
+    PjNr: 123, E1: 1, LinkOrdner: path.join(directory, "category"), Link: path.join(directory, "category", "photo.jpg"),
+  }] }));
+  const rows = await queries.getCheckCategoriesForPjNR(123);
+  await assert.rejects(rows.hashImagesAndCreateIds(), { code: "STORAGE_UNAVAILABLE" });
+});
+
+test("a missing photo-free directory outside its inspection root is not treated as empty", async (context) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "inspector-other-root-"));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  context.mock.method(pool, "asyncQuery", async (sql, parameters) => ({ rows: parameters.length === 2
+    ? [{ LinkOrdner: directory }]
+    : [{ PjNr: 123, E1: 1, LinkOrdner: `${directory}-other/category` }] }));
+  const rows = await queries.getCheckCategoriesForPjNR(123);
+  await assert.rejects(rows.hashImagesAndCreateIds(), { code: "STORAGE_UNAVAILABLE" });
+});

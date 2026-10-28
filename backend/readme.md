@@ -85,6 +85,11 @@ Directory listing failures now propagate as HTTP 503 with the code
 `STORAGE_UNAVAILABLE`, rather than a successful empty image/document list.
 An accessible empty directory still produces an empty list. An absent optional
 `Dokus` subdirectory is also empty, but an inaccessible/missing parent is an error.
+Photo-free categories, checkpoints and defects can have a planned folder that
+has not been created yet. Such a missing child folder is empty only when the
+record has no main-photo reference and its database-defined inspection root is
+still readable. Missing inspection roots, permission errors and missing folders
+with real photo references remain storage errors.
 Detailed filesystem errors are logged server-side, without exposing server paths
 in error responses.
 
