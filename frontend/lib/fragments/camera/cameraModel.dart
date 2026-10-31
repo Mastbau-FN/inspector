@@ -7,6 +7,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'mirror_capture.dart';
 
 /// Serialisiert schnell aufeinanderfolgende Plattformaufrufe und verwirft
 /// dabei Zwischenwerte. Das ist insbesondere fuer Pinch-/Slider-Gesten
@@ -65,6 +66,10 @@ class LatestAsyncValueQueue<T> {
   }
 }
 
+class CameraCaptureCancelled implements Exception {
+  const CameraCaptureCancelled();
+}
+
 /// Hauptklasse zur Verwaltung der Kamerafunktionen
 class CameraModel extends ChangeNotifier {
   static bool _staleCaptureCleanupStarted = false;
@@ -82,6 +87,7 @@ class CameraModel extends ChangeNotifier {
   CameraController? _controller;
   CameraController? get controller => _controller;
   Future<CameraController>? _controllerFuture;
+  Future<XFile>? _nativeCapture;
   Future<List<CameraDescription>>? _availableCamerasFuture;
   int? _androidSdkInt;
   int? get androidSdkInt => _androidSdkInt;
@@ -99,6 +105,7 @@ class CameraModel extends ChangeNotifier {
   // Kamera-Index und Status
   int _currentCameraIndex = 0;
   bool _isProcessing = false;
+  int _captureGeneration = 0;
   bool get isProcessing => _isProcessing;
 
   // Blitzmodus
@@ -228,6 +235,8 @@ class CameraModel extends ChangeNotifier {
       await start();
     }
 
+    final captureGeneration = ++_captureGeneration;
+    XFile? pendingCapture;
     try {
       _isProcessing = true;
       notifyListeners();
@@ -242,23 +251,49 @@ class CameraModel extends ChangeNotifier {
 
       // Haptisches Feedback erst unmittelbar zur tatsaechlichen Aufnahme.
       HapticFeedback.mediumImpact();
-      _latestPic = await activeController.takePicture();
+      final nativeCapture = activeController.takePicture();
+      _nativeCapture = nativeCapture;
+      try {
+        pendingCapture = await nativeCapture;
+      } finally {
+        if (identical(_nativeCapture, nativeCapture)) _nativeCapture = null;
+      }
 
       // The capture preview replaces the live preview. Release camera buffers
       // before decoding the captured photo; retaining both at once caused a
       // reproducible ~100 MB RSS spike on the test device.
       try {
-        await disposeCamera();
+        await disposeCamera(cancelCapture: false);
       } catch (e) {
         debugPrint('Fehler beim Freigeben der Kamera nach Aufnahme: $e');
       }
+
+      if (_disposed || captureGeneration != _captureGeneration) {
+        throw const CameraCaptureCancelled();
+      }
+      final preparedCapture = activeController.description.lensDirection ==
+              CameraLensDirection.front
+          ? await mirrorSelfieCapture(pendingCapture)
+          : pendingCapture;
+      if (_disposed || captureGeneration != _captureGeneration) {
+        throw const CameraCaptureCancelled();
+      }
+      _latestPic = preparedCapture;
 
       _isProcessing = false;
       notifyListeners();
       return _latestPic!;
     } catch (e) {
+      if (pendingCapture != null && _latestPic?.path != pendingCapture.path) {
+        await _deleteTemporaryCapture(pendingCapture);
+      }
       _isProcessing = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
+      if (e is CameraCaptureCancelled ||
+          _disposed ||
+          captureGeneration != _captureGeneration) {
+        throw const CameraCaptureCancelled();
+      }
       debugPrint("Fehler beim Aufnehmen des Bildes: $e");
       throw Exception("Fehler beim Aufnehmen des Bildes");
     }
@@ -266,6 +301,7 @@ class CameraModel extends ChangeNotifier {
 
   // Bild verwerfen
   void discardPic({bool deleteTemporaryFile = true}) {
+    _captureGeneration++;
     debugPrint("Bild verworfen");
     final discarded = _latestPic;
     _evictLatestPicturePreview();
@@ -360,6 +396,7 @@ class CameraModel extends ChangeNotifier {
 
   // Manuelles Setzen des letzten Bilds (für spezielle Anwendungsfälle)
   set latestPic(XFile? value) {
+    _captureGeneration++;
     if (_latestPic?.path != value?.path) _evictLatestPicturePreview();
     _latestPic = value;
     if (value != null) {
@@ -385,6 +422,7 @@ class CameraModel extends ChangeNotifier {
 
   // Blitzmodus setzen
   Future<void> setFlashMode(FlashMode mode) async {
+    if (_disposed || _isProcessing) return;
     _flashMode = mode;
     await _setFlashMode(mode);
     notifyListeners();
@@ -499,7 +537,7 @@ class CameraModel extends ChangeNotifier {
 
   // Zoom setzen
   Future<void> setZoom(double newVal) {
-    if (_disposed) return Future<void>.value();
+    if (_disposed || _isProcessing) return Future<void>.value();
     final range = _zoomModel.zoomRange;
     final clampedZoom = newVal.clamp(range.$1, range.$2).toDouble();
     _zoomModel.zoom = clampedZoom;
@@ -519,7 +557,7 @@ class CameraModel extends ChangeNotifier {
 
   // Fokuspunkt setzen
   Future<void> focus(Offset focusPoint) {
-    if (_disposed) return Future<void>.value();
+    if (_disposed || _isProcessing) return Future<void>.value();
     _lastFocusPoint = Offset(
       focusPoint.dx.clamp(0.0, 1.0).toDouble(),
       focusPoint.dy.clamp(0.0, 1.0).toDouble(),
@@ -533,6 +571,7 @@ class CameraModel extends ChangeNotifier {
       // Ein noch laufender Zoom darf den gerade gesetzten Fokus nicht sofort
       // wieder entwerten.
       await _zoomQueue.waitForIdle();
+      if (_disposed || _isProcessing) return;
       final controller = await start();
       if (_disposed || !identical(controller, _controller)) return;
       try {
@@ -568,13 +607,23 @@ class CameraModel extends ChangeNotifier {
   }
 
   // Kamera-Ressourcen freigeben
-  Future<void> disposeCamera() async {
+  Future<void> disposeCamera({bool cancelCapture = true}) async {
+    if (cancelCapture) _captureGeneration++;
     _controllerGeneration++;
     _controllerFuture = null;
     _zoomQueue.clearPending();
     _focusQueue.clearPending();
     final controller = _controller;
     _controller = null;
+    // takePicture updates its controller before returning the JPEG path. Wait
+    // for that result so cancellation can delete the file without disposing
+    // the controller underneath the still-running native capture.
+    final nativeCapture = _nativeCapture;
+    if (nativeCapture != null) {
+      try {
+        await nativeCapture;
+      } catch (_) {}
+    }
     if (controller != null) {
       await controller.setFlashMode(FlashMode.off).catchError((e) {
         debugPrint("Fehler beim Ausschalten des Blitzes: $e");

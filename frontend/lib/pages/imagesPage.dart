@@ -472,6 +472,8 @@ class _ImageCapturePanelState extends State<ImageCapturePanel>
     try {
       final model = Provider.of<CameraModel>(context, listen: false);
       await model.shoot();
+    } on CameraCaptureCancelled {
+      return;
     } catch (e) {
       showToast("Fehler bei der Aufnahme: $e");
     }

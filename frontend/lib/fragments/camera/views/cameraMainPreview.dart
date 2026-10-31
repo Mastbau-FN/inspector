@@ -28,6 +28,8 @@ double cameraPreviewRotationAngle({
 }
 
 double cameraPreviewScaleX(CameraDescription camera) {
+  // AVFoundation already mirrors the live front preview natively.
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) return 1;
   return camera.lensDirection == CameraLensDirection.front ? -1 : 1;
 }
 
@@ -82,7 +84,8 @@ class _CameraPreviewOnlyState extends State<CameraPreviewOnly>
           child: Consumer<CameraModel>(
             builder: (context, model, _) {
               _model = model;
-              if (_lifecycleState != AppLifecycleState.resumed) {
+              if (_lifecycleState != AppLifecycleState.resumed ||
+                  (model.isProcessing && model.controller == null)) {
                 return const Center(child: LoadingView());
               }
               return FutureBuilder(

@@ -1,5 +1,6 @@
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/camera/views/cameraMainPreview.dart';
+import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +50,12 @@ class _PreviewModel extends CameraModel {
       previewController;
 }
 
+class _BusyPreviewModel extends _PreviewModel {
+  _BusyPreviewModel(super.previewController);
+  @override
+  bool get isProcessing => true;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -56,6 +63,29 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
             const MethodChannel('volume_button_events'), (_) async => null);
+  });
+
+  testWidgets(
+      'released camera stays on loading screen during capture processing',
+      (tester) async {
+    final controller = _TextureController(
+      const CameraDescription(
+          name: 'front',
+          lensDirection: CameraLensDirection.front,
+          sensorOrientation: 270),
+      DeviceOrientation.portraitUp,
+    );
+    final model = _BusyPreviewModel(controller);
+    await tester.pumpWidget(ChangeNotifierProvider<CameraModel>.value(
+      value: model,
+      child: const MaterialApp(home: Scaffold(body: CameraPreviewOnly())),
+    ));
+    await tester.pump();
+    expect(find.byType(LoadingView), findsOneWidget);
+    expect(find.byType(CameraInteractionHandler), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    model.dispose();
+    await controller.dispose();
   });
 
   final cases = [
@@ -168,14 +198,16 @@ void main() {
     });
   }
 
-  for (final platform in [TargetPlatform.iOS, TargetPlatform.android]) {
-    testWidgets('$platform preserves a natively upright portrait preview',
+  for (final (platform, lens) in [
+    (TargetPlatform.iOS, CameraLensDirection.back),
+    (TargetPlatform.iOS, CameraLensDirection.front),
+    (TargetPlatform.android, CameraLensDirection.back),
+  ]) {
+    testWidgets('$platform $lens preserves the native portrait preview',
         (tester) async {
       final controller = _TextureController(
-        const CameraDescription(
-            name: 'ios',
-            lensDirection: CameraLensDirection.back,
-            sensorOrientation: 90),
+        CameraDescription(
+            name: 'ios', lensDirection: lens, sensorOrientation: 90),
         DeviceOrientation.portraitUp,
       );
       final model = _PreviewModel(controller, androidSdkInt: 28);
