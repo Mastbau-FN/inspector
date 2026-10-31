@@ -81,6 +81,8 @@ dependencies:
   # Rotate/downscale photos in native code without copying full-resolution
   # bitmaps through the Dart heap.
   flutter_image_compress: ^2.5.1
+  # Mirror saved selfies in a worker isolate after releasing camera buffers.
+  image: ^4.3.0
 
   # storing sensitive data like username and password
   flutter_secure_storage: ^10.0.0-beta.4
@@ -137,6 +139,7 @@ dependencies:
   # reflectable: ^3.0.9
 
 dev_dependencies:
+  camera_platform_interface: ^2.9.0
   flutter_test:
     sdk: flutter
   integration_test:
