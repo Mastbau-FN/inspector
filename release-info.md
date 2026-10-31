@@ -1,4 +1,10 @@
-# Änderungen in Version 287
+# Änderungen in Version 288
+
+## Backups
+
+- ZIP-Backups enthalten korrekte UTF-8-Bytelängen auch bei Umlauten und Emoji in Projektnamen.
+- Leere Ordner lassen sich mit gängigen ZIP-Programmen fehlerfrei prüfen und öffnen.
+- Bestehende Backup-Ketten und ausstehende Upload-Aufträge bleiben erhalten.
 
 ## Android
 

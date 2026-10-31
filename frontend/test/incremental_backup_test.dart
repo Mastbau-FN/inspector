@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:MBG_Inspektionen/backend/incremental_backup.dart';
 import 'package:archive/archive_io.dart';
@@ -444,6 +445,50 @@ void main() {
     );
   });
 
+  for (final name in [backupContentsIndexName, incrementalBackupManifestName]) {
+    test('writes UTF-8 byte lengths for ZIP metadata $name', () async {
+      await _writeUnicodeInspection(sourceDirectory);
+      final backup = await createIncrementalBackup(
+        sourceDirectory: sourceDirectory,
+        backupDirectory: backupDirectory,
+      );
+      final directory = ZipDirectory.read(
+        InputStream(backup.backupFile!.readAsBytesSync()),
+      );
+      final header =
+          directory.fileHeaders.singleWhere((h) => h.filename == name);
+      final bytes = io.ZLibDecoder(raw: true)
+          .convert(header.file!.rawContent!.toUint8List());
+      expect(header.uncompressedSize, bytes.length, reason: name);
+      expect(utf8.decode(bytes), contains('Müggelstraße 🏗️'));
+    });
+  }
+
+  test('writes empty ZIP folders readable by a standard inflater', () async {
+    await _writeUnicodeInspection(sourceDirectory);
+    final backup = await createIncrementalBackup(
+      sourceDirectory: sourceDirectory,
+      backupDirectory: backupDirectory,
+    );
+    final directory = ZipDirectory.read(
+      InputStream(backup.backupFile!.readAsBytesSync()),
+    );
+    final folders =
+        directory.fileHeaders.where((h) => h.filename.endsWith('/'));
+    expect(folders, isNotEmpty);
+    for (final folder in folders) {
+      final raw = folder.file!.rawContent!.toUint8List();
+      if (folder.compressionMethod == 8) {
+        expect(raw, isNotEmpty,
+            reason: 'DEFLATE needs an end-of-block marker: ${folder.filename}');
+      }
+      final bytes = folder.compressionMethod == 0
+          ? raw
+          : io.ZLibDecoder(raw: true).convert(raw);
+      expect(bytes, isEmpty, reason: folder.filename);
+    }
+  });
+
   test('adopts the newest legacy full backup as the baseline', () async {
     final existingFile = await File('${sourceDirectory.path}/existing.json')
         .writeAsString('already backed up');
@@ -744,6 +789,17 @@ void main() {
 }
 
 Matcher _closeTo(double value) => closeTo(value, 0.0001);
+
+Future<void> _writeUnicodeInspection(Directory source) async {
+  const id = '6006395-undefined-undefined-undefined';
+  final file = await File('${source.path}/root/$id').create(recursive: true);
+  await file.writeAsString(jsonEncode({
+    'PjNr': 6006395,
+    'PjName': 'Müggelstraße 🏗️',
+    'StONr': 34569,
+    'local_id': id,
+  }));
+}
 
 Set<String> _archiveNames(File backup) {
   final archive = ZipDecoder().decodeBytes(backup.readAsBytesSync());

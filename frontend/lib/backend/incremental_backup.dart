@@ -708,17 +708,24 @@ Future<void> _archiveWorker(Map<String, Object?> input) async {
     }
 
     for (final directory in readableDirectories) {
-      final archiveDirectory = ArchiveFile('$directory/', 0, null)
-        ..isFile = false;
+      final archiveDirectory = ArchiveFile('$directory/', 0, const <int>[])
+        ..isFile = false
+        ..compress = false;
       encoder.addArchiveFile(archiveDirectory);
     }
     if (readableIndexJson != null) {
+      final indexBytes = utf8.encode(readableIndexJson);
       encoder.addArchiveFile(
-        ArchiveFile.string(backupContentsIndexName, readableIndexJson),
+        ArchiveFile(backupContentsIndexName, indexBytes.length, indexBytes),
       );
     }
+    final manifestBytes = utf8.encode(manifestJson);
     encoder.addArchiveFile(
-      ArchiveFile.string(incrementalBackupManifestName, manifestJson),
+      ArchiveFile(
+        incrementalBackupManifestName,
+        manifestBytes.length,
+        manifestBytes,
+      ),
     );
     await encoder.close();
     encoderOpen = false;
