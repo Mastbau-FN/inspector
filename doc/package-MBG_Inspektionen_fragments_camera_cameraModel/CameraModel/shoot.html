@@ -54,7 +54,7 @@
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.4+2/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/cross_file/0.3.4+2/cross_file/XFile-class.html">XFile</a></span>&gt;</span></span>
 <span class="name ">shoot</span>(<wbr>)
 
       
@@ -76,6 +76,8 @@
     await start();
   }
 
+  final captureGeneration = ++_captureGeneration;
+  XFile? pendingCapture;
   try {
     _isProcessing = true;
     notifyListeners();
@@ -90,23 +92,49 @@
 
     &#47;&#47; Haptisches Feedback erst unmittelbar zur tatsaechlichen Aufnahme.
     HapticFeedback.mediumImpact();
-    _latestPic = await activeController.takePicture();
+    final nativeCapture = activeController.takePicture();
+    _nativeCapture = nativeCapture;
+    try {
+      pendingCapture = await nativeCapture;
+    } finally {
+      if (identical(_nativeCapture, nativeCapture)) _nativeCapture = null;
+    }
 
     &#47;&#47; The capture preview replaces the live preview. Release camera buffers
     &#47;&#47; before decoding the captured photo; retaining both at once caused a
     &#47;&#47; reproducible ~100 MB RSS spike on the test device.
     try {
-      await disposeCamera();
+      await disposeCamera(cancelCapture: false);
     } catch (e) {
       debugPrint(&#39;Fehler beim Freigeben der Kamera nach Aufnahme: $e&#39;);
     }
+
+    if (_disposed || captureGeneration != _captureGeneration) {
+      throw const CameraCaptureCancelled();
+    }
+    final preparedCapture = activeController.description.lensDirection ==
+            CameraLensDirection.front
+        ? await mirrorSelfieCapture(pendingCapture)
+        : pendingCapture;
+    if (_disposed || captureGeneration != _captureGeneration) {
+      throw const CameraCaptureCancelled();
+    }
+    _latestPic = preparedCapture;
 
     _isProcessing = false;
     notifyListeners();
     return _latestPic!;
   } catch (e) {
+    if (pendingCapture != null &amp;&amp; _latestPic?.path != pendingCapture.path) {
+      await _deleteTemporaryCapture(pendingCapture);
+    }
     _isProcessing = false;
-    notifyListeners();
+    if (!_disposed) notifyListeners();
+    if (e is CameraCaptureCancelled ||
+        _disposed ||
+        captureGeneration != _captureGeneration) {
+      throw const CameraCaptureCancelled();
+    }
     debugPrint(&quot;Fehler beim Aufnehmen des Bildes: $e&quot;);
     throw Exception(&quot;Fehler beim Aufnehmen des Bildes&quot;);
   }

@@ -139,7 +139,7 @@
       <dl class="callables">
           <dt id="cleanupIncompleteLocalBackups" class="callable">
   <span class="name"><a href="../package-MBG_Inspektionen_backend_incremental_backup/cleanupIncompleteLocalBackups.html">cleanupIncompleteLocalBackups</a></span><span class="signature">(<wbr><span class="parameter" id="cleanupIncompleteLocalBackups-param-backupDirectory"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">backupDirectory</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>&gt;</span></span>
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a></span>&gt;</span></span>
   </span>
   
 
@@ -152,8 +152,8 @@ creation. Only files created by this backup implementation are touched.
 </dd>
 
           <dt id="createIncrementalBackup" class="callable">
-  <span class="name"><a href="../package-MBG_Inspektionen_backend_incremental_backup/createIncrementalBackup.html">createIncrementalBackup</a></span><span class="signature">(<wbr>{<span class="parameter" id="createIncrementalBackup-param-sourceDirectory"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">sourceDirectory</span>, </span><span class="parameter" id="createIncrementalBackup-param-backupDirectory"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">backupDirectory</span>, </span><span class="parameter" id="createIncrementalBackup-param-onProgress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onProgress</span>(<span class="parameter" id="param-progress"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_incremental_backup/BackupProgress-class.html">BackupProgress</a></span> <span class="parameter-name">progress</span></span>)?</span>})
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../package-MBG_Inspektionen_backend_incremental_backup/IncrementalBackupResult-class.html">IncrementalBackupResult</a></span>&gt;</span></span>
+  <span class="name"><a href="../package-MBG_Inspektionen_backend_incremental_backup/createIncrementalBackup.html">createIncrementalBackup</a></span><span class="signature">(<wbr>{<span class="parameter" id="createIncrementalBackup-param-sourceDirectory"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">sourceDirectory</span>, </span><span class="parameter" id="createIncrementalBackup-param-backupDirectory"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">backupDirectory</span>, </span><span class="parameter" id="createIncrementalBackup-param-onProgress"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span> <span class="parameter-name">onProgress</span>(<span class="parameter" id="param-progress"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_incremental_backup/BackupProgress-class.html">BackupProgress</a></span> <span class="parameter-name">progress</span></span>)?</span>})
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../package-MBG_Inspektionen_backend_incremental_backup/IncrementalBackupResult-class.html">IncrementalBackupResult</a></span>&gt;</span></span>
   </span>
   
 
@@ -179,7 +179,7 @@ creation. Only files created by this backup implementation are touched.
 
           <dt id="invalidateIncrementalBackupState" class="callable">
   <span class="name"><a href="../package-MBG_Inspektionen_backend_incremental_backup/invalidateIncrementalBackupState.html">invalidateIncrementalBackupState</a></span><span class="signature">(<wbr><span class="parameter" id="invalidateIncrementalBackupState-param-backupDirectory"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">backupDirectory</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
   </span>
   
 
@@ -205,7 +205,7 @@ creation. Only files created by this backup implementation are touched.
 
           <dt id="listManagedLocalBackups" class="callable">
   <span class="name"><a href="../package-MBG_Inspektionen_backend_incremental_backup/listManagedLocalBackups.html">listManagedLocalBackups</a></span><span class="signature">(<wbr><span class="parameter" id="listManagedLocalBackups-param-backupDirectory"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-io/Directory-class.html">Directory</a></span> <span class="parameter-name">backupDirectory</span></span>)
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a></span>&gt;</span></span>&gt;</span></span>
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-io/File-class.html">File</a></span>&gt;</span></span>&gt;</span></span>
   </span>
   
 
@@ -274,6 +274,7 @@ creation. Only files created by this backup implementation are touched.
       <li><a href="../package-MBG_Inspektionen_extension_map/">extension/map</a></li>
       <li><a href="../package-MBG_Inspektionen_fragments_adder/">fragments/adder</a></li>
       <li><a href="../package-MBG_Inspektionen_fragments_camera_cameraModel/">fragments/camera/cameraModel</a></li>
+      <li><a href="../package-MBG_Inspektionen_fragments_camera_mirror_capture/">fragments/camera/mirror_capture</a></li>
       <li><a href="../package-MBG_Inspektionen_fragments_camera_views_cameraMainPreview/">fragments/camera/views/cameraMainPreview</a></li>
       <li><a href="../package-MBG_Inspektionen_fragments_ErrorView/">fragments/ErrorView</a></li>
       <li><a href="../package-MBG_Inspektionen_fragments_galleryWrapper/">fragments/galleryWrapper</a></li>

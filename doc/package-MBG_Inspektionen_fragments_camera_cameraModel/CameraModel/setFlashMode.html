@@ -54,7 +54,7 @@
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/flutter_test/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-async/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
 <span class="name ">setFlashMode</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="setFlashMode-param-mode"><span class="type-annotation"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/FlashMode.html">FlashMode</a></span> <span class="parameter-name">mode</span></span></li>
 </ol>)
 
@@ -68,6 +68,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; setFlashMode(FlashMode mode) async {
+  if (_disposed || _isProcessing) return;
   _flashMode = mode;
   await _setFlashMode(mode);
   notifyListeners();

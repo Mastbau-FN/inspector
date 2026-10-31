@@ -68,6 +68,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">double cameraPreviewScaleX(CameraDescription camera) {
+  &#47;&#47; AVFoundation already mirrors the live front preview natively.
+  if (!kIsWeb &amp;&amp; defaultTargetPlatform == TargetPlatform.iOS) return 1;
   return camera.lensDirection == CameraLensDirection.front ? -1 : 1;
 }</code></pre>
 </section>

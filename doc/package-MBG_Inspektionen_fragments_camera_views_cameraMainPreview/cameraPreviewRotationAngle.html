@@ -57,6 +57,7 @@
 <span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/double-class.html">double</a></span>
 <span class="name ">cameraPreviewRotationAngle</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="cameraPreviewRotationAngle-param-camera"><span>required</span> <span class="type-annotation"><a href="https://pub.dev/documentation/camera_platform_interface/2.9.0/camera_platform_interface/CameraDescription-class.html">CameraDescription</a></span> <span class="parameter-name">camera</span>, </span></li>
 <li><span class="parameter" id="cameraPreviewRotationAngle-param-orientation"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/widgets/Orientation.html">Orientation</a></span> <span class="parameter-name">orientation</span>, </span></li>
+<li><span class="parameter" id="cameraPreviewRotationAngle-param-androidSdkInt"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">androidSdkInt</span>, </span></li>
 </ol>})
 
         
@@ -71,14 +72,19 @@
   <pre class="language-dart"><code class="language-dart">double cameraPreviewRotationAngle({
   required CameraDescription camera,
   required Orientation orientation,
+  required int? androidSdkInt,
 }) {
-  if (orientation == Orientation.portrait &amp;&amp; camera.sensorOrientation == 270) {
-    &#47;&#47; Relative to CameraPreview&#39;s standard orientation, 270-degree selfie
-    &#47;&#47; sensors need a half turn. Rotating every preview by 90 degrees forced
-    &#47;&#47; the live image through a cropped intermediate layout.
-    return pi;
-  }
-  return 0;
+  if (kIsWeb ||
+      defaultTargetPlatform != TargetPlatform.android ||
+      androidSdkInt == null ||
+      androidSdkInt &lt; 29) return 0;
+  &#47;&#47; Before Android 10 Flutter&#39;s SurfaceTexture backend already applies rotation.
+  &#47;&#47; CameraX 0.6.13 supplies the texture in sensor coordinates. CameraPreview
+  &#47;&#47; handles device rotation, but still needs this sensor correction. Front
+  &#47;&#47; cameras rotate in the opposite direction when the device is landscape.
+  final reverse = camera.lensDirection == CameraLensDirection.front &amp;&amp;
+      orientation == Orientation.landscape;
+  return camera.sensorOrientation * pi &#47; 180 * (reverse ? -1 : 1);
 }</code></pre>
 </section>
 

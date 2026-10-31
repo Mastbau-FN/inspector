@@ -68,6 +68,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void discardPic({bool deleteTemporaryFile = true}) {
+  _captureGeneration++;
   debugPrint(&quot;Bild verworfen&quot;);
   final discarded = _latestPic;
   _evictLatestPicturePreview();
