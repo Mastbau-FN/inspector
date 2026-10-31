@@ -56,6 +56,23 @@ class _BusyPreviewModel extends _PreviewModel {
   bool get isProcessing => true;
 }
 
+class _CapturingPreviewModel extends _PreviewModel {
+  _CapturingPreviewModel(super.previewController) {
+    liveController = previewController;
+  }
+  CameraController? liveController;
+  bool capturing = false;
+  @override
+  CameraController? get controller => liveController;
+  @override
+  bool get isProcessing => capturing;
+
+  void beginCapture() {
+    capturing = true;
+    notifyListeners();
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -86,6 +103,45 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     model.dispose();
     await controller.dispose();
+  });
+
+  testWidgets('shutter removes live preview before its controller is disposed',
+      (tester) async {
+    // Use the real buildPreview() here: overriding it would hide the disposed
+    // CameraController exception that caused the red frame on the phone.
+    final controller = CameraController(
+      const CameraDescription(
+          name: 'front',
+          lensDirection: CameraLensDirection.front,
+          sensorOrientation: 270),
+      ResolutionPreset.ultraHigh,
+    );
+    controller.value = controller.value.copyWith(
+      isInitialized: true,
+      previewSize: const Size(1920, 1080),
+    );
+    final model = _CapturingPreviewModel(controller);
+    await tester.pumpWidget(ChangeNotifierProvider<CameraModel>.value(
+      value: model,
+      child: const MaterialApp(home: Scaffold(body: CameraPreviewOnly())),
+    ));
+    await tester.pump();
+    expect(find.byType(CameraInteractionHandler), findsOneWidget);
+
+    model.beginCapture();
+    await tester.pump();
+    // Native takePicture queues a final value update immediately before
+    // disposal; rebuilding that pending frame must no longer use the camera.
+    controller.value = controller.value.copyWith(isTakingPicture: false);
+    model.liveController = null;
+    await controller.dispose();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(LoadingView), findsOneWidget);
+    expect(find.byType(CameraInteractionHandler), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    model.dispose();
   });
 
   final cases = [

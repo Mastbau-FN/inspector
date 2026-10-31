@@ -85,7 +85,7 @@ class _CameraPreviewOnlyState extends State<CameraPreviewOnly>
             builder: (context, model, _) {
               _model = model;
               if (_lifecycleState != AppLifecycleState.resumed ||
-                  (model.isProcessing && model.controller == null)) {
+                  model.isProcessing) {
                 return const Center(child: LoadingView());
               }
               return FutureBuilder(
