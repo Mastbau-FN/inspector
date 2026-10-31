@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:MBG_Inspektionen/helpers/toast.dart';
 import 'package:camera/camera.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -82,6 +83,8 @@ class CameraModel extends ChangeNotifier {
   CameraController? get controller => _controller;
   Future<CameraController>? _controllerFuture;
   Future<List<CameraDescription>>? _availableCamerasFuture;
+  int? _androidSdkInt;
+  int? get androidSdkInt => _androidSdkInt;
   int _controllerGeneration = 0;
   bool _disposed = false;
 
@@ -169,6 +172,9 @@ class CameraModel extends ChangeNotifier {
     _controller = next;
     try {
       await next.initialize();
+      if (Platform.isAndroid && _androidSdkInt == null) {
+        _androidSdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+      }
       if (_disposed || generation != _controllerGeneration) {
         throw StateError('CameraModel wurde während des Starts geschlossen');
       }

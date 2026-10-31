@@ -1,6 +1,7 @@
 import 'package:MBG_Inspektionen/fragments/camera/cameraModel.dart';
 import 'package:MBG_Inspektionen/fragments/loadingscreen/loadingView.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -11,14 +12,19 @@ import '../../../widgets/error.dart';
 double cameraPreviewRotationAngle({
   required CameraDescription camera,
   required Orientation orientation,
+  required int? androidSdkInt,
 }) {
-  if (orientation == Orientation.portrait && camera.sensorOrientation == 270) {
-    // Relative to CameraPreview's standard orientation, 270-degree selfie
-    // sensors need a half turn. Rotating every preview by 90 degrees forced
-    // the live image through a cropped intermediate layout.
-    return pi;
-  }
-  return 0;
+  if (kIsWeb ||
+      defaultTargetPlatform != TargetPlatform.android ||
+      androidSdkInt == null ||
+      androidSdkInt < 29) return 0;
+  // Before Android 10 Flutter's SurfaceTexture backend already applies rotation.
+  // CameraX 0.6.13 supplies the texture in sensor coordinates. CameraPreview
+  // handles device rotation, but still needs this sensor correction. Front
+  // cameras rotate in the opposite direction when the device is landscape.
+  final reverse = camera.lensDirection == CameraLensDirection.front &&
+      orientation == Orientation.landscape;
+  return camera.sensorOrientation * pi / 180 * (reverse ? -1 : 1);
 }
 
 double cameraPreviewScaleX(CameraDescription camera) {
@@ -66,35 +72,40 @@ class _CameraPreviewOnlyState extends State<CameraPreviewOnly>
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black,
-      child: SafeArea(
-        child: Consumer<CameraModel>(
-          builder: (context, model, _) {
-            _model = model;
-            if (_lifecycleState != AppLifecycleState.resumed) {
-              return const Center(child: LoadingView());
-            }
-            return FutureBuilder(
-              future: model.start(),
-              builder: (context, AsyncSnapshot<CameraController> snapshot) {
-                return switch ((snapshot.connectionState, snapshot.data)) {
-                  (ConnectionState.done, CameraController cc) =>
-                    _buildCameraPreview(cc, model, context),
-                  (ConnectionState.done, null) => Center(
-                      child: ErrorText("Keine Kamera verfügbar"),
-                    ),
-                  (ConnectionState.waiting, _) =>
-                    const Center(child: LoadingView()),
-                  (ConnectionState.active, _) =>
-                    const Center(child: LoadingView()),
-                  (ConnectionState.none, _) => Center(
-                      child: ErrorText("Keine Kamera verfügbar"),
-                    ),
-                };
-              },
-            );
-          },
+    return Align(
+      alignment: Alignment.bottomRight,
+      widthFactor: 1,
+      heightFactor: 1,
+      child: Material(
+        color: Colors.black,
+        child: SafeArea(
+          child: Consumer<CameraModel>(
+            builder: (context, model, _) {
+              _model = model;
+              if (_lifecycleState != AppLifecycleState.resumed) {
+                return const Center(child: LoadingView());
+              }
+              return FutureBuilder(
+                future: model.start(),
+                builder: (context, AsyncSnapshot<CameraController> snapshot) {
+                  return switch ((snapshot.connectionState, snapshot.data)) {
+                    (ConnectionState.done, CameraController cc) =>
+                      _buildCameraPreview(cc, model, context),
+                    (ConnectionState.done, null) => Center(
+                        child: ErrorText("Keine Kamera verfügbar"),
+                      ),
+                    (ConnectionState.waiting, _) =>
+                      const Center(child: LoadingView()),
+                    (ConnectionState.active, _) =>
+                      const Center(child: LoadingView()),
+                    (ConnectionState.none, _) => Center(
+                        child: ErrorText("Keine Kamera verfügbar"),
+                      ),
+                  };
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -103,49 +114,55 @@ class _CameraPreviewOnlyState extends State<CameraPreviewOnly>
   /// Baut die Kameravorschau mit allen notwendigen Elementen
   Widget _buildCameraPreview(
       CameraController controller, CameraModel model, BuildContext context) {
-    // Bildschirmabmessungen für responsives Design
-    final Size screenSize = MediaQuery.of(context).size;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
-    return Container(
-      color: Colors.black,
-      width: screenSize.width,
-      height: screenSize.height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Kamera mit Interaktionshandler
-          CameraInteractionHandler(
-            model: model,
-            controller: controller,
-          ),
+    return ValueListenableBuilder<CameraValue>(
+      valueListenable: controller,
+      builder: (context, value, _) => AspectRatio(
+        aspectRatio: isLandscape ? value.aspectRatio : 1 / value.aspectRatio,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Kamera mit Interaktionshandler
+            CameraInteractionHandler(
+              model: model,
+              controller: controller,
+            ),
 
-          // Zusätzliche Steuerelemente (falls vorhanden)
-          if (widget.children.isNotEmpty)
+            // Zusätzliche Steuerelemente (falls vorhanden)
+            if (widget.children.isNotEmpty)
+              Positioned(
+                top: 16,
+                bottom: 56, // Platz für den Kamerawechsel-Hinweis lassen.
+                right: 16,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.topRight,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: widget.children,
+                  ),
+                ),
+              ),
+
+            // Kamera-Wechsel-Hinweis
             Positioned(
-              top: 16,
+              bottom: 16,
               right: 16,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: widget.children,
-              ),
+              child: _buildCameraSwitchIndicator(),
             ),
 
-          // Kamera-Wechsel-Hinweis
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: _buildCameraSwitchIndicator(),
-          ),
-
-          // Ladeindikator (wenn die Kamera verarbeitet)
-          if (model.isProcessing)
-            const Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
+            // Ladeindikator (wenn die Kamera verarbeitet)
+            if (model.isProcessing)
+              const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -312,21 +329,21 @@ class _CameraInteractionHandlerState extends State<CameraInteractionHandler>
     final rotationAngle = cameraPreviewRotationAngle(
       camera: widget.controller.description,
       orientation: orientation,
+      androidSdkInt: widget.model.androidSdkInt,
     );
     final scaleX = cameraPreviewScaleX(widget.controller.description);
 
     return Container(
       color: Colors.black,
-      child: Center(
-        child: ClipRect(
-          child: Transform.scale(
-            scaleX: scaleX,
-            alignment: Alignment.center,
-            child: Transform.rotate(
-              angle: rotationAngle,
-              alignment: Alignment.center,
-              child: CameraPreview(widget.controller),
-            ),
+      child: ClipRect(
+        child: Transform.scale(
+          scaleX: scaleX,
+          alignment: Alignment.center,
+          // RotatedBox swaps layout dimensions as well as pixels. A paint
+          // transform alone stretches/crops the landscape sensor texture.
+          child: RotatedBox(
+            quarterTurns: (rotationAngle / (pi / 2)).round(),
+            child: CameraPreview(widget.controller),
           ),
         ),
       ),

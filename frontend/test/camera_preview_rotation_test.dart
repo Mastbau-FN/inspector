@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('rotates front camera portrait preview upright for 270 degree sensors',
-      () {
+  test('corrects the front camera sensor rotation in portrait', () {
     final frontCamera = CameraDescription(
       name: 'front',
       lensDirection: CameraLensDirection.front,
@@ -18,12 +17,13 @@ void main() {
       cameraPreviewRotationAngle(
         camera: frontCamera,
         orientation: Orientation.portrait,
+        androidSdkInt: 35,
       ),
-      closeTo(pi, 0.0001),
+      closeTo(3 * pi / 2, 0.0001),
     );
   });
 
-  test('keeps existing back camera portrait rotation', () {
+  test('corrects the back camera sensor rotation in portrait', () {
     final backCamera = CameraDescription(
       name: 'back',
       lensDirection: CameraLensDirection.back,
@@ -34,12 +34,13 @@ void main() {
       cameraPreviewRotationAngle(
         camera: backCamera,
         orientation: Orientation.portrait,
+        androidSdkInt: 35,
       ),
-      closeTo(0, 0.0001),
+      closeTo(pi / 2, 0.0001),
     );
   });
 
-  test('keeps existing landscape preview rotation', () {
+  test('reverses front sensor correction in landscape', () {
     final frontCamera = CameraDescription(
       name: 'front',
       lensDirection: CameraLensDirection.front,
@@ -50,8 +51,9 @@ void main() {
       cameraPreviewRotationAngle(
         camera: frontCamera,
         orientation: Orientation.landscape,
+        androidSdkInt: 35,
       ),
-      closeTo(0, 0.0001),
+      closeTo(-3 * pi / 2, 0.0001),
     );
   });
 
