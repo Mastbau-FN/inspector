@@ -125,6 +125,11 @@
       final parsed = await rap.parser(res);
       completeProgress(parsed != null);
       if (parsed != null) return parsed;
+    } on EmptyServerImageException {
+      &#47;&#47; Offline downloads turn this confirmed source-data problem into a
+      &#47;&#47; warning. Ordinary image views already handle image lookup errors.
+      completeProgress(true);
+      rethrow;
     } on InvalidServerImageArtifactException {
       &#47;&#47; Offline inspection downloads classify this permanent server-data
       &#47;&#47; artifact separately from real image&#47;network failures.

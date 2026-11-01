@@ -73,13 +73,13 @@
   final root = await getApplicationDocumentsDirectory();
   final cache = await getApplicationCacheDirectory();
   if (keepSkippedRequests) {
-    copyPath(root.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION,
+    await copyPath(root.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION,
         cache.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION);
     await deleteAll();
-    copyPath(cache.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION,
+    await copyPath(cache.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION,
         root.path + &quot;&#47;&quot; + SKIPPEDCOLLECTION);
   } else {
-    root.delete(recursive: true);
+    await root.delete(recursive: true);
   }
 }</code></pre>
 </section>

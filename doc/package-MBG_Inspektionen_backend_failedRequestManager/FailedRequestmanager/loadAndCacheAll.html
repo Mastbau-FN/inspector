@@ -139,10 +139,18 @@
 
     if (caller.currentData is InspectionLocation) {
       if (isRootDownloadCall) {
+        final warnings = &lt;InspectionDownloadWarning&gt;[];
         final photosSucceeded = await cacheInspectionImagesForDownload(
           collectedAssets,
           progressSession: progressSession,
+          onWarning: warnings.add,
         );
+        if (photosSucceeded) {
+          await saveInspectionDownloadWarnings(
+            inspectionDownloadKey(caller.currentData as InspectionLocation),
+            warnings,
+          );
+        }
         localAssetsSucceeded = localAssetsSucceeded &amp;&amp; photosSucceeded;
       }
       progressSession?.setStep(

@@ -55,8 +55,9 @@
     <section class="multi-line-signature">
       
 <span class="returntype">void</span>
-<span class="name ">finish</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="finish-param-session"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_backend_download_progress/DownloadProgressSession-class.html">DownloadProgressSession</a></span> <span class="parameter-name">session</span></span></li>
-</ol>)
+<span class="name ">finish</span>(<wbr><ol class="parameter-list"> <li><span class="parameter" id="finish-param-session"><span class="type-annotation"><a href="../../package-MBG_Inspektionen_backend_download_progress/DownloadProgressSession-class.html">DownloadProgressSession</a></span> <span class="parameter-name">session</span>, {</span></li>
+<li><span class="parameter" id="finish-param-succeeded"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a>?</span> <span class="parameter-name">succeeded</span>, </span></li>
+</ol>})
 
       
 
@@ -67,9 +68,9 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">void finish(DownloadProgressSession session) {
+  <pre class="language-dart"><code class="language-dart">void finish(DownloadProgressSession session, {bool? succeeded}) {
   if (!identical(_active, session)) return;
-  session.markFinished();
+  session.markFinished(succeeded: succeeded);
   _active = null;
   _activeKey = null;
   _lastFinished = session;

@@ -153,10 +153,18 @@
       collectedAssets.addAll(defects);
     }
 
+    final warnings = &lt;InspectionDownloadWarning&gt;[];
     final photosSucceeded = await cacheInspectionImagesForDownload(
       collectedAssets,
       progressSession: progressSession,
+      onWarning: warnings.add,
     );
+    if (photosSucceeded) {
+      await saveInspectionDownloadWarnings(
+        inspectionDownloadKey(inspection),
+        warnings,
+      );
+    }
     final documentsSucceeded = await cacheInspectionDocumentsForDownload(
       inspection,
       progressSession: progressSession,

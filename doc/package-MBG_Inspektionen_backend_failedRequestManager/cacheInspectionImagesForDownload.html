@@ -64,6 +64,8 @@
 <li><span class="parameter" id="cacheInspectionImagesForDownload-param-progressSession"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_download_progress/DownloadProgressSession-class.html">DownloadProgressSession</a>?</span> <span class="parameter-name">progressSession</span>, </span></li>
 <li><span class="parameter" id="cacheInspectionImagesForDownload-param-readCachedImage"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_failedRequestManager/ImageCacheLookup.html">ImageCacheLookup</a>?</span> <span class="parameter-name">readCachedImage</span>, </span></li>
 <li><span class="parameter" id="cacheInspectionImagesForDownload-param-downloadImage"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_failedRequestManager/ImageDownloadLookup.html">ImageDownloadLookup</a>?</span> <span class="parameter-name">downloadImage</span>, </span></li>
+<li><span class="parameter" id="cacheInspectionImagesForDownload-param-onWarning"><span class="type-annotation">void</span> <span class="parameter-name">onWarning</span>(<ol class="parameter-list single-line"> <li><span class="parameter" id="param-"><span class="type-annotation"><a href="../package-MBG_Inspektionen_backend_inspection_download_warnings/InspectionDownloadWarning-class.html">InspectionDownloadWarning</a></span></span></li>
+</ol>)?, </span></li>
 </ol>})
 
         
@@ -81,6 +83,7 @@ Future&lt;bool&gt; cacheInspectionImagesForDownload(
   DownloadProgressSession? progressSession,
   ImageCacheLookup? readCachedImage,
   ImageDownloadLookup? downloadImage,
+  void Function(InspectionDownloadWarning)? onWarning,
 }) async {
   final readCached = readCachedImage ??
       (String hash, Data owner) =&gt; API().local.getImageByHash(
@@ -155,6 +158,15 @@ Future&lt;bool&gt; cacheInspectionImagesForDownload(
         );
       }
       if (token != null) progressSession?.endTask(token, success: succeeded);
+    } on EmptyServerImageException catch (empty) {
+      onWarning?.call(InspectionDownloadWarning(
+        hash: empty.hash,
+        filename: empty.filename,
+        locations: [_imageDownloadLocation(job.data, assets)],
+      ));
+      if (token != null) progressSession?.endTask(token, success: true);
+      debugPrint(&#39;Serverbild &quot;${empty.filename}&quot; (${empty.hash}) ist leer &#39;
+          &#39;(0 Byte); Download wird mit Hinweis fortgesetzt&#39;);
     } on InvalidServerImageArtifactException catch (artifact) {
       await _discardInvalidServerImageArtifact(job.data, artifact);
       if (token != null) progressSession?.endTask(token, success: true);

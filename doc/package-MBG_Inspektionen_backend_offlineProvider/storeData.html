@@ -100,7 +100,7 @@
       : db.collection(collectionName).doc().id;
 
   if (addId) json[&#39;local_id&#39;] = id;
-  db.collection(collectionName).doc(id).set(json);
+  await db.collection(collectionName).doc(id).set(json);
 
   return id;
 }</code></pre>

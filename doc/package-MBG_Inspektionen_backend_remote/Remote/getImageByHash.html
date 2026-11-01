@@ -102,6 +102,17 @@
           filename: filename!,
         );
       }
+      if (res.bodyBytes.isEmpty) {
+        if (res.statusCode == 200 &amp;&amp; res.headers[&#39;content-length&#39;] == &#39;0&#39;) {
+          throw EmptyServerImageException(
+            hash: hash,
+            filename: filename ?? hash,
+          );
+        }
+        &#47;&#47; A missing&#47;truncated response is still a download failure. Only
+        &#47;&#47; the server&#39;s explicit zero-byte source is safe to skip.
+        return null;
+      }
       try {
         String storedName;
         String? displayName;
@@ -151,8 +162,15 @@
           displayName = _stripImageExtension(storedName.split(&#39;&#47;&#39;).last);
           await API().local.storeImage(res.bodyBytes, storedName);
         }
+        final image =
+            await API().local.readImage(storedName, cacheSize: null);
+        if (image == null) {
+          debugPrint(&#39;Serverbild $hash ($storedName) ist nicht lesbar &#39;
+              &#39;(${res.bodyBytes.length} Bytes)&#39;);
+          return null;
+        }
         return ImageData(
-          (await API().local.readImage(storedName, cacheSize: null))!,
+          image,
           id: hash,
           name: displayName,
         );
