@@ -5,7 +5,11 @@ import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
 import 'package:MBG_Inspektionen/backend/image_naming.dart';
+import 'package:MBG_Inspektionen/backend/inspection_download_warnings.dart';
+import 'package:MBG_Inspektionen/backend/remote.dart';
 import 'package:MBG_Inspektionen/classes/data/inspection_location.dart';
+import 'package:MBG_Inspektionen/classes/data/checkcategory.dart';
+import 'package:MBG_Inspektionen/classes/data/checkpoint.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/classes/exceptions.dart';
 import 'package:MBG_Inspektionen/classes/imageData.dart';
@@ -19,6 +23,128 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  test('reports confirmed empty server photos before caching them', () async {
+    final request = Remote().getImageByHash('empty-photo');
+
+    await expectLater(
+      request.parser(http.Response.bytes([], 200,
+          headers: {
+            'content-length': '0',
+            'x-image-filename': 'empty.jpg',
+          })),
+      throwsA(isA<EmptyServerImageException>()
+          .having((error) => error.filename, 'filename', 'empty.jpg')
+          .having((error) => error.hash, 'hash', 'empty-photo')),
+    );
+  });
+
+  test('does not treat failed or truncated empty responses as source warnings',
+      () async {
+    for (final response in [
+      http.Response.bytes([], 503, headers: {'content-length': '0'}),
+      http.Response.bytes([], 204, headers: {'content-length': '0'}),
+      http.Response.bytes([], 206, headers: {'content-length': '0'}),
+      http.Response.bytes([], 200, headers: {'content-length': '1200'}),
+      http.Response.bytes([], 200),
+    ]) {
+      expect(await Remote().getImageByHash('photo').parser(response), isNull);
+    }
+  });
+
+  test('finishes photos with warnings for empty sources and keeps references',
+      () async {
+    final inspection = _inspection(id: 'inspection')
+      ..mainhash = 'empty-photo'
+      ..imagehashes = ['valid-photo', 'empty-photo'];
+    final warnings = <InspectionDownloadWarning>[];
+    final downloaded = <String>[];
+    final image = ImageData(Image.memory(Uint8List.fromList([0])), id: 'valid');
+    final session = DownloadProgressSession(
+      stepCount: InspectionDownloadSteps.count,
+    );
+    addTearDown(session.notifier.dispose);
+
+    final succeeded = await cacheInspectionImagesForDownload(
+      [inspection],
+      progressSession: session,
+      readCachedImage: (_, __) async => null,
+      onWarning: warnings.add,
+      downloadImage: (hash, _) async {
+        downloaded.add(hash);
+        if (hash == 'empty-photo') {
+          throw const EmptyServerImageException(
+            hash: 'empty-photo',
+            filename: 'empty.jpg',
+          );
+        }
+        return image;
+      },
+    );
+
+    expect(succeeded, isTrue);
+    expect(downloaded, ['empty-photo', 'valid-photo']);
+    expect(warnings.single.filename, 'empty.jpg');
+    expect(warnings.single.locations, [inspection.title]);
+    expect(inspection.mainhash, 'empty-photo');
+    expect(inspection.imagehashes, ['valid-photo', 'empty-photo']);
+    expect(session.notifier.value.doneTasks, 2);
+  });
+
+  test('an empty-source warning does not hide a real photo download failure',
+      () async {
+    final inspection = _inspection(id: 'inspection')
+      ..mainhash = 'empty-photo'
+      ..imagehashes = ['unreachable-photo'];
+    final warnings = <InspectionDownloadWarning>[];
+
+    final succeeded = await cacheInspectionImagesForDownload(
+      [inspection],
+      readCachedImage: (_, __) async => null,
+      onWarning: warnings.add,
+      downloadImage: (hash, _) async {
+        if (hash == 'empty-photo') {
+          throw const EmptyServerImageException(
+            hash: 'empty-photo',
+            filename: 'empty.jpg',
+          );
+        }
+        return null;
+      },
+    );
+
+    expect(succeeded, isFalse);
+    expect(warnings, hasLength(1));
+  });
+
+  test('file warnings locate the affected checkpoint within its category',
+      () async {
+    final category =
+        CheckCategory(pjNr: 123, index: 1, kurzText: 'Weg zum Mast')
+          ..id = 'category';
+    final checkpoint = CheckPoint(
+      pjNr: 123,
+      category_index: 1,
+      index: 1,
+      kurzText: 'Kennzeichnung Zuwegung',
+    )
+      ..id = 'checkpoint'
+      ..mainhash = 'empty-photo';
+    final warnings = <InspectionDownloadWarning>[];
+
+    await cacheInspectionImagesForDownload(
+      [category, checkpoint],
+      readCachedImage: (_, __) async => null,
+      onWarning: warnings.add,
+      downloadImage: (_, __) async => throw const EmptyServerImageException(
+        hash: 'empty-photo',
+        filename: 'empty.jpg',
+      ),
+    );
+
+    expect(
+        warnings.single.locations, ['Weg zum Mast / Kennzeichnung Zuwegung']);
   });
 
   test('uses refreshed inspection metadata including documents', () {

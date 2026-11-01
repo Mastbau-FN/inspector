@@ -12,6 +12,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/image_naming.dart';
+import 'package:MBG_Inspektionen/backend/inspection_download_warnings.dart';
 import 'package:MBG_Inspektionen/backend/offlineProvider.dart'
     as OfflineProvider;
 import 'package:MBG_Inspektionen/backend/progressManagerStateNotifier.dart';
@@ -112,6 +113,31 @@ List<String> _imageHashesForData(Data data) {
   }.where((value) => value.isNotEmpty).toList();
 }
 
+String _imageDownloadLocation(Data data, List<Data> assets) {
+  final coordinates = data.toSmallJson();
+  final labels = <String>[];
+  if (data is CheckPoint || data is CheckPointDefect) {
+    for (final category in assets.whereType<CheckCategory>()) {
+      if (category.pjNr == coordinates['PjNr'] &&
+          category.index == coordinates['E1']) {
+        labels.add(category.title);
+        break;
+      }
+    }
+  }
+  if (data is CheckPointDefect) {
+    for (final checkpoint in assets.whereType<CheckPoint>()) {
+      if (checkpoint.pjNr == data.pjNr &&
+          checkpoint.category_index == data.category_index &&
+          checkpoint.index == data.check_index) {
+        labels.add(checkpoint.title);
+        break;
+      }
+    }
+  }
+  return [...labels, data.title].join(' / ');
+}
+
 @visibleForTesting
 void removeInvalidServerImageReference(Data data, String hash) {
   final remaining = <String>[
@@ -169,6 +195,7 @@ Future<bool> cacheInspectionImagesForDownload(
   DownloadProgressSession? progressSession,
   ImageCacheLookup? readCachedImage,
   ImageDownloadLookup? downloadImage,
+  void Function(InspectionDownloadWarning)? onWarning,
 }) async {
   final readCached = readCachedImage ??
       (String hash, Data owner) => API().local.getImageByHash(
@@ -243,6 +270,15 @@ Future<bool> cacheInspectionImagesForDownload(
         );
       }
       if (token != null) progressSession?.endTask(token, success: succeeded);
+    } on EmptyServerImageException catch (empty) {
+      onWarning?.call(InspectionDownloadWarning(
+        hash: empty.hash,
+        filename: empty.filename,
+        locations: [_imageDownloadLocation(job.data, assets)],
+      ));
+      if (token != null) progressSession?.endTask(token, success: true);
+      debugPrint('Serverbild "${empty.filename}" (${empty.hash}) ist leer '
+          '(0 Byte); Download wird mit Hinweis fortgesetzt');
     } on InvalidServerImageArtifactException catch (artifact) {
       await _discardInvalidServerImageArtifact(job.data, artifact);
       if (token != null) progressSession?.endTask(token, success: true);
@@ -2177,10 +2213,18 @@ class FailedRequestmanager {
         collectedAssets.addAll(defects);
       }
 
+      final warnings = <InspectionDownloadWarning>[];
       final photosSucceeded = await cacheInspectionImagesForDownload(
         collectedAssets,
         progressSession: progressSession,
+        onWarning: warnings.add,
       );
+      if (photosSucceeded) {
+        await saveInspectionDownloadWarnings(
+          inspectionDownloadKey(inspection),
+          warnings,
+        );
+      }
       final documentsSucceeded = await cacheInspectionDocumentsForDownload(
         inspection,
         progressSession: progressSession,
@@ -2279,10 +2323,18 @@ class FailedRequestmanager {
 
       if (caller.currentData is InspectionLocation) {
         if (isRootDownloadCall) {
+          final warnings = <InspectionDownloadWarning>[];
           final photosSucceeded = await cacheInspectionImagesForDownload(
             collectedAssets,
             progressSession: progressSession,
+            onWarning: warnings.add,
           );
+          if (photosSucceeded) {
+            await saveInspectionDownloadWarnings(
+              inspectionDownloadKey(caller.currentData as InspectionLocation),
+              warnings,
+            );
+          }
           localAssetsSucceeded = localAssetsSucceeded && photosSucceeded;
         }
         progressSession?.setStep(

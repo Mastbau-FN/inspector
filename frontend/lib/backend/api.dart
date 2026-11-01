@@ -1136,6 +1136,11 @@ class API {
         final parsed = await rap.parser(res);
         completeProgress(parsed != null);
         if (parsed != null) return parsed;
+      } on EmptyServerImageException {
+        // Offline downloads turn this confirmed source-data problem into a
+        // warning. Ordinary image views already handle image lookup errors.
+        completeProgress(true);
+        rethrow;
       } on InvalidServerImageArtifactException {
         // Offline inspection downloads classify this permanent server-data
         // artifact separately from real image/network failures.

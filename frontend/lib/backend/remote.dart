@@ -610,6 +610,17 @@ class Remote {
             filename: filename!,
           );
         }
+        if (res.bodyBytes.isEmpty) {
+          if (res.statusCode == 200 && res.headers['content-length'] == '0') {
+            throw EmptyServerImageException(
+              hash: hash,
+              filename: filename ?? hash,
+            );
+          }
+          // A missing/truncated response is still a download failure. Only
+          // the server's explicit zero-byte source is safe to skip.
+          return null;
+        }
         try {
           String storedName;
           String? displayName;
@@ -659,8 +670,15 @@ class Remote {
             displayName = _stripImageExtension(storedName.split('/').last);
             await API().local.storeImage(res.bodyBytes, storedName);
           }
+          final image =
+              await API().local.readImage(storedName, cacheSize: null);
+          if (image == null) {
+            debugPrint('Serverbild $hash ($storedName) ist nicht lesbar '
+                '(${res.bodyBytes.length} Bytes)');
+            return null;
+          }
           return ImageData(
-            (await API().local.readImage(storedName, cacheSize: null))!,
+            image,
             id: hash,
             name: displayName,
           );

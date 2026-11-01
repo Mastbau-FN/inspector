@@ -30,3 +30,5 @@
 - Der Server verwendet Node.js 24.
 - Fehler, langsame Anfragen und Datenbankprobleme sind über Request-IDs zuordenbar; Zugangsdaten werden dabei nicht protokolliert.
 - Der Neustart bricht bei fehlgeschlagener Git-Aktualisierung oder ungültiger Serverkonfiguration vor dem Dienstwechsel ab.
+
+- update gradle & download view

@@ -1,0 +1,26 @@
+name: localstore
+description: A JSON file-based storage package provides a persistent repository for simple NoSQL database.
+
+version: 1.4.0
+homepage: https://github.com/chuyentt/localstore
+
+environment:
+  sdk: ">=2.19.6 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path: ^1.8.2
+  path_provider: ^2.0.11
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.2
+  mockito: ^5.0.0
+  lints: ^3.0.0
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
+
+flutter:

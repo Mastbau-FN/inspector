@@ -423,13 +423,13 @@ Future<void> deleteAll({
   final root = await getApplicationDocumentsDirectory();
   final cache = await getApplicationCacheDirectory();
   if (keepSkippedRequests) {
-    copyPath(root.path + "/" + SKIPPEDCOLLECTION,
+    await copyPath(root.path + "/" + SKIPPEDCOLLECTION,
         cache.path + "/" + SKIPPEDCOLLECTION);
     await deleteAll();
-    copyPath(cache.path + "/" + SKIPPEDCOLLECTION,
+    await copyPath(cache.path + "/" + SKIPPEDCOLLECTION,
         root.path + "/" + SKIPPEDCOLLECTION);
   } else {
-    root.delete(recursive: true);
+    await root.delete(recursive: true);
   }
 }
 
@@ -870,7 +870,7 @@ Future<String> storeData<DataT extends Data>(
       : db.collection(collectionName).doc().id;
 
   if (addId) json['local_id'] = id;
-  db.collection(collectionName).doc(id).set(json);
+  await db.collection(collectionName).doc(id).set(json);
 
   return id;
 }

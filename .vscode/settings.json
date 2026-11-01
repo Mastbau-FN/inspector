@@ -1,5 +1,6 @@
 {
   "todo-tree.tree.showBadges": false,
   "cmake.configureOnOpen": false,
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.gradle.java.home": "/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
 }

@@ -83,6 +83,8 @@ class DownloadProgressSession {
   final Map<int, int> _doneByStep = <int, int>{};
   final Set<int> _finishedSteps = <int>{};
   bool _finished = false;
+  bool? _succeeded;
+  bool? get succeeded => _succeeded;
   final Map<String, DownloadTaskToken> _reservedByKey =
       <String, DownloadTaskToken>{};
   final Set<int> _completedTaskIds = <int>{};
@@ -174,8 +176,9 @@ class DownloadProgressSession {
     return completer.future;
   }
 
-  void markFinished() {
+  void markFinished({bool? succeeded}) {
     _finished = true;
+    _succeeded = succeeded;
     for (int s = 0; s <= _stepCount; s++) {
       _finishedSteps.add(s);
     }
@@ -246,9 +249,9 @@ class DownloadProgress {
     return session;
   }
 
-  void finish(DownloadProgressSession session) {
+  void finish(DownloadProgressSession session, {bool? succeeded}) {
     if (!identical(_active, session)) return;
-    session.markFinished();
+    session.markFinished(succeeded: succeeded);
     _active = null;
     _activeKey = null;
     _lastFinished = session;

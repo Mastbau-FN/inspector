@@ -69,6 +69,22 @@ class InvalidServerImageArtifactException implements Exception {
       'InvalidServerImageArtifactException(hash: $hash, filename: $filename)';
 }
 
+/// The server successfully transferred a file whose declared size is zero.
+/// Retrying cannot provide a photo until that source file is repaired.
+class EmptyServerImageException implements Exception {
+  final String hash;
+  final String filename;
+
+  const EmptyServerImageException({
+    required this.hash,
+    required this.filename,
+  });
+
+  @override
+  String toString() =>
+      'EmptyServerImageException(hash: $hash, filename: $filename, 0 bytes)';
+}
+
 class BackendCommunicationException implements Exception {
   String? cause;
   @override

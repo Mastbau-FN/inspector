@@ -3,6 +3,7 @@
 import 'package:MBG_Inspektionen/backend/api.dart';
 import 'package:MBG_Inspektionen/backend/download_progress.dart';
 import 'package:MBG_Inspektionen/backend/failedRequestManager.dart';
+import 'package:MBG_Inspektionen/backend/inspection_download_warnings.dart';
 import 'package:MBG_Inspektionen/classes/documentData.dart';
 import 'package:MBG_Inspektionen/pages/checkcategories.dart';
 import 'package:flutter/material.dart';
@@ -319,6 +320,7 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   bool wasPressed = false;
   bool? success;
   DownloadProgressSession? _session;
+  List<InspectionDownloadWarning> _warnings = [];
 
   String get _downloadKey {
     final inspection = widget.caller.currentData;
@@ -328,13 +330,119 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   @override
   void initState() {
     super.initState();
+    DownloadProgress.instance.revision.addListener(_onDownloadRevision);
+    inspectionDownloadWarningsRevision.addListener(_loadWarnings);
     _syncDownloadState();
+    _loadWarnings();
+  }
+
+  @override
+  void dispose() {
+    DownloadProgress.instance.revision.removeListener(_onDownloadRevision);
+    inspectionDownloadWarningsRevision.removeListener(_loadWarnings);
+    super.dispose();
+  }
+
+  void _onDownloadRevision() {
+    if (!mounted) return;
+    setState(_syncDownloadState);
+    _loadWarnings();
   }
 
   @override
   void didUpdateWidget(covariant _RecursiveDownloadButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     _syncDownloadState();
+    if (inspectionDownloadKey(oldWidget.caller.currentData) != _downloadKey) {
+      _loadWarnings();
+    }
+  }
+
+  void _loadWarnings() async {
+    final key = _downloadKey;
+    final warnings = await loadInspectionDownloadWarnings(key);
+    if (!mounted || key != _downloadKey) return;
+    setState(() => _warnings = warnings);
+  }
+
+  void _showWarnings() {
+    if (!mounted || _warnings.isEmpty) return;
+    final shownWarnings = List<InspectionDownloadWarning>.of(_warnings);
+    final inspectionKey = _downloadKey;
+    var acknowledging = false;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Download erfolgreich'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Die Inspektion ist offline verfügbar. '
+                  '${shownWarnings.length} '
+                  '${shownWarnings.length == 1 ? 'Bilddatei ist' : 'Bilddateien sind'} '
+                  'auf dem Server leer '
+                  '(0 Byte) und wurden übersprungen. '
+                  'Bitte die Originaldateien prüfen.'),
+              for (final warning in shownWarnings)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(warning.filename,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      for (final location in warning.locations) Text(location),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              press();
+            },
+            child: const Text('Erneut prüfen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Schließen'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (acknowledging) return;
+              acknowledging = true;
+              try {
+                await acknowledgeInspectionDownloadWarnings(
+                  inspectionKey,
+                  shownWarnings,
+                );
+                if (dialogContext.mounted &&
+                    ModalRoute.of(dialogContext)?.isCurrent == true) {
+                  Navigator.of(dialogContext).pop();
+                }
+              } catch (_) {
+                acknowledging = false;
+                if (dialogContext.mounted) {
+                  ScaffoldMessenger.maybeOf(dialogContext)?.showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                      'Hinweise konnten nicht als geprüft gespeichert werden. '
+                      'Bitte erneut versuchen.',
+                    )),
+                  );
+                }
+              }
+            },
+            child: const Text('Fertig'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _syncDownloadState() {
@@ -345,6 +453,13 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       _session = activeSession;
       return;
     }
+    final completed = _session?.succeeded;
+    if (completed != null) {
+      wasPressed = true;
+      success = completed;
+      _session = null;
+      return;
+    }
     if (widget.caller.currentData.forceOffline && success != false) {
       wasPressed = true;
       success = true;
@@ -353,6 +468,7 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
   }
 
   void press() async {
+    if (!mounted) return;
     final activeSession = DownloadProgress.instance.active;
     final activeForThisInspection =
         DownloadProgress.instance.activeFor(_downloadKey);
@@ -403,16 +519,26 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
         widget.caller.currentData,
         rootId: rootid,
       );
+      final warnings = await loadInspectionDownloadWarnings(_downloadKey);
 
-      DownloadProgress.instance.finish(session);
+      DownloadProgress.instance.finish(session, succeeded: succeeded);
       if (!mounted) return;
       setState(() {
         _session = null;
         success = succeeded;
+        _warnings = warnings;
       });
+      if (succeeded && warnings.isNotEmpty) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+          content: Text('Download erfolgreich. '
+              '${warnings.length} leere Bilddateien bitte prüfen.'),
+          action: SnackBarAction(label: 'Details', onPressed: _showWarnings),
+          duration: const Duration(seconds: 8),
+        ));
+      }
     } catch (e, stackTrace) {
       debugPrint('Inspektionsdownload fehlgeschlagen: $e\n$stackTrace');
-      DownloadProgress.instance.finish(session);
+      DownloadProgress.instance.finish(session, succeeded: false);
       if (!mounted) return;
       setState(() {
         _session = null;
@@ -462,6 +588,19 @@ class _RecursiveDownloadButtonState extends State<_RecursiveDownloadButton> {
       );
     }
     if (success!) {
+      if (_warnings.isNotEmpty) {
+        return IconButton(
+          tooltip: 'Download erfolgreich – ${_warnings.length} '
+              '${_warnings.length == 1 ? 'Datei' : 'Dateien'} prüfen',
+          onPressed: _showWarnings,
+          icon: Badge(
+            label: Text('${_warnings.length}'),
+            backgroundColor: Colors.amber,
+            textColor: Colors.black,
+            child: const Icon(Icons.check, color: Colors.green),
+          ),
+        );
+      }
       return Icon(
         Icons.check,
         color: Colors.green,
