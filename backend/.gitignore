@@ -5,3 +5,8 @@ log
 __id_store
 __hash_store
 __hash_cache
+# Database dumps and restore logs hold real data and must stay out of the repo.
+sql_stuff/*.sql
+!sql_stuff/insp.sql
+sql_stuff/*.log
+*.dump
